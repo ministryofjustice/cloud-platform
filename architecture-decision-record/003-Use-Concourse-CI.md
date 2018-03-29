@@ -8,14 +8,14 @@ Pending
 
 ## Context
 
-The cloud platforms team currently use a self-host Jenkins server for CI/CD pipeline. This solution is not cloud native. There is a large amount of custom configuration which has equated to a vast amount of solution tickets and an opaque service which would be very difficult to recover [CPT-364](https://dsdmoj.atlassian.net/browse/CPT-364)  There is also a reoccurring issue which has caused a number of outages [CPT-384](https://dsdmoj.atlassian.net/browse/CPT-384).
+The cloud platforms team currently use a self-host Jenkins server for CI/CD pipeline. This solution is not cloud native. There is a large amount of custom configuration which has equated to a vast amount of user request tickets and an opaque service which would be very difficult to recover [CPT-364](https://dsdmoj.atlassian.net/browse/CPT-364)  There is also a reoccurring issue which has caused a number of outages [CPT-384](https://dsdmoj.atlassian.net/browse/CPT-384).
 
 Reasons behind this move were:
 
 * Average of almost one week per month spent on debugging, fixing and reviving jenkins
 * Unnecessary downtimes
 * With the move to Kubernetes a cloud native CI/CD solution is needed, all jobs are written as code
-* Not working jenkins was also a blocker for product teams
+* Non working jenkins was a blocker for product teams
 
 ## Decision
 
