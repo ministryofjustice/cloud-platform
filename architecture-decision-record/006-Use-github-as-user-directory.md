@@ -1,4 +1,4 @@
-# Use GitHub as user directory
+# Use GitHub as our identity provider
 
 Date 09/04/2018
 
@@ -10,7 +10,7 @@ Accepted
 
 As part of our [planning principles](https://docs.google.com/document/d/1kHaghp-68ooK-NwxozYkScGZThYJVrdOGWf4_K8Wo6s/edit) we highlighted "Building in access control" as a key principle for planning our building our new cloud platform.
 
-Making this work for the new cloud platform means implementing ways that users can access the various bits of the new infrastructure. This is likely to include access to Kubernetes (CLI and API), AWS (things like S3, RDS), GitHub, and any tooling we put on top of Kubernetes that users will access as part of running their apps (e.g. ELK, Prometheus, [Concourse](https://github.com/ministryofjustice/cloud-platform/blob/master/architecture-decision-record/003-Use-Concourse-CI.md)).
+Making this work for the new cloud platform means implementing ways that our users &mdash; mainly developers &mdash; can access the various bits of the new infrastructure. This is likely to include access to Kubernetes (CLI and API), AWS (things like S3, RDS), GitHub, and any tooling we put on top of Kubernetes that users will access as part of running their apps (e.g. ELK, [Prometheus](https://github.com/ministryofjustice/cloud-platform/blob/master/architecture-decision-record/005-Use-Promethus-For-Monitoring.md), [Concourse](https://github.com/ministryofjustice/cloud-platform/blob/master/architecture-decision-record/003-Use-Concourse-CI.md)).
 
 At the current time there is no consistent access policy for tooling. We use a mixture of the Google domain, GitHub and AWS accounts to access and manage the various parts of our infrastructure. This makes it hard for users to make sure that they have the correct permissions to do what they need to do, resulting in lots of requests for permissions. It also makes it harder to manage the user lifecycle (adding, removing, updating user permissions) and to track exactly who has access to what.
 
@@ -21,7 +21,7 @@ The current most complete source of this information for people who will be the 
 
 ## Decision
 
-We will use GitHub as user directory for the cloud platform.
+We will use GitHub as the identify provider for the cloud platform.
 
 We will design and build the new cloud platform with the assumption that users will login to all components using a single GitHub id.
 
@@ -30,4 +30,4 @@ We will design and build the new cloud platform with the assumption that users w
 
 We will define users and groups in GitHub and use GitHub's integration tools to provide access to other tools that require authentication.
 
-When adding new functionality or tooling to the platform we will design for using GitHub for authentication and authorisation. We will prefer tooling that does this natively, and will assess other solutions based on their ease of integration with GitHub.  
+When adding new functionality or tooling to the platform we will design for using GitHub for authentication and authorisation. We will prefer tooling that does this natively, and will assess other solutions based on their ease of integration with GitHub.
