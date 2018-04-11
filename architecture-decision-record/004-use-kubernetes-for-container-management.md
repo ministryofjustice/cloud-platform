@@ -10,7 +10,7 @@ Pending
 
 MOJ Digital's approach to infrastructure management and ownership has evolved over time, and has led to the following outcomes:
 
-- Unclear boundaries on ownership and responsibilities between service teams and the web operations team
+- Unclear boundaries on ownership and responsibilities between service teams and the cloud platforms team
 - Significant variation in deployment, monitoring and lifecycle management across products
 - Inefficient use of AWS resources due to the use of virtual machine-centric architecture, despite our standardisation on Docker containers
 
