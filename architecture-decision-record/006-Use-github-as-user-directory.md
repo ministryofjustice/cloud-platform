@@ -30,4 +30,4 @@ We will design and build the new cloud platform with the assumption that users w
 
 We will define users and groups in GitHub and use GitHub's integration tools to provide access to other tools that require authentication.
 
-When adding new functionality or tooling to the platform we will design for using GitHub for authentication and authorisation. We will prefer tooling that does this natively, and will assess other solutions based on their ease of integration with GitHub.
+When adding new functionality or tooling to the platform we will design for using GitHub for authentication and authorisation. We will prefer tooling that integrates with GitHub directly, or has support for standards-compliant OIDC authentication (or SAML if that is not available) as Auth0 allows us to use Github identities as a generic authN/authZ source using those protocols. We will assess other solutions based on their ease of integration with GitHub.
