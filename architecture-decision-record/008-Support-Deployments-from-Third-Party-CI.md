@@ -14,6 +14,8 @@ The cloud platforms team [is transitioning to Concourse CI](003-Use-Concourse-CI
 - We have not yet developed a streamlined approach to deployments through Concourse CI in order to confidently and properly offer support
 - Product teams already use third party CI systems
 
+We think it would be good as a starting point to make it easy for teams to deploy directly from the third party CI systems that teams are already using, rather than requiring the deployments to be implemented in Concourse CI.
+
 ## Decision
 
 We will support deploying applications to the Cloud Platform from third party CI systems and will offer documentation on how to do so, at least for the most commonly used CI systems.
