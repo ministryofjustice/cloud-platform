@@ -7,8 +7,9 @@ things into a GitHub issue on one of Cloud Platform's repos and ensuring
 that issue becomes a ticket in
 [waffle.io](https://waffle.io/ministryofjustice/cloud-platform).
 
-There are at least two different ways to do this.  I will touch on both,
-but only cover the one we use in the Cloud Platform in any detail.
+There are at least two different ways to do this.  I will cover the two
+main methods in use in Cloud Platform at the time of writing
+(2018-05-15).
 
 ## Adding a ticket
 
@@ -21,17 +22,41 @@ but only cover the one we use in the Cloud Platform in any detail.
 6) Open the `ministryofjustice/cloud-platform` project board.
 7) Click on the blue `Add Issue` button at the top of the page.
 8) Add a brief, descriptive title.
+5) Add some details about your issue.
 9) Pick the repo where the issue/ticket should be created--if you aren't
 sure which repo, ask the Product or Delivery Manager.
 10) Select the column where the ticket should start:
-  * `Inbox` is for as-yet-unestimated featrue work and should be
-    **mostly** in priority order;
-  * `Support To Do` for incoming support requests;
-  * `To Do` for items to go into the current sprint or in one of the
-    next two or three sprints.  These should be kept in priority order.
+    * `Inbox` is for as-yet-unestimated featrue work and should be **mostly** in priority order;
+    * `Support To Do` for incoming support requests;
+    * `To Do` for items to go into the current sprint or in one of the
+      next two or three sprints.  These should be kept in priority order.
 11) Associate the ticket with a label or milestone as required (both
 are optional.
 12) Save.
+
+## Working on a ticket
+
+1) Click on the person icon in the top-right-hand corner of the ticket.
+2) Assign yourself.
+3) Move the ticket to `To Do`.
+4) Do the thing!
+5) Create a Pull Request.
+   * The ticket should have the main details of the job.
+   * The Pull Request should contain an executive summary of this in its
+    description.
+6) Drop a link to the Pull Request into the `cloud-platform` slack
+channel and request someone reviews it.
+7) If no one picks it up within an hour or two, ping it again, or ask
+someone to do it directly.
+8) If changes are requested, either:
+   1) Make those changes and ask the same person to review the PR again.
+   1) Convince them the changes don't need to be made.
+   1) Ask them to approve and add their requested changes as new
+tickets/issues.
+9) On GitHub, when your PR is approved and all QA steps have passed:
+   1) `Squash and Merge` your branch to master.
+   2) `Delete Branch`
+10) Move your ticket to done.
 
 ## Getting a quick estimate online
 
