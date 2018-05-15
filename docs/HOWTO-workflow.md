@@ -11,7 +11,7 @@ There are at least two different ways to do this.  I will cover the two
 main methods in use in Cloud Platform at the time of writing
 (2018-05-15).
 
-## Adding a ticket
+## Adding a ticket using waffle.io
 
 1) Sign in to your GitHub account.
 2) Ensure your account is part of the organisation `ministryofjustice`.
@@ -68,3 +68,29 @@ estimate on a ticket do this:
 3) After enough relevant people have answered the poll and any
 differences in opinion have been discussed and resovled, add the
 estimate to the ticket by clicking on the scales icon.
+
+## Ticket workflow best practices
+
+### Limit work in progress
+
+Try to make sure you never have more than one active ticket and one
+ticket waiting for a Pull Request to be approved in `To Do`.  If you
+find yourself with more than one that needs active work (including one
+where you have to do more work to address PR comments), move the others
+back to `To Do` or `Support To Do` an unassign yourself.
+
+### Limit people working on tickets
+
+With a few exceptions-retro actions, for example-a ticket should never
+have more than two assigness.  If there is a compelling reason to have
+more than two, please check with one of the Team Leaders before making
+the assignment(s).
+
+### Push back on tickets if they lack necessary info
+
+If you go to pick up a ticket and it doesn't have enough information,
+the definition of done isn't clear, the circumstances have changed or
+there is something else wrong with it, feel free to push back on it.
+Label it as 'Needs info', bring it to the attention of the PM and DM,
+and pick up another ticket instead.
+
