@@ -34,6 +34,22 @@ sure which repo, ask the Product or Delivery Manager.
 are optional.
 12) Save.
 
+## Adding a ticket from a repo associated with waffle.io
+
+1) Go to the repo that your issue relates to (if you can't work out
+which one go to the [cloud-platform](ministryofjustice/cloud-platform) repo)
+2) Go to the `Issues` tab.
+3) Click `New issue`.
+4) Add a brief, descriptive title.
+5) Add some details about your issue.
+6) Click `Submit new issue`.
+7) Your issue with automatically appear in the `Inbox` column after a
+few seconds.
+8) Add the `support team` label if you want it to appear in `Support
+To Do` instead of `Inbox`.
+9) Add the `to do` label if you want it to appear in the `To Do` column
+instead of `Inbox`.
+
 ## Working on a ticket
 
 1) Click on the person icon in the top-right-hand corner of the ticket.
@@ -44,6 +60,7 @@ are optional.
    * The ticket should have the main details of the job.
    * The Pull Request should contain an executive summary of this in its
     description.
+   * <https://www.annashipman.co.uk/jfdi/good-pull-requests.html>
 6) Drop a link to the Pull Request into the `cloud-platform` slack
 channel and request someone reviews it.
 7) If no one picks it up within an hour or two, ping it again, or ask
@@ -60,11 +77,11 @@ tickets/issues.
 
 ## Getting a quick estimate online
 
-If you added an unesitmated ticket to `To Do`, or you need to get an
-estimate on a ticket do this:
+If you added an unesitmated ticket to `To Do`, you are responsible for
+getting an estimate for that ticket:
 
 1) Copy the ticket link into `#cloud-platform` slack
-2) Copy this code into slack in a link immediately following the link: `/poll “Estimate” “1"“2”“3"“5”“8"`
+2) Copy this code into slack: `/poll “Estimate <INSERT TICKET URL>” “1"“2”“3"“5”“8"`
 3) After enough relevant people have answered the poll and any
 differences in opinion have been discussed and resovled, add the
 estimate to the ticket by clicking on the scales icon.
