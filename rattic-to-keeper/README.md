@@ -21,5 +21,10 @@ Keeper
 ------
 
  - Managed service, hosted in AWS, publicly accesible at https://keepersecurity.com
- - Google auth integration documented at https://support.google.com/a/answer/7374103?hl=en, requires org 'super admin' privs
+ - Google auth integration documented at https://support.google.com/a/answer/7374103?hl=en, requires org 'super admin' privs; Keeper SSO architectural view documented in https://keepersecurity.com/assets/pdf/KeeperSSOConnect_v11.pdf
  - API documented mostly as part of the [Commander CLI client](https://github.com/Keeper-Security/Commander)
+ - API has limited number of calls: create shared folder, import secrets, delete everything (?!); important missing call is "create teams" https://github.com/Keeper-Security/Commander/issues/44
+ - Client doesn't have a clear or intuitive enough way of dealing with diffs, secret creation invoked multiple times with the same json results in multiple similar secrets
+ - There is no clear documentation on why a Folder is different than a Shared Folder and how they are dealt with by the API
+ - The "zero-knowledge" design of the platform makes some calls (esp search) quite slow
+
