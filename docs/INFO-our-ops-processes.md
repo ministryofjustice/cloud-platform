@@ -87,18 +87,77 @@ If someone is asking for help that will be quick to do (less than 15 mins) or is
 
 If someone needs something that takes longer, is more challenging to complete or you find you've spent longer than 15 mins on it, then continue to talk in the channel but also ask the person asking for help to raise a ticket using the GitHub issue link: [long version](https://github.com/ministryofjustice/cloud-platform/issues/new?template=cloud-platform-support-request.md&labels=support%20team) and [short version](goo.gl/msfGiS).
 
-The purpose of the ticket is to keep a record of the work we are doing and how it is progressing. It is *not* the primary communication channel with the person who raised the problem &emdash; this should remain slack where you can provide a richer and more human interaction, answering questions if necessary.
+The purpose of the ticket is to keep a record of the work we are doing and how it is progressing. It is *not* the primary communication channel with the person who raised the problem &emdash; this should remain slack where you can provide a richer and more human interaction, answering questions if necessary. The engineer working on the ticket should update the ticket for our record as work progresses.
 
-In many cases it can be more helpful for the you (the engineer on support) to create the ticket rather than the person reporting the problem as you will be able to provide more relevant context.
+In many cases it can be more helpful for the engineer on support to create the ticket rather than the person reporting the problem as you will be able to provide more relevant context.
 
 Once they have created the ticket it will appear in the `Support To Do` column of our [sprint board](https://waffle.io/ministryofjustice/cloud-platform). It can then be moved into the relevant columns as you work on it.
 
 ## What is our incident process
 
+An incident starts when a member of the support team says that it has. It is usually triggered by an alert that indicates a problem. The team member that calls it will send a message saying that there is an incident in progress to #cloud-platform and if user impacting, #ask-cloud-platforms.
+
+1. Support team chooses an incident lead. This person will be the main investigator of the incident. They start to work on the problem, calling on other team members (from the whole team) to help as required.
+
+2. The rest of the support team communicates the incident out to those who are impacting, including giving updates at regular schedules. The people that they communicate to include:
+    * Users who are affected by the problem &emdash; via #ask-cloud-platform
+    * Team members for awareness or as they might be able to help &emdash; via #cloud-platform and the `@cloud-platform-team` group
+    * People in the team who manage communication with senior leadership in MoJ &emdash; Steve, Karen, Tony.
+
+3. In a *high priority incident* (see below), the support team will gather every 1 hour to work out if additional people/skills are needed and update any external comms.
+
+4. Once the incident is resolved, the support team will communicate that out and prepare for a post mortem.  
+
 ## How do we prioritise incidents
+
+An incident is a system failure or degradation that has an impact on users of the cloud platform.
+
+The size of that impact determines the priority of the incident. At the moment, we find it useful to categories incidents as high priority  &emdash; we will begin work on any incident as soon as a member of the support team is available but high priority incidents require greater focus and communication.
+
+#### High priority
+
+* Service outages of user facing services
+* Slowdown or degradation of service on a user facing service
+* Failure of a system that stops one or more teams from working
+* Failure of a system that creates a major vulnerability in the cloud platform
 
 ## How we do postmortems
 
+In the cloud platform team we follow the practice of better understanding system failures through [blameless postmortems]().
+
+The point of a post mortem is to understand the various factors that led up to a system failure and to try to identify things that can be improved to try to stop a similar event occurring in future.
+
+Our approach to postmortems is to:
+
+* For high priority incidents to hold a group session as soon as possible after the incident is closed
+* Develop a timeline of the activities that led to the incident and its resolution
+* Walkthrough that timeline and use it to identify opportunities for improvements
+* Emerge with a prioritised list of improvements to be made, with owners
+* Write up and publish the postmortem, giving a record of the timeline and any actions that have been agreed
+
+We currently publish our postmortem reports on [pagerduty](). We have agreement to make these public and are in the process of working out how to do that.
+
 ## How we do on call
 
+Team members who are on call manage an on call rota in pagerduty. Anyone in the team is free to put themselves on the rota.
+
+The hours of on call are from 5PM - 10AM, with 5PM - 6PM and 9AM - 10AM being additionally covered by a team member from support who is online during those periods.
+
+On call team members will respond to high priority incidents out of hours and will work on those incidents for up to 1 hour. If the engineer is not able to resolve the issue within that timeframe they will put the service into maintenance mode and put together a plan to resolve the issue in hours.
+
+## Where does our documentation live
+
+For our current systems based around the Template Deploy tooling, our documentation lives in [Confluence](https://dsdmoj.atlassian.net/wiki/spaces/PLAT/overview). This documentation includes architecture, runbooks and common issues.
+
+During the development of the Cloud Platform we are putting our documentation into Git repos stored on Github. The starting point for this documentation is the [Cloud Platform repo](https://github.com/ministryofjustice/cloud-platform)
+
 ## How do we measure how we are doing
+
+We would like to measure:
+
+* System availability
+* Number of incidents and high priority incidents
+* Mean time to recovery
+* User happiness with support
+
+We do not currently have a process in place for measuring these but we are working on it.
