@@ -16,6 +16,10 @@ about: Create new Cloud Platform story
 
 <!-- Describe proposed approach -->
 
+## Questions / Assumptions
+
+<!-- Additional information to explain approach taken -->
+
 ## Definition of done
 
 <!-- Checklist for definition of done and acceptance criteria, for example: -->
