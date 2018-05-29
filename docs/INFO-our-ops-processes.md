@@ -6,7 +6,7 @@ This is a record of the operational processes that we will use to support our us
 
 Our hours of providing support are 10am - 5pm. During this time we will work on support requests from teams and make sure someone is available to answer questions in #ask-cloud-platform.
 
-Outside of these hours we will respond to high priority incidents as per our [on call]() process.
+Outside of these hours we will respond to high priority incidents as per our [on call](#our-on-call-process) process.
 
 ## Working hours
 
@@ -14,7 +14,7 @@ A member of the support team will be available online from 9am and until 6pm (it
 
 This support team member should be ready to respond to any high priority incidents.
 
-## How does the support sub team work
+## The support sub team
 
 The support sub team will consist of around 3 engineers. On average each cloud platform team member will be on the sub team for 2 weeks every 6 weeks.
 
@@ -42,7 +42,7 @@ _Before ending the day (6PM)_
 At least one engineer to:
 * Handover information about any planned work or in progress high priority incidents to on call engineer
 
-## #ask-cloud-platform
+## `#ask-cloud-platform` slack channel
 
 The #ask-cloud-platform channel is our main entry point for support. We encourage people to ask questions and report problems in this channel and we'll do the best we can to help them.
 
@@ -93,7 +93,7 @@ In many cases it can be more helpful for the engineer on support to create the t
 
 Once they have created the ticket it will appear in the `Support To Do` column of our [sprint board](https://waffle.io/ministryofjustice/cloud-platform). It can then be moved into the relevant columns as you work on it.
 
-## What is our incident process
+## Our incident process
 
 An incident starts when a member of the support team says that it has. It is usually triggered by an alert that indicates a problem. The team member that calls it will send a message saying that there is an incident in progress to #cloud-platform and if user impacting, #ask-cloud-platforms.
 
@@ -106,9 +106,9 @@ An incident starts when a member of the support team says that it has. It is usu
 
 3. In a *high priority incident* (see below), the support team will gather every 1 hour to work out if additional people/skills are needed and update any external comms.
 
-4. Once the incident is resolved, the support team will communicate that out and prepare for a post mortem.  
+4. Once the incident is resolved, the support team will communicate that out and prepare for a postmortem.  
 
-## How do we prioritise incidents
+## Prioritising incidents
 
 An incident is a system failure or degradation that has an impact on users of the cloud platform.
 
@@ -121,11 +121,11 @@ The size of that impact determines the priority of the incident. At the moment, 
 * Failure of a system that stops one or more teams from working
 * Failure of a system that creates a major vulnerability in the cloud platform
 
-## How we do postmortems
+## Postmortems
 
-In the cloud platform team we follow the practice of better understanding system failures through [blameless postmortems]().
+In the cloud platform team we follow the practice of better understanding system failures through [blameless postmortems](https://codeascraft.com/2012/05/22/blameless-postmortems/).
 
-The point of a post mortem is to understand the various factors that led up to a system failure and to try to identify things that can be improved to try to stop a similar event occurring in future.
+The point of a postmortem is to understand the various factors that led up to a system failure and to try to identify things that can be improved to try to stop a similar event occurring in future.
 
 Our approach to postmortems is to:
 
@@ -135,9 +135,9 @@ Our approach to postmortems is to:
 * Emerge with a prioritised list of improvements to be made, with owners
 * Write up and publish the postmortem, giving a record of the timeline and any actions that have been agreed
 
-We currently publish our postmortem reports on [pagerduty](). We have agreement to make these public and are in the process of working out how to do that.
+We currently publish our postmortem reports on [pagerduty](https://moj-digital-tools.pagerduty.com/postmortems/). We have agreement to make these public and are in the process of working out how to do that.
 
-## How we do on call
+## Our on call process
 
 Team members who are on call manage an on call rota in pagerduty. Anyone in the team is free to put themselves on the rota.
 
@@ -145,13 +145,13 @@ The hours of on call are from 5PM - 10AM, with 5PM - 6PM and 9AM - 10AM being ad
 
 On call team members will respond to high priority incidents out of hours and will work on those incidents for up to 1 hour. If the engineer is not able to resolve the issue within that timeframe they will put the service into maintenance mode and put together a plan to resolve the issue in hours.
 
-## Where does our documentation live
+## Our documentation
 
 For our current systems based around the Template Deploy tooling, our documentation lives in [Confluence](https://dsdmoj.atlassian.net/wiki/spaces/PLAT/overview). This documentation includes architecture, runbooks and common issues.
 
 During the development of the Cloud Platform we are putting our documentation into Git repos stored on Github. The starting point for this documentation is the [Cloud Platform repo](https://github.com/ministryofjustice/cloud-platform)
 
-## How do we measure how we are doing
+## Measuring how we are doing
 
 We would like to measure:
 
