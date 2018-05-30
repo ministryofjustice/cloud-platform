@@ -4,9 +4,9 @@ This is a record of the operational processes that we will use to support our us
 
 ## Hours of support
 
-Our hours of providing support are 10am - 5pm. During this time we will work on support requests from teams and make sure someone is available to answer questions in #ask-cloud-platform.
+Our hours of providing support are 10am - 5pm. During this time we will work on support requests from teams and make sure someone is available to answer questions in [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/).
 
-Outside of these hours we will respond to high priority incidents as per our [on call](#our-on-call-process) process.
+Outside of these hours we will respond to [high priority](#prioritising-incidents) incidents as per our [on call](#our-on-call-process) process.
 
 ## Working hours
 
@@ -22,15 +22,15 @@ The key activities for the day are:
 
 _On starting the day (9AM)_
 At least one engineer to:
-* Check the #low-priority-alarms and #high-priority-alarms slack channels for any issues to investigate
+* Check the [`#low-priority-alarms`](https://mojdt.slack.com/messages/C8QR5FQRX/) and [`#high-priority-alarms`](https://mojdt.slack.com/messages/C8PF51AT0/) slack channels for any issues to investigate
 * Check the board for any user requests that have been raised and not assigned
 * Get a handover from the on call engineer about any issues out of hours
-* Read through #ask-cloud-platform slack channel
+* Read through [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/) slack channel
 
 _During support hours (10AM - 5PM)_
 At least one engineer to:
-* Actively participate in #ask-cloud-platform to field support requests, triage, prioritise and fix
-* Monitor #high-priority-alarms and #low-priority alarms for incidents, triage, prioritise and fix
+* Actively participate in [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/) to field support requests, triage, prioritise and fix
+* Monitor [`#high-priority-alarms`](https://mojdt.slack.com/messages/C8PF51AT0/) and [`#low-priority-alarms`](https://mojdt.slack.com/messages/C8QR5FQRX/) for incidents, triage, prioritise and fix
 * Monitor user support requests being added to the board and triage them for priority
 
 The whole support team to:
@@ -44,7 +44,7 @@ At least one engineer to:
 
 ## `#ask-cloud-platform` slack channel
 
-The #ask-cloud-platform channel is our main entry point for support. We encourage people to ask questions and report problems in this channel and we'll do the best we can to help them.
+The [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/) channel is our main entry point for support. We encourage people to ask questions and report problems in this channel and we'll do the best we can to help them.
 
 One engineer should be available to answer questions throughout the hours of support (10AM - 5PM). This will take a bit of co-ordination for lunch etc so the support team should make sure someone is nominated for each period.  
 
@@ -59,7 +59,7 @@ When the solution is a quick one, it is good to have the whole conversation in t
 
 ### What we communicate
 
-The main purpose of #ask-cloud-platform is to discuss the problems that people are having and help them to solve them.
+The main purpose of [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/) is to discuss the problems that people are having and help them to solve them.
 
 Sometimes it is useful to make broadcast communications, examples include:
 
@@ -95,14 +95,14 @@ Once they have created the ticket it will appear in the `Support To Do` column o
 
 ## Our incident process
 
-An incident starts when a member of the support team says that it has. It is usually triggered by an alert that indicates a problem. The team member that calls it will send a message saying that there is an incident in progress to #cloud-platform and if user impacting, #ask-cloud-platforms.
+An incident starts when a member of the support team says that it has. It is usually triggered by an alert that indicates a problem. The team member that calls it will send a message saying that there is an incident in progress to [`#cloud-platform`](https://mojdt.slack.com/messages/C514ETYJX/) and if user impacting, [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/).
 
 1. Support team chooses an incident lead. This person will be the main investigator of the incident. They start to work on the problem, calling on other team members (from the whole team) to help as required.
 
 2. The rest of the support team communicates the incident out to those who are impacting, including giving updates at regular schedules. The people that they communicate to include:
-    * Users who are affected by the problem &emdash; via #ask-cloud-platform
-    * Team members for awareness or as they might be able to help &emdash; via #cloud-platform and the `@cloud-platform-team` group
-    * People in the team who manage communication with senior leadership in MoJ &emdash; Steve, Karen, Tony.
+    * Users who are affected by the problem &emdash; via [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/)
+    * Team members for awareness or as they might be able to help &emdash; via [`#cloud-platform`](https://mojdt.slack.com/messages/C514ETYJX/) and the `@cloud-platform-team` group
+    * People in the team who manage communication with senior leadership in MoJ &emdash; Steve, Karen, Tony, Kalbir.
 
 3. In a *high priority incident* (see below), the support team will gather every 1 hour to work out if additional people/skills are needed and update any external comms.
 
@@ -112,7 +112,7 @@ An incident starts when a member of the support team says that it has. It is usu
 
 An incident is a system failure or degradation that has an impact on users of the cloud platform.
 
-The size of that impact determines the priority of the incident. At the moment, we find it useful to categories incidents as high priority  &emdash; we will begin work on any incident as soon as a member of the support team is available but high priority incidents require greater focus and communication.
+The size of that impact determines the priority of the incident. At the moment, we find it useful to categories incidents as high priority &emdash; we will begin work on any incident as soon as a member of the support team is available but high priority incidents require greater focus and communication.
 
 #### High priority
 
@@ -139,11 +139,17 @@ We currently publish our postmortem reports on [pagerduty](https://moj-digital-t
 
 ## Our on call process
 
-Team members who are on call manage an on call rota in pagerduty. Anyone in the team is free to put themselves on the rota.
+Team members who are on call manage an on call rota in pagerduty. The on call rota consists of a primary engineer and a secondary engineer.
 
-The hours of on call are from 5PM - 10AM, with 5PM - 6PM and 9AM - 10AM being additionally covered by a team member from support who is online during those periods.
+Team members that are new to the rota should ensure that they have a secondary who has enough knowledge and experience of the process to support them.
 
-On call team members will respond to high priority incidents out of hours and will work on those incidents for up to 1 hour. If the engineer is not able to resolve the issue within that timeframe they will put the service into maintenance mode and put together a plan to resolve the issue in hours.
+The hours of on call are 7AM–10AM and 5PM–10PM weekdays, 7AM-10PM weekends and bank holidays. 9AM - 10AM and 5PM - 6PM are additionally covered by a team member from support who is online during those periods.
+
+On call team members will respond to high priority incidents out of hours and will work on those incidents for up to 1 hour. If the engineer is not able to resolve the issue within that timeframe they will:
+
+* put the service into maintenance mode
+* inform the affected team
+* put together a plan to resolve the issue in hours
 
 ## Our documentation
 
