@@ -1,4 +1,4 @@
-## References
+## GitHub References
 
 **Optional, can go anywhere in ticket**
 
@@ -38,7 +38,7 @@ that should be considered.
 - [ ] A checklist of all of the acceptance criteria, in rough priority
   order
 
-## Reference
+## Reference Information
 
 **FYI Remove as required**
 
