@@ -53,7 +53,7 @@ One engineer should be available to answer questions throughout the hours of sup
 In our responses we should aim to be:
 * friendly
 * timely
-* open &emdash; no question is stupid
+* open &mdash; no question is stupid
 
 When the solution is a quick one, it is good to have the whole conversation in the channel rather than in a direct message so that other people can search/see what the resolution was (it might help them or you in the future).
 
@@ -87,7 +87,7 @@ If someone is asking for help that will be quick to do (less than 15 mins) or is
 
 If someone needs something that takes longer, is more challenging to complete or you find you've spent longer than 15 mins on it, then continue to talk in the channel but also ask the person asking for help to raise a ticket using the GitHub issue link: [long version](https://github.com/ministryofjustice/cloud-platform/issues/new?template=cloud-platform-support-request.md&labels=support%20team) and [short version](https://goo.gl/msfGiS).
 
-The purpose of the ticket is to keep a record of the work we are doing and how it is progressing. It is *not* the primary communication channel with the person who raised the problem &emdash; this should remain slack where you can provide a richer and more human interaction, answering questions if necessary. The engineer working on the ticket should update the ticket for our record as work progresses.
+The purpose of the ticket is to keep a record of the work we are doing and how it is progressing. It is *not* the primary communication channel with the person who raised the problem &mdash; this should remain slack where you can provide a richer and more human interaction, answering questions if necessary. The engineer working on the ticket should update the ticket for our record as work progresses.
 
 In many cases it can be more helpful for the engineer on support to create the ticket rather than the person reporting the problem as you will be able to provide more relevant context.
 
@@ -100,9 +100,9 @@ An incident starts when a member of the support team says that it has. It is usu
 1. Support team chooses an incident lead. This person will be the main investigator of the incident. They start to work on the problem, calling on other team members (from the whole team) to help as required.
 
 2. The rest of the support team communicates the incident out to those who are impacting, including giving updates at regular schedules. The people that they communicate to include:
-    * Users who are affected by the problem &emdash; via [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/) and the affected team's own slack channels.
-    * Team members for awareness or as they might be able to help &emdash; via [`#cloud-platform`](https://mojdt.slack.com/messages/C514ETYJX/) and the `@cloud-platform-team` group
-    * People in the team who manage communication with senior leadership in MoJ &emdash; Steve, Karen, Tony, Kalbir.
+    * Users who are affected by the problem &mdash; via [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/) and the affected team's own slack channels.
+    * Team members for awareness or as they might be able to help &mdash; via [`#cloud-platform`](https://mojdt.slack.com/messages/C514ETYJX/) and the `@cloud-platform-team` group
+    * People in the team who manage communication with senior leadership in MoJ &mdash; Steve, Karen, Tony, Kalbir.
 
 3. In a *high priority incident* (see below), the support team will gather every 1 hour to work out if additional people/skills are needed and update any external comms.
 
@@ -112,7 +112,7 @@ An incident starts when a member of the support team says that it has. It is usu
 
 An incident is a system failure or degradation that has an impact on users of the cloud platform.
 
-The size of that impact determines the priority of the incident. At the moment, we find it useful to categories incidents as high priority &emdash; we will begin work on any incident as soon as a member of the support team is available but high priority incidents require greater focus and communication.
+The size of that impact determines the priority of the incident. At the moment, we find it useful to categories incidents as high priority &mdash; we will begin work on any incident as soon as a member of the support team is available but high priority incidents require greater focus and communication.
 
 #### High priority
 
