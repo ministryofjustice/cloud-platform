@@ -85,7 +85,7 @@ We will be doing this work between 10AM and 3PM, we will update at 1PM and 3PM t
 
 If someone is asking for help that will be quick to do (less than 15 mins) or is mainly advice then keep the interaction in channel and get it done.
 
-If someone needs something that takes longer, is more challenging to complete or you find you've spent longer than 15 mins on it, then continue to talk in the channel but also ask the person asking for help to raise a ticket using the GitHub issue link: [long version](https://github.com/ministryofjustice/cloud-platform/issues/new?template=cloud-platform-support-request.md&labels=support%20team) and [short version](goo.gl/msfGiS).
+If someone needs something that takes longer, is more challenging to complete or you find you've spent longer than 15 mins on it, then continue to talk in the channel but also ask the person asking for help to raise a ticket using the GitHub issue link: [long version](https://github.com/ministryofjustice/cloud-platform/issues/new?template=cloud-platform-support-request.md&labels=support%20team) and [short version](https://goo.gl/msfGiS).
 
 The purpose of the ticket is to keep a record of the work we are doing and how it is progressing. It is *not* the primary communication channel with the person who raised the problem &emdash; this should remain slack where you can provide a richer and more human interaction, answering questions if necessary. The engineer working on the ticket should update the ticket for our record as work progresses.
 
@@ -100,7 +100,7 @@ An incident starts when a member of the support team says that it has. It is usu
 1. Support team chooses an incident lead. This person will be the main investigator of the incident. They start to work on the problem, calling on other team members (from the whole team) to help as required.
 
 2. The rest of the support team communicates the incident out to those who are impacting, including giving updates at regular schedules. The people that they communicate to include:
-    * Users who are affected by the problem &emdash; via [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/)
+    * Users who are affected by the problem &emdash; via [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/) and the affected team's own slack channels.
     * Team members for awareness or as they might be able to help &emdash; via [`#cloud-platform`](https://mojdt.slack.com/messages/C514ETYJX/) and the `@cloud-platform-team` group
     * People in the team who manage communication with senior leadership in MoJ &emdash; Steve, Karen, Tony, Kalbir.
 
@@ -173,3 +173,4 @@ We do not currently have a process in place for measuring these but we are worki
 The cloud platform team approved this document:
 
 - Sablu Miah
+-
