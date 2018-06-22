@@ -167,3 +167,9 @@ We would like to measure:
 * User happiness with support
 
 We do not currently have a process in place for measuring these but we are working on it.
+
+## Approved
+
+The cloud platform team approved this document:
+
+- Sablu Miah
