@@ -176,3 +176,4 @@ The cloud platform team approved this document:
 - Paul Wyborn
 - Antony Bishop
 - Dimitrios Karagiannis
+- Răzvan Cosma 
