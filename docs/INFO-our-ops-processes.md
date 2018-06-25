@@ -178,3 +178,4 @@ The cloud platform team approved this document:
 - Dimitrios Karagiannis
 - Răzvan Cosma
 - Lukasz Raczylo
+- Nayo Akinyele
