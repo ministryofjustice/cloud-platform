@@ -175,3 +175,4 @@ The cloud platform team approved this document:
 - Sablu Miah
 - Paul Wyborn
 - Antony Bishop
+- Dimitrios Karagiannis
