@@ -179,3 +179,4 @@ The cloud platform team approved this document:
 - Răzvan Cosma
 - Lukasz Raczylo
 - Nayo Akinyele
+- John Ojuolape
