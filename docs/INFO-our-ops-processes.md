@@ -10,7 +10,7 @@ Outside of these hours we will respond to [high priority](#prioritising-incident
 
 ## Working hours
 
-A member of the support team will be available online from 9am and until 6pm (it doesn't have to be the same person for both). This team member can be working remotely. We are doing this so that we cover incident response for the time when the person on call has is coming into the office or going home at the end of the day.
+A member of the support team will be available online from 9am and until 6pm (it doesn't have to be the same person for both). This team member can be working remotely. We are doing this so that we cover incident response for the time when the person on call is coming into the office or going home at the end of the day.
 
 This support team member should be ready to respond to any high priority incidents.
 
@@ -93,13 +93,17 @@ In many cases it can be more helpful for the engineer on support to create the t
 
 Once they have created the ticket it will appear in the `Support To Do` column of our [sprint board](https://waffle.io/ministryofjustice/cloud-platform). It can then be moved into the relevant columns as you work on it.
 
+**Note**
+
+New support tickets added by users who are not part of the WebOps Github team will not automatically appear in the Support To Do column yet. This is due to Github permissions not being fine-grained enough to permit MoJ organisation users who are not on WebOps to create the necessary label. This should be fixed soon. Until it is you may see some support tickets appear in Inbox and not Support To Do.
+
 ## Our incident process
 
 An incident starts when a member of the support team says that it has. It is usually triggered by an alert that indicates a problem. The team member that calls it will send a message saying that there is an incident in progress to [`#cloud-platform`](https://mojdt.slack.com/messages/C514ETYJX/) and if user impacting, [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/).
 
 1. Support team chooses an incident lead. This person will be the main investigator of the incident. They start to work on the problem, calling on other team members (from the whole team) to help as required.
 
-2. The rest of the support team communicates the incident out to those who are impacting, including giving updates at regular schedules. The people that they communicate to include:
+2. The rest of the support team communicates the incident out to those who are impacted, including giving updates at regular intervals. People to include:
     * Users who are affected by the problem &mdash; via [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/) and the affected team's own slack channels.
     * Team members for awareness or as they might be able to help &mdash; via [`#cloud-platform`](https://mojdt.slack.com/messages/C514ETYJX/) and the `@cloud-platform-team` group
     * People in the team who manage communication with senior leadership in MoJ &mdash; Steve, Karen, Tony, Kalbir.
@@ -185,4 +189,5 @@ The cloud platform team approved this document:
 
 
 
-- Todd Tyree
+
+- Kalbir Sohi
