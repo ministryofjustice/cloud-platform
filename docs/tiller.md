@@ -6,9 +6,8 @@ Note: Helm should be installed locally before running the below.
 $ brew install kubernetes-helm
 ```
 
-Steps:
-1. Clone the `ministryofjustice/kubernetes-investigations` repo 
-https://github.com/ministryofjustice/kubernetes-investigations
+**Steps:**
+1. Clone the [`ministryofjustice/kubernetes-investigations`](https://github.com/ministryofjustice/kubernetes-investigations) repository
 2. `$ kubectl apply -f ./cluster-components/helm/rbac-config.yml`
 3. `$ helm init --tiller-namespace kube-system --service-account tiller`
 
