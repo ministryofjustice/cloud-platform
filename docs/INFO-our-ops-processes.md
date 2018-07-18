@@ -180,4 +180,5 @@ The cloud platform team approved this document:
 - Lukasz Raczylo
 - Nayo Akinyele
 - John Ojuolape
+- Karen Botsh
 - Steve Marshall
