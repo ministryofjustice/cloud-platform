@@ -51,13 +51,7 @@ tar -xvf aws-service-broker-install.tar.gz -C asb
 rm aws-service-broker-install.tar.gz
 ```
 
-Edit `asb/k8s-variable.yaml` and populate the values from the terraform outputs (refer to the getting started document).
-
-Don't forget to change the region and set the VPC id for the cluster.
-
-```
-aws --output json ec2 describe-vpcs --filters=Name=tag:Name,Values="$(terraform workspace show)"  | jq -r '.Vpcs[0].VpcId'
-```
+Edit `asb/k8s-variable.yaml` and populate the values from the terraform outputs (refer to the getting started document). Don't forget to change the region.
 
 Install the broker.
 

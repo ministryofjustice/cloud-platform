@@ -172,6 +172,20 @@ resource "aws_iam_access_key" "asb" {
   user = "${aws_iam_user.asb.name}"
 }
 
+data "aws_vpc" "cluster" {
+  filter {
+    name = "tag:Name"
+
+    values = [
+      "${terraform.workspace}",
+    ]
+  }
+}
+
+output "VPC_ID" {
+  value = "${data.aws_vpc.cluster.id}"
+}
+
 output "AWS_ACCESS_KEY_ID" {
   value = "${aws_iam_access_key.asb.id}"
 }
