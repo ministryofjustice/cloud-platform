@@ -184,6 +184,7 @@ The cloud platform team approved this document:
 - Lukasz Raczylo
 - Nayo Akinyele
 - John Ojuolape
+- Jason Birchall
 - Ollie Anwyll
 - Todd Tyree
 - Kalbir Sohi
