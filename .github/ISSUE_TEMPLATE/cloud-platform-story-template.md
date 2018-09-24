@@ -16,6 +16,10 @@ about: Create new Cloud Platform story
 
 <!-- Describe proposed approach -->
 
+## Which part of the user docs does this impact
+
+<!-- Describe which parts of the user docs might need updates or changes as part of this work -->
+
 ## Questions / Assumptions
 
 <!-- Additional information to explain approach taken -->
@@ -24,9 +28,10 @@ about: Create new Cloud Platform story
 
 <!-- Checklist for definition of done and acceptance criteria, for example: -->
 
-- [ ] must compile
-- [ ] must pass tests
-- [ ] must address all the steps of user journey
+- [ ] readme has been updated
+- [ ] user docs have been updated
+- [ ] another team member has reviewed
+- [ ] smoke tests are green
 
 ## Reference
 
