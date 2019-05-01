@@ -11,6 +11,10 @@ board](https://waffle.io/ministryofjustice/cloud-platform).
 It's best to search our board before adding new Issues in an effort to
 reduce duplicates and encourage activity on existing conversations.
 
+## Links
+
+ * [Architecture Decision Records](architecture-decision-record)
+
 ## Cloud platform repo list
 
 We have a series of repositories for our work that we have listed below. We have adopted the naming convention of starting each repo with `cloud-platform-`. Where some repos have a similar purpose we try to name them similarly, (e.g. `cloud-platform-terraform-*` for terraform modules). We also try to [name things](https://ministryofjustice.github.io/technical-guidance/standards/naming-things/#naming-things) so that users can infer a basic understanding of what a given thing does from its name.
