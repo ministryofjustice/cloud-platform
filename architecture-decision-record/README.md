@@ -27,3 +27,11 @@ We use a format with just a few parts, so each document is easy to digest. The f
 **Consequences** This section describes the resulting context, after applying the decision. All consequences should be listed here, not just the "positive" ones. A particular decision may have positive, negative, and neutral consequences, but all of them affect the team and project in the future.
 
 The whole document should be one or two pages long. We will write each ADR as if it is a conversation with a future person joining the team. This requires good writing style, with full sentences organised into paragraphs. Bullets are acceptable only for visual style, not as an excuse for writing sentence fragments.
+
+### Statuses:
+
+* Proposed: 🤔
+* Accepted: ✅
+* Rejected: ❌
+* Superseded: ⌛️
+* Amended: ♻️
