@@ -1,6 +1,4 @@
 # Ministry of Justice Cloud Platform Master Repo
-[![Waffle.io - Columns and their card
-count](https://badge.waffle.io/ministryofjustice/cloud-platform.svg?columns=all)](https://waffle.io/ministryofjustice/cloud-platform)
 
 ## About this Repository
 This is the MoJ Cloud Platform team's repository for public facing
