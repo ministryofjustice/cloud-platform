@@ -12,6 +12,8 @@ This is a high-level overview of the components and services which comprise the 
 
 ![Cloud Platform Architecture](images/Cloud-Platform-Architecture-Diagram.png)
 
+The source for this diagram is [here][Architecture Diagram]
+
 Below is a diagram that gives an architectural overview of the pipeline process:
 
 ![Architecture Diagram](images/arch-dia-v1.png)
@@ -61,3 +63,5 @@ During the final stages of the pipeline process, there will come a point where C
 This outcome will automatically be posted into the '#cp-build-notification' Slack channel.
 
 This is useful information for developers and members of the Cloud Platform team.
+
+[Architecture Diagram]: https://docs.google.com/drawings/d/1QQpTN8i2n3QZwIELTTbnxpTNy83eP0T50nVv_2aLx5g/edit?usp=sharing
