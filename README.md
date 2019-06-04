@@ -11,6 +11,7 @@ reduce duplicates and encourage activity on existing conversations.
 
 ## Links
 
+ * [Architecture Diagram]
  * [Architecture Decision Records](architecture-decision-record)
 
 ## Cloud platform repo list
@@ -51,3 +52,4 @@ We have a series of repositories for our work that we have listed below. We have
 | Port-fowarding Image | https://github.com/ministryofjustice/cloud-platform-port-forward-docker-image | Small Docker image to forward network traffic as a non-root user, as described in the [RDS module instructions][rds-port-forward] |
 
 [rds-port-forward]: https://github.com/ministryofjustice/cloud-platform-terraform-rds-instance#access-outside-the-cluster
+[Architecture Diagram]: https://docs.google.com/drawings/d/1QQpTN8i2n3QZwIELTTbnxpTNy83eP0T50nVv_2aLx5g/edit?usp=sharing
