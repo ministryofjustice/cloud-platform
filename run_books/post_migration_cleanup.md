@@ -12,32 +12,46 @@ The intention of this document is to provide a run book for all activities requi
   - Ensure live service is still functioning!
 
 ## When to use this doument?
-After a service has migrated to the Cloud Platform and is considered live. In this instance live refers to a service being used...
+Once a service has been migrated to the Cloud Platform from Template Deploy there will be a number of cleanup tasks required to ensure legacy resources have been removed. These tasks will be listed in this document (below). Thoughout this process we recommend making a note/record of deleted resources, including things like S3 buckets and RDS databases. This will allow you to reference your actions to service teams, if required.
 
-Throughout this process, we recommend you make a note of resources you delete including S3 buckets. This will allow you to reference your actions to service teams.
+## 0 Pre-requisites
+There are a couple of suggested pre-requisites before performing the tasks in this document.
 
-## Turn off Template Deploy monitoring and alerting
+### 0.1 Identify AWS account
+Traditionally, production Template Deploy applications lived in the [mojdsd AWS account](). However, this isn't always the case. You'll need to identify which AWS account your application lives in. The recommended approach for this task is to speak to service teams Product Managers.
 
-### Step 1: Identify the Cloudformation stack name
+### 0.2 Ensure newly migrated application works
+Alot of tasks in this document will involve destroying resources, it is vitally important you are sure 100% of production traffic is being routed to the Cloud Platform. 
 
-### Step 2: Delete Cloudformation stack
+## 1 Turn off Template Deploy monitoring and alerting
+Monitoring and alerting for Template Deploy was achived via a seperate Cloudformation stack using a template from [another project](https://github.com/ministryofjustice/MOJ-Service-Catalog/blob/master/submodules/cloudwatch-legacy-monitoring.template). This stack mainly consisted of Cloudwatch alarms and dashboards.
 
-Cloud watch, how to remove all alerts from cloudwatch, maybe pics...
+### 1.1 Identify the Cloudformation stack name
+Access the AWS console and open Cloudformation. Identify the stack name, which has a suffix of `-monitoring`, for example `graphite-monitoring`.
 
-## Archive the deployment repository
+### 1.2 Delete Cloudformation stack
+Cloudformation stack deletion is fairly trivial. In the AWS console, select your stack, click actions and then delete. This will take a few minutes to complete, but will disappear from your list of available stacks. 
+
+
+## 2 Archive the deployment repository
 Traditionally there will be a Template Deploy GitHub repository usually named in the format <service>-deploy (e.g. `graphite-deploy`). This repository is redundant and can be archived.
 
-### Step 1: Change the repository name
+All actions in this task are performed in the `ministryofjustice` GitHub account. 
 
-### Step 2: Change the repository description
+### 2.1 Identify the appropriate repostory name
+As stated above, perform a search in the `ministryofjustice` GitHub account for your service name with the `-deploy` suffix.
 
-### Step 3: Add a note in the README.md
+### 2.2 Change the repository description
+Simply add a `**DEPRECATED**` message at the front of your description and perhaps a message explaining why the repository has been archived. 
 
-### Step 4: Actually archive the repository
+### 2.3 Add a note in the README.md
+It is also appropriate to add a note at the top of the `README.md` file signalling the reason for deprecation. 
 
+### 2.4 Actually archive the repository
+GitHub have written a handy article on how to archive repositories. Please read through [this](https://help.github.com/en/articles/archiving-repositories) document.
 
-This is the *-deploy GH repositories. How to archive and what messages to place...
-## Backup data
+## 3 Backup old Template Deploy data
+Not all Template Deploy applications have an RDS or data storage of some kind. If 
 
 ### Step 1: Identify RDS name in AWS console
 
