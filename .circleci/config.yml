@@ -20,7 +20,7 @@ jobs:
             # Currently, this is the 'cloud-platform-moj' github user account.
             # The GitHub user must be added to the cloud-platform-user-guide
             # repository as an admin.
-            - "47:cc:e4:9a:06:d6:c2:94:da:46:89:8a:4d:cd:70:27"
+            - "0a:2d:c5:64:7e:e8:c5:d3:89:78:f9:ac:eb:91:32:2d"
 
       - checkout
 
