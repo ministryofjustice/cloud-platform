@@ -10,7 +10,7 @@ Accepted
 
 On the Cloud Platform, there is a need to implement various policies to safeguard our tenant applications and to enforce best practices.
 
-Kubernetes offers various mechanisms that cover some of our needs (eg.: `ResourceQuotas` and `PodSecurityPolicies`) but there are other areas for which there is no builtin solution. However, kubernetes implements a Dynamic Admission Control API which introduces [admission webhooks][admission-control]. This API provides an easy way with which to expand on the existing admission controllers (built in the apiserver).
+Kubernetes offers various mechanisms that cover some of our needs (eg.: `ResourceQuotas` to prevent resource exhaustion and `PodSecurityPolicies` to enforce non-root containers) but there are other areas for which there is no builtin solution. However, kubernetes implements a Dynamic Admission Control API which introduces [admission webhooks][admission-control]. This API provides an easy way with which to expand on the existing admission controllers (built in the apiserver).
 
 Our immediate need was to prevent users from reusing hostnames in `Ingresses`. Although our ingress controller prevents hijacking of hostnames, we felt the user should not be allowed to reuse hostnames already defined in other `Ingresses` and receive a useful error message if they try to do that.
 
