@@ -3,7 +3,7 @@ jobs:
   build:
     branches:
       only:
-        - add-runbooks-site
+        - master
     docker:
       # This docker image is created from the Dockerfile in
       # this repository.
