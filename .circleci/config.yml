@@ -1,0 +1,37 @@
+version: 2
+jobs:
+  build:
+    branches:
+      only:
+        - add-runbooks-site
+    docker:
+      # This docker image is created from the Dockerfile in
+      # this repository.
+      - image: ministryofjustice/cloud-platform-runbooks
+
+    working_directory: ~/repo
+
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            # this SSH key must be configured in the account of the github user
+            # who will be pushing changes. The corresponding private key must
+            # be added to the project on circleci.com
+            # Currently, this is the 'cloud-platform-moj' github user account.
+            # The GitHub user must be added to the cloud-platform-user-guide
+            # repository as an admin.
+            - "47:cc:e4:9a:06:d6:c2:94:da:46:89:8a:4d:cd:70:27"
+
+      - checkout
+
+        # Build the user guide
+      - run: mkdir runbooks/compiled || true
+      - run: cd runbooks; bundle exec middleman build --build-dir compiled
+
+        # Replace compiled/.nojekyll (which gets deleted during the build process) so github knows we're
+        # not using jekyll. Without this, github will try to process our files, and error.
+      - run: touch runbooks/compiled/.nojekyll
+
+        # Run the script to push the compiled files to the 'runbooks' github pages
+        # repository
+      - run: runbooks/bin/publish

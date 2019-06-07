@@ -1,0 +1,37 @@
+---
+title: Add a new runbook
+weight: 9999
+---
+
+# Add a new runbook
+
+#### 1. `git pull` to get the latest changes
+#### 2. Create a feature branch for your new runbook
+#### 3. Run `make server` to start a development webserver to view your changes
+#### 4. Add your runbook as a new file in the [source] directory
+
+* Your filename must match `*.html.md.erb`
+* Your file must have a header section like this
+
+```
+---
+title: Add a new runbook
+weight: 9999
+---
+```
+
+- The `weight` value controls ordering in the table of contents
+- Use `position * 100` to leave enough room for new runbooks
+- Do not put leading zeroes on the `weight` value, they won't work
+* Your content **must** start with a markdown heading one line, e.g.
+
+```
+# Add a new runbook
+```
+#### 5. Push your feature branch and raise a PR
+#### 6. Merge your PR and delete your feature branch
+
+CircleCI will compile and deploy a new version of the runbooks guide, with your changes.
+
+[source]: https://github.com/digitalronin/cloud-platform/tree/master/runbooks/source
+
