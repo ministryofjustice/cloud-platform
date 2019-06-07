@@ -9,9 +9,6 @@ phase: INTERNAL
 
 # Links to show on right-hand-side of header
 header_links:
-  # This mailto link must contain the text 'Feedback' in order to trigger the javascript
-  # function in source/layouts/custom.erb which adds the current window.location to the
-  # body of the resulting email message.
   'Feedback / Report a problem': 'mailto:platforms+runbooks@digital.justice.gov.uk?subject=Runbooks+feedback'
 
   Documentation: /
