@@ -4,7 +4,7 @@ This is a record of the operational processes that we will use to support our us
 
 ## Hours of support
 
-Our hours of providing support are 10am - 5pm. During this time we will work on support requests from teams and make sure someone is available to answer questions in [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/).
+Our hours of providing support are 10am - 5pm. During this time we will work on support requests from teams and make sure someone is available to answer questions in [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/) and look at PR request notifications for the cloud-platform-environments repo on [`#cloud-platform-notify`](https://mojdt.slack.com/messages/CA5MDLM34/)
 
 Outside of these hours we will respond to [high priority](#prioritising-incidents) incidents as per our [on call](#our-on-call-process) process.
 
@@ -16,7 +16,7 @@ This support team member should be ready to respond to any high priority inciden
 
 ## The support sub team
 
-The support sub team will consist of around 3 engineers. On average each cloud platform team member will be on the sub team for 2 weeks every 6 weeks.
+The support sub team will consist of around 1-2 engineers. Each cloud platform team member will be on the sub team on a regular basis.
 
 The key activities for the day are:
 
@@ -31,6 +31,7 @@ _During support hours (10AM - 5PM)_
 At least one engineer to:
 * Actively participate in [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/) to field support requests, triage, prioritise and fix
 * Monitor [`#high-priority-alarms`](https://mojdt.slack.com/messages/C8PF51AT0/) and [`#low-priority-alarms`](https://mojdt.slack.com/messages/C8QR5FQRX/) for incidents, triage, prioritise and fix
+* Monitor [`#cloud-platform-notify`](https://mojdt.slack.com/messages/CA5MDLM34/) for cloud-platform-environments repo PR request notifications and cloud platform build notifications.
 * Monitor user support requests being added to the board and triage them for priority
 
 The whole support team to:
@@ -53,7 +54,7 @@ One engineer should be available to answer questions throughout the hours of sup
 In our responses we should aim to be:
 * friendly
 * timely
-* open &mdash; no question is stupid
+* open - no question is stupid
 
 When the solution is a quick one, it is good to have the whole conversation in the channel rather than in a direct message so that other people can search/see what the resolution was (it might help them or you in the future).
 
@@ -61,7 +62,25 @@ When the solution is a quick one, it is good to have the whole conversation in t
 
 The main purpose of [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/) is to discuss the problems that people are having and help them to solve them.
 
-Sometimes it is useful to make broadcast communications, examples include:
+### User support tickets
+
+If someone is asking for help that will be quick to do (less than 15 mins) or is mainly advice then keep the interaction in channel and get it done.
+
+If someone needs something that takes longer, is more challenging to complete or you find you've spent longer than 15 mins on it, then continue to talk in the channel but also ask the person asking for help to raise a ticket using the GitHub issue link: [long version](https://github.com/ministryofjustice/cloud-platform/issues/new?template=cloud-platform-support-request.md&labels=support%20team) and [short version](https://goo.gl/msfGiS).
+
+The purpose of the ticket is to keep a record of the work we are doing and how it is progressing. It is *not* the primary communication channel with the person who raised the problem - this should remain slack where you can provide a richer and more human interaction, answering questions if necessary. The engineer working on the ticket should update the ticket for our record as work progresses.
+
+In many cases it can be more helpful for the engineer on support to create the ticket rather than the person reporting the problem as you will be able to provide more relevant context.
+
+Once they have created the ticket it will appear in the `Support To Do` column of our [sprint board](https://waffle.io/ministryofjustice/cloud-platform). It can then be moved into the relevant columns as you work on it.
+
+**Note**
+
+New support tickets added by users who are not part of the WebOps Github team will not automatically appear in the Support To Do column yet. This is due to Github permissions not being fine-grained enough to permit MoJ organisation users who are not on WebOps to create the necessary label. This should be fixed soon. Until it is you may see some support tickets appear in Inbox and not Support To Do.
+
+## `#cloud-platform-update` slack channel
+
+[`#cloud-platform-update`](https://mojdt.slack.com/messages/CH6D099DF/) has been created to make broadcast communications, examples include:
 
 * when there is planned work on a service (e.g. we are completing maintenance on Postgres RDS instance in prod)
 * when there is an incident in progress (e.g there is a problem with Jenkins, no one can access it right now)
@@ -81,32 +100,17 @@ As agreed with the relevant teams, the cloud platform team will be upgrading Pos
 We will be doing this work between 10AM and 3PM, we will update at 1PM and 3PM to say how it is going.
 ```
 
-### User support tickets
-
-If someone is asking for help that will be quick to do (less than 15 mins) or is mainly advice then keep the interaction in channel and get it done.
-
-If someone needs something that takes longer, is more challenging to complete or you find you've spent longer than 15 mins on it, then continue to talk in the channel but also ask the person asking for help to raise a ticket using the GitHub issue link: [long version](https://github.com/ministryofjustice/cloud-platform/issues/new?template=cloud-platform-support-request.md&labels=support%20team) and [short version](https://goo.gl/msfGiS).
-
-The purpose of the ticket is to keep a record of the work we are doing and how it is progressing. It is *not* the primary communication channel with the person who raised the problem &mdash; this should remain slack where you can provide a richer and more human interaction, answering questions if necessary. The engineer working on the ticket should update the ticket for our record as work progresses.
-
-In many cases it can be more helpful for the engineer on support to create the ticket rather than the person reporting the problem as you will be able to provide more relevant context.
-
-Once they have created the ticket it will appear in the `Support To Do` column of our [sprint board](https://waffle.io/ministryofjustice/cloud-platform). It can then be moved into the relevant columns as you work on it.
-
-**Note**
-
-New support tickets added by users who are not part of the WebOps Github team will not automatically appear in the Support To Do column yet. This is due to Github permissions not being fine-grained enough to permit MoJ organisation users who are not on WebOps to create the necessary label. This should be fixed soon. Until it is you may see some support tickets appear in Inbox and not Support To Do.
 
 ## Our incident process
 
-An incident starts when a member of the support team says that it has. It is usually triggered by an alert that indicates a problem. The team member that calls it will send a message saying that there is an incident in progress to [`#cloud-platform`](https://mojdt.slack.com/messages/C514ETYJX/) and if user impacting, [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/).
+An incident starts when a member of the support team says that it has. It is usually triggered by an alert that indicates a problem. The team member that calls it will send a message saying that there is an incident in progress to [`#cloud-platform`](https://mojdt.slack.com/messages/C514ETYJX/) and if user impacting, [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/) and [`#cloud-platform-update`](https://mojdt.slack.com/messages/CH6D099DF/)
 
 1. Support team chooses an incident lead. This person will be the main investigator of the incident. They start to work on the problem, calling on other team members (from the whole team) to help as required.
 
 2. The rest of the support team communicates the incident out to those who are impacted, including giving updates at regular intervals. People to include:
-    * Users who are affected by the problem &mdash; via [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/) and the affected team's own slack channels.
-    * Team members for awareness or as they might be able to help &mdash; via [`#cloud-platform`](https://mojdt.slack.com/messages/C514ETYJX/) and the `@cloud-platform-team` group
-    * People in the team who manage communication with senior leadership in MoJ &mdash; Steve, Karen, Tony, Kalbir.
+    * Users who are affected by the problem - via [`#ask-cloud-platform`](https://mojdt.slack.com/messages/C57UPMZLY/), [`#cloud-platform-update`](https://mojdt.slack.com/messages/CH6D099DF/) and the affected team's own slack channels.
+    * Team members for awareness or as they might be able to help - via [`#cloud-platform`](https://mojdt.slack.com/messages/C514ETYJX/) and the `@cloud-platform-team` group
+    * People in the team who manage communication with senior leadership in MoJ - Steve, Karen, Tony, Kalbir.
 
 3. In a *high priority incident* (see below), the support team will gather every 1 hour to work out if additional people/skills are needed and update any external comms.
 
@@ -116,7 +120,7 @@ An incident starts when a member of the support team says that it has. It is usu
 
 An incident is a system failure or degradation that has an impact on users of the cloud platform.
 
-The size of that impact determines the priority of the incident. At the moment, we find it useful to categories incidents as high priority &mdash; we will begin work on any incident as soon as a member of the support team is available but high priority incidents require greater focus and communication.
+The size of that impact determines the priority of the incident. At the moment, we find it useful to categories incidents as high priority - we will begin work on any incident as soon as a member of the support team is available but high priority incidents require greater focus and communication.
 
 #### High priority
 
