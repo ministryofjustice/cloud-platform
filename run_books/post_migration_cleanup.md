@@ -2,13 +2,13 @@
 The intention of this document is to provide a run book for all activities required post migration to the Cloud Platform. This is an instructional document and will not provide a detailed description of each task. 
 
 ## Table of contents
-  - When to use this document?
-  - Turn off Template Deploy monitoring and alerting
-  - Archive the <service>-deploy repository
-  - Backup old Template Deploy data
-  - Delete the old Cloudformation stack
-  - Ensure removal of resources
-  - Ensure live service is still functioning!
+  - [When to use this document?](#when-to-use-this-document)
+  - [Turn off Template Deploy monitoring and alerting](#1-turn-off-template-deploy-monitoring-and-alerting)
+  - [Archive the *service*-deploy repository](#2-archive-the-deployment-repository)
+  - [Backup old Template Deploy data](#3-backup-old-template-deploy-data)
+  - [Delete the old Cloudformation stack](#4-delete-the-old-cloudformation-)
+  - [Ensure removal of resources](#5-ensure-removal-of-resources)
+  - [Ensure live service is still functioning!](#6-ensure-live-service-is-still-functioning)
 
 ## When to use this document?
 Once a service has been migrated to the Cloud Platform from Template Deploy there will be a number of cleanup tasks required to ensure legacy resources have been removed. These tasks will be listed in this document (below). Throughout this process, we recommend making a note/record of deleted resources, including things like S3 buckets and RDS databases. This will allow you to reference your actions to service teams if required.
