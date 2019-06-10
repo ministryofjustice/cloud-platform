@@ -32,7 +32,13 @@ commit_and_push() {
   git add .
   git add -u .
   git commit -m "Update with latest changes"
-  git push
+  if [ $? -eq 0 ]; then
+    git push
+  else
+    # ensure we exit with no error, if there were no
+    # runbook changes
+    true
+  fi
 }
 
 main
