@@ -11,7 +11,7 @@ The intention of this document is to provide a run book for all activities requi
   - Ensure live service is still functioning!
 
 ## When to use this document?
-Once a service has been migrated to the Cloud Platform from Template Deploy there will be a number of cleanup tasks required to ensure legacy resources have been removed. These tasks will be listed in this document (below). Throughout this process we recommend making a note/record of deleted resources, including things like S3 buckets and RDS databases. This will allow you to reference your actions to service teams if required.
+Once a service has been migrated to the Cloud Platform from Template Deploy there will be a number of cleanup tasks required to ensure legacy resources have been removed. These tasks will be listed in this document (below). Throughout this process, we recommend making a note/record of deleted resources, including things like S3 buckets and RDS databases. This will allow you to reference your actions to service teams if required.
 
 Throughout this document, when using the term "Service team", we're referring to the team in charge of the project that's been migrated.
 
@@ -57,7 +57,7 @@ GitHub have written a handy article on how to archive repositories. Please read 
 Not all Template Deploy applications have an RDS or data storage of some kind. If 
 
 #### 3.1 Identify RDS name in AWS console
-This can either be identified by the `DB Instance` name, or via a tag. Either way, you can use the search functionality within the AWS console to identify the correct database. 
+This can either be identified by the `DB Instance` name or via a tag. Either way, you can use the search functionality within the AWS console to identify the correct database. 
 
 #### 3.2 Take snapshot of database
 It is vitally important that we keep a snapshot of the database before it's removed. This allows us to perform an emergency recovery if needed.
