@@ -6,38 +6,38 @@ The intention of this document is to provide a run book for all activities requi
   - [Turn off Template Deploy monitoring and alerting](#1-turn-off-template-deploy-monitoring-and-alerting)
   - [Archive the *service*-deploy repository](#2-archive-the-deployment-repository)
   - [Backup old Template Deploy data](#3-backup-old-template-deploy-data)
-  - [Delete the old Cloudformation stack](#4-delete-the-old-cloudformation-)
+  - [Delete the old CloudFormation stack](#4-delete-the-old-cloudformation-stack)
   - [Ensure removal of resources](#5-ensure-removal-of-resources)
   - [Ensure live service is still functioning!](#6-ensure-live-service-is-still-functioning)
 
 ## When to use this document?
 Once a service has been migrated to the Cloud Platform from Template Deploy there will be a number of cleanup tasks required to ensure legacy resources have been removed. These tasks will be listed in this document (below). Throughout this process, we recommend making a note/record of deleted resources, including things like S3 buckets and RDS databases. This will allow you to reference your actions to service teams if required.
 
-Throughout this document, when using the term "Service team", we're referring to the team in charge of the project that's been migrated.
+Throughout this document, when using the term "service team", we're referring to the team in charge of the project that's been migrated.
 
 ## 0 Pre-requisites
 There are a couple of suggested pre-requisites before performing the tasks in this document.
 
 #### 0.1 Identify AWS account
-Traditionally, production Template Deploy applications lived in the [mojdsd AWS account](https://mojdsd.signin.aws.amazon.com/console), however, this isn't always the case. You'll need to identify which AWS account your application lives in. The recommended approach for this task is to speak to Service teams Product Manager.
+Traditionally, production Template Deploy applications lived in the [mojdsd AWS account](https://mojdsd.signin.aws.amazon.com/console), however, this isn't always the case. You'll need to identify which AWS account your application lives in. The recommended approach for this task is to speak to service teams Product Manager.
 
 #### 0.2 Ensure newly migrated application works
 A lot of tasks in this document will involve destroying resources, it is vitally important you are sure 100% of production traffic is being routed to the Cloud Platform. 
 
-#### 0.3 Identify and inform Service team
-All Service teams generally have a Slack channel and a project manager. Please use these means to inform the team of the impending deletion of the Template Deploy version of their application. 
+#### 0.3 Identify and inform service team
+All service teams generally have a Slack channel and a project manager. Please use these means to inform the team of the impending deletion of the Template Deploy version of their application. 
 
 ## 1 Turn off Template Deploy monitoring and alerting
-Monitoring and alerting for Template Deploy was achieved via a separate CloudFormation stack using a template from [another project](https://github.com/ministryofjustice/MOJ-Service-Catalog/blob/master/submodules/cloudwatch-legacy-monitoring.template). This stack mainly consisted of Cloudwatch alarms and dashboards.
+Monitoring and alerting for Template Deploy was achieved via a separate CloudFormation stack using a template from [another project](https://github.com/ministryofjustice/MOJ-service-Catalog/blob/master/submodules/cloudwatch-legacy-monitoring.template). This stack mainly consisted of Cloudwatch alarms and dashboards.
 
-#### 1.1 Identify the Cloudformation stack name
-Access the AWS console and open Cloudformation. Identify the stack name, which has a suffix of `-monitoring`, for example, `graphite-monitoring`.
+#### 1.1 Identify the monitoring CloudFormation stack name
+Access the AWS console and open CloudFormation. Identify the stack name, which has a suffix of `-monitoring`, for example, `graphite-monitoring`.
 
-#### 1.2 Delete Cloudformation stack
-Cloudformation stack deletion is fairly trivial. In the AWS console, select your stack, click actions and then delete. This will take a few minutes to complete but will disappear from your list of available stacks. 
+#### 1.2 Delete monitoring CloudFormation stack
+CloudFormation stack deletion is fairly trivial. In the AWS console, select your stack, click actions and then delete. This will take a few minutes to complete but will disappear from your list of available stacks. 
 
 ## 2 Archive the deployment repository
-Traditionally there will be a Template Deploy GitHub repository usually named in the format <service>-deploy (e.g. `graphite-deploy`). This repository is redundant and can be archived.
+Traditionally there will be a [Template Deploy GitHub repository](https://github.com/ministryofjustice?utf8=%E2%9C%93&q=-deploy&type=&language=) usually named in the format <service>-deploy (e.g. `graphite-deploy`). This repository is redundant and can be archived.
 
 All actions in this task are performed in the `ministryofjustice` GitHub account. 
 
@@ -54,7 +54,7 @@ It is also appropriate to add a note at the top of the `README.md` file signalin
 GitHub have written a handy article on how to archive repositories. Please read through [this](https://help.github.com/en/articles/archiving-repositories) document.
 
 ## 3 Backup old Template Deploy data
-Not all Template Deploy applications have an RDS or data storage of some kind. If 
+Not all Template Deploy applications have an RDS or data storage of some kind, so this task won't apply to all services.
 
 #### 3.1 Identify RDS name in AWS console
 This can either be identified by the `DB Instance` name or via a tag. Either way, you can use the search functionality within the AWS console to identify the correct database. 
@@ -62,15 +62,15 @@ This can either be identified by the `DB Instance` name or via a tag. Either way
 #### 3.2 Take snapshot of database
 It is vitally important that we keep a snapshot of the database before it's removed. This allows us to perform an emergency recovery if needed.
 
-To complete this task in the AWS RDS console, select your database > actions > take snapshot. Give the snapshot a meaningful name and select `take snapshot`.
+To complete this task in the AWS RDS console, `select your database > actions > take snapshot`. Give the snapshot a meaningful name and select `take snapshot`.
 
-## 4 Delete the old Cloudformation stack
+## 4 Delete the old CloudFormation stack
 This task is destructive, so please take care in selecting the correct resources. It is recommended to have a second pair of eyes on this task to ensure mistakes are at a minimum.
 
-#### 4.1 Identify Cloudformation stack name
-Similar to the step above, the Cloudformation for the application stack will follow a logical naming structure, for example, `correspondence-staff-demo`. Find the CloudFormation stack that belongs to your migrated service.
+#### 4.1 Identify CloudFormation stack name
+Similar to the step above, the CloudFormation for the application stack will follow a logical naming structure, for example, `correspondence-staff-demo`. Find the CloudFormation stack that belongs to your migrated service.
 
-#### 4.2 Delete Cloudformation stack
+#### 4.2 Delete CloudFormation stack
 Before embarking on this task, please ensure you have the correct stack name (this is vitally important). To delete the stack, you must open CloudFormation, use the search function if necessary to locate your desired stack and select the delete button.
 
 ## 5 Ensure removal of resources
@@ -79,7 +79,7 @@ Following the destruction of the CloudFormation stack, it is recommended that yo
 #### 5.1 Search for resources
 Open EC2 and perform a plaintext search for your project. For example, if your migrated project is named `pvb-prod` simply type it into the search. Not all resources are named appropriately but they're all tagged correctly. 
 
-#### 5.2 Clean resources
+#### 5.2 Clean leftover resources
 If your search proves successful and you find resources with your project name, simply select and delete them manually. Making a note for future reference. 
 
 ## 6 Ensure live service is still functioning!
@@ -88,5 +88,5 @@ Following the successful migration to the Cloud Platform and deletion of the Tem
 #### 6.1 Is the service accessible by URL
 Access the URL using your browser and ensure full functionality (make sure you aren't seeing a cached version).  
 
-#### 6.2 Check with Service team
-Any notes you might've taken should be shared with the Service team, via Slack or email.
+#### 6.2 Check with service team
+Any notes you might've taken should be shared with the service team, via Slack or email.
