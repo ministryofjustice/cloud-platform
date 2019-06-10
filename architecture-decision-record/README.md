@@ -18,6 +18,7 @@ see [ADR-000](000-Record-Architecture-Decisions.md)
 * ✅ [7. Support Deployments from Third Party CI](008-Support-Deployments-from-Third-Party-CI.md)
 * ✅ [8. Naming convention for clusters](009-Naming-convention-for-clusters.md)
 * ✅ [9. live-0 to live-1 Cluster](010-live-0-to-live-1-Cluster.md)
+* ✅ [10. Introduce Open Policy Agent](011-Introduce-Open-Policy-Agent.md)
 * ✅ [11. One cluster for dev/staging/prod](012-One-cluster-for-dev-staging-prod.md)
 
 ### Statuses:
