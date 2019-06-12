@@ -12,7 +12,7 @@ header_links:
   'Feedback / Report a problem': 'mailto:platforms+runbooks@digital.justice.gov.uk?subject=Runbooks+feedback'
 
   Documentation: /
-  GitHub: https://github.com/ministryofjustice/cloud-platform/runbooks
+  GitHub: https://github.com/ministryofjustice/cloud-platform/tree/master/runbooks
 
 # Enables search functionality. This indexes pages only and is not recommended for single-page sites.
 enable_search: true
