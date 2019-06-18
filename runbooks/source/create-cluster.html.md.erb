@@ -35,6 +35,8 @@ Ensure at all times that you are in the correct workspace with `$ terraform work
 
 NB: In the commands below, your cluster name must be **no more than 12 characters**. Any longer, and some of the computed strings which include the cluster name will exceed their maximum allowed values. The error messages you get if this happens are unhelpful.
 
+See our [cluster naming policy].
+
 ```bash
 $ export AWS_PROFILE=moj-cp
 $ cd terraform/cloud-platform
@@ -117,3 +119,4 @@ fix / destroy / apply again if the values don't match.
 
 [infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
 [auth0 provider instructions]: https://github.com/yieldr/terraform-provider-auth0#using-the-provider
+[cluster naming policy]: https://github.com/ministryofjustice/cloud-platform/blob/master/architecture-decision-record/009-Naming-convention-for-clusters.md
