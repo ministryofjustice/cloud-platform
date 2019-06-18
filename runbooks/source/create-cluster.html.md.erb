@@ -33,6 +33,8 @@ To create a new cluster, you must create a new terraform workspace and apply the
 
 Ensure at all times that you are in the correct workspace with `$ terraform workspace list`.
 
+NB: In the commands below, your cluster name must be **no more than 12 characters**. Any longer, and some of the computed strings which include the cluster name will exceed their maximum allowed values. The error messages you get if this happens are unhelpful.
+
 ```bash
 $ export AWS_PROFILE=moj-cp
 $ cd terraform/cloud-platform
