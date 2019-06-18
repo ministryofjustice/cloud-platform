@@ -1,0 +1,49 @@
+---
+title: Delete a cluster
+weight: 55
+---
+
+# Delete a cluster
+
+To delete a cluster you must first export the following:
+
+```
+$ export AWS_PROFILE=moj-cp
+$ export KOPS_STATE_STORE=s3://cloud-platform-kops-state
+```
+
+Start from the root directory of a working copy of the [infrastructure repo].
+
+From the components directory, run this command, which will destroy all cluster components.
+
+```bash
+$ cd terraform/cloud-platform-components
+$ terraform init
+$ terraform workspace select <clusterName e.g. cloud-platform-test-3>
+$ terraform destroy
+```
+
+Then run the following `kops` command (this will not delete the cluster).
+
+Append it with `--yes` to confirm deletion.
+
+```
+$ kops delete cluster --name <clusterName>
+```
+
+Change directories and perform the following, destroying the cluster essentials.
+
+```bash
+$ cd ../cloud-platform
+$ terraform init
+$ terraform workspace select <clusterName e.g. cloud-platform-test-3>
+$ terraform destroy
+```
+
+Additional cleanup (optional): ensure all references to `<clusterName>` are gone from `KOPS_STATE_STORE`:
+
+```bash
+terraform workspace delete <clusterName>
+```
+
+[infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
