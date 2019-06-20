@@ -14,7 +14,19 @@ $ export KOPS_STATE_STORE=s3://cloud-platform-kops-state
 
 Start from the root directory of a working copy of the [infrastructure repo].
 
-From the components directory, run this command, which will destroy all cluster components.
+First, set the kubectl context for the cluster you are deleting. The easiest way to do this is with kops. e.g:
+
+```
+$ kops export kubecfg david-test1.cloud-platform.service.justice.gov.uk
+```
+
+You should see this output:
+
+```
+kops has set your kubectl context to david-test1.cloud-platform.service.justice.gov.uk
+```
+
+Then, from the components directory, run this command, which will destroy all cluster components.
 
 ```bash
 $ cd terraform/cloud-platform-components
