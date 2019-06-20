@@ -23,7 +23,7 @@ spec:
   volumeName: pvc-489b1857-91dd-11e9-b4c5-0a5b8815a91e
 ```
 
-You should see `type: Resizing` under status:conditions:
+Once the edit has been applied, you should see `type: Resizing` under status:conditions:
 
 ```yaml
 kubectl get pvc www-web-0 -o yaml 
