@@ -9,10 +9,6 @@ We want to ensure Kops is updated regularly so there is a task in every sprint t
 
 Note: This is for a kops update not an upgrade. 
 
-When performing update and rolling update below is the good read:
-https://kubecloud.io/upgrading-a-ha-kubernetes-kops-cluster-9fb34c441333
-
-
 ## Pre-requisites
 
 Before you begin, there are a few pre-reqs:
@@ -37,17 +33,15 @@ $ export KOPS_STATE_STORE=s3://<bucket>
 
 for live-1 KOPS_STATE_STORE=s3://cloud-platform-kops-state
 
-
 ## Running Kops update
 
-Run kops update cluster Without --yes to check the configuration changes for the cluster, it will show you a preview of what it is going to do this is handy to check what the changes are before applying the changes , sometimes you will also have to kops rolling-update cluster to roll out the configuration immediately.
-
+Run kops update cluster Without `--yes` to check the configuration changes for the cluster, it will show you a preview of what it is going to do, this is handy to check what the changes are before applying the changes. Sometimes you will also have to kops rolling-update cluster to roll out the configuration immediately.
 
 ```bash
 kops update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk
 ```
 
-Once you are happy, kops update cluster --yes to apply the changes.
+Once you are happy, kops update cluster `--yes` to apply the changes.
 
 ```bash
 kops update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk --yes
@@ -57,9 +51,6 @@ It should report
 
 > 
 Cluster changes have been applied to the cloud.
-
-Changes may require instances to restart: kops rolling-update cluster
-
 
 ##  Running Kops rolling-update
 
@@ -71,13 +62,32 @@ If rolling-update does not report that the cluster needs to be rolled, you can f
 
 Rolling update drains and validates the cluster by default. A cluster is deemed validated when all required nodes are running and all pods in the kube-system namespace are operational. When a node is deleted, rolling-update sleeps the interval for the node type, and then tries for the same period of time for the cluster to be validated. 
 
-For instance, setting --master-interval=3m causes rolling-update to wait for 3 minutes after a master is rolled, and another 3 minutes for the cluster to stabilize and pass validation.
+For instance, setting --master-interval=4m causes rolling-update to wait for 4 minutes after a master is rolled, and another 4 minutes for the cluster to stabilize and pass validation.
 
 ```bash
 kops rolling-update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk --yes
 ```
 
-Check the status of the rolling-update
+It should report below steps for all the nodes in the cluster.
+
+```
+Draining the node: “${node}”.
+node/${node} cordoned
+WARNING: Deleting pods with local storage: ${pod names}
+pod/${pod1 name} evicted
+pod/${pod2 name} evicted
+…
+pod/${podn name} evicted
+Waiting for 1m30s for pods to stabilize after draining.
+deleting node “${node}” from kubernetes
+Stopping instance “${aws-instance}”, node  “${node}”, in group "nodes.${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk" (this may take a while).
+waiting for 4m0s after terminating instance
+Validating the cluster.
+Cluster did not pass validation, will try again in "30s" until duration "5m0s" expires: machine “${aws-instance}” has not yet joined cluster.
+Cluster validated.
+```
+
+Open new tab and watch the status of the rolling-update
 
 ```bash
 watch -n10 kubectl get nodes --sort-by .metadata.creationTimestamp
@@ -85,8 +95,7 @@ watch -n10 kubectl get nodes --sort-by .metadata.creationTimestamp
 
 Once the rolling-update is completed it should report
 
-> Rolling update completed for cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk!
-
+> Rolling update completed for cluster ${CLUSTER_NAME}!
 
 Check the cluster status with:
 
@@ -100,7 +109,7 @@ It should report
 
 ## Possible Errors
 
-While draining a node there is a chance that rolling update might be stuck at evicting a pod, then get the node it is stuck on and identify the pods running on there and delete the pod manually which is problmatic.
+While draining a node there is a chance that rolling update might be stuck at evicting a pod, then get the node it is stuck on and identify the pods running on there and delete the pod manually.
 
 ```bash
 $ kubectl get pods -owide --all-namespaces | grep ${node_name}
