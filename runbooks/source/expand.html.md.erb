@@ -6,12 +6,12 @@ weight: 600
 # Expanding Persistent Volumes created using StatefulSets
 It is currently not possible to expand PVs created using a StatefulSet directly from the StatefulSet template.
 
-This is the current work around - 
+This is the current work around -
 
 Edit the 'storage' value under spec:resources for PVC required to be expanded:
 
 ```yaml
-kubectl edit pvc www-web-0 
+kubectl edit pvc www-web-0
 spec:
   accessModes:
   - ReadWriteOnce
@@ -25,7 +25,7 @@ spec:
 Once the edit has been applied, you should see `type: Resizing` under status:conditions:
 
 ```yaml
-kubectl get pvc www-web-0 -o yaml 
+kubectl get pvc www-web-0 -o yaml
 status:
   accessModes:
   - ReadWriteOnce
@@ -64,6 +64,6 @@ The following command will delete the StatefulSet without deleting the associate
 kubectl delete statefulset --cascade=false web # `web` is the name of the StatefulSet
 ```
 
-Apply the StatefulSet template with new pvc size (with everything else exactly the same) to your namespace. 
+Apply the StatefulSet template with new pvc size (with everything else exactly the same) to your namespace.
 
 There is a enhancement issue for expansion using StatefulSet templates in github waiting to be actioned, at which the above will not be required - https://github.com/kubernetes/enhancements/issues/661
