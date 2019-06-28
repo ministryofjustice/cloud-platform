@@ -40,9 +40,7 @@ for live-1 KOPS_STATE_STORE=s3://cloud-platform-kops-state
 
 ## Running Kops update
 
-Run kops update cluster to check the configuration changes for the cluster, sometimes you will also have to kops rolling-update cluster to roll out the configuration immediately.
-
-Without --yes, kops update cluster will show you a preview of what it is going to do. This is handy to check what the changes are before applying the changes.
+Run kops update cluster Without --yes to check the configuration changes for the cluster, it will show you a preview of what it is going to do this is handy to check what the changes are before applying the changes , sometimes you will also have to kops rolling-update cluster to roll out the configuration immediately.
 
 
 ```bash
@@ -85,7 +83,7 @@ Check the status of the rolling-update
 watch -n10 kubectl get nodes --sort-by .metadata.creationTimestamp
 ```
 
-Once the rolling-update is completed It shoud report
+Once the rolling-update is completed it should report
 
 > Rolling update completed for cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk!
 
