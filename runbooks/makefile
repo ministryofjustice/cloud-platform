@@ -1,4 +1,4 @@
-IMAGE := cloud-platform-runbooks
+IMAGE := ministryofjustice/cloud-platform-runbooks
 VERSION := 1.3
 
 .built-docker-image: Dockerfile Gemfile
@@ -6,8 +6,8 @@ VERSION := 1.3
 	touch .built-docker-image
 
 docker-push: .built-docker-image
-	docker tag $(IMAGE) ministryofjustice/$(IMAGE)
-	docker push ministryofjustice/$(IMAGE)
+	docker tag $(IMAGE) $(IMAGE)
+	docker push $(IMAGE)
 
 server: .built-docker-image
 	mkdir compiled || true
