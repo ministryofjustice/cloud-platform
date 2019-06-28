@@ -1,0 +1,109 @@
+---
+title: Running Kops Update and Rollingupdate
+weight: 700
+---
+
+# Running Kops Update and Rollingupdate
+
+We want to ensure Kops is updated regularly so there is a task in every sprint to run Kops update. It essentially updates various components / configuration coming from kops.
+
+Note: This is for a kops update not an upgrade. 
+
+When performing update and rolling update below is the good read:
+https://kubecloud.io/upgrading-a-ha-kubernetes-kops-cluster-9fb34c441333
+
+
+## Pre-requisites
+
+Before you begin, there are a few pre-reqs:
+
+- You are on the right cluster to run the Kops update.
+
+```bash
+$ kubectl config current-context
+```
+
+- Your are on the right AWS_PROFILE where the k8s cluster is created.
+
+```bash
+$ export AWS_PROFILE=xxxx
+```
+
+- Set the --state flag or export KOPS_STATE_STORE
+
+```bash
+$ export KOPS_STATE_STORE=s3://<bucket>
+```
+
+for live-1 KOPS_STATE_STORE=s3://cloud-platform-kops-state
+
+
+## Running Kops update
+
+Run kops update cluster to check the configuration changes for the cluster, sometimes you will also have to kops rolling-update cluster to roll out the configuration immediately.
+
+Without --yes, kops update cluster will show you a preview of what it is going to do. This is handy to check what the changes are before applying the changes.
+
+
+```bash
+kops update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk
+```
+
+Once you are happy, kops update cluster --yes to apply the changes.
+
+```bash
+kops update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk --yes
+```
+
+It should report
+
+> 
+Cluster changes have been applied to the cloud.
+
+Changes may require instances to restart: kops rolling-update cluster
+
+
+##  Running Kops rolling-update
+
+This command updates a kubernetes cluster to match the cloud and kops specifications.
+
+To perform a rolling update, you need to update the cloud resources first with the command kops update cluster.
+
+If rolling-update does not report that the cluster needs to be rolled, you can force the cluster to be rolled with the force flag. 
+
+Rolling update drains and validates the cluster by default. A cluster is deemed validated when all required nodes are running and all pods in the kube-system namespace are operational. When a node is deleted, rolling-update sleeps the interval for the node type, and then tries for the same period of time for the cluster to be validated. 
+
+For instance, setting --master-interval=3m causes rolling-update to wait for 3 minutes after a master is rolled, and another 3 minutes for the cluster to stabilize and pass validation.
+
+```bash
+kops rolling-update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk --yes
+```
+
+Check the status of the rolling-update
+
+```bash
+watch -n10 kubectl get nodes --sort-by .metadata.creationTimestamp
+```
+
+Once the rolling-update is completed It shoud report
+
+> Rolling update completed for cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk!
+
+
+Check the cluster status with:
+
+```bash
+$ kops validate cluster
+```
+
+It should report
+
+> Your cluster `${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk is ready`
+
+## Possible Errors
+
+While draining a node there is a chance that rolling update might be stuck at evicting a pod, then get the node it is stuck on and identify the pods running on there and delete the pod manually which is problmatic.
+
+```bash
+$ kubectl get pods -owide --all-namespaces | grep ${node_name}
+```
