@@ -7,116 +7,48 @@ weight: 50
 
 ## Pre-requisites
 
-Before you begin, there are a few pre-reqs:
+Before you begin, there are a few pre-requisites:
 
-- Your GPG key must be added to the [infrastructure repo] so you are able to  `git-crypt unlock` before you make any changes
+- Your GPG key must be added to the [infrastructure repo] so that you are able to run `git-crypt unlock` (the script will run this for you, but you must be *able* to do it)
 
-- You must ensure your local `helm` version is => `2.11`. Also, `helm repo update` or you might see some failures at step 6.
+- You must ensure your local [helm] version is => `2.11` (check by running `helm version`)
 
-- The Auth0 Terraform provider isn't listed in the official Terraform repository. You must download the provider using [the instructions][auth0 provider instructions]
+- You must have the terraform auth0 provider installed. It isn't listed in the official Terraform repository so follow [the instructions][auth0 provider instructions] to install it.
 
-For the auth0 provider, setup the following environment variables locally:
+- You have [kops] installed
 
-```bash
-AUTH0_DOMAIN="justice-cloud-platform.eu.auth0.com"
-AUTH0_CLIENT_ID="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-AUTH0_CLIENT_SECRET="yyyyyyyyyyyyyyyyyyyyyyyyyyyy"
-```
+- You have the [AWS CLI] tool installed, and profiles `moj-cp` and `moj-dsd` with suitable credentials
 
-The values are from the `terraform-provider-auth0` app on [auth0](https://manage.auth0.com/#/applications)
+## Environment Variables
 
-## Create terraform workspace
+See the file `example.env.create-cluster` in the [infrastructure repo]. This shows examples of the environment variables which must be set in order to run the `create-cluster.sh` script to create a new cluster.
+
+You can get the auth0 values from the `terraform-provider-auth0` application on [auth0](https://manage.auth0.com/#/applications).
+
+## Run the build script
 
 Start from the root directory of a working copy of the [infrastructure repo].
 
-To create a new cluster, you must create a new terraform workspace and apply the `cloud-platform` resources.
-
-Ensure at all times that you are in the correct workspace with `$ terraform workspace list`.
-
-NB: In the commands below, your cluster name must be **no more than 12 characters**. Any longer, and some of the computed strings which include the cluster name will exceed their maximum allowed values. The error messages you get if this happens are unhelpful.
-
-See our [cluster naming policy].
+Execute the script, supplying the desired name of your new cluster. e.g.:
 
 ```bash
-$ export AWS_PROFILE=moj-cp
-$ cd terraform/cloud-platform
-$ terraform init
-$ terraform workspace new <clusterName e.g. cloud-platform-test-3>
-$ terraform plan
-$ terraform apply
+./create-cluster.sh david-test1
 ```
 
-## Set environment variables from terraform output
+NB: Your cluster name must be **no more than 12 characters**. Any longer, and some of the computed strings which include the cluster name will exceed their maximum allowed values. The error messages you get if this happens are unhelpful. In order to prevent this, the build script will fail immediately if you supply a name which is too long.
 
-```bash
-$ export KOPS_STATE_STORE="s3://$(terraform output kops_state_store)"
-$ export CLUSTER_NAME=$(terraform output cluster_name)
-```
+See our [cluster naming policy] for information on how to choose a suitable name for your cluster.
 
-## Use kops to create the cluster
-
-Terraform creates a `kops/${CLUSTER_NAME}.yaml` file in your local directory. K8s release should track the version supported by Kops, check [kops releases](https://github.com/kubernetes/kops/releases).
-
-Use `kops` to create your cluster.
-
-```bash
-$ kops create -f ../../kops/${CLUSTER_NAME}.yaml
-```
-
-## Create SSH public key in kops state store.
-
-To create a new SSH public key for this purpose, run:
-
-```bash
-ssh-keygen -b 4096 -P '' -f ~/.ssh/mykey
-```
-
-Copy the SSH public key as a kops secret:
-
-```bash
-$ kops create secret --name ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk sshpublickey admin -i ~/.ssh/id_rsa.pub
-```
-
-## Create cluster resources in AWS.
-
-aka update cluster in AWS according to the yaml specification:
-
-```bash
-kops update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk --yes
-```
-
-When complete (takes a few minutes), you can check the progress with:
-
-```bash
-$ kops validate cluster
-```
-
-Once it reports
-
-> Your cluster `${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk is ready`
-
-you can proceed to use kubectl to interact with the cluster.
-
-## Install the `cloud-platform-components`.
-
-```bash
-$ cd ../cloud-platform-components
-$ terraform init
-$ terraform workspace new <clusterName e.g. cloud-platform-test-3>
-$ terraform plan
-$ terraform apply
-```
-
-*Warning* a failure while installing `tiller` will make `helm` downgrade itself to v2.9, and nothing will work from there, doublecheck with
+The script takes around 30 minutes to execute. At the end, you should see output like this:
 
 ```
-$ helm version
-Client: &version.Version{SemVer:"v2.11.0", GitCommit:"2e55dbe1fdb5fdb96b75ff144a339489417b146b", GitTreeState:"clean"}
-Server: &version.Version{SemVer:"v2.11.0", GitCommit:"2e55dbe1fdb5fdb96b75ff144a339489417b146b", GitTreeState:"clean"}
+Kubernetes master is running at https://api.david-test1.cloud-platform.service.justice.gov.uk
+KubeDNS is running at https://api.david-test1.cloud-platform.service.justice.gov.uk/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 ```
-
-fix / destroy / apply again if the values don't match.
 
 [infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
 [auth0 provider instructions]: https://github.com/yieldr/terraform-provider-auth0#using-the-provider
 [cluster naming policy]: https://github.com/ministryofjustice/cloud-platform/blob/master/architecture-decision-record/009-Naming-convention-for-clusters.md
+[kops]: https://github.com/kubernetes/kops
+[helm]: https://helm.sh
+[AWS CLI]: https://aws.amazon.com/cli/
