@@ -23,15 +23,15 @@ To make this easier we propose having a naming scheme that makes it easy to unde
 
 We will name all clusters with the following naming scheme:
 
-- `cloud-platform-live-{n}` for any cluster that have users on them, for instance `cloud-platform-live-0` (or `live-0` for short).
-- `cloud-platform-test-{n}` for any cluster that do not have users on them and are used by the cloud platform team only, for instance `cloud-platform-test-2` (or `test-2` for short).
+- `live-{n}` for any cluster that have users on them, for instance `live-1`.
+- `test-{n}` for any cluster that do not have users on them and are used by the cloud platform team only, for instance `test-2`.
 
 We will number the clusters sequentially.
 
 
 ## Consequences
 
-1. Any new clusters that are built use this naming scheme (the first one using it is `cloud-platform-live-0`)
+1. Any new clusters that are built use this naming scheme (the first one using it is `live-1`)
 2. We delete the current clusters: `sandbox`, `test` and `non-production` and transition users and functions to new clusters (`non-production` to `live-0`, `sandbox` and `test` to a new cluster called `test-0`)
 3. We keep a central record of:
     1. The names of all clusters that we run
