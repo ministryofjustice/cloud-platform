@@ -27,6 +27,8 @@ You can get the auth0 values from the `terraform-provider-auth0` application on 
 
 ## Run the build script
 
+> WARNING: Be aware that this script uses the kubernetes context defined on **your machine**, when applying the `cloud-platform-components` terraform files. So, if you have started this script and then used a different terminal to do some other work, it is very easy to forget about the build script and switch your kubernetes context to point to the live cluster. **This can break parts of the production environment.**
+
 Start from the root directory of a working copy of the [infrastructure repo].
 
 Execute the script, supplying the desired name of your new cluster. e.g.:
