@@ -20,6 +20,7 @@ see [ADR-000](000-Record-Architecture-Decisions.md)
 * ✅ [10. live-0 to live-1 Cluster](010-live-0-to-live-1-Cluster.md)
 * ✅ [11. Introduce Open Policy Agent](011-Introduce-Open-Policy-Agent.md)
 * ✅ [12. One cluster for dev/staging/prod](012-One-cluster-for-dev-staging-prod.md)
+* 🤔 [13. Use RSpec for cluster tests](013-Use-RSpec-for-cluster-tests.md)
 
 ### Statuses:
 
