@@ -1,4 +1,4 @@
-# monitoring/alerting of ECR Image counts
+# Monitoring/Alerting of ECR Image Counts
 
 Date: 04/07/2019
 
