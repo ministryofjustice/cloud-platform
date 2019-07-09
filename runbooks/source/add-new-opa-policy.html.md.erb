@@ -1,0 +1,63 @@
+---
+title: Add a new OPA policy
+weight: 9000
+---
+
+# Open Policy Agent policies
+
+Policies are version controlled in the [`cloud-platform-infrastructure`][policies-repo] repository.
+
+## Adding a policy
+
+Create a new `.rego` file in the location above. Our policies are currently all defined in the
+`cloud_platform.admission` package and uses the `deny` rule to evaluate any checks:
+
+For example, the following policy would deny all `Services` of type `Loadbalancer`
+
+```
+package cloud_platform.admission
+
+import data.kubernetes.namespaces
+
+deny[msg] {
+  input.request.kind.kind == "Service"
+  input.request.object.spec.type == "LoadBalancer"
+}
+```
+
+## Writing tests
+
+Testing the policies against live data is not a straightforward process and debugging policies is quite minimal at the
+moment. The best way to develop policies is by practicing test-driven development.
+
+Assuming you have created `my_policy.rego` with your `deny` rule defined, you simply need to create
+`my_policy_test.rego` to define your tests. You can look at the existing policies for examples. There are a few generic
+mocking functions defined which you might find useful.
+
+Finally, testing the policies, you should see something like this:
+
+```
+$ opa test -v .
+data.cloud_platform.admission.test_ingress_create_allowed: PASS (1.956µs)
+data.cloud_platform.admission.test_ingress_create_conflict: PASS (1.518µs)
+data.cloud_platform.admission.test_ingress_update_same_host: PASS (1.088µs)
+data.cloud_platform.admission.test_ingress_update_new_host: PASS (1.246µs)
+data.cloud_platform.admission.test_ingress_update_existing_host: PASS (1.417µs)
+data.cloud_platform.admission.test_ingress_update_existing_host_other_namespace: PASS (1.295µs)
+--------------------------------------------------------------------------------
+PASS: 6/6
+```
+
+Additionally, tests will be run against pull requests to the repository in a CircleCI job.
+
+## References
+
+- [How to write policies][write-policies]
+- [How to test policies][write-tests]
+- [Kubernetes Policy Primer
+][policy-primer]
+
+[policies-repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/terraform/cloud-platform-components/resources/opa/policies
+[policy-primer]: https://github.com/timothyhinrichs/opa/blob/4d5a1071e5099da42c2cde02faac2075f3ba2bf9/docs/content/docs/policy-primer-k8s.md
+[write-policies]: https://www.openpolicyagent.org/docs/latest/how-do-i-write-policies/
+[write-tests]: https://www.openpolicyagent.org/docs/latest/how-do-i-test-policies/
