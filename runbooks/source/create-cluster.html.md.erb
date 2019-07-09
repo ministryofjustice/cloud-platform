@@ -19,9 +19,11 @@ Before you begin, there are a few pre-requisites:
 
 - You have the [AWS CLI] tool installed, and profiles `moj-cp` and `moj-dsd` with suitable credentials
 
+- You have [ruby] or [docker] installed
+
 ## Environment Variables
 
-See the file `example.env.create-cluster` in the [infrastructure repo]. This shows examples of the environment variables which must be set in order to run the `create-cluster.sh` script to create a new cluster.
+See the file `example.env.create-cluster` in the [infrastructure repo]. This shows examples of the environment variables which must be set in order to run the `create-cluster.rb` script to create a new cluster.
 
 You can get the auth0 values from the `terraform-provider-auth0` application on [auth0](https://manage.auth0.com/#/applications).
 
@@ -33,8 +35,18 @@ Start from the root directory of a working copy of the [infrastructure repo].
 
 Execute the script, supplying the desired name of your new cluster. e.g.:
 
+#### If you have ruby installed
+
 ```bash
-./create-cluster.sh david-test1
+./create-cluster.rb david-test1
+```
+
+#### If you don't have ruby installed
+
+```bash
+docker run --rm -v "$PWD":/usr/src/myapp \
+  -w /usr/src/myapp ruby:2.6-alpine \
+  ruby create-cluster.rb david-test1
 ```
 
 NB: Your cluster name must be **no more than 12 characters**. Any longer, and some of the computed strings which include the cluster name will exceed their maximum allowed values. The error messages you get if this happens are unhelpful. In order to prevent this, the build script will fail immediately if you supply a name which is too long.
@@ -54,3 +66,5 @@ KubeDNS is running at https://api.david-test1.cloud-platform.service.justice.gov
 [kops]: https://github.com/kubernetes/kops
 [helm]: https://helm.sh
 [AWS CLI]: https://aws.amazon.com/cli/
+[ruby]: https://www.ruby-lang.org/
+[docker]: https://www.docker.com/
