@@ -1,0 +1,77 @@
+---
+title: Add nodes to the cluster
+weight: 60
+---
+
+# Add nodes to the cluster 
+
+This runbook covers how to increase the number of nodes in a Kubernetes cluster. 
+
+In the steps below, we assume we want to increase the number of nodeS in Live-1, from 40 to 50.
+
+### Requirements
+
+#### 1. Be authenticated to the cluster : 
+    kops export kubecfg live-1.cloud-platform.service.justice.gov.uk    
+#### 2. The Kops version currently used is :
+    % kops version                                                                                                                ~/workspace/repos/cloud-platform-environments/namespaces/live-1.cloud-platform.service.justice.gov.uk/offender-management-production/resources
+    Version 1.12.2
+#### 3. Set your environment variables : 
+    export KOPS_STATE_STORE=s3://cloud-platform-kops-state
+    export AWS_PROFILE=moj-cp
+
+### Inline edit
+
+Once authenticated to the cluster
+
+    % kops get ig                                                                                                                       ~/workspace/repos/cloud-platform-environments/namespaces/live-1.cloud-platform.service.justice.gov.uk/offender-management-production/resources
+    Using cluster from kubectl context: live-1.cloud-platform.service.justice.gov.uk
+    NAME			ROLE	MACHINETYPE	MIN	MAX	ZONES
+    master-eu-west-2a	Master	c4.4xlarge	1	1	eu-west-2a
+    master-eu-west-2b	Master	c4.4xlarge	1	1	eu-west-2b
+    master-eu-west-2c	Master	c4.4xlarge	1	1	eu-west-2c
+    nodes			    Node	r5.xlarge	40	40	eu-west-2a,eu-west-2b,eu-west-2c
+
+Now, launch the editor and modify both the `minSize` and the `maxSize`
+
+    % kops edit ig nodes
+    Spec:
+        ...
+        maxSize: 50
+        minSize: 50
+        ...
+
+Before we apply the changes, kops allow us to confirm what is going to happen:
+
+    % kops update cluster
+    Will modify resources:
+    AutoscalingGroup/nodes.live-1.cloud-platform.service.justice.gov.uk
+        MaxSize             	 40 -> 50
+        MinSize             	 40 -> 50 
+
+`THIS SHOULD BE THE ONLY CHANGE THAT YOU SEE, IF YOU SEE ANYTHING MORE: ABORT`
+
+If happy with the information above, the changes can be applied with :
+
+    % kops update cluster --yes
+
+The situation can be monitored with :
+
+    % kops validate cluster
+
+
+### Persisting the changes
+
+In order to ensure that the new configuration does not get overwritten at the next `kops update`, we need to persist those changes in the code.
+
+#### 1. Create a new branch on the cloud-platform-infrastructure 
+#### 2. In /terraform/cloud-platform/variables.tf, modify the `cluster_node_count` variable
+    variable "cluster_node_count" {
+        description = "The number of worker node in the cluster"
+        default     = "50"
+    }
+#### 3. Push, PR, Merge
+  
+
+[source]: https://github.com/digitalronin/cloud-platform/tree/master/runbooks/source
+[cloud-platform]: https://github.com/ministryofjustice/cloud-platform
