@@ -71,7 +71,8 @@ In order to ensure that the new configuration does not get overwritten at the ne
         default     = "50"
     }
 #### 3. Push, PR, Merge
-  
+Once the PR is merged and a `terraform apply` is ran, the `cloud-platform-infrastructure/kops/live-1.yaml` will be updated with the new size. 
 
+For more information on `kops update` & `kops rolling-updtae`, have a look at this [runbook](https://runbooks.cloud-platform.service.justice.gov.uk/running-kops-update-rollingupdate.html#running-kops-update-and-rollingupdate).
 [source]: https://github.com/digitalronin/cloud-platform/tree/master/runbooks/source
 [cloud-platform]: https://github.com/ministryofjustice/cloud-platform
