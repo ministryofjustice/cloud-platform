@@ -64,11 +64,28 @@ KubeDNS is running at https://api.david-test1.cloud-platform.service.justice.gov
 
 By default, your test cluster will send alerts to the team slack channels. This can cause confusion if the work that you're doing on the test cluster involves something which, in the live cluster, would be a critical component.
 
-The simplest way to disable alerts is to prevent them from reaching [PagerDuty], by removing the token for our PagerDuty account.
+### High Priority Alerts
+
+The simplest way to disable high-priority alerts is to prevent them from reaching [PagerDuty], by removing the token for our PagerDuty account.
 
 #### Edit the file `terraform/cloud-platform-components/terraform.tfvars`
 
 Find the line `pagerduty_config = "--------- SOME VALUE ----------"`, and replace the value with a dummy value (not empty string), then save the file.
+
+
+### Lower priority alerts
+
+Low-priority alerts are sent directly to the `#lower-priority-alarms` slack channel, so the procedure for disabling them is slightly different.
+
+#### Edit the file `terraform/cloud-platform-components/terraform.tfvars`
+
+Look for the `alertmanager_slack_receivers` section, and find the entry whose `channel` value is `#lower-priority-alarms`.
+
+Change the value of `webhook` and replace the string after the last `/` in the URL with a dummy value, then save the file.
+
+### Apply the changes
+
+Finally, we will use terraform to apply the changes to the prometheus operator in your test cluster.
 
 #### Ensure your terraform workspace and kubernetes context are pointing at your test cluster
 
@@ -104,8 +121,6 @@ If your context is pointing at live-1, switch to your test cluster by running
 kops export kubecfg XXXXXXX.cloud-platform.service.justice.gov.uk
 ```
 
-#### Apply the change
-
 When you are confident that both your terraform workspace and kubernetes context are set to your test cluster, apply the change to set the pagerduty config value:
 
 ```bash
@@ -114,7 +129,7 @@ terraform apply -target=helm_release.prometheus_operator
 
 Answer `yes` if the planned changes look correct.
 
-This should leave all the alerting infrastructure of your test cluster intact, but prevent any generated alerts from reaching PagerDuty (and being routed from there to Slack, or anywhere else).
+This should leave all the alerting infrastructure of your test cluster intact, but prevent any high-priority alerts from reaching PagerDuty (and being routed from there to Slack, or anywhere else).
 
 [infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
 [auth0 provider instructions]: https://github.com/yieldr/terraform-provider-auth0#using-the-provider
