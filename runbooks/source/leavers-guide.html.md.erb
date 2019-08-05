@@ -11,37 +11,11 @@ weight: 9100
 
 The central Digital Services team will be able to remove and revoke access from a number of different accounts outside of the technical team.
 
-Contact the [Service Desk](mailto:servicedesk%40digital.justice.gov.uk)  (or slack channel #digitalservicedesk), who will carry out the following actions [for further information](https://dsdmoj.atlassian.net/wiki/spaces/DSD/pages/44957720/Leavers):
+Contact the [Service Desk](mailto:servicedesk%40digital.justice.gov.uk)  (or slack channel #digitalservicedesk). They will go through their own leaver's process, as documented [here](https://dsdmoj.atlassian.net/wiki/spaces/DSD/pages/44957720/Leavers):.
 
-* Confirm to the team member & line manager what equipment & asset numbers are expected to be returned
+* Note - it is worth reminding the service desk to transfer the leaver's Google Drive to someone in their team
 
-* Remove access to: 
-
-  - [Confluence](https://dsdmoj.atlassian.net/admin/users)
-
-  - GitHub (removal from MoJ organisation membership)
-
-  - Google
-
-  - [People Finder](http://peoplefinder.service.gov.uk/)
-
-  - Pivotal
-
-  - [Slack](https://mojds.slack.com/) 
-
-  - Trello
-
-  - Zendesk
-
-* Complete Google Drive bulk transfer (if needed)
-
-* Remove VPN access (if applicable)
-
-* Close DOM1 account
-
-* Reset equipment for re-use
- 
-* Reset locker code for re-use
+* Note - for leaver's from the cloud-platforms team - ask the service desk to transfer any slack webhook integrations to someone in the team
 
 ### Cloud Platforms
 
@@ -90,19 +64,23 @@ Contact the [Service Desk](mailto:servicedesk%40digital.justice.gov.uk)  (or s
 
 * [CI](https://ci.service.dsd.io/configureSecurity/)
 
-* [Rattic](https://rattic.service.dsd.io/staff/). In process of being replaced by LastPass (please see Rattic link)
+* Email the administrator of our password management provider to remove the leaver's login access [contact details here](https://docs.google.com/document/d/1Q6bHUyGEuVi81Bmvi7kOa-DvC-y-L-H3BR13DPsYiVs/edit)
 
-#### 3/ Contact the VPN provider to remove VPN access (whilst it is Digital Services responsibility I prefer to email the vpn provider myself)
+* Email the VPN provider requesting removal of their VPN access [contact details here](https://docs.google.com/document/d/1Q6bHUyGEuVi81Bmvi7kOa-DvC-y-L-H3BR13DPsYiVs/edit)
 
-#### 4/ Remove them from the support rota
+#### 3/ Remove them from the support rota (if applicable). [Pagerduty](https://moj-digital-tools.pagerduty.com/schedules#PFX6FHX/edit)
 
-#### 5/ Remove them from platforms@digital.justice.gov.uk google group 
+#### 4/ Remove them from platforms@digital.justice.gov.uk google group (if applicable). [Link here](https://groups.google.com/a/digital.justice.gov.uk/forum/#!managemembers/platforms/members/active)  
 
 Reference [platforms@digital.justice.gov.uk](mailto:platforms@digital.justice.gov.uk)
 
-#### 6/ Remove them from MoJ organisation membership on GitHub (Whilst it is Digital Services responsibility - I prefer to do this to enable you carry out the fab salt.ssh_key actions following at 7/).
+### Template Deploy - Cloud Platforms 
 
-#### 7/ Update all deploy repos to revoke their user ssh access using the salt state.
+Remove this section once it is no longer needed
+
+#### 1/ Remove them from MoJ organisation membership on GitHub (Whilst it is Digital Services responsibility - I prefer to do this to enable you carry out the fab salt.ssh_key actions following at [2/ below](https://runbooks.cloud-platform.service.justice.gov.uk/leavers-guide.html#2-update-all-deploy-repos-to-revoke-their-user-ssh-access-using-the-salt-state).
+
+#### 2/ Update all deploy repos to revoke their user ssh access using the salt state.
 
 #####a. Carry out fabric command on each of following deploy repos (as at 30/04/2019) 
 
