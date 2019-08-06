@@ -1,0 +1,393 @@
+---
+title: Leavers Guide
+weight: 9100
+---
+
+# Leavers Guide
+
+## Revoking Access
+
+### Digital Services
+
+The central Digital Services team will be able to remove and revoke access from a number of different accounts outside of the technical team.
+
+Contact the [Service Desk](mailto:servicedesk%40digital.justice.gov.uk)  (or slack channel #digitalservicedesk). They will go through their own leaver's process, as documented [here](https://dsdmoj.atlassian.net/wiki/spaces/DSD/pages/44957720/Leavers):.
+
+* Note - it is worth reminding the service desk to transfer the leaver's Google Drive to someone in their team
+
+* Note - for leaver's from the cloud-platforms team - ask the service desk to transfer any slack webhook integrations to someone in the team
+
+### Cloud Platforms
+
+#### 1/ Purge them from AWS accounts (as at 07/05/2019 the following):
+
+* [AWS account mojdsd](https://mojdsd.signin.aws.amazon.com)
+  
+* [AWS account moj-cla-dev](https://moj-cla-dev.signin.aws.amazon.com)
+
+* [AWS account mojds-platforms-integration](http://mojds-platforms-integration.signin.aws.amazon.com)
+
+* [AWS account moj-crimebillingonline](http://moj-crimebillingonline.signin.aws.amazon.com)
+
+* [AWS account moj-cp](http://moj-cp.signin.aws.amazon.com)
+
+* [AWS account moj-fr](http://moj-cp.signin.aws.amazon.com)
+
+* [AWS account moj-intra](http://moj-intra.signin.aws.amazon.com)
+
+* [AWS account moj-manchester-traffic-dev](http://moj-manchester-traffic-dev.signin.aws.amazon.com)
+
+* [AWS account moj-laa](http://moj-laa.signin.aws.amazon.com)
+
+* [AWS account mojanalytics](http://mojanalytics.signin.aws.amazon.com)
+
+* [AWS account moj-pq](http://moj-pq.signin.aws.amazon.com)
+
+* [AWS account moj-tphmcts](http://moj-tphmcts.signin.aws.amazon.com)
+
+* [AWS account moj-pi](http://moj-pi.signin.aws.amazon.com)
+
+
+#### 2/ Remove their access to:
+
+* [Auth0 justice-cloud-platform](https://manage.auth0.com/dashboard/eu/justice-cloud-platform/users)
+
+* [Auth0 moj-cloud-platforms](https://manage.auth0.com/dashboard/eu/moj-cloud-platforms-dev/users)
+
+* [Pingdom](https://my.pingdom.com/3/users)
+
+* [Pagerduty](https://moj-digital-tools.pagerduty.com/users)
+
+* [Heroku](https://devcenter.heroku.com/articles/org-users-access)
+
+* [Sentry](https://sentry.service.dsd.io/organizations/mojds/members/)
+
+* [CI](https://ci.service.dsd.io/configureSecurity/)
+
+* Email the administrator of our password management provider to remove the leaver's login access [contact details here](https://docs.google.com/document/d/1Q6bHUyGEuVi81Bmvi7kOa-DvC-y-L-H3BR13DPsYiVs/edit)
+
+* Email the VPN provider requesting removal of their VPN access [contact details here](https://docs.google.com/document/d/1Q6bHUyGEuVi81Bmvi7kOa-DvC-y-L-H3BR13DPsYiVs/edit)
+
+#### 3/ Remove them from the support rota (if applicable). [Pagerduty](https://moj-digital-tools.pagerduty.com/schedules#PFX6FHX/edit)
+
+#### 4/ Remove them from platforms@digital.justice.gov.uk google group (if applicable). [Link here](https://groups.google.com/a/digital.justice.gov.uk/forum/#!managemembers/platforms/members/active)  
+
+Reference [platforms@digital.justice.gov.uk](mailto:platforms@digital.justice.gov.uk)
+
+### Template Deploy - Cloud Platforms 
+
+Remove this section once it is no longer needed
+
+#### 1/ Remove them from MoJ organisation membership on GitHub (Whilst it is Digital Services responsibility - I prefer to do this to enable you carry out the fab salt.ssh_key actions following at [2/ below](https://runbooks.cloud-platform.service.justice.gov.uk/leavers-guide.html#2-update-all-deploy-repos-to-revoke-their-user-ssh-access-using-the-salt-state).
+
+#### 2/ Update all deploy repos to revoke their user ssh access using the salt state.
+
+#####a. Carry out fabric command on each of following deploy repos (as at 30/04/2019) 
+
+**Note for all of the following fabric commands carry out "salt.ssh_keys" "vendor_upload" rather than an "update" command this enables you to ssh onto each instance and carry out an update to the ssh users without interruption to the applications by restarting the containers:
+
+**consider the use of the Dockerfile fabric image  instead of the following fabric commands. Personally I could not get them to function correctly for "salt.ssh_keys" "vendor_upload".
+
+Reference [Dockerfile fabric image](https://mojdt.slack.com/archives/C514ETYJX/p1532609061000168) 
+
+* [cla_backend-deploy](https://github.com/ministryofjustice/cla_backend-deploy)
+
+    - Envs as at 30/04/2019
+
+        - demo
+
+        - staging
+
+        - training
+
+        - prod
+
+Example fabric command. The following should be carried out in a virtual environment (see instructions 2. and 3. here [Step-by-step guide Quickstart - Template Deploy](https://dsdmoj.atlassian.net/wiki/spaces/PLAT/pages/82640903/Quickstart+-+Template+Deploy)):
+
+```bash
+fab application:cla-backend aws:moj-cla-dev environment:prod config:./cloudformation/template.yaml passwords:./cloudformation/secrets.yaml    -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
+```
+
+* [cla_frontend-deploy](https://github.com/ministryofjustice/cla_frontend-deploy)
+
+    - Envs as at  30/04/2019
+
+        - demo
+
+        - staging
+
+        - training
+
+        - prod
+
+Example fabric command:
+
+```bash
+fab application:cla-frontend aws:moj-cla-dev environment:prod config:./cloudformation/template.yaml passwords:./cloudformation/secrets.yaml    -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
+```
+
+* [ci-deploy](https://github.com/ministryofjustice/ci-deploy)
+
+    - Envs as at 30/04/2019
+
+        - dev
+
+        - hmcts
+
+        - staging
+
+        - prod
+
+Example fabric command:
+
+```bash
+fab application:ci aws:mojdsd environment:prod config:./cloudformation/ci.yaml passwords:./cloudformation/ci-secrets.yaml    -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
+```
+
+* [docker-registry-ng-deploy](https://github.com/ministryofjustice/docker-registry-ng-deploy)
+
+    - Envs as at 30/04/2019
+
+        - dev
+
+        - prod
+
+Example fabric command:
+
+```bash
+fab application:docker-registry aws:mojdsd environment:prod config:./cloudformation/docker-registry.yaml passwords:./cloudformation/docker-registry-secrets.yaml -i ../config/default.pem salt.ssh_keys vendor_upload  -u [user]
+```
+
+* [laalaa-deploy](https://github.com/ministryofjustice/laalaa-deploy)
+
+    - Envs as at 30/04/2019
+
+        - dev
+
+        - staging
+
+        - prod
+
+Example fabric command:
+
+```bash
+fab application:laalaa aws:moj-laa environment:prod config:./cloudformation/laalaa.yaml passwords:./cloudformation/laalaa-secrets.yaml -i ../config/default.pem  salt.ssh_keys vendor_upload -u [user]
+```
+
+* [fala-deploy] (https://github.com/ministryofjustice/fala-deploy)
+
+    - Envs as at 30/04/2019
+
+        - dev
+
+        - staging
+
+        - prod
+
+Example fabric command:
+
+```bash
+fab application:fala aws:moj-laa environment:prod config:./cloudformation/fala.yaml passwords:./cloudformation/fala-secrets.yaml  -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
+```
+
+* [pf-deploy](https://github.com/ministryofjustice/pf-deploy)
+
+    - Envs as at 30/04/2019:
+        - dev
+
+        - demo
+
+        - staging
+
+        - production
+
+Example fabric command:
+
+```bash
+fab application:peoplefinder aws:moj-intra environment:production config:./cloudformation/peoplefinder.yaml passwords:./cloudformation/peoplefinder-secrets.yaml  -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
+```
+
+* [pvb2-deploy](https://github.com/ministryofjustice/pvb2-deploy)
+
+    - Envs as at  30/04/2019:
+
+        - dev
+
+        - staging
+
+        - prod
+
+Example fabric command:
+
+```bash
+fab application:pvb aws:mojdsd environment:prod config:./cloudformation/pvb2.yaml passwords:./cloudformation/pvb2-secrets.yaml  -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
+```
+
+* [pvbpublic-deploy](https://github.com/ministryofjustice/pvbpublic-deploy) 
+
+    - Envs as at 30/04/2019:
+
+        - dev
+
+        - staging
+
+        - prod
+
+Example fabric command:
+
+```bash
+fab application:pvbpublic aws:mojdsd environment:prod config:./cloudformation/template.yaml passwords:./cloudformation/secrets.yaml  -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
+```
+
+* [correspondence-staff-deploy](https://github.com/ministryofjustice/correspondence-staff-deploy/pull/71ence-staff-deploy)
+
+    - Envs as at 30/04/2019:
+
+        - dev
+
+        - demo
+
+        - staging
+
+        - prod
+
+Example fabric command:
+
+```bash
+fab application:correspondence-staff aws:mojdsd environment:prod config:./cloudformation/correspondence-staff.yaml passwords:./cloudformation/correspondence-staff-secrets.yaml    -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
+```
+
+* [correspondence-tool-deploy](https://github.com/ministryofjustice/correspondence-tool-deploy)
+
+    - Envs as at 30/04/2019:
+
+        - dev
+
+        - demo
+
+        - staging
+
+        - prod
+
+Example fabric command:
+
+```bash
+fab application:correspondence-tool aws:mojdsd environment:prod config:./cloudformation/correspondence-tool.yaml passwords:./cloudformation/correspondence-tool-secrets.yaml    -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
+```
+
+* [money-to-prisoners-deploy](https://github.com/ministryofjustice/money-to-prisoners-deploy)
+
+    - Envs as at 30/04/2019:
+
+        - api dev
+
+        - bank-admin dev
+
+        - cashbook dev
+
+        - noms-ops dev
+
+        - send-money dev
+
+        - transaction-uploader dev
+
+        - api test
+
+        - bank-admin test
+
+        - cashbook test
+
+        - noms-ops test
+
+        - send-money test
+
+        - transaction-uploader test
+
+        - api prod
+
+        - bank-admin prod
+
+        - cashbook prod
+
+        - noms-ops prod
+
+        - send-money prod
+
+        - transaction-uploader prod
+
+Example fabric command:
+
+```bash
+fab application:money-to-prisoners-api aws:mojdsd environment:prod config:./cloudformation/api.yaml passwords:./cloudformation/api-secrets.yaml    -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
+```
+
+```bash
+fab application:money-to-prisoners-bank-admin aws:mojdsd environment:prod config:./cloudformation/bank-admin.yaml passwords:./cloudformation/bank-admin-secrets.yaml    -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
+```
+
+```bash
+fab application:money-to-prisoners-cashbook aws:mojdsd environment:prod config:./cloudformation/cashbook.yaml passwords:./cloudformation/cashbook-secrets.yaml    -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
+```
+
+```bash
+fab application:money-to-prisoners-noms-ops aws:mojdsd environment:prod config:./cloudformation/noms-ops.yaml passwords:./cloudformation/noms-ops-secrets.yaml    -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
+```
+
+```bash
+fab application:money-to-prisoners-send-money aws:mojdsd environment:prod config:./cloudformation/send-money.yaml passwords:./cloudformation/send-money-secrets.yaml    -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
+```
+
+```bash
+fab application:money-to-prisoners-transaction-uploader aws:mojdsd environment:prod config:./cloudformation/transaction-uploader.yaml passwords:./cloudformation/transaction-uploader-secrets.yaml    -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
+```
+
+* [parliamentary-questions-deploy](https://github.com/ministryofjustice/parliamentary-questions-deploy)
+
+    - Envs as at 30/04/2019:
+
+        - dev
+
+        - staging
+
+        - prod
+
+Example fabric command:
+
+```bash
+fab application:pq aws:moj-pq environment:prod config:./cloudformation/pq.yaml passwords:./cloudformation/pq-secrets.yaml  -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
+```
+
+* [moving-people-safely-deploy](https://github.com/ministryofjustice/moving-people-safely-deploy)
+
+    - Envs as at 30/04/2019:
+
+        - dev
+
+        - test
+
+        - staging
+
+        - prod
+
+Example fabric command:
+
+
+```bash
+fab application:mps aws:mojdsd environment:prod config:./cloudformation/mps.yaml passwords:./cloudformation/mps-secrets.yaml -i ../config/default.pem  salt.ssh_keys vendor_upload -u [user]
+```
+
+#####b. ssh onto all of the deploy repos instances and use  the following salt-code commands. This will enable updates to take place without restarting the container. The use/installation  of [awsjump](https://github.com/ministryofjustice/template-deploy-jump) will help to easily switch between instances:
+
+```bash
+sudo su 
+salt_utils.py -s fooooo
+cd /srv/pillar/
+salt-call state.sls admins
+/usr/bin/salt-call pillar.get admins --out=json 2> /dev/null
+exit
+exit
+```
+
+**do not worry - you will receive some error messages as "fooooo" does not exist (this is just a placeholder). The update will take place to the ssh users
+
+
