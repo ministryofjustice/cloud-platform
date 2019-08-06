@@ -1,0 +1,19 @@
+---
+title: Tips and Tricks
+weight: 9200
+---
+
+# Tips and Tricks
+
+A collection of useful one-liners and code snippets.
+
+## Check the expiration date of the SSL certificate for a live domain
+
+```bash
+$ echo | openssl s_client -connect google.com:443 | openssl x509 -noout -enddate
+depth=1 C = US, O = Google Trust Services, CN = Google Internet Authority G3
+verify error:num=20:unable to get local issuer certificate
+verify return:0
+DONE
+notAfter=Oct 21 18:23:00 2019 GMT
+```
