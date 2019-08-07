@@ -13,7 +13,9 @@ MoJ Cloud Platform team has decided to use [kubernetes for container management 
 - An universal authentication mechanism to manage users without depending on the cloud provider
 - Able to customize the control plane of kubernetes for MOJ requirement on Pod security
 - Able to integrate external tools easily
-- Able to interfere and open the control plane for any custom changes
+- Able to manage and configure the control plane for any custom changes
+
+## Decision
 
 There are several leading cloud providers who provide managed production-ready kubernetes cluster:
 
@@ -21,10 +23,9 @@ There are several leading cloud providers who provide managed production-ready k
 - Azure Kubernetes Service (AKS)
 - Google Kubernetes Engine (GKE)
 
-## Decision
+We decided to host our cluster on AWS because our service team has good development experience working with AWS services. This made it easier for teams to migrate to the kubernetes platform
 
-We decided to host our cluster on AWS, but to manage it ourselves rather than using EKS:
-- Our service team has good development experience working with AWS services. This made it easier for teams to migrate to the kubernetes platform
+We decided to manage the kubernetes cluster ourselves rather than using EKS because
 
 - When the time MOJ needed to build the kubernetes, Amazon EKS was still in the Alpha stage and was not production ready. Also Amazon EKS require to use IAM for user authentication which will be an overhead for managing users of service teams
 
