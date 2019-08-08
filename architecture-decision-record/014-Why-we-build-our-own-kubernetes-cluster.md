@@ -25,7 +25,7 @@ There are several leading cloud providers who provide managed production-ready k
 
 We decided to host our cluster on AWS because our service team has good development experience working with AWS services. This made it easier for teams to migrate to the kubernetes platform
 
-We decided to manage the kubernetes cluster ourselves rather than using EKS because
+We decided to manage the kubernetes cluster ourselves rather than using EKS mainly for the below reasons:
 
 - When the time MOJ needed to build the kubernetes, Amazon EKS was still in the Alpha stage and was not production ready. Also Amazon EKS require to use IAM for user authentication which will be an overhead for managing users of service teams
 
