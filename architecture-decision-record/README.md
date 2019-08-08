@@ -22,7 +22,7 @@ see [ADR-000](000-Record-Architecture-Decisions.md)
 * ✅ [11. Introduce Open Policy Agent](011-Introduce-Open-Policy-Agent.md)
 * ✅ [12. One cluster for dev/staging/prod](012-One-cluster-for-dev-staging-prod.md)
 * 🤔 [13. Use RSpec for cluster tests](013-Use-RSpec-for-cluster-tests.md)
-* ✅ [14. 014 why we build our own kubernetes cluster](014-Why-we-build-our-own-kubernetes-cluster.md)
+* ✅ [14. Why we build our own kubernetes cluster](014-Why-we-build-our-own-kubernetes-cluster.md)
 
 ### Statuses:
 
