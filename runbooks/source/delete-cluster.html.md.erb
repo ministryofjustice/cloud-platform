@@ -28,7 +28,7 @@ kops has set your kubectl context to david-test1.cloud-platform.service.justice.
 
 Then, from the components directory, run this command, which will destroy all cluster components.
 
-```bash
+```
 $ cd terraform/cloud-platform-components
 $ terraform init
 $ terraform workspace select <clusterName e.g. cloud-platform-test-3>
@@ -45,7 +45,7 @@ $ kops delete cluster --name <clusterName>.cloud-platform.service.justice.gov.uk
 
 Change directories and perform the following, destroying the cluster essentials.
 
-```bash
+```
 $ cd ../cloud-platform
 $ terraform init
 $ terraform workspace select <clusterName e.g. cloud-platform-test-3>
@@ -53,7 +53,7 @@ $ terraform destroy
 ```
 
 
-```bash
+```
 terraform workspace delete <clusterName>
 ```
 
