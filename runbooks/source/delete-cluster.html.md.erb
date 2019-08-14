@@ -52,8 +52,10 @@ $ terraform workspace select <clusterName e.g. cloud-platform-test-3>
 $ terraform destroy
 ```
 
+Delete the terraform workspace for the deleted cluster.
 
 ```
+terraform workspace select default
 terraform workspace delete <clusterName>
 ```
 
