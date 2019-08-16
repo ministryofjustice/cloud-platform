@@ -1,0 +1,180 @@
+---
+title: Replacing a master node
+weight: 225
+---
+
+# Replacing a master node
+
+Kubernetes live-1 cluster deployed with kops stores the etcd state in two different AWS EBS volumes per master node. One volume is used to store the Kubernetes main data, the other one for events. For a cluster with three masters this will result in six volumes for etcd data (one in each AZ).
+
+If one of the Master node fails due to hardware failure, data directory corruption, etcd volume deletion ,or some other fatal situation, it should be replaced as soon as possible.
+
+To replace the Master node, follow the instructions below for removing the unhealthy member from the cluster, and then re-adding the master node and its volumes via kops
+
+
+## Pre-requisites
+
+Before you begin, there are a few pre-reqs:
+
+- You are on the right cluster to run the Kops.
+
+```bash
+$ kubectl config current-context
+```
+
+- Your are on the right AWS_PROFILE where the k8s cluster is created.
+
+```bash
+$ export AWS_PROFILE=xxxx
+```
+
+- Set the --state flag or export KOPS_STATE_STORE
+
+```bash
+$ export KOPS_STATE_STORE=s3://<bucket>
+```
+
+for live-1 KOPS_STATE_STORE=s3://cloud-platform-kops-state
+
+## Identify the failed master node
+
+Run kops validate cluster to identify failed master node.
+
+```bash
+kops validate cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk
+```
+
+You will see validation errors as below, which shows that one of the machines not joined the cluster, make sure that it is master node by validating in AWS console using the Instance ID.
+
+```bash
+VALIDATION ERRORS
+KIND    NAME            MESSAGE
+Machine i-046ed8d94d65719a6 machine "i-046ed8d94d65719a6" has not yet joined cluster
+```
+
+##  Removing the unhealthy member.
+
+Guidance [here][remove-member-first] suggested to remove the member first. Identify and remove the unhealthy member by accessing any of the working master nodes through bastion.
+
+login in to bastion:
+
+```bash
+ssh -A admin@ec2-35-176-93-48.eu-west-2.compute.amazonaws.com -p 50422
+```
+From bastion login in to any of the working master nodes:
+
+```bash
+ssh 172.20.xx.xx
+```
+While SSHed onto a master:
+
+```bash
+$ sudo docker ps | grep etcd.manager
+```
+
+Pick the kopeio/etcd-manager container you're interested in ('main' or 'events') and then docker exec onto it
+
+```bash
+$ sudo docker exec -it [container id] bash
+```
+
+Run etcdctl like this to get the member list of `etcd-main`, change the `PORT=4002` and `ETCD=ETCD=etcd-events` and run it again to get the member list of `etcd-events`
+
+```bash
+cd /opt/etcd-v3.3.10-linux-amd64/
+CLUSTER=live-1
+PORT=4001
+ETCD=etcd
+ETCDCTL_API=3 \
+  ./etcdctl --key /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key \
+  --cert  /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt \
+  --cacert /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt  \
+  --endpoints "https://${ETCD}-a.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT},https://${ETCD}-b.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT},https://${ETCD}-c.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT}" member list
+```
+
+you will see list of members like this:
+
+```
+26153d5a331dc13d, started, etcd-a, https://etcd-a.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:2380, https://etcd-a.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:4001
+27aaafc750f8d2f7, started, etcd-c, https://etcd-c.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:2380, https://etcd-c.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:4001
+8d4a23328d324c94, started, etcd-b, https://etcd-b.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:2380, https://etcd-b.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:4001
+
+```
+
+Identify the unhealthy member(the old master node) and run this to remove the member, Kops maintains a separate etc cluster for events, so we needed to remove the old node from the etcd-events cluster as well, so change the `PORT=4002` and `ETCD=ETCD=etcd-events` and run it again to remove the member of events.
+
+```bash
+cd /opt/etcd-v3.3.10-linux-amd64/
+CLUSTER=live-1
+PORT=4001
+ETCD=etcd
+ETCDCTL_API=3 \
+  ./etcdctl --key /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key \
+  --cert  /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt \
+  --cacert /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt  \
+  --endpoints "https://${ETCD}-a.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT},https://${ETCD}-b.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT},https://${ETCD}-c.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT}" member remove <member-id>
+```
+
+You will get a message:
+
+```
+Member 26153d5a331dc13d removed from cluster bdfd883e2bfa8594
+```
+Run the member list again you will see member is been removed:
+
+```
+27aaafc750f8d2f7, started, etcd-c, https://etcd-c.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:2380, https://etcd-c.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:4001
+8d4a23328d324c94, started, etcd-b, https://etcd-b.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:2380, https://etcd-b.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:4001
+```
+
+##  Re-adding the master via Kops.
+
+To be sure that everything runs smoothly and is setup correctly, you need to terminate the broken master and remove the volumes attached to it, and launch the new master with kops.
+
+Perform launch of new master in this order.
+
+1) Back up volumes for both etcd main and events by creating snapshots from AWS console, also take a etcdctl [backup][etcdctl-backup].
+
+2) Edit kops instance group, to scale down by replacing maxSize and minSize values to 0, and run an kops update on the cluster.
+
+```
+kops edit instancegroup master-<availability-zone>
+```
+
+```bash
+kops update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk --yes
+```
+3) Terminate broken master instance.
+
+4) Remove volumes (main and events) for the broken master.
+
+5) Create the master instance with kops, to be sure that master is fully configured by Kops and that there is no residual manual configuration.
+
+Edit kops instance group, to scale up by replacing maxSize and minSize values to 1, and run an kops update on the cluster.
+
+```
+kops edit instancegroup master-<availability-zone>
+```
+
+```bash
+kops update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk --yes
+```
+
+Master will be restarted with a clean config and should join the others. Give some time and validate the cluster, the master node missing should joined the cluster and in ready status.
+
+```bash
+kops validate cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk
+```
+
+You can see the cluster is in ready status.
+
+```
+Your cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk is ready
+```
+
+
+
+
+
+[remove-member-first]: https://github.com/etcd-io/etcd/blob/master/Documentation/faq.md#should-i-add-a-member-before-removing-an-unhealthy-member
+[etcdctl-backup]: https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/recovery.md#snapshotting-the-keyspace
