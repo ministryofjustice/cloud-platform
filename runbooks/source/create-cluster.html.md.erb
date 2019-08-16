@@ -11,15 +11,9 @@ Before you begin, there are a few pre-requisites:
 
 - Your GPG key must be added to the [infrastructure repo] so that you are able to run `git-crypt unlock` (the script will run this for you, but you must be *able* to do it)
 
-- You must ensure your local [helm] version is => `2.11` (check by running `helm version`)
+- You have [AWS CLI] profiles `moj-cp` and `moj-dsd` with suitable credentials
 
-- You must have the terraform auth0 provider installed. It isn't listed in the official Terraform repository so follow [the instructions][auth0 provider instructions] to install it.
-
-- You have [kops] installed
-
-- You have the [AWS CLI] tool installed, and profiles `moj-cp` and `moj-dsd` with suitable credentials
-
-- You have [ruby] or [docker] installed
+- You have [docker] installed
 
 ## Environment Variables
 
@@ -27,26 +21,22 @@ See the file `example.env.create-cluster` in the [infrastructure repo]. This sho
 
 You can get the auth0 values from the `terraform-provider-auth0` application on [auth0](https://manage.auth0.com/#/applications).
 
-## Run the build script
+## Run the build script, via the tools image
 
-> WARNING: Be aware that this script uses the kubernetes context defined on **your machine**, when applying the `cloud-platform-components` terraform files. So, if you have started this script and then used a different terminal to do some other work, it is very easy to forget about the build script and switch your kubernetes context to point to the live cluster. **This can break parts of the production environment.**
+The cloud platform [tools image] has all the software required to run the build script and create a cluster.
 
 Start from the root directory of a working copy of the [infrastructure repo].
 
-Execute the script, supplying the desired name of your new cluster. e.g.:
+With your environment variables set, launch a bash shell on the tools image:
 
-#### If you have ruby installed
+```bash
+make tools-shell
+```
+
+Execute the script, supplying the desired name of your new cluster. e.g.:
 
 ```bash
 ./create-cluster.rb david-test1
-```
-
-#### If you don't have ruby installed
-
-```bash
-docker run --rm -v "$PWD":/usr/src/myapp \
-  -w /usr/src/myapp ruby:2.6-alpine \
-  ruby create-cluster.rb david-test1
 ```
 
 NB: Your cluster name must be **no more than 12 characters**. Any longer, and some of the computed strings which include the cluster name will exceed their maximum allowed values. The error messages you get if this happens are unhelpful. In order to prevent this, the build script will fail immediately if you supply a name which is too long.
@@ -132,11 +122,8 @@ Answer `yes` if the planned changes look correct.
 This should leave all the alerting infrastructure of your test cluster intact, but prevent any high-priority alerts from reaching PagerDuty (and being routed from there to Slack, or anywhere else).
 
 [infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
-[auth0 provider instructions]: https://github.com/yieldr/terraform-provider-auth0#using-the-provider
 [cluster naming policy]: https://github.com/ministryofjustice/cloud-platform/blob/master/architecture-decision-record/009-Naming-convention-for-clusters.md
-[kops]: https://github.com/kubernetes/kops
-[helm]: https://helm.sh
 [AWS CLI]: https://aws.amazon.com/cli/
-[ruby]: https://www.ruby-lang.org/
 [docker]: https://www.docker.com/
 [PagerDuty]: https://www.pagerduty.com/
+[tools image]: https://github.com/ministryofjustice/cloud-platform-tools-image
