@@ -17,6 +17,7 @@ WORKDIR /app
 
 COPY Gemfile Gemfile.lock ./
 
+RUN gem install bundler
 RUN bundle install
 
 RUN chown -R appuser:appgroup /app
