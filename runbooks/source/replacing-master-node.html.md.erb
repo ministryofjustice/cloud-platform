@@ -28,7 +28,7 @@ Expected outcome example: `live-1.cloud-platform.service.justice.gov.uk`
 $ export AWS_PROFILE=moj-cp
 ```
 
-- Set the --state flag or export KOPS_STATE_STORE
+- Export KOPS_STATE_STORE
 
 ```bash
 $ export KOPS_STATE_STORE=s3://cloud-platform-kops-state
@@ -53,7 +53,7 @@ Machine i-046ed8d94d65719a6 machine "i-046ed8d94d65719a6" has not yet joined c
 
 ##  Remove the unhealthy master node.
 
-As per [this guidance][remove-member-first] remove the unhealthy member first. Identify and remove the unhealthy member by accessing any of the working master nodes through bastion by SSH, via the bastion instance.
+As per [this guidance][remove-member-first] remove the unhealthy member first. Identify and remove the unhealthy member by accessing any of the working master nodes using SSH, via the bastion instance.
 
 In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}`to locate bastion instance (`bastion.<cluster_name>.cloud-platform.service.justice.gov.uk`). Use Public DNS (IPv4) In the description of the Instance to login in to bastion as below:
 
@@ -145,7 +145,7 @@ To be sure that everything runs smoothly and is setup correctly, you need to ter
 
 1) Back up volumes for both etcd main and events by creating snapshots from AWS console.
 
-2) Take a etcdctl [backup][etcdctl-backup], by running the below command in any of the working master nodes.
+2) Take a etcdctl [backup][etcdctl-backup], by docker exec onto kopeio/etcd-manager container in any of the working master nodes and run the below command.
 
 ```bash
 cd /opt/etcd-v3.3.10-linux-amd64/
@@ -156,12 +156,12 @@ ETCDCTL_API=3 \
   ./etcdctl --key /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key \
   --cert  /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt \
   --cacert /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt  \
-  --endpoints "https://${ETCD}-a.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT},https://${ETCD}-b.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT},https://${ETCD}-c.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT}" snapshot save snapshot.db
+  --endpoints "https://${ETCD}-a.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT},https://${ETCD}-b.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT},https://${ETCD}-c.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT}" snapshot save /rootfs/mnt/snapshot.db
 ```
-You will get a message:
+You will get a message as below. The snapshot.db is saved at `/rootfs/mnt/`, which is volume mounted to a local directory at `/mnt`. 
 
 ```
-Snapshot saved at snapshot.db
+Snapshot saved at /rootfs/mnt/snapshot.db
 ```
 
 3) Edit the kops instance group for the master you removed, to scale down by replacing maxSize and minSize values to 0, and run an kops update on the cluster.
