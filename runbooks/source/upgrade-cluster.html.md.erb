@@ -1,0 +1,123 @@
+---
+title: Upgrade a cluster
+weight: 52
+---
+
+# Upgrade a cluster
+
+## Pre-requisites
+
+Before you begin, there are a few pre-requisites:
+
+- Your GPG key must be added to the [infrastructure repo] so that you are able to run `git-crypt unlock`.
+
+- You have the [AWS CLI] profile `moj-cp` with suitable credentials.
+
+- You have [docker] installed.
+
+### Environment Variables
+
+See the file `example.env.create-cluster` in the [infrastructure repo].
+
+### Run a shell in the tools image
+
+The cloud platform [tools image] has all the software required to run the build script and create a cluster.
+
+The image will need updates for new client tool versions, see https://github.com/ministryofjustice/cloud-platform-tools-image/pull/34 for an example.
+
+Start from the root directory of a working copy of the [infrastructure repo].
+
+With your environment variables set, launch a bash shell on the tools image:
+
+```bash
+make tools-shell
+```
+
+## Run the upgrade
+
+Within the tools image, the file `~/.kube/config` is not copied from your outside profile, create it for just the needed cluster by running
+
+```bash
+kops export kubecfg XXXXXXX.cloud-platform.service.justice.gov.uk
+```
+
+Change the Kubernetes release version, ensuring it is supported by Kops - verify on the [kops releases](https://github.com/kubernetes/kops/releases) page.
+
+Kops takes around 5 minutes per node to execute, same for the masters; downtime is not expected but applications that have only one instance running wil be restarted several times.
+
+## Sanity checks
+
+At the end, verify the cluster status using kops, the smoke tests suite and terraform:
+
+### Kops
+
+```bash
+kops validate cluster
+```
+
+you must see an output like this:
+
+```
+Using cluster from kubectl context: XXXXXXX.cloud-platform.service.justice.gov.uk
+
+Validating cluster XXXXXXX.cloud-platform.service.justice.gov.uk
+
+INSTANCE GROUPS
+NAME			ROLE	MACHINETYPE	MIN	MAX	SUBNETS
+master-eu-west-2a	Master	c4.4xlarge	1	1	eu-west-2a
+master-eu-west-2b	Master	c4.4xlarge	1	1	eu-west-2b
+master-eu-west-2c	Master	c4.4xlarge	1	1	eu-west-2c
+nodes			Node	r5.xlarge	3	3	eu-west-2a,eu-west-2b,eu-west-2c
+
+NODE STATUS
+NAME						ROLE	READY
+ip-172-20-117-94.eu-west-2.compute.internal	node	True
+ip-172-20-121-184.eu-west-2.compute.internal	master	True
+... ^ list of all expected nodes and masters, and all with status 'ready'
+
+Your cluster XXXXXXX.cloud-platform.service.justice.gov.uk is ready
+```
+
+### Smoke tests
+
+Exit the `tools` image, and continue in the [smoke-tests](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/smoke-tests) folder which runs a different image (the two images might be merged to avoid confusion).
+
+The `cloud-platform-smoke-tests` image might need updates, see https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/374 for an example.
+
+### Terraform 
+
+Finally, check that `terraform` agrees with the new cluster status
+
+#### Ensure your terraform workspace and kubernetes context are pointing at your test cluster
+
+Check your kubernetes context by running
+
+```bash
+kubectl cluster-info
+```
+
+```bash
+pushd terraform/cloud-platform
+terraform workspace list
+terraform workspace select [your cluster]
+terraform plan
+popd
+cd terraform/cloud-platform-components
+terraform workspace list
+terraform workspace select [your cluster]
+terraform plan
+popd
+```
+
+Expected result is no changes needed.
+
+## Commit 
+
+As a last step, edit the `kubernetesVersion` parameter in the [corresponding](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/kops) kops .yaml file to match the new release.
+
+[infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
+[cluster naming policy]: https://github.com/ministryofjustice/cloud-platform/blob/master/architecture-decision-record/009-Naming-convention-for-clusters.md
+[AWS CLI]: https://aws.amazon.com/cli/
+[docker]: https://www.docker.com/
+[PagerDuty]: https://www.pagerduty.com/
+[tools image]: https://github.com/ministryofjustice/cloud-platform-tools-image
