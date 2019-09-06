@@ -564,7 +564,7 @@ Pod kube-system/metrics-server-c867fff7f-7x5zl              kube-
 Pod kube-system/tiller-deploy-6f6fd74b68-s68z5              kube-system pod "tiller-deploy-6f6fd74b68-s68z5" is pending
 ```
 
-This is because of them having issue with the tokens, you will see below errors in the logs for the pods which have this issue.
+Pods use kubernetes.io/service-account-token to authenticate API requests. After the restore, old tokens (determined by checking creationTimestamp) are not removed, this is causing below errors for the pods which have this issue. So you will need to delete the old secrets, so they can be recreated with the correct keys.
 
 ```
 Unable to authenticate the request due to an error: [invalid bearer token, [invalid bearer token, square/go-jose: error in cryptographic primitive]
