@@ -1,0 +1,642 @@
+---
+title: Cloud Platform Disaster Recovery
+weight: 90
+---
+
+# Cloud Platform Disaster Recovery
+
+Cloud Platform Kubernetes cluster deployed with kops use [etcd-manager][etcd-manager-rep] to do backups periodically and before cluster modifications. Backups for both the main and events etcd clusters are stored in 's3://cloud-platform-kops-state/${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk' together with the cluster configuration.
+
+In case of a disaster situation (total failure, Kops delete cluster, lost data, cluster issues etc.) it's possible to do a restore from the backup using [etcd-manager][etcd-manager-rep]. More details about the usage can be found [here][etcd-manager-restore] and [here][kops-backup-restore]. 
+
+## Restore process
+
+Depending on the current state of the cluster, different recovery strategies are appropriate.
+
+- In a disaster situation (total failure), where a cluster has been deleted by running `Kops delete cluster` and cloud-platform resources have been destroyed by running terraform destroy in [terraform/cloud-platform][tf-cloud-platform], then start with [apply-cloud-platform][apply-cloud-platform].
+
+- In a disaster situation (Kops delete cluster) but cloud-platform resources are not affected (i.e. when you run terraform plan in [terraform/cloud-platform][tf-cloud-platform], result should be `Plan: 0 to add, 0 to change, 0 to destroy`), then start with [create-a-new-cluster][create-a-new-cluster].
+
+- In situations where cluster is available (running `Kops validate cluster`, should result in `Your cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk is ready`), but affected with (lost data, cluster issues etc.), start with [perform-the-restore][perform-the-restore]
+
+## Apply cloud-platform resources
+
+This [terraform/cloud-platform][tf-cloud-platform] directory contains resources for the Cloud Platform environments - e.g. bastion hosts and kops. This will apply the outline of a Kubernetes cluster, including a kops.tf to be used to create or modify a cluster.
+
+Before you begin, there are a few pre-reqs:
+
+- Your GPG key must be added to the [cloud-platform-infrastructure][cpi-repo] repo so you are able to `git-crypt unlock` before you make any changes
+
+- For the auth0 provider, setup the following environment variables locally:
+
+```
+  AUTH0_DOMAIN="justice-cloud-platform.eu.auth0.com"
+  AUTH0_CLIENT_ID="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  AUTH0_CLIENT_SECRET="yyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+```
+
+To create a new cluster, use affected ${CLUSTER_NAME} terraform workspace if available, else create a new one with affected ${CLUSTER_NAME} and apply the `cloud-platform` resources. Ensure at all times that you are in the correct workspace with `$ terraform workspace show`.
+
+```bash
+$ export AWS_PROFILE=moj-cp
+$ cd terraform/cloud-platform
+$ terraform init
+$ terraform workspace select ${CLUSTER_NAME}
+$ terraform plan
+$ terraform apply
+```
+
+Applying cloud-platform resources, terraform creates a `kops/${CLUSTER_NAME}.yaml` file in [kops][kops-repo] directory.
+
+## Create a new cluster
+
+Use `kops` to create the cluster using `kops/${CLUSTER_NAME}.yaml`, which contains the cluster specification including an additional IAM policy to allow Route53 management, and config for OIDC authentication and RBAC.
+
+If the cloud-platform resources were not destroyed in the disaster, use the existing `kops/${CLUSTER_NAME}.yaml` in [here][kops-repo] to create the cluster, else use the `kops/${CLUSTER_NAME}.yaml` file created by applying cloud-platform resources above.
+
+Set environment variables.
+
+```bash
+$ export KOPS_STATE_STORE=s3://cloud-platform-kops-state
+$ export CLUSTER_NAME=${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk
+```
+
+Use kops command as below to create the cluster.
+
+```
+kops create -f ../../kops/${CLUSTER_NAME}.yaml
+```
+
+Create SSH public key in kops state store.
+
+```
+kops create secret --name ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk sshpublickey admin -i ~/.ssh/id_rsa.pub
+```
+
+Create cluster resources in AWS.
+aka update cluster in AWS according to the yaml specification:
+
+```
+kops update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk --yes
+```
+
+When complete (takes around `30` minutes, as it will take time resolving the domain name of the new cluster for at least 15 minutes), you can check the progress with:
+
+```
+kops validate cluster
+```
+
+Once it reports Your cluster `${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk is ready` you can proceed to use kubectl to interact with the cluster.
+
+## Perform the restore
+
+When we have a working cluster (Kops validate cluster should show cluster in ready status), but the data is lost (example: namespaces got deleted, cloud-platform-components got destroyed) then restore cluster back to the point before disaster occurred using backup stored in 's3://cloud-platform-kops-state/${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk/backups, by running etcd-manager-ctl.
+
+To perform the restore, etcd-manager-ctl commands can be run in your [terminal][etcd-managet-ctl-terminal] as long as you have access to cluster s3 storage or they can be run inside the etcd [container][etcd-managet-ctl-container] on the master that is the leader of the cluster.
+
+Please note that this process involves downtime for our masters (and so the api server). A restore cannot be undone (unless by restoring again), and we might lose pods, events and other resources that were created after the backup.
+
+### Pre-requisites
+
+Before you begin, there are a few pre-reqs:
+
+- s3 bucket has latest backup you can use to restore.
+
+Sign in to the AWS Management Console and open the Amazon S3 console and access 'cloud-platform-kops-state/${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk/backups/etcd'. In the etcd you will see `events` and `main` folders, In the `events` and `main` folders identify the file containing the timestamp you want to restore from.
+
+Note: If the kops delete cluster was run, kops will delete the s3 bucket along with cluster, but as `s3://cloud-platform-kops-state` bucket is versioned you can access old versions of the backup.
+
+#### Restore deleted s3 backups.
+
+To restore the deleted backups, follow the below steps:
+
+Sign in to the AWS Management Console and open the Amazon S3 console and access 'cloud-platform-kops-state/${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk/backups/etcd.
+
+Select main and click on `show` option in `versions`, you can view deleted backups now. 
+
+Click on the deleted backup you want to restore from, you will see `etcd_backup.meta` and `etcd.backup.gz` files set as (Delete marker). 
+
+Delete those (Delete marker) files by using delete option in actions (you can see in the below image), removing the delete marker files will get the backup files into active stage. Do the same for events.
+
+![s3 bucket restore from deleted](../images/s3-bucket-restore-from-deleted.png)
+
+
+### Restore the cluster using etcd-manager-ctl on your computer.
+
+Pre-requisites
+
+- Install  kops-manager-ctl in your workstation. Run the below command by updating the latest [release][etcd-managet-ctl] version available for etcd-manager-ctl.
+
+```
+  curl -Lo etcd-manager-ctl  https://github.com/kopeio/etcd-manager/releases/download/3.0.20190816/etcd-manager-ctl-darwin-amd64 && chmod +x etcd-manager-ctl && mv etcd-manager-ctl /usr/local/bin
+```
+
+Run the below commands, to list the backups for main and events. We are listing backups for the cluster named `test-etcd-3.cloud-platform.service.justice.gov.uk` in a S3 bucket called `cloud-platform-kops-state`.
+
+```
+etcd-manager-ctl --backup-store=s3://cloud-platform-kops-state/test-etcd-3.cloud-platform.service.justice.gov.uk/backups/etcd/main list-backups
+etcd-manager-ctl --backup-store=s3://cloud-platform-kops-state/test-etcd-3.cloud-platform.service.justice.gov.uk/backups/etcd/events list-backups
+
+```
+
+you will see result as below for main and events.
+
+```
+Backup Store: s3://cloud-platform-kops-state/test-etcd-3.cloud-platform.service.justice.gov.uk/backups/etcd/main
+I0829 10:57:53.294703   34271 vfs.go:94] listed backups in s3://cloud-platform-kops-state/test-etcd-3.cloud-platform.service.justice.gov.uk/backups/etcd/main: [2019-08-27T16:44:23Z-001038 2019-08-29T09:23:52Z-000001 2019-08-29T09:24:36Z-000002 2019-08-29T09:38:59Z-000003 2019-08-29T09:54:03Z-000004]
+2019-08-27T16:44:23Z-001038
+2019-08-29T09:23:52Z-000001
+2019-08-29T09:24:36Z-000002
+2019-08-29T09:38:59Z-000003
+2019-08-29T09:54:03Z-000004
+```
+
+Restore the latest backup in the list, or the one containing the timestamp you want to restore from (this will bring the entire cluster back to this point in time). Add a restore command for both main and events as below:
+
+Note: We can only use a backup file which is returned in the results of the list-backups command. If kops deleted the backups it will not show up in the list. Follow this [guidance][restore-deleted-backups] to get the deleted backups into active stage, which will then show up in the list-backups. 
+
+```
+etcd-manager-ctl -backup-store=s3://cloud-platform-kops-state/${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk/backups/etcd/main restore-backup 2019-08-27T16:44:23Z-001038
+
+etcd-manager-ctl -backup-store=s3://cloud-platform-kops-state/${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk/backups/etcd/events restore-backup 2019-08-27T16:37:56Z-000351
+```
+
+This will add a command to a file in S3, which will be picked up by the etcd-manager leader. You will see the result as below for main and events.
+
+```
+Backup Store: s3://cloud-platform-kops-state/test-etcd-3.cloud-platform.service.justice.gov.uk/backups/etcd/main
+I0829 10:58:54.596932   34402 vfs.go:60] Adding command at s3://cloud-platform-kops-state/test-etcd-3.cloud-platform.service.justice.gov.uk/backups/etcd/main/control/2019-08-29T09:58:54Z-000000/_command.json: timestamp:1567072734596231000 restore_backup:<cluster_spec:<member_count:3 etcd_version:"3.3.10" > backup:"2019-08-27T16:44:23Z-001038" >
+added restore-backup command: timestamp:1567072734596231000 restore_backup:<cluster_spec:<member_count:3 etcd_version:"3.3.10" > backup:"2019-08-27T16:44:23Z-001038" >
+```
+
+Note that this does not start the restore immediately, to start the restore, you need to roll masters quickly by [rebooting][master-reboot] all the masters from the aws console or [restart][container-restart] etcd on all masters.
+
+The etcd-manager containers should restart automatically, and pick up the restore command. A new etcd cluster will be created and the backup will be restored onto this new cluster.
+
+#### Roll masters by rebooting
+
+To reboot all masters, follow below process.
+
+In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}` to locate cluster master and worker instances(`master-<availability-zone>.masters.<cluster_name>.cloud-platform.service.justice.gov.uk`). 
+
+Select all master instances together, and run reboot from actions>instancestate>reboot.
+Run the below command to validate the cluster.
+
+```bash
+kops validate cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk
+```
+
+All master and worker node should join the cluster, you can see the cluster is in ready status. 
+
+```
+Your cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk is ready
+```
+
+Please note that this process might take a short while(around 1 hr), depending on the size of the cluster.
+
+If the cluster is still in 'not ready' status or you see other issues, this may be answered in [possible-issues][possible-issues] below.
+
+
+#### Restart etcd
+
+To restart etcd on all masters, follow below process.
+
+Note: If you rebooted all the master nodes, you don’t need to perform this step. Use this guidance is if rebooting the masters didn’t trigger the restore process.
+
+login to master node via bastion instance:
+
+```bash
+ssh -A admin@ec2-35-176-xx-xx.eu-west-2.compute.amazonaws.com -p 50422
+```
+
+From the bastion, login to any of the working master nodes:
+
+```bash
+ssh 172.20.xx.xx
+```
+
+While SSHed onto a master:
+
+```bash
+$ sudo docker ps | grep etcd.manager
+```
+You will see output as below:
+
+```
+e81b4622417b  kopeio/etcd-manager         k8s_etcd-manager_etcd-manager-main-...
+39c186fba5ea  kopeio/etcd-manager         k8s_etcd-manager_etcd-manager-events-...
+8c77d710ce46  k8s.gcr.io/pause-amd64:3.0  k8s_POD_etcd-manager-main-...
+806e5af8125d  k8s.gcr.io/pause-amd64:3.0  k8s_POD_etcd-manager-events-...
+```
+
+Using the container id for `k8s_etcd-manager_etcd-manager-main` and `k8s_etcd-manager_etcd-manager-events`, run the below command. This will restart the main and events.
+
+```bash
+$ sudo docker kill e81b4622417b 39c186fba5ea
+```
+
+Immediately afterwards, exit out of the container. Repeat the steps above to login into other master nodes and restart `k8s_etcd-manager_etcd-manager-main` and `k8s_etcd-manager_etcd-manager-events` on all masters. Kubelet will restart them, and after a few seconds they should come up again and start syncing
+
+You can follow the progress by reading the etcd logs (/var/log/etcd(-events).log) on the master that is the leader of the cluster.
+
+```bash
+tail -f /var/log/etcd(-events).log
+```
+
+### Restore process inside the etcd container using etcd-manager-ctl.
+
+If you don't have etcd-manager-ctl installed on your workstation, you can run the etcd-manager-ctl restore process from a etcd container, follow the process below.
+
+Note: If you already performed restore process via etcd-manager-ctl on your [computer][etcd-managet-ctl-terminal], don't repeat this in etcd container.
+
+Run the below command on all the etcd-manager-main and etcd-manager-event containers, to find out the leader of the cluster for main and events. 
+
+```
+kubectl -n kube-system logs etcd-manager-main-ip-172-xx-xx-226.eu-west-2.compute.internal | grep leader
+```
+you will see the logs as below, for events and main, which are the leaders of the cluster.
+
+```
+etcd-manager-main-ip-172-xx-xx-226.eu-west-2.compute.internal etcd-manager I0830 ..... I am leader with token "xxxxxxxxxxx"
+```
+
+you will see the logs as below, for events and main, which are not the leaders of the cluster.
+
+```
+etcd-manager-main-ip-172-xx-xx-223.eu-west-2.compute.internal etcd-manager I0830 ..... we are not leader
+etcd-manager-main-ip-172-xx-xx-57.eu-west-2.compute.internal etcd-manager I0830  ..... we are not leader
+```
+
+From the above output, ssh in to leader master node via bastion instance: 
+
+In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}`to locate bastion instance (`bastion.<cluster_name>.cloud-platform.service.justice.gov.uk`). Use Public DNS (IPv4) In the description of the Instance to login in to bastion as below:
+
+
+```bash
+ssh -A admin@ec2-35-176-xx-xx.eu-west-2.compute.amazonaws.com -p 50422
+```
+
+From the bastion, login to the leader master node:
+
+In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}` to locate master instance (`master-<availability-zone>.masters.<cluster_name>.cloud-platform.service.justice.gov.uk`). From the result above to identify the leader, use the ip address of the leader master node and ssh in to it. 
+
+```bash
+ssh 172.20.xx.xx
+```
+
+While SSHed onto a master:
+
+```bash
+$ sudo docker ps | grep etcd.manager
+```
+You will see output as below:
+
+```
+e81b4622417b  kopeio/etcd-manager         k8s_etcd-manager_etcd-manager-main-...
+39c186fba5ea  kopeio/etcd-manager         k8s_etcd-manager_etcd-manager-events-...
+8c77d710ce46  k8s.gcr.io/pause-amd64:3.0  k8s_POD_etcd-manager-main-...
+806e5af8125d  k8s.gcr.io/pause-amd64:3.0  k8s_POD_etcd-manager-events-...
+```
+
+Pick the main kopeio/etcd-manager container and then docker exec onto it
+
+```bash
+$ sudo docker exec -it [container id] bash
+```
+
+Run the following to install the etcd-manager-ctl binary, make sure you are using the latest [release][etcd-managet-ctl] version available for etcd-manager-ctl.
+
+```
+apt-get update && apt-get install -y wget
+wget https://github.com/kopeio/etcd-manager/releases/download/3.0.20190816/etcd-manager-ctl-linux-amd64
+mv etcd-manager-ctl-linux-amd64 etcd-manager-ctl
+chmod +x etcd-manager-ctl
+mv etcd-manager-ctl /usr/local/bin/
+```
+
+Still in the container, run etcd-manager-ctl commands to list the backups and restore the backups, following the guidance [here][etcd-managet-ctl-terminal].
+
+Do the exact same sequence of steps for the “etcd-events” container. Backups will be stored in an s3 path ending with “backups/etcd/events” instead of “backups/etcd/main”, otherwise the steps are exactly the same.
+
+## Cleanup
+
+After the backup restore is completed, there are probably old master IPs being set as endpoints in the kubernetes service. You can fix this by manually removing the old master IPs from etcd.
+
+Run the below command to identify the current masters:
+
+```
+kubectl -n kube-system get pods | grep etcd-manager-main.
+```
+
+Result shown as below
+
+```
+etcd-manager-events-ip-172-xx-xx-223.eu-west-2.compute.internal       1/1     Running   2          45m
+etcd-manager-events-ip-172-xx-xx-226.eu-west-2.compute.internal       1/1     Running   2          47m
+etcd-manager-events-ip-172-xx-xx-57.eu-west-2.compute.internal        1/1     Running   2          47m
+```
+
+Check the status of the kubernetes endpoint, running the below command:
+
+```
+kubectl -n default get endpoints kubernetes -o=yaml
+```
+
+You can see the old master IPs being set as endpoints, from the below result:
+
+```
+apiVersion: v1
+kind: Endpoints
+metadata:
+  creationTimestamp: "2019-08-09T10:17:02Z"
+  name: kubernetes
+  namespace: default
+  resourceVersion: "3492"
+  selfLink: /api/v1/namespaces/default/endpoints/kubernetes
+  uid: d4905523-ba8e-11e9-ba7f-06274dffb608
+subsets:
+- addresses:
+  - ip: 172.xx.xx.223
+  - ip: 172.xx.xx.245
+  - ip: 172.xx.xx.226
+  - ip: 172.xx.xx.255
+  - ip: 172.xx.xx.57
+  - ip: 172.xx.xx.20
+  ports:
+  - name: https
+    port: 443
+    protocol: TCP
+
+```
+or 
+
+You can get the old master IPs by describing the kubernetes service (under Endpoints):
+
+```
+ kubectl describe svc kubernetes
+```
+
+Result will be as below:
+
+```
+Name:              kubernetes
+Namespace:         default
+Labels:            component=apiserver
+                   provider=kubernetes
+Annotations:       <none>
+Selector:          <none>
+Type:              ClusterIP
+IP:                100.64.0.1
+Port:              https  443/TCP
+TargetPort:        443/TCP
+Endpoints:         172.xx.xx.223:443,172.xx.xx.245:443,172.xx.xx.226:443,172.xx.xx.255:443,172.xx.xx.57:443,172.xx.xx.20:443
+Session Affinity:  None
+Events:            <none>
+```
+
+If the result shows ip addresses which do not belong to current masters, do the cleanup following the guidance below.
+
+Exec into a pod running the etcd-main cluster and run the below command.
+
+```
+ETCDCTL_API=3 /opt/etcd-v3.3.10-linux-amd64/etcdctl \
+--key /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key \
+--cert /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt \
+--cacert /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt \
+--endpoints=https://127.0.0.1:4001 get --prefix /registry/masterleases/
+```
+The output will be as below:
+
+```
+/registry/masterleases/172.xx.xx.245
+k8s
+
+v1  Endpoints+
+
+"*28MBz
+
+172.xx.xx.245"
+/registry/masterleases/172.xx.xx.223
+k8s
+
+v1  Endpoints)
+
+"*28MBz
+
+172.xx.xx.223"
+/registry/masterleases/172.xx.xx.255
+k8s
+
+v1  Endpoints)
+
+"*28MBz
+
+
+172.xx.xx.255"
+/registry/masterleases/172.xx.xx.244
+k8s
+
+v1  Endpoints)
+
+"*28MBz
+
+172.xx.xx.244"
+/registry/masterleases/172.xx.xx.20
+k8s
+
+v1  Endpoints)
+
+"*28MBz
+
+
+172.xx.xx.20"
+/registry/masterleases/172.xx.xx.57
+k8s
+
+v1  Endpoints)
+
+"*28MBz
+
+172.xx.xx.57"
+```
+
+The output should match your master list. If it doesn’t, remove the redundant entries, for example like this:
+
+```
+ETCDCTL_API=3 /opt/etcd-v3.3.10-linux-amd64/etcdctl \
+--key /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key \
+--cert /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt \
+--cacert /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt \
+--endpoints=https://127.0.0.1:4001 del /registry/masterleases/172.xx.xx.245
+```
+
+After that’s done, rerun the below command.
+
+```
+kubectl -n default get endpoints kubernetes -o=yaml
+```
+
+It should now list only ip addresses for your current master nodes.
+
+
+```
+apiVersion: v1
+kind: Endpoints
+metadata:
+  creationTimestamp: "2019-08-09T10:17:02Z"
+  name: kubernetes
+  namespace: default
+  resourceVersion: "3492"
+  selfLink: /api/v1/namespaces/default/endpoints/kubernetes
+  uid: d4905523-ba8e-11e9-ba7f-06274dffb608
+subsets:
+- addresses:
+  - ip: 172.xx.xx.223
+  - ip: 172.xx.xx.226
+  - ip: 172.xx.xx.57
+  ports:
+  - name: https
+    port: 443
+    protocol: TCP
+
+```
+
+## Possible Issues
+
+- After the restore-backup command is run and master nodes are rebooted, you may see the below issues when you run kops validate cluster.
+
+1) If any Master node stuck in `not ready` status, [reboot][master-reboot] that master again, from the aws console or [restart][container-restart] etcd for that master node.
+
+2) Master nodes are in ready status but worker nodes has not yet joined cluster 
+
+```
+NODE STATUS
+NAME                        ROLE    READY
+ip-172-20-58-111.eu-west-2.compute.internal master  True
+ip-172-20-64-175.eu-west-2.compute.internal master  True
+ip-172-20-97-124.eu-west-2.compute.internal master  True
+
+VALIDATION ERRORS
+KIND    NAME                                        MESSAGE
+Machine i-04d61e3f17c896559                             machine "i-04d61e3f17c896559" has not yet joined cluster
+Machine i-07cee6c33d3f9691f                             machine "i-07cee6c33d3f9691f" has not yet joined cluster
+Machine i-0fe9ef38d7d424d4b                             machine "i-0fe9ef38d7d424d4b" has not yet joined cluster
+```
+
+This may happen mainly for restoring disaster situation (total failure, kops delete cluster), as we are building the whole new cluster.
+
+To fix this, reboot the worker nodes, they will be joining the cluster soon.
+
+
+3) All master and worker nodes Joined the cluster, but we see below error's when we run kops validate cluster.
+
+```
+NODE STATUS
+NAME                        ROLE    READY
+ip-172-20-108-76.eu-west-2.compute.internal node    True
+ip-172-20-45-37.eu-west-2.compute.internal  node    True
+ip-172-20-58-111.eu-west-2.compute.internal master  True
+ip-172-20-64-175.eu-west-2.compute.internal master  True
+ip-172-20-76-168.eu-west-2.compute.internal node    True
+ip-172-20-97-124.eu-west-2.compute.internal master  True
+
+VALIDATION ERRORS
+KIND    NAME                                                MESSAGE
+Pod kube-system/calico-node-7xdcr                           kube-system pod "calico-node-7xdcr" is not ready (calico-node)
+Pod kube-system/calico-node-88x5v                           kube-system pod "calico-node-88x5v" is not ready (calico-node)
+Pod kube-system/calico-node-96s88                           kube-system pod "calico-node-96s88" is pending
+Pod kube-system/calico-node-pz6n8                           kube-system pod "calico-node-pz6n8" is pending
+Pod kube-system/calico-node-tgnfs                           kube-system pod "calico-node-tgnfs" is not ready (calico-node)
+Pod kube-system/calico-node-vg5bd                           kube-system pod "calico-node-vg5bd" is not ready (calico-node)
+Pod kube-system/cronjobber-7fbfcff575-zp2hd                 kube-system pod "cronjobber-7fbfcff575-zp2hd" is pending
+Pod kube-system/etcd-manager-events-ip-..                   kube-system pod "etcd-manager-events-ip-.." is pending
+Pod kube-system/etcd-manager-main-ip-..                     kube-system pod "etcd-manager-main-.." is pending
+Pod kube-system/external-dns-6fbd45b59c-r5vpk               kube-system pod "external-dns-6fbd45b59c-r5vpk" is pending
+Pod kube-system/external-dns-dsd-external-dns-..-fnx6l      kube-system pod "external-dns-dsd-external-dns-67899b9dd7-fnx6l" is pending
+Pod kube-system/kube-apiserver-ip-..                        kube-system pod "kube-apiserver-ip-.." is pending
+Pod kube-system/kube-controller-manager-..                  kube-system pod "kube-controller-manager-.." is pending
+Pod kube-system/kube-dns-57dd96bb49-djtmq                   kube-system pod "kube-dns-57dd96bb49-djtmq" is pending
+Pod kube-system/kube-dns-57dd96bb49-tqfqg                   kube-system pod "kube-dns-57dd96bb49-tqfqg" is pending
+Pod kube-system/kube-dns-autoscaler-867b9fd49d-pblbg        kube-system pod "kube-dns-autoscaler-867b9fd49d-pblbg" is pending
+Pod kube-system/kube-proxy-..                               kube-system pod "kube-proxy-ip-.." is pending
+Pod kube-system/kube-scheduler-..                           kube-system pod "kube-scheduler-ip-.." is pending
+Pod kube-system/metrics-server-c867fff7f-7x5zl              kube-system pod "metrics-server-c867fff7f-7x5zl" is pending
+Pod kube-system/tiller-deploy-6f6fd74b68-s68z5              kube-system pod "tiller-deploy-6f6fd74b68-s68z5" is pending
+```
+
+Pods use kubernetes.io/service-account-token to authenticate API requests. After the restore, old tokens (determined by checking creationTimestamp) are not removed, this is causing below errors for the pods which have this issue. So you will need to delete the old secrets, so they can be recreated with the correct keys.
+
+```
+Unable to authenticate the request due to an error: [invalid bearer token, [invalid bearer token, square/go-jose: error in cryptographic primitive]
+```
+
+```
+kubectl -n kube-system get secrets --sort-by=.metadata.creationTimestamp
+```
+
+Comparing to the errors above, these are the tokens which are causing issues.
+
+```
+NAME                                             TYPE                                  DATA   AGE
+default-token-srztw                              kubernetes.io/service-account-token   3      20d
+kube-proxy-token-x7p78                           kubernetes.io/service-account-token   3      20d
+kube-dns-token-h6qfk                             kubernetes.io/service-account-token   3      20d
+dns-controller-token-vtn85                       kubernetes.io/service-account-token   3      20d
+kube-dns-autoscaler-token-dbm5d                  kubernetes.io/service-account-token   3      20d
+calico-node-token-6w6p2                          kubernetes.io/service-account-token   3      20d
+cronjobber-token-4n82j                           kubernetes.io/service-account-token   3      20d
+tiller-token-xnmnx                               kubernetes.io/service-account-token   3      20d
+metrics-server-token-t9pv9                       kubernetes.io/service-account-token   3      20d
+external-dns-dsd-external-dns-token-w26ts        kubernetes.io/service-account-token   3      20d
+external-dns-token-24kjn                         kubernetes.io/service-account-token   3      20d
+```
+
+Run the below command to delete the secrets, they will be recreated.
+
+```
+kubectl -n kube-system delete secret default-token-srztw ......
+```
+
+Now delete the pods, they get recreated and start running.
+
+```
+kubectl -n kube-system delete pods --all
+```
+
+4) Fixing issue 3, will get the cluster in to ready status, but we may see similar issue in other components below:
+
+```
+NAME                  STATUS   AGE
+cert-manager          Active   20d
+ingress-controllers   Active   20d
+kiam                  Active   20d
+kuberos               Active   20d
+logging               Active   20d
+monitoring            Active   20d
+opa                   Active   20d
+```
+
+Do the same approach as we did above, delete the old tokens and restart the pods.
+
+5) In some scenarios, the in-cluster kubernetes service can become unavailable. As we are using calico for networking, this can mean that calico won't start up and stuck in pending status on (some) nodes.
+
+This issue is due to old master IPs being set as endpoints in the kubernetes service. Fix this by manually removing the old master IPs from etcd by doing[cleanup][cleanup].
+
+
+[etcd-manager-rep]: https://github.com/kopeio/etcd-manager
+[cpi-repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
+[kops-repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/kops
+[etcd-managet-ctl]: https://github.com/kopeio/etcd-manager/releases/
+[etcd-manager-restore]: https://github.com/kopeio/etcd-manager/blob/master/docs/backup-restore.md
+[kops-backup-restore]: https://github.com/kubernetes/kops/blob/master/docs/etcd/backup-restore.md
+[apply-cloud-platform]: disaster-recovery.html#apply-cloud-platform-resources
+[create-a-new-cluster]: disaster-recovery.html#create-a-new-cluster
+[perform-the-restore]: disaster-recovery.html#perform-the-restore
+[restore-deleted-backups]: disaster-recovery.html#restore-deleted-s3-backups
+[possible-issues]: disaster-recovery.html#possible-issues
+[etcd-managet-ctl-terminal]: disaster-recovery.html#restore-the-cluster-using-etcd-manager-ctl-on-your-computer
+[etcd-managet-ctl-container]: disaster-recovery.html#restore-process-inside-the-etcd-container-using-etcd-manager-ctl
+[master-reboot]: disaster-recovery.html#roll-masters-by-rebooting
+[container-restart]: disaster-recovery.html#restart-etcd
+[cleanup]: disaster-recovery.html#cleanup
+[tf-cloud-platform]: https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/terraform/cloud-platform
