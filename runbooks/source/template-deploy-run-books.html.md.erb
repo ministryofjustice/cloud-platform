@@ -6,7 +6,7 @@ weight: 9200
 # Template-deploy Runbooks
 (to be de-commissioned as and when template-deploy support ceases)
 
-Various procedures for supporting our production template-deply services. If something goes wrong and you are on call you should be able to find the relevant information via the confluence links below
+Various procedures for supporting our production template-deploy services. If something goes wrong and you are on call you should be able to find the relevant information via the confluence links below
 
 ## General Incident Procedure
 
@@ -18,21 +18,20 @@ If there is a problem with one of these projects the general procedure is:
 
 * Put the holding page up
 
-   - Each project should have a ‘sorry the service is currently unavailable’ holding page served from an alternative infrastructure for this case. Check the project pages for instructions on how to enable it for that project.
+   - Each project should have a ‘sorry the service is currently unavailable’ holding page served from an alternative infrastructure for this case. Check the project's github repository for instructions on how to enable it for that project.
 
 * Email and notify people
+Keep people informed about the problem, let them know what sort of problem it is (i.e. hosting supplier problem, VM problem, app problem etc.) and if the holding page is up or not.
 
-   - Keep people informed about the problem, let them know what sort of problem it is (i.e. hosting supplier problem, VM problem, app problem etc.) and if the holding page is up or not.
+   - Each project should have an incident email list with everyone who needs to know about service outages. Check the project's github repository under here for that address.
 
-   - Each project should have an incident email list with everyone who needs to know about service outages. Check the project pages under here for that address.
+   - Generally we should keep the project owner and delivery manager (if we have these details) informed about how long we think it will take to fix the problem and if it is something we can fix ourselves or if we need to log a call with a third-party. Check the relevant run-book and/or the project github pages for project owner/delivery manager details. Additional informational can also be found here [Products Hosted by Cloud Platform](https://docs.google.com/spreadsheets/d/1y4i5d4YYj8rnkGFLLCZcnj5_i_mwI1kQZz9rs0OgQDI/edit#gid=0)
 
-   - Generally we should keep the project owner and delivery manager informed about how long we think it will take to fix the problem and if it is something we can fix ourselves or if we need to log a call with a third-party.
-
-   - It’s a good idea to update the Incident Response dashboard so that the team knows that something is wrong. You can do this by typing @huboto incident on in the Incident Response and Tuning Team HipChat room.
+   - Notify the relevant team via their slack channel so that the team knows that something is wrong, and also the latest status of the problem.
 
 * Diagnose the problem:
 
-   - Go to the alert URL. This may be found in different places depending on the alerting service and the nature of the alert. You might find it on the dashboard, in the PagerDuty or HipChat messages, or elsewhere. You may not find it at all.
+   - Go to the alert URL. This may be found in different places depending on the alerting service and the nature of the alert. You might find it on the dashboard, in the [PagerDuty](https://moj-digital-tools.pagerduty.com/incidents) or  [Slack #high-priority-alarms messages](https://mojdt.slack.com/messages/C8PF51AT0), or elsewhere. You may not find it at all.
 NOTE: You may not get a correct URL. At the time of writing, preprod PVB only worked if called on /prisoner, but the alert shows the root URL.
 
    - Resolve the alert on pagerduty. You can do this by following the instruction in the text message on the Incident Response phone, or directly on PagerDuty. If you don’t, it will continue to re-alert.
@@ -47,8 +46,6 @@ NOTE: You may not get a correct URL. At the time of writing, preprod PVB only wo
 
    - If the URL does not work, does not work as expected, or Pingdom will not reset, investigate and fix.
 
-* Fix the problem.
-
 * Fix the problem and test the service is healthy again. Depending on the service, you may need to update your /etc/hosts file to gain access to the site (e.g. where you do not have access to the internal DNS, but the service is delivered via an Apache/Nginx vhost).
 
 * Take holding page down
@@ -57,7 +54,7 @@ NOTE: You may not get a correct URL. At the time of writing, preprod PVB only wo
 
 * Send a final email to the project incident list to let everyone know that the service is back up.
 
-* Update the Incident Response dashboard by typing @huboto incident off in the Incident Response and Tuning Team HipChat room.
+* - Notify the relevant team via their slack channel so that the team knows that the problem is resolved and the service is back up
 
 ## Existing Runbooks
 
