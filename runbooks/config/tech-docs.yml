@@ -36,3 +36,6 @@ prevent_indexing: true
 
 show_contribution_banner: true
 github_repo: ministryofjustice/cloud-platform
+
+owner_slack_workspace: mojdt
+default_owner_slack: '#cloud-platform'
