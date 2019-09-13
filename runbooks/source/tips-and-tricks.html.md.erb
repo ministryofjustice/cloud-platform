@@ -45,3 +45,16 @@ ETCDCTL_API=3 \
   --cacert /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt  \
   --endpoints "https://etcd-a.internal.live-1.cloud-platform.service.justice.gov.uk:4001,https://etcd-b.internal.live-1.cloud-platform.service.justice.gov.uk:4001,https://etcd-c.internal.live-1.cloud-platform.service.justice.gov.uk:4001" endpoint health
 ```
+
+## Delete a "stuck" resource
+
+kubectl can freeze with resources in status "Terminating", these workarounds can force a cleanup:
+
+```
+patch <resource> -p '{"metadata":{"finalizers":[]}}' --type=merge
+```
+and/or
+```
+kubectl delete <resource> --grace-period=0 --force
+```
+Where "resource" can be namespace, crd, pod etc
