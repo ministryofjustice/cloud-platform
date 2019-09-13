@@ -1,0 +1,58 @@
+---
+title: List missing certificates
+weight: 62
+last_reviewed_on: 2019-09-13
+review_in: 3 months
+---
+
+# List missing certificates
+
+If certificate [custom resource definitions][crds] (CRDs) are deleted (e.g. by
+upgrading `cert-manager`) sometimes certificate objects get deleted from
+namespaces.  These certificates will not be automatically renewed, so we need
+to ensure the certificates are redeployed.
+
+This script will look for any `tls` secrets in the cluster, for which there is
+no matching certificate object in the same namespace.
+
+```ruby
+#!/usr/bin/env ruby
+
+require 'json'
+
+def main
+  secrets = get_certificate_secrets
+  certificates = get_certificate_objects
+
+  puts %[#{"NAMESPACE".ljust(50)} #{"SECRET".ljust(50)}]
+  (secrets - certificates).map do |s|
+    namespace, name = s.split(":")
+    puts "#{namespace.ljust(50)} #{name.ljust(50)}"
+  end
+end
+
+def get_certificate_secrets
+  get_data("secrets")
+    .filter { |s| s.dig("type") == "kubernetes.io/tls" }
+    .map do |s|
+      name = s.dig("metadata", "name")
+      [get_namespace(s), name].join(":")
+    end
+end
+
+def get_certificate_objects
+  get_data("certificates").map { |s| [ get_namespace(s), s.dig("spec", "secretName") ].join(":") }
+end
+
+def get_data(object_type)
+  JSON.parse(`kubectl get #{object_type} --all-namespaces -o json`.chomp).fetch("items")
+end
+
+def get_namespace(object)
+  object.dig("metadata", "namespace")
+end
+
+main
+```
+
+[crds]: https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/
