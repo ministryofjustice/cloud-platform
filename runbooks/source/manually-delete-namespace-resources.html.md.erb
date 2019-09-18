@@ -1,0 +1,79 @@
+---
+title: Manually Delete Namespace Resources
+weight: 190
+last_reviewed_on: 2019-09-18
+review_in: 3 months
+---
+
+# Manually Delete Namespace Resources
+
+Sometimes AWS resources are not cleanly deleted by the pipeline, because the
+version of the corresponding terraform module has advanced, since the resource
+was created. This often manifests as a plan pipeline failure with an error like
+this:
+
+```
+Error: Error asking for user input: 1 error occurred:
+    * module.umar-dev-rds-team.aws_db_instance.rds: configuration for module.umar-dev-rds-team.provider.aws.london is not present; a provider configuration block is required for all operations
+```
+
+You can fix this by manually running `terraform destroy` to get rid of a
+namespace's AWS resources.
+
+This procedure is adpated from the [pipeline apply script], which may have been
+updated since this was written. Please check the script if you think this might
+be the case.
+
+For this example, we are going to delete resources from the `umar-dev`
+namespace on the live-1 cluster.
+
+## Start
+
+Start from the root directory of a checkout of the master branch of the
+[environments repository].
+
+## Set some env vars.
+
+```
+export PIPELINE_CLUSTER=live-1.cloud-platform.service.justice.gov.uk
+export PIPELINE_STATE_BUCKET=cloud-platform-terraform-state
+export PIPELINE_STATE_KEY_PREFIX="cloud-platform-environments/"
+export PIPELINE_STATE_REGION="eu-west-1"
+export PIPELINE_CLUSTER_STATE_BUCKET=cloud-platform-terraform-state
+export PIPELINE_CLUSTER_STATE_KEY_PREFIX="cloud-platform/"
+export cluster=live-1.cloud-platform.service.justice.gov.uk
+```
+
+## Set the namespace name
+
+```
+export namespace=umar-dev
+```
+
+## cd to the `resources` directory
+
+`cd namespaces/live-1.cloud-platform.service.justice.gov.uk/umar-dev/resources`
+
+## Run `terraform init`
+
+```
+terraform init \
+  -backend-config="bucket=${PIPELINE_STATE_BUCKET}" \
+  -backend-config="key=${PIPELINE_STATE_KEY_PREFIX}${cluster}/${namespace}/terraform.tfstate" \
+  -backend-config="region=${PIPELINE_STATE_REGION}"
+```
+
+## Run `terraform destroy`
+
+```
+tf destroy \
+  -var="cluster_name=${cluster%%.*}"
+  -var="cluster_state_bucket=${PIPELINE_CLUSTER_STATE_BUCKET}"
+  -var="cluster_state_key=${PIPELINE_CLUSTER_STATE_KEY_PREFIX}${cluster%%.*}/terraform.tfstate"
+```
+
+After confirming that you're happy with the proposed changes, all the
+namespace's AWS resources should be deleted.
+
+[pipeline apply script]: https://github.com/ministryofjustice/cloud-platform-environments/blob/master/bin/apply
+[environments repository]: https://github.com/ministryofjustice/cloud-platform-environments
