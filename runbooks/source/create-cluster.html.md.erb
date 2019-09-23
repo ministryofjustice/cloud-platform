@@ -27,6 +27,8 @@ You can get the auth0 values from the `terraform-provider-auth0` application on 
 
 The cloud platform [tools image] has all the software required to run the build script and create a cluster.
 
+NB: The build script will change your working copy of `terraform/cloud-platform-components/terraform.tfvars` file to prevent your test cluster sending `high-priority pagerduty alarms` and `low-priority slack alerts` to the team slack channels.
+
 Start from the root directory of a working copy of the [infrastructure repo].
 
 With your environment variables set, launch a bash shell on the tools image:
@@ -50,78 +52,7 @@ The script takes around 30 minutes to execute. At the end, you should see output
 ```
 Kubernetes master is running at https://api.david-test1.cloud-platform.service.justice.gov.uk
 KubeDNS is running at https://api.david-test1.cloud-platform.service.justice.gov.uk/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
-```
-
-## Disable Alerts
-
-By default, your test cluster will send alerts to the team slack channels. This can cause confusion if the work that you're doing on the test cluster involves something which, in the live cluster, would be a critical component.
-
-### High Priority Alerts
-
-The simplest way to disable high-priority alerts is to prevent them from reaching [PagerDuty], by removing the token for our PagerDuty account.
-
-#### Edit the file `terraform/cloud-platform-components/terraform.tfvars`
-
-Find the line `pagerduty_config = "--------- SOME VALUE ----------"`, and replace the value with a dummy value (not empty string), then save the file.
-
-
-### Lower priority alerts
-
-Low-priority alerts are sent directly to the `#lower-priority-alarms` slack channel, so the procedure for disabling them is slightly different.
-
-#### Edit the file `terraform/cloud-platform-components/terraform.tfvars`
-
-Look for the `alertmanager_slack_receivers` section, and find the entry whose `channel` value is `#lower-priority-alarms`.
-
-Change the value of `webhook` and replace the string after the last `/` in the URL with a dummy value, then save the file.
-
-### Apply the changes
-
-Finally, we will use terraform to apply the changes to the prometheus operator in your test cluster.
-
-#### Ensure your terraform workspace and kubernetes context are pointing at your test cluster
-
-```bash
-cd terraform/cloud-platform-components
-terraform workspace list
-```
-
-If you are not targeting your test cluster workspace, run
-
-```bash
-terraform workspace select [your cluster]
-```
-
-Check your kubernetes context by running
-
-```bash
-kubectl cluster-info
-```
-
-The output should be
-
-```bash
-Kubernetes master is running at https://api.XXXXXXX.cloud-platform.service.justice.gov.uk
-KubeDNS is running at https://api.XXXXXXX.cloud-platform.service.justice.gov.uk/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
-```
-
-...where `XXXXXXX` is the name of your test cluster.
-
-If your context is pointing at live-1, switch to your test cluster by running
-
-```bash
-kops export kubecfg XXXXXXX.cloud-platform.service.justice.gov.uk
-```
-
-When you are confident that both your terraform workspace and kubernetes context are set to your test cluster, apply the change to set the pagerduty config value:
-
-```bash
-terraform apply -target=helm_release.prometheus_operator
-```
-
-Answer `yes` if the planned changes look correct.
-
-This should leave all the alerting infrastructure of your test cluster intact, but prevent any high-priority alerts from reaching PagerDuty (and being routed from there to Slack, or anywhere else).
+``` 
 
 [infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
 [cluster naming policy]: https://github.com/ministryofjustice/cloud-platform/blob/master/architecture-decision-record/009-Naming-convention-for-clusters.md
