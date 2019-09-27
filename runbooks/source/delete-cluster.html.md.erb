@@ -34,6 +34,7 @@ Then, from the components directory, run these commands to destroy all cluster c
 $ cd terraform/cloud-platform-components
 $ terraform init
 $ terraform workspace select <clusterName e.g. cloud-platform-test-3>
+$ terraform destroy -target helm_release.prometheus_operator # delete first, to avoid conflicts later
 $ terraform destroy
 $ terraform workspace select default
 $ terraform workspace delete <clusterName>
