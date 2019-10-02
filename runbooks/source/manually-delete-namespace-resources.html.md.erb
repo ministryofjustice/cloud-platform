@@ -52,7 +52,9 @@ export namespace=umar-dev
 
 ## cd to the `resources` directory
 
-`cd namespaces/live-1.cloud-platform.service.justice.gov.uk/umar-dev/resources`
+```
+cd namespaces/live-1.cloud-platform.service.justice.gov.uk/${namespace}/resources
+```
 
 ## Run `terraform init`
 
@@ -67,8 +69,8 @@ terraform init \
 
 ```
 tf destroy \
-  -var="cluster_name=${cluster%%.*}"
-  -var="cluster_state_bucket=${PIPELINE_CLUSTER_STATE_BUCKET}"
+  -var="cluster_name=${cluster%%.*}" \
+  -var="cluster_state_bucket=${PIPELINE_CLUSTER_STATE_BUCKET}" \
   -var="cluster_state_key=${PIPELINE_CLUSTER_STATE_KEY_PREFIX}${cluster%%.*}/terraform.tfstate"
 ```
 
