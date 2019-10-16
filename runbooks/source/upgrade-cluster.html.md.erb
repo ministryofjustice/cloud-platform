@@ -19,6 +19,15 @@ Before you begin, there are a few pre-requisites:
 
 See the file `example.env.create-cluster` in the [infrastructure repo].
 
+### Sanity checks
+
+Ensure Concourse pipelines are green, and pause all of them.
+
+Take a snapshot of
+
+- all non-running pods
+- triggered Prometheus alarms
+
 ### Run a shell in the tools image
 
 The cloud platform [tools image] has all the software required to run the build script and create a cluster.
@@ -43,54 +52,45 @@ kops export kubecfg XXXXXXX.cloud-platform.service.justice.gov.uk
 
 Change the Kubernetes release version, ensuring it is supported by Kops - verify on the [kops releases](https://github.com/kubernetes/kops/releases) page.
 
-Kops takes around 5 minutes per node to execute, same for the masters; downtime is not expected but applications that have only one instance running wil be restarted several times.
+If there is a newer AMI available in https://github.com/kubernetes/kops/blob/master/channels/stable, `kops edit instance-group masters`
+
+`kops update cluster (--yes)` will update k8s components inc calico
+
+`kops rolling update cluster -- instance-group-roles=Master` will update only th emaster nodes, no performance impact expected at this point
+
+`kops create instance group nodes-<new_group_name>` to double the size of the cluster
+
+ - copy values from instance group nodes
+
+`kops update cluster (--yes)` will create the new nodes
+
+`kubectl cordon nodes` in the old instance group, this will ensure any new resources will go to the new ig
+
+Scale up the OPA deployment to ensure at least one pod runs on the new nodes
+
+Scale up ingress controllers by at least 3, to ensure each AZ on the new nodes gets an instance
+
+Identify pods with PVCs
+
+ - kill them
+
+ - check data persistence (eg Prometheus metrics history)
+
+`kubectl drain nodes` on the old ig
+
+`kops delete ig` old instance group
+
+Unpause pipelines
 
 ## Sanity checks
 
-At the end, verify the cluster status using kops, the smoke tests suite and terraform:
+`kops validate cluster`
 
-### Kops
-
-```bash
-kops validate cluster
-```
-
-you must see an output like this:
-
-```
-Using cluster from kubectl context: XXXXXXX.cloud-platform.service.justice.gov.uk
-
-Validating cluster XXXXXXX.cloud-platform.service.justice.gov.uk
-
-INSTANCE GROUPS
-NAME			ROLE	MACHINETYPE	MIN	MAX	SUBNETS
-master-eu-west-2a	Master	c4.4xlarge	1	1	eu-west-2a
-master-eu-west-2b	Master	c4.4xlarge	1	1	eu-west-2b
-master-eu-west-2c	Master	c4.4xlarge	1	1	eu-west-2c
-nodes			Node	r5.xlarge	3	3	eu-west-2a,eu-west-2b,eu-west-2c
-
-NODE STATUS
-NAME						ROLE	READY
-ip-172-20-117-94.eu-west-2.compute.internal	node	True
-ip-172-20-121-184.eu-west-2.compute.internal	master	True
-... ^ list of all expected nodes and masters, and all with status 'ready'
-
-Your cluster XXXXXXX.cloud-platform.service.justice.gov.uk is ready
-```
-
-### Smoke tests
-
-Exit the `tools` image, and continue in the [smoke-tests](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/smoke-tests) folder which runs a different image (the two images might be merged to avoid confusion).
+Smoke test and check non-running pods, compare with situation before the upgrade start
 
 The `cloud-platform-smoke-tests` image might need updates, see https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/374 for an example.
 
-### Terraform 
-
 Finally, check that `terraform` agrees with the new cluster status
-
-#### Ensure your terraform workspace and kubernetes context are pointing at your test cluster
-
-Check your kubernetes context by running
 
 ```bash
 kubectl cluster-info
@@ -113,7 +113,7 @@ Expected result is no changes needed.
 
 ## Commit 
 
-As a last step, edit the `kubernetesVersion` parameter in the [corresponding](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/kops) kops .yaml file to match the new release.
+As a last step, edit and commit the [corresponding](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/kops) kops .yaml file to match the new release.
 
 [infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
 [cluster naming policy]: https://github.com/ministryofjustice/cloud-platform/blob/master/architecture-decision-record/009-Naming-convention-for-clusters.md
