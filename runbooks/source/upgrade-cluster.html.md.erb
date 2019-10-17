@@ -1,0 +1,127 @@
+---
+title: Upgrade a cluster
+weight: 52
+---
+
+# Upgrade a cluster
+
+## Pre-requisites
+
+Before you begin, there are a few pre-requisites:
+
+- Your GPG key must be added to the [infrastructure repo] so that you are able to run `git-crypt unlock`.
+
+- You have the [AWS CLI] profile `moj-cp` with suitable credentials.
+
+- You have [docker] installed.
+
+### Environment Variables
+
+See the file `example.env.create-cluster` in the [infrastructure repo].
+
+### Sanity checks
+
+Ensure Concourse pipelines are green, and pause all of them.
+
+Take a snapshot of
+
+- all non-running pods
+- triggered Prometheus alarms
+
+### Run a shell in the tools image
+
+The cloud platform [tools image] has all the software required to run the build script and create a cluster.
+
+The image will need updates for new client tool versions, see https://github.com/ministryofjustice/cloud-platform-tools-image/pull/34 for an example.
+
+Start from the root directory of a working copy of the [infrastructure repo].
+
+With your environment variables set, launch a bash shell on the tools image:
+
+```bash
+make tools-shell
+```
+
+## Run the upgrade
+
+Within the tools image, the file `~/.kube/config` is not copied from your outside profile, create it for just the needed cluster by running
+
+```bash
+kops export kubecfg XXXXXXX.cloud-platform.service.justice.gov.uk
+```
+
+Change the Kubernetes release version, ensuring it is supported by Kops - verify on the [kops releases](https://github.com/kubernetes/kops/releases) page.
+
+If there is a newer AMI available in https://github.com/kubernetes/kops/blob/master/channels/stable, `kops edit instance-group masters`
+
+`kops update cluster (--yes)` will update k8s components inc calico
+
+`kops rolling update cluster -- instance-group-roles=Master` will update only the master nodes, no performance impact expected at this point
+
+`kops create instance group nodes-<new_group_name>` to double the size of the cluster
+
+ - copy values from instance group nodes
+
+`kops update cluster (--yes)` will create the new nodes
+
+`kubectl cordon nodes <node_name>` in the old instance group, this will ensure any new resources will go to the new ig
+
+Scale up the OPA deployment to ensure at least one pod runs on the new nodes
+
+Scale up ingress controllers by at least 3, to ensure each AZ on the new nodes gets an instance
+
+Identify pods with PVCs
+
+`kubectl get pvc -A`
+
+ - kill them
+
+ - check data persistence (eg Prometheus metrics history)
+
+`kubectl drain nodes <node_name>` on the old ig, DaemonSets can be safely excluded
+
+^ this must be done one node at a time to ensure it actually succeeds so will take ~1min*number of nodes
+
+`kops delete ig` old instance group
+
+Unpause pipelines
+
+## Sanity checks
+
+`kops validate cluster`
+
+Smoke test and check non-running pods, compare with situation before the upgrade start
+
+The `cloud-platform-smoke-tests` image might need updates, see https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/374 for an example.
+
+Finally, check that `terraform` agrees with the new cluster status
+
+```bash
+kubectl cluster-info
+```
+
+```bash
+pushd terraform/cloud-platform
+terraform workspace list
+terraform workspace select [your cluster]
+terraform plan
+popd
+cd terraform/cloud-platform-components
+terraform workspace list
+terraform workspace select [your cluster]
+terraform plan
+popd
+```
+
+Expected result is no changes needed.
+
+## Commit 
+
+As a last step, edit and commit the [corresponding](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/kops) kops .yaml file to match the new release.
+
+[infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
+[cluster naming policy]: https://github.com/ministryofjustice/cloud-platform/blob/master/architecture-decision-record/009-Naming-convention-for-clusters.md
+[AWS CLI]: https://aws.amazon.com/cli/
+[docker]: https://www.docker.com/
+[PagerDuty]: https://www.pagerduty.com/
+[tools image]: https://github.com/ministryofjustice/cloud-platform-tools-image
