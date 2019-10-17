@@ -56,7 +56,7 @@ If there is a newer AMI available in https://github.com/kubernetes/kops/blob/mas
 
 `kops update cluster (--yes)` will update k8s components inc calico
 
-`kops rolling update cluster -- instance-group-roles=Master` will update only th emaster nodes, no performance impact expected at this point
+`kops rolling update cluster -- instance-group-roles=Master` will update only the master nodes, no performance impact expected at this point
 
 `kops create instance group nodes-<new_group_name>` to double the size of the cluster
 
@@ -64,7 +64,7 @@ If there is a newer AMI available in https://github.com/kubernetes/kops/blob/mas
 
 `kops update cluster (--yes)` will create the new nodes
 
-`kubectl cordon nodes` in the old instance group, this will ensure any new resources will go to the new ig
+`kubectl cordon nodes <node_name>` in the old instance group, this will ensure any new resources will go to the new ig
 
 Scale up the OPA deployment to ensure at least one pod runs on the new nodes
 
@@ -72,11 +72,15 @@ Scale up ingress controllers by at least 3, to ensure each AZ on the new nodes g
 
 Identify pods with PVCs
 
+`kubectl get pvc -A`
+
  - kill them
 
  - check data persistence (eg Prometheus metrics history)
 
-`kubectl drain nodes` on the old ig
+`kubectl drain nodes <node_name>` on the old ig, DaemonSets can be safely excluded
+
+^ this must be done one node at a time to ensure it actually succeeds so will take ~1min*number of nodes
 
 `kops delete ig` old instance group
 
