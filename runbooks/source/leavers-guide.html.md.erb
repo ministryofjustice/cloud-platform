@@ -66,6 +66,8 @@ Contact the [Service Desk](mailto:servicedesk%40digital.justice.gov.uk)  (or s
 
 * [CI](https://ci.service.dsd.io/configureSecurity/)
 
+* [MoJ teams on docker hub](https://cloud.docker.com/orgs/ministryofjustice/teams)
+
 * Email the administrator of our password management provider to remove the leaver's login access [contact details here](https://docs.google.com/document/d/1Q6bHUyGEuVi81Bmvi7kOa-DvC-y-L-H3BR13DPsYiVs/edit)
 
 * Email the VPN provider requesting removal of their VPN access [contact details here](https://docs.google.com/document/d/1Q6bHUyGEuVi81Bmvi7kOa-DvC-y-L-H3BR13DPsYiVs/edit)
@@ -76,7 +78,7 @@ Contact the [Service Desk](mailto:servicedesk%40digital.justice.gov.uk)  (or s
 
 Reference [platforms@digital.justice.gov.uk](mailto:platforms@digital.justice.gov.uk)
 
-### Template Deploy - Cloud Platforms 
+### Template Deploy - Cloud Platforms
 
 Remove this section once it is no longer needed
 
@@ -84,13 +86,13 @@ Remove this section once it is no longer needed
 
 #### 2/ Update all deploy repos to revoke their user ssh access using the salt state.
 
-#####a. Carry out fabric command on each of following deploy repos (as at 30/04/2019) 
+#####a. Carry out fabric command on each of following deploy repos (as at 30/04/2019)
 
 **Note for all of the following fabric commands carry out "salt.ssh_keys" "vendor_upload" rather than an "update" command this enables you to ssh onto each instance and carry out an update to the ssh users without interruption to the applications by restarting the containers:
 
 **consider the use of the Dockerfile fabric image  instead of the following fabric commands. Personally I could not get them to function correctly for "salt.ssh_keys" "vendor_upload".
 
-Reference [Dockerfile fabric image](https://mojdt.slack.com/archives/C514ETYJX/p1532609061000168) 
+Reference [Dockerfile fabric image](https://mojdt.slack.com/archives/C514ETYJX/p1532609061000168)
 
 * [cla_backend-deploy](https://github.com/ministryofjustice/cla_backend-deploy)
 
@@ -225,7 +227,7 @@ Example fabric command:
 fab application:pvb aws:mojdsd environment:prod config:./cloudformation/pvb2.yaml passwords:./cloudformation/pvb2-secrets.yaml  -i ../config/default.pem salt.ssh_keys vendor_upload -u [user]
 ```
 
-* [pvbpublic-deploy](https://github.com/ministryofjustice/pvbpublic-deploy) 
+* [pvbpublic-deploy](https://github.com/ministryofjustice/pvbpublic-deploy)
 
     - Envs as at 30/04/2019:
 
@@ -381,7 +383,7 @@ fab application:mps aws:mojdsd environment:prod config:./cloudformation/mps.yaml
 #####b. ssh onto all of the deploy repos instances and use  the following salt-code commands. This will enable updates to take place without restarting the container. The use/installation  of [awsjump](https://github.com/ministryofjustice/template-deploy-jump) will help to easily switch between instances:
 
 ```bash
-sudo su 
+sudo su
 salt_utils.py -s fooooo
 cd /srv/pillar/
 salt-call state.sls admins
