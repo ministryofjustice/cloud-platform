@@ -50,11 +50,16 @@ ETCDCTL_API=3 \
 
 kubectl can freeze with resources in status "Terminating", these workarounds can force a cleanup:
 
+Identify what resources are still present in a namspace:
 ```
-patch <resource> -p '{"metadata":{"finalizers":[]}}' --type=merge
+ns=my-app ; for api in `kubectl api-resources --verbs=list --namespaced -o name` ; do echo $api ;  kubectl get $api -n $ns ; done
+```
+If a regular `delete` does not remove the resource, try
+```
+kubectl delete <resource> --grace-period=0 --force
 ```
 and/or
 ```
-kubectl delete <resource> --grace-period=0 --force
+patch <resource> -p '{"metadata":{"finalizers":[]}}' --type=merge
 ```
 Where "resource" can be namespace, crd, pod etc
