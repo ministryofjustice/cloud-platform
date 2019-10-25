@@ -63,3 +63,25 @@ and/or
 patch <resource> -p '{"metadata":{"finalizers":[]}}' --type=merge
 ```
 Where "resource" can be namespace, crd, pod etc
+
+## Filter namespaces by specific label or annotation
+
+For the label `cloud-platform.justice.gov.uk/is-production` with value `true`
+
+```bash
+kubectl get ns -l=cloud-platform.justice.gov.uk/is-production=true
+```
+
+You can use ```awk``` to output specific column
+
+```bash
+kubectl get namespaces -l=cloud-platform.justice.gov.uk/is-production=true | awk '{print $1,$2}'
+```
+
+To filter namespaces by label and annotation and display as namespace / annotation format
+
+```bash
+kubectl get namespaces -l=cloud-platform.justice.gov.uk/is-production=true -ojson | jq -r '.items[] | .metadata.name + " / " + .metadata.annotations["cloud-platform.justice.gov.uk/source-code"] '
+```
+
+If you need to install `jq`, do `brew install jq` 
