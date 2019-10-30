@@ -41,6 +41,7 @@ export PIPELINE_STATE_KEY_PREFIX="cloud-platform-environments/"
 export PIPELINE_STATE_REGION="eu-west-1"
 export PIPELINE_CLUSTER_STATE_BUCKET=cloud-platform-terraform-state
 export PIPELINE_CLUSTER_STATE_KEY_PREFIX="cloud-platform/"
+export PIPELINE_TERRAFORM_STATE_LOCK_TABLE=cloud-platform-environments-terraform-lock
 export cluster=live-1.cloud-platform.service.justice.gov.uk
 ```
 
@@ -62,6 +63,7 @@ cd namespaces/live-1.cloud-platform.service.justice.gov.uk/${namespace}/resource
 terraform init \
   -backend-config="bucket=${PIPELINE_STATE_BUCKET}" \
   -backend-config="key=${PIPELINE_STATE_KEY_PREFIX}${cluster}/${namespace}/terraform.tfstate" \
+  -backend-config="dynamodb_table=${PIPELINE_TERRAFORM_STATE_LOCK_TABLE}" \
   -backend-config="region=${PIPELINE_STATE_REGION}"
 ```
 
