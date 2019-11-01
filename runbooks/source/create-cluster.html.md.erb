@@ -38,12 +38,20 @@ make tools-shell
 Execute the script, supplying the desired name of your new cluster. e.g.:
 
 ```bash
-./create-cluster.rb david-test1
+./create-cluster.rb --name david-test1
 ```
 
 NB: Your cluster name must be **no more than 12 characters**. Any longer, and some of the computed strings which include the cluster name will exceed their maximum allowed values. The error messages you get if this happens are unhelpful. In order to prevent this, the build script will fail immediately if you supply a name which is too long.
 
 See our [cluster naming policy] for information on how to choose a suitable name for your cluster.
+
+By default, the script will create a 'small' cluster. This means the master and worker EC2 instances will be less powerful machine types than in our production cluster. To create a 'medium' or 'production' cluster, run the script like this:
+
+```bash
+./create-cluster.rb --name david-test1 --size medium # or --size production
+```
+
+See the script source code for the precise machine types used for the different sizes. The machine types used for 'production' clusters should always be the same machine types as we use in production.
 
 The script takes around 30 minutes to execute. At the end, you should see output like this:
 
