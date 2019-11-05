@@ -5,13 +5,13 @@ about: Track migrations to cloud platform
 ---
 
 ## Information
-Service name : <!--- Full name or acronym -->
+Service name : <!--- Full name and abbreviation (if any) -->
 
 Production service URL : <!--- *.service.gov.uk -->
 
-Migration Date : <!--- 25/12/2019 -->  
+Planned Migration Date : <!--- Leave blank if no date has been decided-->  
 
-Contact Person : <!-- John Smith -->
+Contact Person : <!-- email address -->
 
 
 
@@ -65,12 +65,12 @@ Below are the expected steps to migrate to the Cloud Platfom
 
 - [ ] The Kubernetes Namespaces have been created
 - [ ] The AWS resource (RDS/Elasticache/ECR/S3/etc.) have been created
-- [ ] The Route53 zone has been created (if applicable)
+- [ ] The Route53 zone has been created
 
 #### Kubernetes Deployments
 
-- [ ] The Ingresses have been created (if applicable)
-- [ ] The Certificates have been created (if applicable)
+- [ ] The Ingresses have been created
+- [ ] The Certificates have been created
 - [ ] The applications are deploying successfully
 
 #### Data Migration
@@ -81,4 +81,5 @@ Below are the expected steps to migrate to the Cloud Platfom
 
 #### DNS Switch
 
+- [ ] DNS authority has been delegated to the cloud platform Route53 zone (if applicable)
 - [ ] The DNS switch has happened, the URL is now routing to the new service.
