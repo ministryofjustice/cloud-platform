@@ -1,11 +1,13 @@
 ---
-title: state data in S3 does not have the expected content
+title: Terraform state lock - Error refreshing state
 weight: 200
 last_reviewed_on: 2019-11-07
 review_in: 3 months
 ---
 
-# Error refreshing state: state data in S3 does not have the expected content.
+# Terraform state lock - Error refreshing state
+
+> Error refreshing state: state data in S3 does not have the expected content.
 
 You may see this error if someone worked on terraform state without using the
 locking mechanism, i.e. they didn't pass this command-line argument during
@@ -18,15 +20,13 @@ hash recorded in the corresponding dynamodb record.
 
 The full error will look something like this:
 
-```
-Error refreshing state: state data in S3 does not have the expected content.
-
-This may be caused by unusually long delays in S3 processing a previous state
-update.  Please wait for a minute or two and try again. If this problem
-persists, and neither S3 nor DynamoDB are experiencing an outage, you may need
-to manually verify the remote state and update the Digest value stored in the
-DynamoDB table to the following value: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-```
+> Error refreshing state: state data in S3 does not have the expected content.
+>
+> This may be caused by unusually long delays in S3 processing a previous state
+> update.  Please wait for a minute or two and try again. If this problem
+> persists, and neither S3 nor DynamoDB are experiencing an outage, you may need
+> to manually verify the remote state and update the Digest value stored in the
+> DynamoDB table to the following value: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 Following the instructions above will enable you to proceed. You can also
 simply delete the dynamodb record for this terraform state file, which will
