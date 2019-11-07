@@ -1,0 +1,53 @@
+---
+title: state data in S3 does not have the expected content
+weight: 200
+last_reviewed_on: 2019-11-07
+review_in: 3 months
+---
+
+# Error refreshing state: state data in S3 does not have the expected content.
+
+You may see this error if someone worked on terraform state without using the
+locking mechanism, i.e. they didn't pass this command-line argument during
+`terraform init`:
+
+    -backend-config="dynamodb_table=${PIPELINE_TERRAFORM_STATE_LOCK_TABLE}" \
+
+In this case, the content of the terraform state file will not match the md5
+hash recorded in the corresponding dynamodb record.
+
+The full error will look something like this:
+
+```
+Error refreshing state: state data in S3 does not have the expected content.
+
+This may be caused by unusually long delays in S3 processing a previous state
+update.  Please wait for a minute or two and try again. If this problem
+persists, and neither S3 nor DynamoDB are experiencing an outage, you may need
+to manually verify the remote state and update the Digest value stored in the
+DynamoDB table to the following value: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+Following the instructions above will enable you to proceed. You can also
+simply delete the dynamodb record for this terraform state file, which will
+have the same effect.
+
+
+NB: There seems to be a bug in the AWS console web interface for dynamodb, and
+it sometimes happens that the record you want doesn't appear in the
+[alphabetical list of records][dynamodb_table]. If this happens, use the
+`query` function to search for the records LockID value, and you will find it.
+
+The value for an environment terraform state file will be:
+
+`cloud-platform-terraform-state/cloud-platform-environments/live-1.cloud-platform.service.justice.gov.uk/[NAMESPACE NAME]/terraform.tfstate-md5`
+
+To query the table:
+
+* Change `Scan` to `Query` in the upper-left dropdown
+* Paste the LockID string value in the text box
+* Click `Start search`
+
+![dynamodb query](../images/dynamodb-query.png)
+
+[dynamodb_table]: https://eu-west-1.console.aws.amazon.com/dynamodb/home?region=eu-west-1#tables:selected=cloud-platform-environments-terraform-lock;tab=items
