@@ -1,0 +1,75 @@
+---
+title: Add a new runbook
+weight: 9999
+last_reviewed_on: 2019-11-12
+review_in: 3 months
+---
+
+# Create Manual SSL Certificate Processes
+
+These processes are for any Ministry of Justice users (or suppliers) requiring an SSL Certificate.
+
+There are 3 categories of certificate we use at Ministry of Justice:
+
+* AWS Certificate Manager (ACM)/Let’s Encrypt - automated certificate management for modern cloud native software and infrastructure
+* Gandi.net - where automated certificate management is not possible
+* DigiCert - for legacy GSI domains only (this process is being depricated)
+
+Where at all practicable we should be looking to utilise automated certificate management. The MoJ Hosting Service is looking at strategy to move consumers to modern certificate management solutions.
+
+This process specifically relates to certificates issued through [Gandi.net](gandi.net)
+
+## Pre-requisites
+
+Before you begin, there are a few pre-requisites:
+
+* A user account for Gandi.net
+* Access to the the Certificates Google group
+* Access to the Certificate Alerts Google group
+* Access to mojdsd Route53
+
+Please contact your [administrator](mailto:certificates@digital.justice.gov.uk) to set these up. 
+
+## Requesting a new certificate via Gandi.net
+
+#### 1. Users need to complete the [MoJ Hosting Service SSL Certificate Request Form](https://docs.google.com/document/d/14XbWoudZd-t4-J3mDBcrAeafAbqxwvdkV-u3Zf8eLOs/edit?usp=sharing) and return it with the Certificate Signing Request (CSR) (and an authority email approval if not an MoJ employee e.g. 3rd party supplier) to [certificates@digital.justice.gov.uk](mailto:certificates@digital.justice.gov.uk).
+#### 2. When the form is received check to see if the domain is managed in Route53. If not, the validation step in the process will need to be carried out by the team that manages the domain. You will need to check with the requestor how the 3rd party wants to carry out validation. [There are 3 types of validation](https://docs.gandi.net/en/ssl/common_operations/dcv.html).
+#### 3. Assuming that we manage the domain, create a new certificate in Gandi.net. Full detailed instructions can be found [here](https://docs.gandi.net/en/ssl/create/index.html)
+#### 4. If creation has been successful two email will be sent to the Certificate Alerts Google group. An invoice (which can be ignored), and a Validation email. Click on the link in the validation email to obtain CNAME details that will need to be added in the Hosted Zone in Route53.
+#### 5. Create the CNAME record in Route53. Gandi.net will automatically try to pick up this CNAME to confirm that we have ownership of the domain.
+#### 6. When validation is complete an email will be sent to the Certificate Alerts Google group. Click on the link in the email to visit Gandi.net and download the new certificate.
+#### 7. Email the certificate to the requestor along with details of the expiry date. All certificates are valid for 12 months.
+
+## Renewing a new certificate via Gandi.net
+
+We will review the list of Gandi.net certificates and identify any that require renewal 4 weeks prior to expiry (we also get a notification to Certificate Alerts 29 and 14 days prior to expiry).
+
+#### 1. Contact the service owner to confirm if renewal is required. If not, allow the certificate to expire.
+#### 2. If renewal is required request a new Certifcate Signing Request (CSR) from the service owner.
+#### 3. Follow the [Renewal Process](https://docs.gandi.net/en/ssl/renew/index.html). The renewal process is almost exactly the same as the new certifcate request process i.e. all the email notifications and validation steps are the same.
+#### 4. When validation is complete an email will be sent to the Certificate Alerts Google group. Click on the link in the email to visit Gandi.net and download the renewed certificate.
+#### 5. Email the certificate to the requestor along with details of the expiry date.
+
+## Revoking Gandi.net certificates
+
+Certificates will expire automatically if not renewed. If a certificate doesn’t require renewal you can leave the certificate to expire and no further action is required. You’ll receive a notification to the Certificate Alerts confirming expiry.
+
+If a certificate needs to be revoked before the expiry date then this can be done via the [Gandi.net](https://docs.gandi.net/en/ssl/revoke/index.html). 
+
+**Note that once a certificate has expired or revoked it cannot be reinstated. If a certificate is required the process to request a new certificate should be followed.**
+
+## Costs/Funding information
+
+The costs for Gandi.net certificates are met centrally by Architecture & Platforms. There is no cross charge.
+
+MoJ has a prepaid account with Gandi.net for paying for certificates.
+
+If the account runs low a notification is sent to Certificate Alerts. If that happens contact [Jason Squires](mailto:jason.squires@justice.gov.uk) to arrange a top-up on the account.
+
+
+
+
+
+
+
+
