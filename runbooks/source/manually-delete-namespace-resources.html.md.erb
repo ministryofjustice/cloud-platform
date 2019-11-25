@@ -39,9 +39,10 @@ export PIPELINE_CLUSTER=live-1.cloud-platform.service.justice.gov.uk
 export PIPELINE_STATE_BUCKET=cloud-platform-terraform-state
 export PIPELINE_STATE_KEY_PREFIX="cloud-platform-environments/"
 export PIPELINE_STATE_REGION="eu-west-1"
-export PIPELINE_CLUSTER_STATE_BUCKET=cloud-platform-terraform-state
-export PIPELINE_CLUSTER_STATE_KEY_PREFIX="cloud-platform/"
 export PIPELINE_TERRAFORM_STATE_LOCK_TABLE=cloud-platform-environments-terraform-lock
+export TF_VAR_cluster_name: "live-1"
+export TF_VAR_cluster_state_bucket: cloud-platform-terraform-state
+export TF_VAR_cluster_state_key: "cloud-platform/live-1/terraform.tfstate"
 export cluster=live-1.cloud-platform.service.justice.gov.uk
 ```
 
@@ -70,10 +71,7 @@ terraform init \
 ## Run `terraform destroy`
 
 ```
-tf destroy \
-  -var="cluster_name=${cluster%%.*}" \
-  -var="cluster_state_bucket=${PIPELINE_CLUSTER_STATE_BUCKET}" \
-  -var="cluster_state_key=${PIPELINE_CLUSTER_STATE_KEY_PREFIX}${cluster%%.*}/terraform.tfstate"
+tf destroy
 ```
 
 After confirming that you're happy with the proposed changes, all the
