@@ -84,4 +84,10 @@ To filter namespaces by label and annotation and display as namespace / annotati
 kubectl get namespaces -l=cloud-platform.justice.gov.uk/is-production=true -ojson | jq -r '.items[] | .metadata.name + " / " + .metadata.annotations["cloud-platform.justice.gov.uk/source-code"] '
 ```
 
-If you need to install `jq`, do `brew install jq` 
+If you need to install `jq`, do `brew install jq`
+
+## Find all pods running on a specific worker node
+
+```!bash
+kubectl get pods --all-namespaces -o wide --field-selector spec.nodeName=ip-172-20-80-62.eu-west-2.compute.internal
+```
