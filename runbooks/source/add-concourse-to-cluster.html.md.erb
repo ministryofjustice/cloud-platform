@@ -1,0 +1,59 @@
+---
+title: Add Concourse to a test cluster
+weight: 51
+last_reviewed_on: 2019-12-03
+review_in: 3 months
+---
+
+# Add Concourse to a test cluster
+
+## Pre-requisites
+
+- A [test cluster][create-test-cluster]. For this guide, we'll assume it's called `david-test1`
+- You must have [fly] installed
+
+## Process
+
+- Go through the installation procedure in the README.md file of the [concourse repo]
+- Create a branch of the [concourse repo]
+- Create a directory for your pipelines
+
+```
+mkdir -p pipelines/david-test1/main
+```
+
+- Copy an existing pipeline
+
+e.g.
+
+```
+cp pipelines/live-1/main/plan-environments.yaml pipelines/david-test1/main/
+```
+
+- Edit the pipeline yaml file as required (you probably want to remove everything relating to Pingdom)
+
+- Login via `fly`
+
+```
+fly --target david-test1 login \
+    --team-name main \
+    --concourse-url https://concourse.apps.david-test1.cloud-platform.service.justice.gov.uk
+```
+
+- Apply your pipeline
+
+```
+fly --target david-test1 set-pipeline \
+    --pipeline plan-pipeline \
+    --config pipelines/david-test1/main/plan-environments.yaml
+```
+
+Repeat this command whenever you make changes to the pipeline yaml file.
+
+- Set up secrets
+
+If your pipeline requires secrets, such as AWS credentials, you need to define those as kubernetes secrets in the `concourse-main` namespace (or `concourse-<team name>` if you're using a different concourse team, rather than `main`)
+
+[create-test-cluster]: create-cluster.html#create-a-new-cluster
+[concourse repo]: https://github.com/ministryofjustice/cloud-platform-concourse
+[fly]: https://concourse-ci.org/fly.html
