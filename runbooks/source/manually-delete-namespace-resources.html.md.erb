@@ -27,5 +27,11 @@ To run the script:
 ./bin/delete-namespace.rb mynamespace
 ```
 
+> If the script fails partway through, it may leave a new file in your local working copy:
+>
+> `namespaces/live-1.cloud-platform.service.justice.gov.uk/[namespace name]/resources/main.tf`
+>
+> If this happens, just delete the whole `namespaces/live-1.cloud-platform.service.justice.gov.uk/[namespace name]` folder and re-run the script.
+
 [deleter script]: https://github.com/ministryofjustice/cloud-platform-environments/blob/master/bin/delete-namespace.rb
 [environments repository]: https://github.com/ministryofjustice/cloud-platform-environments
