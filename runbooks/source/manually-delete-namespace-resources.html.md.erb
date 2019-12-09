@@ -15,11 +15,15 @@ We have a [script][deleter script] which will delete all of the AWS resources be
 >
 > b) the namespace has `is-production: "true"`
 
+NB: You need `ruby` installed, in order to use this tool.
+
 To run the script:
 
 1. populate the environment variables listed in the comment at the top of the script
 
 1. cd to the root of a working copy of the [environments repository]
+
+1. Run `bundle install`
 
 1. Run the script, supplying the namespace name as the only argument, e.g.
 
