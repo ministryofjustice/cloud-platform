@@ -1,0 +1,69 @@
+---
+title: Guidence when recycle-node pipeline job fails
+weight: 250
+last_reviewed_on: 2019-12-11
+review_in: 3 months
+---
+
+# Recycle-node
+
+Recycle-node pipeline runs every week-day, which executes the [recycle-node.rb][recycle-node-script] script to replace the oldest worker node by:  
+
+* Draining the oldest node  
+* Terminate the drained node.
+
+
+## Guidence for cloud-platform team, when recycle-node pipeline job fails:
+
+There are couple of reasons where recycle-node pipeline job may fail.
+
+1) `error: unable to drain node "ip-172-20-xxx-xxx.eu-west-2.compute.internal", aborting command...`
+
+Recycle-node pipeline may fail because the pods exist without being part of a replicaset. These seem to be port-forward pods, usually used by developers to connect to an RDS instance from their development environment. 
+
+We're running the process in a relatively gentle way, so it just fail the pipeline, rather than force-draining the node (which would have destroyed these pods).
+
+The error will be similar as below from the logs of the recycle-node pipeline.
+
+```
+There are pending nodes to be drained:
+ ip-172-20-123-244.eu-west-2.compute.internal
+error: pods not managed by ReplicationController, ReplicaSet, Job, DaemonSet or StatefulSet (use --force to override): port-forward
+```
+
+If pipeline logs is not showing the pods which is causing the issue, using the node name form above, run the below command:
+
+```
+ kubectl --ignore-daemonsets --delete-local-data drain ip-172-20-123-244.eu-west-2.compute.internal
+```
+
+It will show similar message from recycle-node pipeline logs, but also give the list of pods, which is causing the error.
+
+
+```
+There are pending nodes to be drained:
+ ip-172-20-123-244.eu-west-2.compute.internal
+error: cannot delete Pods not managed by ReplicationController, ReplicaSet, Job, DaemonSet or StatefulSet (use --force to override): licences-dev/port-forward
+```
+
+Since developers create port-forward pods only used briefly, we track down the namespace owner and ask them to clear them up, by sending a message in the #ask-cloud-platform, something like below.
+
+```
+Recycle-node job failed to replace the node, as it failed to drain the pod.
+If any of these pods are yours, and you're not using them anymore, please could you delete them so that the next time the recycle-node job runs, it is able to replace the node.
+
+licences-dev/port-forward
+```
+
+Once the pod which is causing the issue gets deleted, re-run the pipeline which will drain the node successfully and terminate the drained node.
+
+
+2) `error when evicting pod "some-pod-84d68b65b8-cl6xq" (will retry after 5s): Cannot evict pod as it would violate the pod's disruption budget`
+
+This is because pod may stuck in ImagePullBackoff status. The error is misleading, as error message talks about pod disruption budgets.
+
+In this case identify the pod and delete it manually and re-run the pipeline which will drain the node successfully and terminate the drained node.
+
+
+
+[recycle-node-script]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/recycle-node.rb
