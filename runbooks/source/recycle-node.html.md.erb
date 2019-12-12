@@ -15,7 +15,7 @@ Recycle-node pipeline runs every week-day, which executes the [recycle-node.rb][
 
 ## Guidence for cloud-platform team, when recycle-node pipeline job fails:
 
-There are couple of reasons where recycle-node pipeline job may fail.
+There are couple of reasons where [recycle-node pipeline][recyclenode-pipeline] job may fail.
 
 1) `error: unable to drain node "ip-172-20-xxx-xxx.eu-west-2.compute.internal", aborting command...`
 
@@ -31,7 +31,7 @@ There are pending nodes to be drained:
 error: pods not managed by ReplicationController, ReplicaSet, Job, DaemonSet or StatefulSet (use --force to override): port-forward
 ```
 
-If pipeline logs is not showing the pods which is causing the issue, using the node name form above, run the below command:
+If [pipeline logs][running-pipeline] is not showing the pods which is causing the issue, using the node name form above, run the below command:
 
 ```
  kubectl --ignore-daemonsets --delete-local-data drain ip-172-20-123-244.eu-west-2.compute.internal
@@ -67,3 +67,5 @@ In this case identify the pod and delete it manually and re-run the pipeline whi
 
 
 [recycle-node-script]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/recycle-node.rb
+[running-pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/recycle-node
+[recyclenode-pipeline]: https://github.com/ministryofjustice/cloud-platform-concourse/blob/master/pipelines/live-1/main/recycle-node.yaml
