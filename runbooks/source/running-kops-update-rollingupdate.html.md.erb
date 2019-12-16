@@ -51,7 +51,7 @@ kops update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk --yes
 
 It should report
 
-> 
+>
 Cluster changes have been applied to the cloud.
 
 ##  Running Kops rolling-update
@@ -60,9 +60,9 @@ This command updates a kubernetes cluster to match the cloud and kops specificat
 
 To perform a rolling update, you need to update the cloud resources first with the command kops update cluster.
 
-If rolling-update does not report that the cluster needs to be rolled, you can force the cluster to be rolled with the force flag. 
+If rolling-update does not report that the cluster needs to be rolled, you can force the cluster to be rolled with the force flag.
 
-Rolling update drains and validates the cluster by default. A cluster is deemed validated when all required nodes are running and all pods in the kube-system namespace are operational. When a node is deleted, rolling-update sleeps the interval for the node type, and then tries for the same period of time for the cluster to be validated. 
+Rolling update drains and validates the cluster by default. A cluster is deemed validated when all required nodes are running and all pods in the kube-system namespace are operational. When a node is deleted, rolling-update sleeps the interval for the node type, and then tries for the same period of time for the cluster to be validated.
 
 For instance, setting --master-interval=4m causes rolling-update to wait for 4 minutes after a master is rolled, and another 4 minutes for the cluster to stabilize and pass validation.
 
