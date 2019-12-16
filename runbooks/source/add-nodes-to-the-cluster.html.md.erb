@@ -5,9 +5,9 @@ last_reviewed_on: 2019-09-10
 review_in: 3 months
 ---
 
-# Add nodes to the cluster 
+# Add nodes to the cluster
 
-This runbook covers how to increase the number of nodes in a Kubernetes cluster. 
+This runbook covers how to increase the number of nodes in a Kubernetes cluster.
 
 In the steps below, we assume we want to increase the number of nodes in Live-1, from 40 to 50.
 
@@ -28,7 +28,7 @@ To upgrade kops, get the release from [here](https://github.com/kubernetes/kops/
 
 Once authenticated to the cluster
 
-    % kops get instancegroup                                                                                                                      
+    % kops get instancegroup
     Using cluster from kubectl context: live-1.cloud-platform.service.justice.gov.uk
     NAME			ROLE	MACHINETYPE	MIN	MAX	ZONES
     master-eu-west-2a	Master	c4.4xlarge	1	1	eu-west-2a
@@ -51,7 +51,7 @@ Before we apply the changes, kops allow us to confirm what is going to happen:
     Will modify resources:
     AutoscalingGroup/nodes.live-1.cloud-platform.service.justice.gov.uk
         MaxSize             	 40 -> 50
-        MinSize             	 40 -> 50 
+        MinSize             	 40 -> 50
 
 `THIS SHOULD BE THE ONLY CHANGE THAT YOU SEE, IF YOU SEE ANYTHING MORE: ABORT`
 
@@ -75,7 +75,7 @@ In order to ensure that the new configuration does not get overwritten at the ne
         default     = "50"
     }
 #### 3. Push, PR, Merge
-Once the PR is merged and a `terraform apply` is ran, the `cloud-platform-infrastructure/kops/live-1.yaml` will be updated with the new size. 
+Once the PR is merged and a `terraform apply` is ran, the `cloud-platform-infrastructure/kops/live-1.yaml` will be updated with the new size.
 
 For more information on `kops update` & `kops rolling-updtae`, have a look at this [runbook](https://runbooks.cloud-platform.service.justice.gov.uk/running-kops-update-rollingupdate.html#running-kops-update-and-rollingupdate).
 
