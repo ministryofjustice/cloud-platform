@@ -14,18 +14,23 @@ In the steps below, we assume we want to increase the number of nodes in Live-1,
 ### Requirements
 
 #### 1. Ensure you have access to the Cloud Platform AWS account
+
 #### 2. Set your environment variables :
+
     export KOPS_STATE_STORE=s3://cloud-platform-kops-state
     export AWS_PROFILE=moj-cp
 
 #### 3. Start a shell in the tools image
+
 This will ensure you have the right versions of everything
 
     cd cloud-platform-infrastructure
     make tools-shell
 
 #### 4. Be authenticated to the cluster :
+
     kops export kubecfg live-1.cloud-platform.service.justice.gov.uk
+
 ### Inline edit
 
 Once authenticated to the cluster
