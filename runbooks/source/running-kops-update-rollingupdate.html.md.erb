@@ -33,7 +33,52 @@ $ export AWS_PROFILE=xxxx
 $ export KOPS_STATE_STORE=s3://<bucket>
 ```
 
+- Launch a shell using the tools image
+
+```bash
+$ cd cloud-platform-infrastructure; make tools-shell
+```
+
+This will ensure you have the correct versions of all required software.
+
 for live-1 KOPS_STATE_STORE=s3://cloud-platform-kops-state
+
+## Updating the kops state
+
+The kops state file is generated from a template by the terraform code in [this directory][kops dir]. The key files are:
+
+* `kops.tf`
+* `variables.tf`
+* `templates/kops.yaml.tpl`
+
+### Generating an updated kops config file
+
+After changing the files above, you need to generate a new `kops/[cluster name].yaml` file.
+
+From your shell on the tools image:
+
+```bash
+kops export kubecfg [cluster name].cloud-platform.service.justice.gov.uk
+cd terraform/cloud-platform
+terraform workspace select [cluster name]
+terraform init
+terraform apply
+```
+
+At this point, you should have an updated `kops/[cluster name].yaml` file in your working copy of the infrastructure repository.
+Commit and push your changes, including those in the terraform source and template files.
+
+### Applying local changes to the kops state store
+
+To apply your local changes to the kops state stored on S3:
+
+```bash
+kops replace -f kops/[cluster name].yaml
+```
+
+WARNING: You will not receive any confirmation of this step.
+
+After this, you should be able to do a `kops update cluster...` and `kops rolling-update cluster...` as described below, to apply your changes to the cluster.
 
 ## Running Kops update
 
@@ -51,7 +96,7 @@ kops update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk --yes
 
 It should report
 
-> 
+>
 Cluster changes have been applied to the cloud.
 
 ##  Running Kops rolling-update
@@ -60,9 +105,9 @@ This command updates a kubernetes cluster to match the cloud and kops specificat
 
 To perform a rolling update, you need to update the cloud resources first with the command kops update cluster.
 
-If rolling-update does not report that the cluster needs to be rolled, you can force the cluster to be rolled with the force flag. 
+If rolling-update does not report that the cluster needs to be rolled, you can force the cluster to be rolled with the force flag.
 
-Rolling update drains and validates the cluster by default. A cluster is deemed validated when all required nodes are running and all pods in the kube-system namespace are operational. When a node is deleted, rolling-update sleeps the interval for the node type, and then tries for the same period of time for the cluster to be validated. 
+Rolling update drains and validates the cluster by default. A cluster is deemed validated when all required nodes are running and all pods in the kube-system namespace are operational. When a node is deleted, rolling-update sleeps the interval for the node type, and then tries for the same period of time for the cluster to be validated.
 
 For instance, setting --master-interval=4m causes rolling-update to wait for 4 minutes after a master is rolled, and another 4 minutes for the cluster to stabilize and pass validation.
 
@@ -116,3 +161,5 @@ While draining a node there is a chance that rolling update might be stuck at ev
 ```bash
 $ kubectl get pods -owide --all-namespaces | grep ${node_name}
 ```
+
+[kops dir]: https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/terraform/cloud-platform
