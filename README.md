@@ -41,6 +41,7 @@ We have a series of repositories for our work that we have listed below. We have
 | SNS topic |  https://github.com/ministryofjustice/cloud-platform-terraform-sns-topic | A Terraform module to create an SNS Topic in AWS, along with an IAM User to access it. |
 | DynamoDB cluster | https://github.com/ministryofjustice/cloud-platform-terraform-dynamodb-cluster | A Terraform module to create a DynamoDB instance and IAM credentials, with optional autoscaling. |
 | Elasticsearch cluster | https://github.com/ministryofjustice/cloud-platform-terraform-elasticsearch | A Terraform module to create a VPC based Elasticsearch cluster and Kibana dashboard along with a HTTP Proxy to access it. |
+| Bastion | https://github.com/ministryofjustice/cloud-platform-terraform-bastion | A Terraform module to create a bastion inside an existing VPC |
 
 ## Other repos
 
@@ -56,6 +57,7 @@ We have a series of repositories for our work that we have listed below. We have
 | CircleCI Stats | https://github.com/ministryofjustice/cloud-platform-circleci-stats | Log CircleCI build and queue times to our Elasticsearch cluster |
 | Custom error pages | https://github.com/ministryofjustice/cloud-platform-custom-error-pages | Docker image which serves custom error pages (e.g. for 404 errors) |
 | Namespace usage report | https://github.com/ministryofjustice/cloud-platform-namespace-usage-report | Web application to show cluster namespace usage charts |
+| Helm Chart Repository | https://github.com/ministryofjustice/cloud-platform-helm-charts | Helm Chart repository to store internal helm charts used by the platform  |
 
 [rds-port-forward]: https://github.com/ministryofjustice/cloud-platform-terraform-rds-instance#access-outside-the-cluster
 [environments repository]: https://github.com/ministryofjustice/cloud-platform-environments
