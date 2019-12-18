@@ -58,6 +58,7 @@ We have a series of repositories for our work that we have listed below. We have
 | Custom error pages | https://github.com/ministryofjustice/cloud-platform-custom-error-pages | Docker image which serves custom error pages (e.g. for 404 errors) |
 | Namespace usage report | https://github.com/ministryofjustice/cloud-platform-namespace-usage-report | Web application to show cluster namespace usage charts |
 | Helm Chart Repository | https://github.com/ministryofjustice/cloud-platform-helm-charts | Helm Chart repository to store internal helm charts used by the platform  |
+| Kuberos | https://github.com/ministryofjustice/cloud-platform-kuberos | Kuberos fork that Cloud Platform team mantain |
 
 [rds-port-forward]: https://github.com/ministryofjustice/cloud-platform-terraform-rds-instance#access-outside-the-cluster
 [environments repository]: https://github.com/ministryofjustice/cloud-platform-environments
