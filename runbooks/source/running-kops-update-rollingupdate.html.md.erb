@@ -1,7 +1,7 @@
 ---
 title: Running Kops Update and Rollingupdate
 weight: 700
-last_reviewed_on: 2019-09-10
+last_reviewed_on: 2019-12-17
 review_in: 3 months
 ---
 
@@ -10,6 +10,23 @@ review_in: 3 months
 We want to ensure Kops is updated regularly so there is a task in every sprint to run Kops update. It essentially updates various components / configuration coming from kops.
 
 Note: This is for a kops update not an upgrade. A new release upgrade is described in [a separate runbook](upgrade-cluster.html).
+
+## Using kops to change the cluster
+
+Please do not be tempted to make changes to our production cluster(s) using
+`kops edit...`
+
+Our cluster state is set by:
+
+> github code &rarr; generated kops yaml file &rarr; kops s3 config store &rarr; kops state &rarr; the cluster
+
+Using `kops edit` skips the first two links of this chain, and causes problems
+the next time we try to update the cluster 'properly', by starting with a
+change to the code on github.
+
+Instead, please use the procedure below, so that the code in github is always
+the `source of truth` for the state of the cluster(s), and so that all changes
+have been properly recorded and reviewed as pull requests.
 
 ## Pre-requisites
 
