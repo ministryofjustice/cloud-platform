@@ -91,3 +91,19 @@ If you need to install `jq`, do `brew install jq`
 ```!bash
 kubectl get pods --all-namespaces -o wide --field-selector spec.nodeName=ip-172-20-80-62.eu-west-2.compute.internal
 ```
+
+## Install tmux and docker on the live-1 bastion host
+
+From [here](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-debian-9)
+
+```bash
+sudo apt update
+sudo apt install tmux
+sudo apt install apt-transport-https ca-certificates curl gnupg2 software-properties-common
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+sudo apt update
+apt-cache policy docker-ce
+sudo apt install docker-ce
+sudo systemctl status docker
+```
