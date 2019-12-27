@@ -1,13 +1,42 @@
 ---
-title: Rotating the git-crypt key
+title: Git-crypt
 weight: 75
-last_reviewed_on: 2019-09-10
+last_reviewed_on: 2019-12-27
 review_in: 3 months
 ---
 
-# Rotating the git-crypt key
+# Git-crypt 
 
 We use `git-crypt` for securing secrets committed to `git`. It uses a symmetric encryption key which is then encrypted for users using their GPG keys.
+
+## Adding new user to the keyring
+
+1. Ask the user (Slack, email, keyserver, etc) for their public key and import it inside your keyring:
+
+    ```
+    gpg --import <<EOF
+    -----BEGIN PGP PUBLIC KEY BLOCK-----
+
+    mQGiBEN5tJ0RBADwLLzmO1AR10KILHRJMMq+MtnscrVsOawA4vUhC8oTZHPUXRgE
+    AbJgYgUlxMpjsaT14d5xiTUqU1C+85FT764rIk51aEB1AsjudZf/tlv7gCieT64C
+    DRDjqr7g7Df5L80zDuPuVdOHn+KlGIlT5X3gypstFKDvSKqN/qQMQhf5KwCg77aq
+    ----------------------------------------------------------------
+    ------------------- HERE USER PUBLIC KEY -----------------------
+    ----------------------------------------------------------------
+    3omjJRX0AnQtfN1udwOK0N2FfyZLqChI2ied42DurIeQk+qYoSHhK/sCh4E3BjOg
+    U5hJ21cQRxlN1sa1RFaNjoQlIkBH0q2xZSb3p+LM9Ez7keF96VGXZSy0K2Q9xtPi
+    NS+0Yc13JFAzDubGfxGOnACePwZ5mNcJB6JNaZXPZN4E5AqDdEg=
+    =yaF+
+    -----END PGP PUBLIC KEY BLOCK-----
+    EOF
+    ```
+
+2. Using KeyID/email trust the key as *"5 = I trust ultimately"*: `gpg --edit-key "alejandro.garrido@digital.justice.gov.uk" trust quit`
+3. Create a new branch inside the git repository where user is going to be added: `git checkout -b add-alejandro-gpg`
+4. Use git-crypt CLI to add the user: `git-crypt add-gpg-user alejandro.garrido@digital.justice.gov.uk`
+5. Push the branch and create a PR: `git push origin add-alejandro-gpg`
+
+## Rotating the git-crypt key
 
 When rotating the `git-crypt` symmetric key, you should follow the steps below:
 
