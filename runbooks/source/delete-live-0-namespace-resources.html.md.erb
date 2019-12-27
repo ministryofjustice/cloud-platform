@@ -1,0 +1,80 @@
+---
+title: Delete Live-0 Namespace Resources
+weight: 191
+last_reviewed_on: 2019-12-27
+review_in: 3 months
+---
+
+# Delete Live-0 Namespace Resources
+
+The live-0 and live-1 clusters have diverged so far that we no longer maintain
+pipeline code to work on live-0 namespaces. Live-0 is out of support, and we
+are just waiting until we can turn it off, so it's not worth the extra work to
+ensure that our code works on both clusters.
+
+So, the process of deleting a namespace and its associated AWS resources is different from the live-1 equivalent.
+
+## `live-0-delete-script` branch
+
+The [live-0-delete-script] branch of the [environments repository] has the code
+which you can use to delete a namespace from the live-0 cluster. This branch is
+never intended to be merged into master, and can simply be discarded once
+live-0 has been destroyed.
+
+## Process
+
+For this example, we are deleting the `davids-dummy-dev` namespace. Please
+change that to the appropriate namespace name, when working through this
+procedure.
+
+1. Start in an up to date working copy of the `cloud-platform-environments` repository
+
+1. `git checkout live-0-delete-script`
+
+1. `rm -rf namespaces/cloud-platform-live-0.k8s.integration.dsd.io/davids-dummy-dev`
+
+    The delete script will not proceed if the namespace folder exists in the local
+    working copy. This is to protect against accidentally deleting a namespace
+    which is still required.
+
+1. Set your environment variables
+
+    The delete script requires several environment variables. These are detailed in
+    the header comments in the [script]. You will need to set all of these variables
+    before invoking the script.
+
+1.  `bin/delete-live0-namespace.rb davids-dummy-dev`
+
+    This should delete the AWS resources for the namespace, and then the namespace
+    itself.
+
+1.   At this point, you have deleted the namespace and its AWS resources, but
+there is still a leftover namespace folder in the master branch of the
+[environments repository], which should be removed.
+
+```bash
+git checkout master
+git checkout -b remove-davids-dummy-dev
+git add -u namespaces/cloud-platform-live-0.k8s.integration.dsd.io/davids-dummy-dev
+git commit -m "Remove deleted davids-dummy-dev namespace"
+```
+
+Then raise a pull request so that the namespace folder is removed from the
+master branch.
+
+### Deleting a Production Namespace
+
+The [script] has a failsafe which will prevent it from deleting a namespace
+where the `is-production` label is `true`, to make it harder to delete a
+production namespace by mistake.
+
+The easiest way to override this, when you do want to delete a production
+namespace from live-0, is to comment out the relevant test in the code. You
+will find this in the `lib/cp_env/live0_namespace_deleter.rb` file. Look for
+`if ns.metadata.labels[PRODUCTION_LABEL] == LABEL_TRUE` and comment out that
+whole block of code (at the time of writing, this was lines 70-73), then run
+the delete script again.
+
+[environments repository]: https://github.com/ministryofjustice/cloud-platform-environments
+[live-0-delete-script]: https://github.com/ministryofjustice/cloud-platform-environments/tree/live-0-delete-script
+[script]: https://github.com/ministryofjustice/cloud-platform-environments/blob/live-0-delete-script/bin/delete-live0-namespace.rb
