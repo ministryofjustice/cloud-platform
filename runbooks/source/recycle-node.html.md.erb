@@ -1,5 +1,5 @@
 ---
-title: Guidence when recycle-node pipeline job fails
+title: Guidance when recycle-node pipeline job fails
 weight: 250
 last_reviewed_on: 2019-12-11
 review_in: 3 months
@@ -7,9 +7,9 @@ review_in: 3 months
 
 # Recycle-node
 
-[Recycle-node pipeline][recyclenode-pipeline-definition] runs every week-day, which executes the [recycle-node.rb][recycle-node-script] script to replace the oldest worker node by:  
+[Recycle-node pipeline][recyclenode-pipeline-definition] runs every week-day, which executes the [recycle-node.rb][recycle-node-script] script to replace the oldest worker node by:
 
-* Draining the oldest node  
+* Draining the oldest node
 * Terminate the drained node.
 
 
@@ -19,7 +19,7 @@ There are couple of reasons where [recycle-node pipeline][running-pipeline] job 
 
 1) `error: unable to drain node "ip-172-20-xxx-xxx.eu-west-2.compute.internal", aborting command...`
 
-Recycle-node pipeline may fail because the pods exist without being part of a replicaset. These seem to be port-forward pods, usually used by developers to connect to an RDS instance from their development environment. 
+Recycle-node pipeline may fail because the pods exist without being part of a replicaset. These seem to be port-forward pods, usually used by developers to connect to an RDS instance from their development environment.
 
 We're running the process in a relatively gentle way, so it just fail the pipeline, rather than force-draining the node (which would have destroyed these pods).
 
