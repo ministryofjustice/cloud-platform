@@ -1,5 +1,5 @@
 IMAGE := ministryofjustice/cloud-platform-runbooks
-VERSION := 1.4
+VERSION := 1.5
 
 .built-docker-image: Dockerfile Gemfile
 	docker build -t $(IMAGE) .
