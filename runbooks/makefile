@@ -1,13 +1,13 @@
 IMAGE := ministryofjustice/cloud-platform-runbooks
-VERSION := 1.5
+VERSION := 1.5 # Change this in .circleci/config.yml if you update it here
 
 .built-docker-image: Dockerfile Gemfile
 	docker build -t $(IMAGE) .
 	touch .built-docker-image
 
 docker-push: .built-docker-image
-	docker tag $(IMAGE) $(IMAGE)
-	docker push $(IMAGE)
+	docker tag $(IMAGE) $(IMAGE):$(VERSION)
+	docker push $(IMAGE):$(VERSION)
 
 server: .built-docker-image
 	mkdir compiled || true
@@ -17,7 +17,7 @@ server: .built-docker-image
 		-v $$(pwd)/compiled:/app/compiled \
 		-v $$(pwd)/config:/app/config \
 		-it \
-		$(IMAGE) bundle exec middleman server
+		$(IMAGE):$(VERSION) bundle exec middleman server
 
 # The CircleCI build pipeline does this, so it should never
 # be necessary to run this task. I'm leaving it here for
