@@ -1,0 +1,63 @@
+---
+title: Manually Plan/Apply Namespace Resources
+weight: 180
+last_reviewed_on: 2020-01-08
+review_in: 3 months
+---
+
+# Manually Plan/Apply Namespace Resources
+
+These steps are more or less what the [concourse pipeline] does.
+
+## Start in the appropriate branch of the environments repo
+
+```
+cd cloud-platform-environments
+git checkout master
+git pull
+git checkout -b [BRANCH-NAME] origin/[BRANCH-NAME]
+```
+
+## Target the live-1 cluster
+
+```
+export AWS_PROFILE=moj-cp
+export KOPS_STATE_STORE=s3://cloud-platform-kops-state
+kops export kubecfg live-1.cloud-platform.service.justice.gov.uk
+```
+
+## Set some environment variables
+
+```
+export TF_VAR_cluster_name="live-1"
+export TF_VAR_cluster_state_bucket=cloud-platform-terraform-state
+export TF_VAR_cluster_state_key="cloud-platform/live-1/terraform.tfstate"
+```
+
+## Set the namespace name
+
+I'm using `offender-events-dev` for this example. Use whatever is relevant for your case.
+
+```
+export NAMESPACE=offender-events-dev
+
+cd namespaces/live-1.cloud-platform.service.justice.gov.uk/${NAMESPACE}/resources
+```
+
+## Terraform Init
+
+```
+terraform init \
+  -backend-config="bucket=cloud-platform-terraform-state" \
+  -backend-config="key=cloud-platform-environments/live-1.cloud-platform.service.justice.gov.uk/${NAMESPACE}/terraform.tfstate" \
+  -backend-config="region=eu-west-1" \
+  -backend-config="dynamodb_table=cloud-platform-environments-terraform-lock"
+```
+
+## Terraform Plan/Apply
+
+```
+terraform plan
+```
+
+[concourse pipeline]: https://github.com/ministryofjustice/cloud-platform-concourse/blob/master/pipelines/live-1/main/plan-environments.yaml
