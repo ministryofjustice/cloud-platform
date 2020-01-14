@@ -83,7 +83,7 @@ To view all stored backups within the cluster, run the following command:
 velero get backups
 ```
 
-It is also possible up restore (and exclude) specific namespaces and resources from a velero-allnamespace backup. Below are examples of restoring a specific namespace and resource.
+It is also possible to restore (and exclude) specific namespaces and resources from a velero-allnamespace backup. Below are examples of restoring a specific namespace and resource.
 
 ```
 velero restore create --from-backup velero-allnamespacebackup --include-namespaces monitoring
