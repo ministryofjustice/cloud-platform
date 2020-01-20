@@ -1,0 +1,57 @@
+---
+title: Helm Charts Repository
+weight: 710
+last_reviewed_on: 2020-01-20
+review_in: 3 months
+---
+
+# Cloud Platform helm chart repository
+
+The cloud-platform team has its helm chart repository using Github pages. The main advantage Github pages offers is related to maintainability: we don't have to keep an eye on any service. 
+
+Go to the [github repository](https://github.com/ministryofjustice/cloud-platform-helm-charts) to get more details about the Cloud Platform helm repository
+
+## Workflow to update helm charts
+
+### 1. Make the change
+
+The first step is switching to the master branch and make the change you want to do. Don't forget to increment the chart's _version_ field inside `Chart.yaml`.
+
+Test the change to make sure everyone is happy with it and commit. 
+
+### 2. Create the tarball
+
+Now we should create the artefact containing our helm chart. Using `helm package` command:
+
+```
+$ helm package fluentd-es/
+Successfully packaged chart and saved it to: /Users/mogaal/workspace/github/ministryofjustice/cloud-platform-helm-charts/fluentd-es-2.7.0.tgz
+$ file fluentd-es-2.7.0.tgz
+fluentd-es-2.7.0.tgz: gzip compressed data, extra field, has comment, original size modulo 2^32 47104
+```
+
+*NOTE*: We DO NOT commit the tarball/artifact inside the master branch. 
+
+### 3. Make changes within `gh-pages` branch
+
+Add the tarball/artefact generated in the previous step into the `gh-pages` branch. 
+
+```
+$ git checkout gh-pages
+$ cp /path/of/chart/from/previous/step/fluentd-es-2.7.0.tgz .
+$ git add fluentd-es-2.7.0.tgz
+```
+
+The last step consists of regenerate the `index.yaml` which track all artefact within the repository:
+
+```
+$ helm repo index --url  https://ministryofjustice.github.io/cloud-platform-helm-charts/ --merge index.yaml .
+$
+```
+
+(yes, no output but the file should've been modified)
+
+### 4. Commit and push the changes
+
+The last step is to commit and push the changes from both branches
+
