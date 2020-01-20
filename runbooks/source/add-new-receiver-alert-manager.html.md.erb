@@ -1,0 +1,75 @@
+---
+title: Add a new Alertmanager receiver and a slack webhook
+weight: 85
+last_reviewed_on: 2020-01-17
+review_in: 3 months
+---
+
+# Add a new Alertmanager receiver and a slack webhook
+
+When Service Teams require to send custom alarms to their own channels the Alertmanager receiver has to be added to the alertmanager.
+
+## Pre-requisites
+
+You must have the below details from the development team. 
+
+* namespace name
+* team name
+* application name
+* slack channel
+* severity level (warning/information)
+* kubernetes secret which has the slack webhook url
+
+## Creating a new receiver set
+
+1. Fill in the template with the details provided from development team and add the array to [`terraform.tfvars`](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/cloud-platform-components/terraform.tfvars) file.
+The `terraform.tfvars` file is encrypted so you have to `git-crypt unlock` to view the contents of the file. 
+Check [git-crypt documentation in user guide](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/git-crypt-setup.html#git-crypt) for more information on how to setup git-crypt. 
+
+    ```
+    {
+        severity = "<unique name based on team info provided e.g. cp-test-app-prod">
+        webhook  = "<slack webhook url>"
+        channel  = "<slack channel>"
+    }
+
+    ```
+
+2. Create a PR and merge the changes to master
+
+3. Apply the changes to the live-1
+
+- Target the live-1 cluster
+
+    ```
+    export AWS_PROFILE=moj-cp
+    export KOPS_STATE_STORE=s3://cloud-platform-kops-state
+    kops export kubecfg live-1.cloud-platform.service.justice.gov.uk
+    ```
+
+- Check you are on the right cluster
+
+    ```bash
+    $ kubectl config current-context
+    ```
+
+- Terraform Init/Select/Plan/Apply
+
+    ```
+    cd cloud-platform-infrastructure/terraform/cloud-platform-components
+    terraform init
+    terraform workspace select live-1
+    terraform plan
+    ```
+
+- Once you are happy with the changes do 
+    
+    ``` 
+    terraform apply 
+    ```
+
+Once the changes are applied, provide the `severity` to the development team requested. Development team have to use the value as severity label when creating all custom application alerts.
+
+For severity level - information, add `<info>-` to the `severity` to use as the label for prometheus rule. The Alertmanager uses the keyword `info-` when matching the label from prometheus rule with the alertmanager receiver and set the information template for the message.  
+ 
+Check the user guide for more details on [how to setup custom prometheus alerts](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts).
