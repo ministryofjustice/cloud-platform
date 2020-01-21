@@ -1,0 +1,122 @@
+---
+title: Add a new Alertmanager receiver and a slack webhook
+weight: 85
+last_reviewed_on: 2020-01-17
+review_in: 3 months
+---
+
+# Add a new Alertmanager receiver and a slack webhook
+
+When Development Teams require to send custom alarms to their own channels the Alertmanager receiver has to be added to the alertmanager.
+
+## Pre-requisites
+
+You must have the below details from the development team. 
+
+* namespace name
+* team name
+* application name
+* slack channel
+* severity level (warning/information)
+* kubernetes secret which has the slack webhook url
+
+## Creating a new receiver set
+
+1. Fill in the template with the details provided from development team and add the array to [`terraform.tfvars`](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/cloud-platform-components/terraform.tfvars) file.
+The `terraform.tfvars` file is encrypted so you have to `git-crypt unlock` to view the contents of the file. 
+Check [git-crypt documentation in user guide](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/git-crypt-setup.html#git-crypt) for more information on how to setup git-crypt. 
+
+    ```
+    {
+        severity = "<unique name based on team info provided">
+        webhook  = "<slack webhook url>"
+        channel  = "<slack channel>"
+    }
+
+    ```
+
+2. Create a PR and merge the changes to master
+
+3. Apply the terraform code changes to the live-1
+
+Once the changes are applied, provide the `severity` to the development team requested. Development team have to use the value as severity label when creating all custom application alerts.
+
+An example receiver set and a prometheus rule will look as below
+
+```
+{
+    severity = "cp-team"
+    webhook  = "https://hooks.slack.com/services/HGJKHJKSH/DFJKHKIUO/DJFHKDUJFKSUHUGIDHKUDGD"
+    channel  = "#cloud-platform-alerts"
+}
+```
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  creationTimestamp: null
+  namespace: monitoring
+  labels:
+    role: alert-rules
+  name: prometheus-custom-rules-my-application
+spec:
+  groups:
+  - name: node.rules
+    rules:
+    - alert: Quota-Exceeded
+      expr: 100 * kube_resourcequota{job="kube-state-metrics",type="used",namespace="monitoring"} / ignoring(instance, job, type) (kube_resourcequota{job="kube-state-metrics",type="hard"} > 0) > 90
+      for: 5m
+      labels:
+        severity: cp-team
+      annotations:
+        message: Namespace {{ $labels.namespace }} is using {{ printf "%0.0f" $value}}% of its {{ $labels.resource }} quota.
+        runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md###alert-name-kubequotaexceeded
+```
+
+
+## Information Alerts
+
+AlertManager receivers for slack integration are configured for 2 type of alerts.
+
+1. to send a warning upon a alert rule condition is met and a recovery message once the condition is reversed  
+2. to send a information type alert for monitoring non-problem/non-failure events and no recovery message - e.g for rule condition to positively know something happened (like a database refresh, or app deployment etc) which is not of type of problem/failure.
+
+All alerts are routed using the severity label set from the prometheus rule. If the severity label matches the keyword `info-`<severity> then it is routed to information type receivers.
+Hence, to receive information alert, prepend `info-` when setting the `severity` label of the prometheus rule.
+
+
+An example receiver set and a prometheus rule will look as below
+
+```
+{
+    severity = "cp-team"
+    webhook  = "https://hooks.slack.com/services/HGJKHJKSH/DFJKHKIUO/DJFHKDUJFKSUHUGIDHKUDGD"
+    channel  = "#cloud-platform-alerts"
+}
+```
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  namespace: monitoring
+  labels:
+    role: alert-rules
+  name: prometheus-custom-rules-my-application
+spec:
+  groups:
+  - name: application-rules
+    rules:
+    - alert: Job completed
+      expr: |-
+        rate(kube_job_status_succeeded{job="kube-state-metrics",namespace="monitoring"}[5m]) > 0
+      for: 30s
+      labels:
+        severity: info-cp-team # Should include `info-` before the severity mentioned in the receiver set above
+        status_icon: information # To have a "i" icon instead of default "?"
+      annotations:
+        message: Latest backup checker Job completed on Namespace {{ $labels.namespace }}
+```
+ 
+Check the user guide for more details on [how to setup custom prometheus alerts](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts).
