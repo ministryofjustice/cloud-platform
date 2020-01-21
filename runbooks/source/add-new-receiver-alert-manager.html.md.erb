@@ -7,7 +7,7 @@ review_in: 3 months
 
 # Add a new Alertmanager receiver and a slack webhook
 
-When Service Teams require to send custom alarms to their own channels the Alertmanager receiver has to be added to the alertmanager.
+When Development Teams require to send custom alarms to their own channels the Alertmanager receiver has to be added to the alertmanager.
 
 ## Pre-requisites
 
@@ -28,7 +28,7 @@ Check [git-crypt documentation in user guide](https://user-guide.cloud-platform.
 
     ```
     {
-        severity = "<unique name based on team info provided e.g. cp-test-app-prod">
+        severity = "<unique name based on team info provided">
         webhook  = "<slack webhook url>"
         channel  = "<slack channel>"
     }
@@ -37,39 +37,84 @@ Check [git-crypt documentation in user guide](https://user-guide.cloud-platform.
 
 2. Create a PR and merge the changes to master
 
-3. Apply the changes to the live-1
-
-- Target the live-1 cluster
-
-    ```
-    export AWS_PROFILE=moj-cp
-    export KOPS_STATE_STORE=s3://cloud-platform-kops-state
-    kops export kubecfg live-1.cloud-platform.service.justice.gov.uk
-    ```
-
-- Check you are on the right cluster
-
-    ```bash
-    $ kubectl config current-context
-    ```
-
-- Terraform Init/Select/Plan/Apply
-
-    ```
-    cd cloud-platform-infrastructure/terraform/cloud-platform-components
-    terraform init
-    terraform workspace select live-1
-    terraform plan
-    ```
-
-- Once you are happy with the changes do 
-    
-    ``` 
-    terraform apply 
-    ```
+3. Apply the terraform code changes to the live-1
 
 Once the changes are applied, provide the `severity` to the development team requested. Development team have to use the value as severity label when creating all custom application alerts.
 
-For severity level - information, add `<info>-` to the `severity` to use as the label for prometheus rule. The Alertmanager uses the keyword `info-` when matching the label from prometheus rule with the alertmanager receiver and set the information template for the message.  
+An example receiver set and a prometheus rule will look as below
+
+```
+{
+    severity = "prison-visits-booking"
+    webhook  = "https://hooks.slack.com/services/HGJKHJKSH/DFJKHKIUO/DJFHKDUJFKSUHUGIDHKUDGD"
+    channel  = "#prison-visits-alerts"
+}
+```
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  namespace: prison-visits-alerts
+  labels:
+    role: alert-rules
+  name: prometheus-custom-rules-<application_name>
+spec:
+  groups:
+  - name: application-rules
+    rules:
+    - alert: <alert_name>
+      expr: <alert_query>
+      for: <check_time_length>
+      labels:
+        severity: prison-visits-booking # Should match the severity mentioned in the receiver set above
+      annotations:
+        message: <alert_message>
+        runbook_url: <http://my-support-docs>
+```
+
+
+## Information Alerts
+
+AlertManager receivers for slack integration are configured for 2 type of alerts.
+
+1. to send a warning upon a alert rule condition is met and a recovery message once the condition is reversed  
+2. to send a information type alert for monitoring non-problem/non-failure events and no recovery message - e.g for rule condition to positively know something happened (like a database refresh, or app deployment etc) which is not of type of problem/failure.
+
+All alerts are routed using the severity label set from the prometheus rule. If the severity label matches the keyword `info-`<severity> then it is routed to information type receivers.
+Hence, to receive information alert, prepend `<info>-` when setting the `severity` label of the prometheus rule.
+
+
+An example receiver set and a prometheus rule will look as below
+
+```
+{
+    severity = "prison-visits-batch-job"
+    webhook  = "https://hooks.slack.com/services/HGJKHJKSH/DFJKHKIUO/DJFHKDUJFKSUHUGIDHKUDGD"
+    channel  = "#prison-visits-alerts"
+}
+```
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  namespace: prison-visits-alerts
+  labels:
+    role: alert-rules
+  name: prometheus-custom-rules-<application_name>
+spec:
+  groups:
+  - name: application-rules
+    rules:
+    - alert: <alert_name>
+      expr: <alert_query>
+      for: <check_time_length>
+      labels:
+        severity: info-prison-visits-batch-job # Should include `<info-` before the severity mentioned in the receiver set above
+      annotations:
+        message: <alert_message>
+        runbook_url: <http://my-support-docs>
+```
  
 Check the user guide for more details on [how to setup custom prometheus alerts](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts).
