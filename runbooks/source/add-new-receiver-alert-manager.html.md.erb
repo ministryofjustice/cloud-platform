@@ -112,9 +112,9 @@ spec:
       for: <check_time_length>
       labels:
         severity: info-prison-visits-batch-job # Should include `<info-` before the severity mentioned in the receiver set above
+        status_icon: information # To have a "i" icon instead of default "?"
       annotations:
         message: <alert_message>
-        runbook_url: <http://my-support-docs>
 ```
  
 Check the user guide for more details on [how to setup custom prometheus alerts](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts).
