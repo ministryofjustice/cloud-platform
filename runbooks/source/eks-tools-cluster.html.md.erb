@@ -9,6 +9,8 @@ review_in: 3 months
 
 For the time being EKS is only used for the tools cluster, it mainly holds the Cloud Platform concourse CI and the Prometheus federation. 
 
+**IMPORTANT:** All cluster's names **must be unique**, each of them (EKS or kOps, doesn't matter) creates a Route53 hostzone which is unique
+
 ## Pre-requisites 
 
 - Make sure you've access to Cloud Platform AWS account
@@ -37,7 +39,7 @@ You should be able to see your new VPC (called `WorkspaceName`) inside the AWS C
 
 ### 2. Creating EKS cluster
 
-Now it's time to provision the cluster itself, for that we change directory to to [cloud-platform-infrastructure/terraform/cloud-platform-eks](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/terraform/cloud-platform-eks) and follow very similar terraform workflow:
+Now it's time to provision the cluster itself, we change directory to [cloud-platform-infrastructure/terraform/cloud-platform-eks](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/terraform/cloud-platform-eks) and follow very similar terraform workflow:
 
 ```
 terraform init
