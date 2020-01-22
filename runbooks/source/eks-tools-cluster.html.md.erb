@@ -73,6 +73,46 @@ terraform workspace new <WorkspaceName>
 terraform apply
 ```
 
+### 4. Delete the EKS cluster
+
+Follow these steps, to delete the EKS cluster.
+
+First, set the kubectl context for the EKS cluster you are deleting. The easiest way to do this is with aws command:
+
+```
+$ export KUBECONFIG=~/.kube/config
+$ aws eks --region eu-west-2 update-kubeconfig --name <cluster-name>
+```
+
+You should see this output:
+
+```
+Added new context arn:aws:eks:eu-west-2:754256621582:cluster/<cluster-name> to .kube/config
+
+```
+
+Then, from the components directory, run these commands to destroy all cluster components, and delete the terraform workspace.
+
+```
+$ cd terraform/cloud-platform-eks/components
+$ terraform init
+$ terraform workspace select <clusterName e.g. tools-cluster-eks>
+$ terraform destroy
+$ terraform workspace select default
+$ terraform workspace delete <clusterName>
+```
+
+Change directories and perform the following to destroy the EKS cluster, and delete the terraform workspace.
+
+```
+$ cd ../cloud-platform-eks
+$ terraform init
+$ terraform workspace select <clusterName e.g. tools-cluster-eks>
+$ terraform destroy
+$ terraform workspace select default
+$ terraform workspace delete <clusterName>
+```
+
 ## TODO
 
 - It would be nice to have similar script to [`create-cluster.rb`](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/create-cluster.rb) (or add to it support for EKS) that creates the whole process in one command.
