@@ -1,0 +1,129 @@
+---
+title: Delete Prometheus Metrics
+weight: 200
+last_reviewed_on: 2020-01-31
+review_in: 3 months
+---
+
+# <%= current_page.data.title %>
+
+This runbook describes the process for deleting metrics series from Prometheus.
+
+More information in [this article](https://www.shellhacks.com/prometheus-delete-time-series-metrics/).
+
+## 1.  Identify the metrics you want to delete
+
+* Use your web browser's developer tools to inspect the dropdown list from the prometheus UI and copy its source, then save that as a file called `metrics-select-box.html`
+
+* Filter the list and convert it to plain text
+
+```
+cat metrics-select-box.html | sed $'s/></>\\\n</g' | grep jenkins_node_ | sed 's/<.option>//' | sed 's/.*>//' > metrics
+```
+
+This example captures all metrics whose names include the string `jenkins_node_`
+
+## 2. Enable the admin interface in Prometheus
+
+```
+kubectl -n monitoring edit prometheus prometheus-operator-prometheus
+```
+
+Under `spec` add:
+
+```
+enableAdminAPI: true
+```
+
+This will restart prometheus, leading to a 3-5 minute outage.
+
+## 3. Launch a port-forward pod
+
+```
+kubectl -n monitoring run port-forward-pod \
+  --generator=run-pod/v1 \
+  --image=ministryofjustice/port-forward \
+  --port=9090 \
+  --env="REMOTE_HOST=prometheus-operator-prometheus" \
+  --env="LOCAL_PORT=9090" \
+  --env="REMOTE_PORT=9090"
+```
+
+## 4. Forward local traffic to Prometheus
+
+```
+kubectl -n monitoring port-forward port-forward-pod 9090:9090
+```
+
+This port-forward will die periodically, so you'll need to restart it when that happens.
+
+## 5. Use curl (in another terminal) to hit the API endpoint
+
+```
+curl -v http://localhost:9090/api/v1/query?query=up
+```
+
+If this works, you will see a list of metrics as a JSON document.
+
+You can now delete a single metric like this
+
+```
+curl -v -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/delete_series?match[]={__name__="jenkins_node_artefacts_javaskeleton_build_kaniko_1_rq4tp_0t7pb_1srvx_builds"}'
+```
+
+## 6. Use this script to delete multiple metrics
+
+Use with care.  This will delete **all** the metrics listed in the file `metrics`
+
+```ruby
+#!/usr/bin/env ruby
+
+def delete_metric(name)
+  return if name.to_s.length == 0
+  execute %[curl -v -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/delete_series?match[]={__name__="#{name}"}']
+end
+
+def clean_tombstones
+  execute %[curl -v -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/clean_tombstones']
+end
+
+def execute(cmd)
+  puts cmd
+  `#{cmd}`
+end
+
+metrics = File.readlines("metrics")
+
+metrics.each_slice(1000) do |list|
+  list.each { |metric| delete_metric(metric.chomp) }
+  clean_tombstones
+end
+```
+
+This works in chunks of 1000 metrics, calling the data compaction command after each chunk.
+
+Invoke the script like this:
+
+```
+./delete_metrics.rb 2>&1 | tee delete.log
+```
+
+This will fail after a while, because the port-forward will die. So, use the
+delete.log to figure out where the last success occurred, and delete down to
+there in the `metrics` file
+
+```
+grep -B 6 204 delete.log | grep POST | tail
+```
+
+Repeat until finished.
+
+## 7. Clean up
+
+* Disable the admin interface. As per step 1, remove the `enableAdminAPI: true` flag (this will bounce prometheus, causing an outage of a few minutes)
+
+* Remove the port-forward pod
+
+```
+kubectl -n monitoring delete pod port-forward-pod
+```
