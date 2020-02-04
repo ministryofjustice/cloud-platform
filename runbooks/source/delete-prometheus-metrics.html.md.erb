@@ -11,6 +11,8 @@ This runbook describes the process for deleting metrics series from Prometheus.
 
 More information in [this article](https://www.shellhacks.com/prometheus-delete-time-series-metrics/).
 
+> NB: This procedure has not removed the deleted metrics from the dropdown list on [this page](https://prometheus.cloud-platform.service.justice.gov.uk/graph). So, I'm not sure it actually works.
+
 ## 1.  Identify the metrics you want to delete
 
 * Use your web browser's developer tools to inspect the dropdown list from the prometheus UI and copy its source, then save that as a file called `metrics-select-box.html`
