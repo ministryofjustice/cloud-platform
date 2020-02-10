@@ -25,32 +25,6 @@ Related repositories:
 
 4) Once PR gets merged you must proceed to execute `terraform apply` and verify user is created (you can use AWS Console for this). 
 
-## User password
-
-If user doesn't have keybase you should create a temporal password for him and ask him to change it. If user has keybase you can just set it up within the module: 
-
-```console
-module "iam_user_mogaal" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-user"
-  version = "~> 2.0"
-
-  name                          = "AlejandroGarrido"
-  force_destroy                 = true
-
-  pgp_key                       = "keybase:mogaal"
-  create_iam_access_key         = false
-}
-```
-
-Don't forget to add the password as output within `outputs.tf` file:
-
-```console
-output "iam_user_mogaal_login_profile_encrypted_password" {
-  description = "The encrypted password, base64 encoded"
-  value       = module.iam_user_mogaal.this_iam_user_login_profile_encrypted_password
-}
-```
-
 ## Activating MFA for new users
 
 Unfortunataly terraform can not activate MFA for users, this process must be done done manually either [thorugh AWS Console (UI)](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html) or [throgh the AWS CLI](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_cliapi.html).
