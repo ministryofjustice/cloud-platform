@@ -7,7 +7,7 @@ review_in: 3 months
 
 # AWS Console Access
 
-New joiners for Cloud platform team will need AWS Console access almost for everything. IAM resources (users, groups, roles, etc) are managed by terraform so new users are nothing more than new resources **in terraform**. 
+New joiners for Cloud platform team will need AWS Console access for most things. IAM resources (users, groups, roles, etc) are managed by terraform so new users are nothing more than new resources **in terraform**. 
 
 Related repositories: 
 
@@ -23,8 +23,8 @@ Related repositories:
 
 3) Create the PR and ask the team to review it.
 
-4) Once PR gets merged you must proceed to execute `terraform apply` and verify user is created (you can use AWS Console for this). 
+4) Once PR gets merged you must proceed to execute `terraform apply` and verify user (you can use AWS Console for this). 
 
 ## Activating MFA for new users
 
-Unfortunataly terraform can not activate MFA for users, this process must be done done manually either [thorugh AWS Console (UI)](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html) or [throgh the AWS CLI](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_cliapi.html).
+Unfortunataly terraform can't activate MFA for users, this process must be done done manually either [thorugh AWS Console (UI)](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html) or [throgh the AWS CLI](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_cliapi.html).
