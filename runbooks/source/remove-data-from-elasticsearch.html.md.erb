@@ -1,0 +1,82 @@
+---
+title: Remove data from Elasticsearch
+weight: 190
+last_reviewed_on: 2020-02-11
+review_in: 3 months
+---
+
+# Remove data from Elasticsearch
+
+This runbook aims to guide you through purging specific logs/data from Elasticsearch. 
+
+Let's assume in this guide that we are trying to delete all logs of the  `my-namespace-production` namespace, from the 01/02/2020
+
+## Things to know 
+
+An important thing to understand is the difference between an index and a document. 
+An index contains documents. In our case, documents are log entries.
+
+The current logging strategy is to have one index per day, containing all the daily logs.
+All application logs are sent to that daily index, ex:  `logstash-2020.02.01`
+
+Although it is possible to delete a whole index with a curator job, this guide will only cover the deletion of specific documents.
+
+**Running `curl` queries has to be done from within the live-1 VPC.**
+
+## Build your query
+
+It is possible to reuse the body of a `search` query for a `delete` query.
+
+Therefore, if we narrow down a search query to exactly what we want to delete, we've done most of the work.
+
+Kibana offers a webconsole to test queries, head over to:  
+
+https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/kibana#/dev_tools/console?_g=()
+
+A standard query is : 
+
+```
+GET /logstash-2020.02.01/_search
+{
+  "query": {
+    "match": {
+      "kubernetes.namespace_name.keyword": "my-namespace-production"
+    }
+  }
+}
+```
+
+**Important note: `.keyword` force elasticsearch to only return exact matches. Without it, you may end up deleting more than you wish**
+  
+
+
+As a `curl` command, the query above would translate as: 
+
+```
+curl -XGET "https://search-cloud-platform-live-dibidbfud3uww3lpxnhj2jdws4.eu-west-2.es.amazonaws.com/logstash-2020.02.01/_search" -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "match": {
+      "kubernetes.namespace_name.keyword": "my-namespace-production"
+    }
+  }
+}'
+```
+
+Once the result of the search query fit what you want to delete exactly, carry on to the next step.
+
+## Delete by query
+
+A `POST` request against the `_delete_by_query` endpoint will delete all documents matching the query in the request's body. 
+
+To come back to our use-case, if we want to delete all logs from the `my-namespace-production` from the 01/02/2020:
+
+```
+    curl -XPOST \
+        https://search-cloud-platform-live-dibidbfud3uww3lpxnhj2jdws4.eu-west-2.es.amazonaws.com/logstash-2020.02.01/_delete_by_query?pretty \
+        -H 'Content-Type: application/json' \
+        -d'{"query":{"match":{"kubernetes.namespace_name.keyword": "my-namespace-production"}}}'
+```
+
+Here again, `.keyword` is essential.
+
