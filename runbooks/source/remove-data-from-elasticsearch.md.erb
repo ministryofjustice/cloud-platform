@@ -65,10 +65,15 @@ Once the result of the search query fit what you want to delete exactly, carry o
 
 ## Delete by query
 
-To delete documents, we will use a `POST` request against the `delete_by_query` endpoint. 
+A `POST` request against the `_delete_by_query` endpoint will delete all documents matching the query in the request's body. 
 
+To come back to our use-case, if we want to delete all logs from the `my-namespace-production` from the 01/02/2020:
 
     curl -XPOST \
         https://ELASTICESEARCH URL/logstash-2020.02.01/_delete_by_query?pretty \
         -H 'Content-Type: application/json' \
-        -d'{"query":{"match":{"kubernetes.namespace_name.keyword.keyword": "my-namespace-production"}}}'
+        -d'{"query":{"match":{"kubernetes.namespace_name.keyword": "my-namespace-production"}}}'
+
+
+Here again, `.keyword` is essential.
+
