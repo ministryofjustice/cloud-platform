@@ -30,6 +30,7 @@ It is possible to reuse the body of a `search` query for a `delete` query.
 Therefore, if we narrow down a search query to exactly what we want to delete, we've done most of the work.
 
 Kibana offers a webconsole to test queries, head over to:  
+
 https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/kibana#/dev_tools/console?_g=()
 
 A standard query is : 
@@ -51,7 +52,7 @@ GET /logstash-2020.02.01/_search
 
 As a `curl` command, the query above would translate as: 
 
-```console
+```
 curl -XGET "https://search-cloud-platform-live-dibidbfud3uww3lpxnhj2jdws4.eu-west-2.es.amazonaws.com/logstash-2020.02.01/_search" -H 'Content-Type: application/json' -d'
 {
   "query": {
