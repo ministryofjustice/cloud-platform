@@ -15,6 +15,6 @@ review_in: 3 months
 
 - **Identified**: Pingdom reported Concourse (concourse.cloud-platform.service.justice.gov.uk) down.
 
-- **Context**: One of the engineers was deleting old clusters and he wasn't fully aware in which _terraform workspace_ was working on. Using `terraform destroy`, EKS nodes/workers were deleted from the manager cluster.
+- **Context**: One of the engineers was deleting old clusters (he ran `terraform destroy`) and he wasn't fully aware in which _terraform workspace_ was working on. Using `terraform destroy`, EKS nodes/workers were deleted from the manager cluster.
 
-- **Resolution**: Using terraform (`terraform apply -var-file vars/manager.tfvars` specifically) the cluster nodes where created and the infrastructure aligned to the desired terraform state
+- **Resolution**: Using terraform (`terraform apply -var-file vars/manager.tfvars` specifically) the cluster nodes where created and the infrastructure aligned? to the desired terraform state
