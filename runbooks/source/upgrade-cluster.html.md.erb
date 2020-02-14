@@ -56,7 +56,7 @@ If there is a newer AMI available in https://github.com/kubernetes/kops/blob/mas
 
 `kops update cluster (--yes)` will update k8s components inc calico
 
-`kops rolling update cluster -- instance-group-roles=Master` will update only the master nodes, no performance impact expected at this point
+`kops rolling update cluster [cluster name] --instance-group-roles=Master` will update only the master nodes, no performance impact expected at this point
 
 `kops create instance group nodes-<new_group_name>` to double the size of the cluster
 
@@ -115,7 +115,7 @@ popd
 
 Expected result is no changes needed.
 
-## Commit 
+## Commit
 
 As a last step, edit and commit the [corresponding](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/kops) kops .yaml file to match the new release.
 
