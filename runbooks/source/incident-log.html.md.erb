@@ -18,3 +18,21 @@ review_in: 3 months
 - **Context**: One of the engineers was deleting old clusters (he ran `terraform destroy`) and he wasn't fully aware in which _terraform workspace_ was working on. Using `terraform destroy`, EKS nodes/workers were deleted from the manager cluster.
 
 - **Resolution**: Using terraform (`terraform apply -var-file vars/manager.tfvars` specifically) the cluster nodes where created and the infrastructure aligned? to the desired terraform state
+
+
+## February 2020
+
+### Incident on 18-02-2020 14:13 UTC
+
+- **Status**: Resolved at 14:59 UTC
+
+- **Identified**: Pingdom reported Prometheus down (prometheus.cloud-platform.service.justice.gov.uk) down.
+
+- **Context**: 
+   - Although the Prometheus URL was unreachable, Grafana and Alertmanager were resolving.
+   - There seemed to be an issue preventing request to reach the prometheus pods.
+   - Disk space, the usual suspect, was ruled out as the cause.
+   - The domain name amd ingress were both valid.
+
+- **Resolution**: 
+    We suspect an intermittent & and external issue to be the cause of this outage.
