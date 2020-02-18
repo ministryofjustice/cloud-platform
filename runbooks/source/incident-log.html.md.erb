@@ -9,17 +9,6 @@ review_in: 3 months
 
 ## February 2020
 
-### Incident on 12-02-2020 11:45 UTC
-
-- **Status**: Resolved at 12:07 UTC
-
-- **Identified**: Pingdom reported Concourse (concourse.cloud-platform.service.justice.gov.uk) down.
-
-- **Context**: One of the engineers was deleting old clusters (he ran `terraform destroy`) and he wasn't fully aware in which _terraform workspace_ was working on. Using `terraform destroy`, EKS nodes/workers were deleted from the manager cluster.
-
-- **Resolution**: Using terraform (`terraform apply -var-file vars/manager.tfvars` specifically) the cluster nodes where created and the infrastructure aligned? to the desired terraform state
-
-
 ### Incident on 18-02-2020 14:13 UTC
 
 - **Status**: Resolved at 14:59 UTC
@@ -38,4 +27,16 @@ review_in: 3 months
 
 - **Resolution**: 
     We suspect an intermittent & external networking issue to be the cause of this outage.
+
+
+### Incident on 12-02-2020 11:45 UTC
+
+- **Status**: Resolved at 12:07 UTC
+
+- **Identified**: Pingdom reported Concourse (concourse.cloud-platform.service.justice.gov.uk) down.
+
+- **Context**: One of the engineers was deleting old clusters (he ran `terraform destroy`) and he wasn't fully aware in which _terraform workspace_ was working on. Using `terraform destroy`, EKS nodes/workers were deleted from the manager cluster.
+
+- **Resolution**: Using terraform (`terraform apply -var-file vars/manager.tfvars` specifically) the cluster nodes where created and the infrastructure aligned? to the desired terraform state
+
 
