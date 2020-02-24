@@ -1,0 +1,37 @@
+---
+title: Delete terraform state lock
+weight: 199
+last_reviewed_on: 2020-02-24
+review_in: 3 months
+---
+
+# <%= current_page.data.title %>
+
+In the [build pipeline], you will sometimes see errors like this:
+
+```
+Command: cd namespaces/live-1.cloud-platform.service.justice.gov.uk/jason-lab/resources; terraform apply -auto-approve failed.
+
+Error: Error locking state: Error acquiring the state lock: ConditionalCheckFailedException: The conditional request failed
+    status code: 400, request id: 8F9C5H04HLD0TVN4V0PQIRRMFBVV4KQNSO5AEMVJF66Q9ASUAAJG
+```
+
+If you see repeated failures trying to acquire the lock on the same namespace,
+it probably means the lock record has been left in place by mistake, because a
+previous run failed to release the lock when it should have.
+
+To fix this, you need to delete the lock record.
+
+1. Go to the [dynamodb] page of the AWS web console (NB: the relevant table is in the `eu-west-1` region)
+2. Click on the [cloud-platform-environments-terraform-lock] table, and then the `Items` tab
+3. Click `Add filter`
+4. Enter `LockID` as the filter attribute, and change `String, =` to `String, contains` as the filter criteria
+5. Enter the namespace name as the string value to match, and click `Start search`
+
+When you find the relevant lock records, delete them. Terraform will recreate
+any missing records the next time it tries to acquire the lock for that
+terraform state file.
+
+[build pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/build-environments
+[dynamodb]: https://eu-west-1.console.aws.amazon.com/dynamodb/home?region=eu-west-1#tables:
+[cloud-platform-environments-terraform-lock]: https://eu-west-1.console.aws.amazon.com/dynamodb/home?region=eu-west-1#tables:selected=cloud-platform-environments-terraform-lock;tab=overview
