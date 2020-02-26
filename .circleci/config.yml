@@ -7,7 +7,7 @@ jobs:
     docker:
       # This docker image is created from the Dockerfile in
       # this repository.
-      - image: ministryofjustice/cloud-platform-runbooks:1.5
+      - image: ministryofjustice/cloud-platform-runbooks:1.6
 
     working_directory: ~/repo
 
