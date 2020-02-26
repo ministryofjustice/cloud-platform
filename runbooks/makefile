@@ -1,7 +1,7 @@
 IMAGE := ministryofjustice/cloud-platform-runbooks
 VERSION := 1.6 # Change this in .circleci/config.yml if you update it here
 
-.built-docker-image: Dockerfile Gemfile
+.built-docker-image: Dockerfile Gemfile Gemfile.lock
 	docker build -t $(IMAGE) .
 	touch .built-docker-image
 
