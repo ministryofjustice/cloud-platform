@@ -9,6 +9,7 @@ review_in: 3 months
 
 This plan details to the who, how and when we will communicate information to users and stakeholders.
 
+
 ## The Plan
 
 The table below sets out the typical types of communications the Cloud Platform will want to issue.
@@ -23,6 +24,52 @@ The table below sets out the typical types of communications the Cloud Platform 
 | Sharing successes | Chief Technology Officer | Weekly | One to ones and team meetings |
 | Sharing successes | SMT | Fortnightly | Architecture & Platforms weeknotes |
 | Sharing successes | Justice Digital & Technology | Regularly when we have key things to show or promote | Post about them in #chat on Slack/Consider for a Show the Thing |
+
+## Tips on format of communications
+
+The #cloud-platform-update channel is used for a number of different types of communications so it is important that messages posted have a clear description so that users can understand the importance of the message. In the case of incidents or upgrades the message should have a **bold** title that clearly describes what the message will be about.
+
+### Examples
+
+> **Kubernetes 1.14 Upgrade**
+
+> **Incident - Sentry unavailable**
+
+> **Action Required - Live-0 Decommissioning**
+
+### Things to include in incident communications
+
+- service impact/what users might be reporting
+- action being taken (this might just be that we are investigating the issue)
+- when users can expact a progress update (and make sure that the update actually happens when you say it will)
+- details of any actions users need to take (if applicable)
+- apoligise for the inconvenience (it might not be an issue in our control but this can build trust and let users know that you are taking resolution seriously)
+
+### Example
+
+> **High Priority Incident Declared - Cloud Platform**
+> We are aware that some users are experiencing issues with the access to services on the Cloud Platform this morning.
+> We are unsure of the full impact of these issues and the extent to which this is impacting services.
+> An incident team has been formed and the team are investigating.
+> We will provide further updates in due course, but in any event the next update will be in 30 minutes.
+> Thank you for your patience.
+
+### Things to include in upgrade communications
+
+- What you are upgrading
+- When the upgrade will take place (including times)
+- Why you are upgrading (in might be useful to include a link to some change notes or something that users can refer to if they want more information rather than adding it all in the comms.)
+- Details of any service impact or anthing users might need to take action on as a result of changes (including if we are pausing pipelines)
+- Refer users back to the #ask-cloud-platform channel if they have questions or something isn't working as expected
+
+### Example
+
+> **Kubernetes 1.14 Upgrade**
+> Please be aware that we will be upgrading the version of Kubernetes to 1.14 tomorrow (Friday 27th February) at 7am.
+> More information on what's new can be found here - https://sysdig.com/blog/whats-new-kubernetes-1-14/
+> There will be no downtime for this change. However we have noticed some latency during testing, and the Concourse pipeline will be paused.
+> If you need to deploy any urgent changes to the Environments repository, or if you experience any other problems while the upgrade is underway please let us know over at #ask-cloud-platform. Many thanks.
+
 
 ## Sharing information with the wider Ministry of Justice and the Public
 
