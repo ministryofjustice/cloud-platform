@@ -15,9 +15,13 @@ Before you begin, there are a few pre-requisites:
 
 - You have [docker] installed.
 
-### Environment Variables
+### Setup environment
 
-See the file `example.env.create-cluster` in the [infrastructure repo].
+Setup the environment variables listed in `example.env.create-cluster` in the [infrastructure repo].
+
+### Run integration tests
+
+Run the [integration tests pipeline] and wait for the tests to pass. This will ensure you're live cluster is functioning as expected. 
 
 ### Sanity checks
 
@@ -25,18 +29,16 @@ Ensure Concourse pipelines are green, and pause all of them.
 
 Take a snapshot of
 
-- all non-running pods
-- triggered Prometheus alarms
+- all non-running pods; you can do this by running `kubectl get pods -A | grep -v "Running" > non_running_pods`.
+- triggered Prometheus alarms; take a screenshot of the current triggered alarms.
 
 ### Run a shell in the tools image
 
 The cloud platform [tools image] has all the software required to run the build script and create a cluster.
 
-The image will need updates for new client tool versions, see https://github.com/ministryofjustice/cloud-platform-tools-image/pull/34 for an example.
+The image will need updates for new client tool versions, see https://github.com/ministryofjustice/cloud-platform-tools-image/pull/34 for an example. Make the required changes and push the new image to DockerHub. 
 
-Start from the root directory of a working copy of the [infrastructure repo].
-
-With your environment variables set, launch a bash shell on the tools image:
+From a local copy of the the cloud-platform-infrastructure repository, the run the following command (ensuring that you're using the new image): 
 
 ```bash
 make tools-shell
@@ -44,76 +46,165 @@ make tools-shell
 
 ## Run the upgrade
 
+### Authenticate to the cluster
+
 Within the tools image, the file `~/.kube/config` is not copied from your outside profile, create it for just the needed cluster by running
 
 ```bash
 kops export kubecfg XXXXXXX.cloud-platform.service.justice.gov.uk
 ```
 
-Change the Kubernetes release version, ensuring it is supported by Kops - verify on the [kops releases](https://github.com/kubernetes/kops/releases) page.
+### Update the live cluster manifest
 
-If there is a newer AMI available in https://github.com/kubernetes/kops/blob/master/channels/stable, `kops edit instance-group masters`
+Open the cloud-platform-infrastructure repository and make the following changes to the kops/live-1.yaml manifest:
 
-`kops update cluster (--yes)` will update k8s components inc calico
+  - The Kubernetes release version, ensuring it is supported by Kops - verify on the [kops releases](https://github.com/kubernetes/kops/releases) page.
+  - The AMI in each instance group. This can be found here: https://github.com/kubernetes/kops/blob/master/channels/stable 
 
-`kops rolling update cluster [cluster name] --instance-group-roles=Master` will update only the master nodes, no performance impact expected at this point
+### Push changes to kops state
 
-`kops create instance group nodes-<new_group_name>` to double the size of the cluster
+Run the following to push the above changes to the kops state store in S3.
 
- - copy values from instance group nodes
+`kops update cluster`
 
-`kops update cluster (--yes)` will create the new nodes
+Review the changes before commiting with: 
 
-`kubectl cordon nodes <node_name>` in the old instance group, this will ensure any new resources will go to the new ig
+`kops update cluster -yes`
 
-Scale up the OPA deployment to ensure at least one pod runs on the new nodes
+### Perform a rolling-update
 
-Scale up ingress controllers by at least 3, to ensure each AZ on the new nodes gets an instance
+This is a delecate procedure, so this article will proceed with extreme caution. 
 
-Identify pods with PVCs
+First, get the instance groups:
 
-`kubectl get pvc -A`
+`kops get ig`
 
- - kill them
+Update each master individually:
 
- - check data persistence (eg Prometheus metrics history)
+`kops rolling-update cluster --instance-group <master-instance-group> (--yes)`
 
-`kubectl drain nodes <node_name>` on the old ig, DaemonSets can be safely excluded
+Kops will safetly eject the instance from the cluster and bring back a new one. 
 
-^ this must be done one node at a time to ensure it actually succeeds so will take ~1min*number of nodes
+Once the new master is in a `ready` state, run the fast integration tests with:
 
-`kops delete ig` old instance group
-
-Unpause pipelines
-
-## Sanity checks
-
-`kops validate cluster`
-
-Smoke test and check non-running pods, compare with situation before the upgrade start
-
-The `cloud-platform-smoke-tests` image might need updates, see https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/374 for an example.
-
-Finally, check that `terraform` agrees with the new cluster status
-
-```bash
-kubectl cluster-info
+```
+cd cloud-platform-infrastructure/smoke-tests
+make test-fast
 ```
 
-```bash
-pushd terraform/cloud-platform
-terraform workspace list
-terraform workspace select [your cluster]
-terraform plan
-popd
-cd terraform/cloud-platform-components
-terraform workspace list
-terraform workspace select [your cluster]
-terraform plan
-popd
+This will take around 30 seconds and should pass.
+
+Perform the same process on the other two masters.
+
+### Take stock of current running worker nodes
+
+You'll need a file with all current working worker nodes. Run to output all workers to a text file:
+
+```
+kubectl get nodes | grep node | sed 's/ .*//' > nodes
 ```
 
-Expected result is no changes needed.
+### Create new worker instance group
+
+To ensure minimal application downtime, we're going to create a new instance group with the changes applied to the live manifest above:
+
+```
+kops create instancegroup nodes-<kubernetes-version>
+kops update cluster
+kops update cluster --yes
+```
+
+note: we use the kubernetes-version to identify the new node group. 
+
+New instances will be created, which you'll see with:
+
+```
+watch kubectl get nodes
+```
+
+### Cordon old workers
+
+Copy the file we created earlier:
+
+```
+cp nodes cordon_nodes
+```
+
+We need to insert the following before each line in this file:
+
+`kubectl cordon`
+
+To do this quickly in vim I used: 
+
+```
+qq shift+i “kubectl cordon ” esc j ^ q G@q
+```
+
+### Scale number of ingress controllers
+
+The ingress controllers play in important role in a live cluster. To ensure these are running on the new nodes run:
+
+```
+kubectl -n ingress-controllers edit deploy nginx-ingress-acme-controller
+```
+
+And double the number of replicas. 
+
+### Drain the old worker nodes
+
+We now need to move all pods on the old worker nodes to the new. To do this first copy the nodes file we created earlier:
+
+```
+cp nodes drain_nodes
+```
+
+We need to insert the following before each line in this file:
+
+`kubectl drain`
+
+and then
+
+` --ignore-daemonsets --delete-local-data`
+
+at the end.
+
+To do this quickly in vim I used: 
+
+```
+qq shift+i “kubectl drain ” esc shift+a “--ignore-daemonsets --delete-local-data” esc j ^ q G@q
+```
+
+Execute the commands in the file with:
+
+```
+bash drain_nodes
+```
+
+Each node will drain all pods, moving them onto the new workers.
+
+### Validate the cluster
+
+Ensure all nodes have joined the cluster:
+
+```
+kops validate cluster
+```
+
+### Run integration tests again
+
+Run the [integration tests pipeline] and wait for the tests to pass. This will ensure you're live cluster is functioning as expected. 
+
+### Delete the old instance group
+
+When complete and all pods have migrated onto the new workers. Delete the older instance group:
+
+### Scale the ingress-controllers down
+
+We can now scale the ingress-controllers back down. 
+
+```
+kubectl -n ingress-controllers edit deploy nginx-ingress-acme-controller
+```
 
 ## Commit
 
