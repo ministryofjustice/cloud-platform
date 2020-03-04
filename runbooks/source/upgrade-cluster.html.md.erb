@@ -21,7 +21,7 @@ Setup the environment variables listed in `example.env.create-cluster` in the [i
 
 ### Run integration tests
 
-Run the [integration tests pipeline] and wait for the tests to pass. This will ensure you're live cluster is functioning as expected. 
+Run the [integration test pipeline] and wait for the tests to pass. This will ensure the live cluster is functioning as expected. 
 
 ### Sanity checks
 
@@ -192,7 +192,7 @@ kops validate cluster
 
 ### Run integration tests again
 
-Run the [integration tests pipeline] and wait for the tests to pass. This will ensure you're live cluster is functioning as expected. 
+Run the [integration test pipeline] and wait for the tests to pass. This will ensure you're live cluster is functioning as expected. 
 
 ### Delete the old instance group
 
@@ -206,11 +206,12 @@ We can now scale the ingress-controllers back down.
 kubectl -n ingress-controllers edit deploy nginx-ingress-acme-controller
 ```
 
-## Commit
+## Commit changes back to master
 
-As a last step, edit and commit the [corresponding](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/kops) kops .yaml file to match the new release.
+Any changes made to the cloud-platform-infrastructure repository should be pushed for review. This includes manifest changes and image tag changes. 
 
 [infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
+[integration test pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/integration-tests/jobs/apply-tests-live-1
 [cluster naming policy]: https://github.com/ministryofjustice/cloud-platform/blob/master/architecture-decision-record/009-Naming-convention-for-clusters.md
 [AWS CLI]: https://aws.amazon.com/cli/
 [docker]: https://www.docker.com/
