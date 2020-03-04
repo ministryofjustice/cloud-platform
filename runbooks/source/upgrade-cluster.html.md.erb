@@ -29,7 +29,7 @@ Ensure Concourse pipelines are green, and pause all of them.
 
 Take a snapshot of
 
-- all non-running pods; you can do this by running `kubectl get pods -A | grep -v "Running" > non_running_pods`.
+- all non-running pods; you can do this by running `kubectl get pods -A | grep -v "Running"`.
 - triggered Prometheus alarms; take a screenshot of the current triggered alarms.
 
 ### Run a shell in the tools image
@@ -38,7 +38,7 @@ The cloud platform [tools image] has all the software required to run the build 
 
 The image will need updates for new client tool versions, see https://github.com/ministryofjustice/cloud-platform-tools-image/pull/34 for an example. Make the required changes and push the new image to DockerHub. 
 
-From a local copy of the the cloud-platform-infrastructure repository, the run the following command (ensuring that you're using the new image): 
+From a local copy of the cloud-platform-infrastructure repository, the run the following command (ensuring that you're using the new image): 
 
 ```bash
 make tools-shell
@@ -67,13 +67,13 @@ Run the following to push the above changes to the kops state store in S3.
 
 `kops update cluster`
 
-Review the changes before commiting with: 
+Review the changes before committing with: 
 
 `kops update cluster -yes`
 
 ### Perform a rolling-update
 
-This is a delecate procedure, so this article will proceed with extreme caution. 
+This is a delicate procedure, so this article will proceed with extreme caution. 
 
 First, get the instance groups:
 
@@ -83,7 +83,7 @@ Update each master individually:
 
 `kops rolling-update cluster --instance-group <master-instance-group> (--yes)`
 
-Kops will safetly eject the instance from the cluster and bring back a new one. 
+Kops will safely eject the instance from the cluster and bring back a new one. 
 
 Once the new master is in a `ready` state, run the fast integration tests with:
 
