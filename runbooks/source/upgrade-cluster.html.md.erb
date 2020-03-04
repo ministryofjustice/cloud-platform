@@ -38,7 +38,7 @@ The cloud platform [tools image] has all the software required to run the build 
 
 The image will need updates for new client tool versions, see https://github.com/ministryofjustice/cloud-platform-tools-image/pull/34 for an example. Make the required changes and push the new image to DockerHub. 
 
-From a local copy of the cloud-platform-infrastructure repository, the run the following command (ensuring that you're using the new image): 
+From a local copy of the cloud-platform-infrastructure repository, run the following command (ensuring that you're using the new image): 
 
 ```bash
 make tools-shell
@@ -60,6 +60,8 @@ Open the cloud-platform-infrastructure repository and make the following changes
 
   - The Kubernetes release version, ensuring it is supported by Kops - verify on the [kops releases](https://github.com/kubernetes/kops/releases) page.
   - The AMI in each instance group. This can be found here: https://github.com/kubernetes/kops/blob/master/channels/stable 
+
+Now make the same changes to the template file `./terraform/cloud-platform/templates/kops.yaml.tpl`.
 
 ### Push changes to kops state
 
