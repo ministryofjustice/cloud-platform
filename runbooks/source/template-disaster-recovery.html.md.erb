@@ -100,10 +100,9 @@ Your cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk is ready
 
 Please note that this process might take a short while(around 1 hr), depending on the size of the cluster.
 
-## Cleanup
+## Integration tests
 
-After the backup restore is completed, there are probably old master IPs being set as endpoints in the kubernetes service. You can fix this by manually removing the old master IPs from etcd.
-
+After the backup restore is completed, run integration tests to verify cluster is working as expected.
 
 ## Possible Issues
 
