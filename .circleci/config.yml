@@ -26,6 +26,7 @@ jobs:
 
         # Build the user guide
       - run: mkdir runbooks/compiled || true
+      - run: cd runbooks; bin/add_source_url
       - run: cd runbooks; bundle exec middleman build --build-dir compiled
 
         # Replace compiled/.nojekyll (which gets deleted during the build process) so github knows we're
