@@ -35,7 +35,7 @@ terraform apply
 
 You should be able to see your new VPC (called `WorkspaceName`) inside the AWS Console. Check it before jumping to the next step.
 
-**NOTE**: For conventions purposes please call all terraform workspaces the same
+**NOTE**: For conventions purposes please call all terraform workspaces the same.
 
 ### 2. Creating EKS cluster
 
@@ -43,20 +43,21 @@ Now it's time to provision the cluster itself, we change directory to [cloud-pla
 
 ```
 terraform init
-terraform workspace new <WorkspaceName>
-terraform apply -var cluster_node_count="4" -var worker_node_machine_type="m4.large"
+terraform workspace new <WorkspaceName> 
+terraform apply -var="vpc_name=$VPC_NAME"
 ```
 
-You adapt the variables `cluster_node_count` and `worker_node_machine_type` in base of your needs. 
+`vpc_name` must be set, it's the only required variable. It can also be used variables like `cluster_node_count` and `worker_node_machine_type` to set up different node groups parameters 
 
-Once terraform finishes you should be able to find the kubeadmin file (used by _kubectl_ to establish a connection to the cluster) within the `files/` folder and it should be named as `files/kubeconfig_${WorkspaceName}`.
-
-Final check for this step consists in cluster connection, for that we use the _kubeconfig_ file created by the EKS terraform module: 
-
-(**NOTE**: Update the `${WorkspaceName}` variable with your workspace name)
+Once terraform finishes you should be able to generate your kubeadmin file (used by _kubectl_ to establish a connection to the cluster) using aws-cli in the following way:
 
 ```
-$ export KUBECONFIG="$(pwd)/files/kubeconfig_${WorkspaceName}"
+aws eks --region eu-west-2 update-kubeconfig --name mogaal-eks
+```
+
+Final check for this step consists in cluster connection
+
+```
 $ kubectl cluster-info
 Kubernetes master is running at https://B04C5FC7828A0515457E141A9610815D.sk1.eu-west-2.eks.amazonaws.com
 CoreDNS is running at https://B04C5FC7828A0515457E141A9610815D.sk1.eu-west-2.eks.amazonaws.com/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
