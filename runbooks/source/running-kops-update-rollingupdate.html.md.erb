@@ -86,6 +86,18 @@ At this point, you should have an updated `kops/[cluster name].yaml` file in you
 Commit and push your changes, including those in the terraform source and template files.
 
 ### Applying local changes to the kops state store
+  
+#### Backup the remote kops state
+  
+If you want to preserve a backup of the current kops state on S3, you can do so like this:
+  
+```bash
+aws s3 cp --recursive $KOPS_STATE_STORE/live-1.cloud-platform.service.justice.gov.uk $KOPS_STATE_STORE/live-1-backup
+```
+
+This takes a couple of minutes. At time of writing, this was around 10G of data (mostly etcd backup tarballs).
+  
+#### Updating the remote kops state
 
 To apply your local changes to the kops state stored on S3:
 
