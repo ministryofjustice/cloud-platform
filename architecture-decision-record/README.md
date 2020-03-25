@@ -24,6 +24,7 @@ see [ADR-000](000-Record-Architecture-Decisions.md)
 * 🤔 [13. Use RSpec for cluster tests](013-Use-RSpec-for-cluster-tests.md)
 * ✅ [14. Why we build our own kubernetes cluster](014-Why-we-build-our-own-kubernetes-cluster.md)
 * 🤔 [15. Keeping Terraform modules up to date](015-Keeping-Terraform-modules-up-to-date.md)
+* ✅ [16. Kibana is open to all service teams](016-Kibana-is-open-to-all-service-teams.md)
 
 ### Statuses:
 
