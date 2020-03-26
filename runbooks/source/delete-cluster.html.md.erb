@@ -1,7 +1,7 @@
 ---
 title: Delete a cluster
 weight: 55
-last_reviewed_on: 2019-09-27
+last_reviewed_on: 2020-03-26
 review_in: 3 months
 ---
 
@@ -18,15 +18,17 @@ Start from the root directory of a working copy of the [infrastructure repo].
 
 ## Delete the cluster using the script
 
-There is a [destroy-cluster.sh] script which you can use to delete your cluster.
+There is a [destroy-cluster.rb] script which you can use to delete your cluster.
 
 > Read the script before using it. Deleting a cluster is something you should be very cautious about, and ensure you know exactly what you're doing.
 
 > The script is entirely non-interactive, and will not prompt you to confirm anything. It just destroys things.
 
 * Edit the script to change the value of `CLUSTER` to your test cluster
+* If deleting a different VPC than the one with the same name as CLUSTER, change the value of VPC_NAME
+* If you want to delete the VPC along with the cluster, uncomment the relevant line in the `main` method near the top of the script
 * Run `make tools-shell`
-* Run the script: `./destroy-cluster.sh`
+* Run the script: `./destroy-cluster.rb`
 
 If any steps fail:
 
@@ -36,7 +38,7 @@ If any steps fail:
 
 ## Delete the cluster manually
 
-In case you prefer not to use the [destroy-cluster.sh] script, these are the individual steps to follow, to delete the cluster "by hand"
+In case you prefer not to use the [destroy-cluster.rb] script, these are the individual steps to follow, to delete the cluster "by hand"
 
 First, set the kubectl context for the cluster you are deleting. The easiest way to do this is with kops. e.g:
 
@@ -81,5 +83,16 @@ $ terraform workspace select default
 $ terraform workspace delete <clusterName>
 ```
 
+Change directories and perform the following to destroy the cluster VPC, and delete the terraform workspace.
+
+```
+$ cd ../cloud-platform-network
+$ terraform init
+$ terraform workspace select <clusterName e.g. cloud-platform-test-3>
+$ terraform destroy
+$ terraform workspace select default
+$ terraform workspace delete <clusterName>
+```
+
 [infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
-[destroy-cluster.sh]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/destroy-cluster.sh
+[destroy-cluster.rb]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/destroy-cluster.rb
