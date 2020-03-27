@@ -97,6 +97,8 @@ aws s3 cp --recursive $KOPS_STATE_STORE/live-1.cloud-platform.service.justice.go
 
 This takes a couple of minutes. At time of writing, this was around 10G of data (mostly etcd backup tarballs).
   
+> While the backup exists, `kops get clusters` will report "live-1" *twice*. This doesn't do any harm, but you do need to delete the backup in order to resolve this, either via the `aws` CLI too, or using the AWS web interface for S3.
+  
 #### Updating the remote kops state
 
 To apply your local changes to the kops state stored on S3:
