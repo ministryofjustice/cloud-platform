@@ -1,6 +1,6 @@
 ---
 title: AWS GuardDuty Information /How to Implement
-weight: 100
+weight: 130
 last_reviewed_on: 2020-03-17
 review_in: 3 months
 ---
@@ -9,7 +9,7 @@ review_in: 3 months
   
 ## Introduction
 
-Amazon GuardDuty is a continuous security monitoring service that analyzes and processes the following data sources:
+[Amazon GuardDuty](https://docs.aws.amazon.com/guardduty/index.html) is a continuous security monitoring service that analyzes and processes the following data sources:
 
 * VPC Flow Logs
 * AWS CloudTrail event logs
@@ -19,10 +19,23 @@ It uses threat intelligence feeds, such as:
 
 * lists of malicious IPs
 * lists of malicious domains
-* machine learning to identify unexpected and potentially unauthorized and malicious activity within your AWS environment. This can include issues like escalations of privileges, uses of exposed credentials, or communication with malicious IPs, URLs, or domains. For example, GuardDuty can detect compromised EC2 instances serving malware or mining bitcoin.
+* machine learning to identify unexpected and potentially unauthorized and malicious activity within your AWS environment. 
+
+GuardDuty informs you of the status of your AWS environment by producing security [findings](https://eu-west-2.console.aws.amazon.com/guardduty/home?region=eu-west-2#/findings?macros=current) that you can be viewed in the GuardDuty console or through Amazon CloudWatch events.
+
+GuardDuty findings include issues like escalations of privileges, uses of exposed credentials, or communication with malicious IPs, URLs, or domains. For example, GuardDuty can detect compromised EC2 instances serving malware or mining bitcoin.
+
 It also monitors AWS account access behavior for signs of compromise, such as unauthorized infrastructure deployments, like instances deployed in a region that has never been used, or unusual API calls, like a password policy change to reduce password strength.
 
-GuardDuty informs you of the status of your AWS environment by producing security findings that you can be viewed in the GuardDuty console or through Amazon CloudWatch events.
+###AWS GuardDuty Accounts
+
+* [Master Account](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_accounts.html#guardduty_master)
+
+A designated account that can configure GuardDuty as well as view and manage GuardDuty findings for its own account and all associated member accounts.
+
+* [Member Accounts](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_accounts.html#guardduty_member)
+
+Invited (by Master Account) to enable GuardDuty and become associated with the Master AWS account (once an invitation has been accepted).
 
 ## Our Current setup
 
@@ -31,29 +44,34 @@ Our setup at the moment is as follows:
 * There are at present two master accounts - both in the moj-cp AWS account:
 
 	*  One set up in the London AWS region 
-		*  at present this has no member AWS linked accounts. It is mainly for our cloud-platform live-1 AWS resources 
+		*  This is for our cloud-platform live-1 AWS resources [moj-cp -London region](https://eu-west-2.console.aws.amazon.com/guardduty/home?region=eu-west-2#/findings?macros=current)
 	*  One set up in the Ireland AWS region 
-		*  this controls several member AWS linked accounts. It is mainly for template-deploy related member accounts.
+		*  this controls several member AWS linked accounts. It is mainly for template-deploy related [member accounts](https://eu-west-1.console.aws.amazon.com/guardduty/home?region=eu-west-1#/linked-accounts).
 	
-* Global alert/findings will be picked up for Global AWS resources (i.e IAM, S3 etc) in both master accounts. 
-* Whereas alerts/findings for specific regional AWS resources (i.e ec2, vpc etc) will go to the relevant master account. 
-* All member account AWS alerts/findings will be channeled through their linked master account (at present in Ireland AWS region)  
+### AWS GuardDuty Findings for live-1 AWS resources
+ 
+* Findings that AWS GuardDuty reports for Global AWS resources/services (i.e IAM, S3 etc) are found in the AWS GuardDuty Findings dashboard master account in the Ireland AWS region. 
+* Findings that AWS GuardDuty reports for specific regional AWS resources/services (i.e ec2, vpc etc) are found in the master account AWS GuardDuty Findings dashboard in the London AWS region. 
+
+### AWS GuardDuty Findings for AWS member account resources
+
+* Findings that AWS GuardDuty reports for  AWS member accounts appear in the AWS GuardDuty Findings dashboard for the relevant member (in that AWS account) and are collated in the master account (Ireland AWS region)  
 
 Any findings in GuardDuty are sent to Cloudwatch event rules that then integrate with AWS SNS (Simple Notification Service) topics and subscriptions. These are alerted to Pagerduty (presently 'in office hours') and then onto slack channels (at the moment #lower-priority-alarms)
 
 Please see [AWS GuardDuty](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_settingup.html) regarding setting up AWS GuardDuty.
 
-Also see here [Aws Cloudwatch Frequently Asked Questions](https://aws.amazon.com/guardduty/faqs/) where most general information regarding this service can be found
+Also see here [AWS Cloudwatch frequently asked questions](https://aws.amazon.com/guardduty/faqs/) where most general information regarding this service can be found
 
-Please also see [terraform aws GuardDuty detector ](https://www.terraform.io/docs/providers/aws/r/guardduty_detector.html) regarding setting up the config (here) for terraform GuardDuty detector
+Please also see [terraform AWS GuardDuty detector ](https://www.terraform.io/docs/providers/aws/r/guardduty_detector.html) regarding setting up the config (here) for terraform AWS GuardDuty detector
 
 ## Table of contents
-  - [1 Prerequisite files](#1-prerequisite-files)
-  - [2 Adding a new member account](#2-adding-a-new-member-account)
-  - [3 Applying the terraform changes](#3-applying-the-terraform-changes)
-  - [4 Pagerduty to Slack integration](#4-pagerduty-to-slack-integration)
+  - [1. Prerequisite files](#1-prerequisite-files)
+  - [2. Adding a new member account](#2-adding-a-new-member-account)
+  - [3. Applying the terraform changes](#3-applying-the-terraform-changes)
+  - [4. Pagerduty to Slack integration](#4-pagerduty-to-slack-integration)
 
-### 1 Prerequisite files
+### 1. Prerequisite files
 
   - [Main Configuration File](#main-configuration-file) (guardduty.tf)
   - [Terraform Variables File](#terraform-variables-file) (terraform.tfvars)
@@ -63,7 +81,7 @@ Please also see [terraform aws GuardDuty detector ](https://www.terraform.io/doc
 
 #### Main Configuration File
 
-'guardduty.tf' contains code for the following config:
+['guardduty.tf'](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/global-resources/guardduty.tf) contains code for the following config:
 
 * Enabling and turning GuardDuty on for the master account.
 * Enabling and turning GuardDuty on for the member account.
@@ -76,7 +94,7 @@ Please also see [terraform aws GuardDuty detector ](https://www.terraform.io/doc
 
 #### Terraform Variables File
 
-'terraform.tfvars' contains code for the following config variables:
+['terraform.tfvars'](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/global-resources/terraform.tfvars) contains code for the following config variables:
 
 * aws_region
 * aws_profile for the master and member accounts (set locally in ~/.aws/credentials). This is set up using format "moj-[account] (see terraform.tfvars file)
@@ -88,7 +106,7 @@ Please also see [terraform aws GuardDuty detector ](https://www.terraform.io/doc
 * member_email (the email to which the initial invitation email(s) should be sent {from the master account} when setting up GuardDuty on the member account - this must match email used to set up the root account)
 #### AWS Cloudwatch Event Rules File
 
-'event-pattern.json'
+['event-pattern.json'](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/global-resources/resources/event-pattern.json)
 
 * A json object that is used by 'AWS Cloudwatch Event Rules' and related 'Targets' to select 'AWS Guardduty Events' (findings) and route them to the AWS sns targets.
 
@@ -142,18 +160,18 @@ Example (high priority):
 
 #### Trusted ip List File
 
-'iplist.txt'
+['iplist.txt'](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/global-resources/resources/iplist.txt)
 
 * A trusted ip list. GuardDuty does not generate findings for IP addresses that are included in this trusted IP list/s
 At this point in time terraform is unable to update this list by 'terraform apply'. The list has to be manually deleted in the AWS dashboard >  Guardduty > Lists > Trusted IP Lists. Then you can run the 'terraform apply.
 
 #### Variables Initialisation File
 
-'variables.tf'
+['variables.tf'](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/global-resources/variables.tf)
 
 * Used to set up the terraform variables and defaults required by terraform 'guardduty.tf'
 
-### 2 Adding a new member account
+### 2. Adding a new member account
 
 * guardduty.tf add the following (incrementing the member no as required):
 
@@ -210,7 +228,7 @@ member7_email = "[root email address at time of account creation]"
 * In AWS member account Dashboard go to GuardDuty link > Accounts > Accept the invite
 This will add GuardDuty in the member account. Fidings will now also appear in the GuardDuty master accounty.
 
-### 3 Applying the terraform changes
+### 3. Applying the terraform changes
 
 ```
 terraform init
@@ -231,7 +249,7 @@ If the above is not possible - due to the AWS account having already been delete
 	terraform state rm aws_guardduty_detector.member....
 	terraform state rm aws_guardduty_member.member....  
 
-### 4 Pagerduty to Slack integration
+### 4. Pagerduty to Slack integration
 
 This is is also set up utilising terraform separately config here:
 
