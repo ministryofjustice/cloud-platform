@@ -1,0 +1,65 @@
+---
+title: Cloud Platform Disaster Recovery Scenarios
+weight: 91
+last_reviewed_on: 2020-03-30
+review_in: 3 months
+---
+
+# Cloud Platform Disaster Recovery Scenarios
+
+This section will document various scenarios that will create an incident. Each scenario will have an impact and restore process.
+
+## Losing a Namespace
+
+### Impact 
+A loss of a namespace will result in losing all resources within the namespace including ingress.
+
+### Possible Cause
+User error - Executing `kubectl delete ns my-namespace-dev` 
+
+```
+kubectl get all -n my-namespace-dev
+No resources found in my-namespace-dev namespace.
+```
+### Restore process
+As long as the namespace is over 3 hours old, it can be recovered using Velero.
+
+First step is to find the name of the most recent backup of the `allnamespacebackup` schedule:
+
+```
+velero backup get
+
+NAME                                       STATUS      CREATED                         EXPIRES   STORAGE LOCATION   SELECTOR
+velero-allnamespacebackup-00000000000000   Completed   2020-03-30 12:00:37 +0100 BST   29d       default            <none>
+```
+Using the backup name, you can now run a `Velero restore` command to restore the deleted namespace.
+
+Restore command:
+
+```
+velero restore create <restore-name> --from-backup <backup-name> --include-namespaces <namespace> --wait
+```
+
+Example:
+
+```
+velero restore create my-namespace-dev-restore --from-backup velero-allnamespacebackup-00000000000000 --include-namespaces my-namespace-dev --wait
+```
+
+Once completed, you should be able to see the namespace and all resources recovered:
+
+```
+kubectl get all -n my-namespace-dev
+
+NAME                       READY   STATUS      RESTARTS   AGE
+pod/pod1                   2/2     Running     0          1m
+
+NAME                       TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)      AGE
+service/service1           ClusterIP   None             None          443/TCP      1m
+
+NAME                                 READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/deployment1          1/1     1            1           1m
+
+NAME                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/replicaset1          1         1         1       1m
+````
