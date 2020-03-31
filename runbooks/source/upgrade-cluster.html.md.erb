@@ -96,6 +96,8 @@ make test-fast
 
 This will take around 30 seconds and should pass.
 
+Note: During an upgrade, we had an issue where kube-system namespace label got removed, which resulted in OPA webhook restrict applying daemonsets to master node. If the above "test-fast" fail for that reason, apply the annotation back form [here][kube-system-ns]
+
 Perform the same process on the other two masters.
 
 ### Take stock of current running worker nodes
@@ -115,7 +117,6 @@ kops create instancegroup nodes-<kubernetes-version>
 kops update cluster
 kops update cluster --yes
 ```
-
 note: we use the kubernetes-version to identify the new node group. 
 
 New instances will be created, which you'll see with:
@@ -123,6 +124,8 @@ New instances will be created, which you'll see with:
 ```
 watch kubectl get nodes
 ```
+
+We have multiple worker instance groups. Perform the same process on the other node instance groups.
 
 ### Cordon old workers
 
@@ -219,3 +222,5 @@ Any changes made to the cloud-platform-infrastructure repository should be pushe
 [docker]: https://www.docker.com/
 [PagerDuty]: https://www.pagerduty.com/
 [tools image]: https://github.com/ministryofjustice/cloud-platform-tools-image
+[kube-system-ns]: https://github.com/ministryofjustice/cloud-platform-environments/blob/master/namespaces/live-1.cloud-platform.service.justice.gov.uk/kube-system/00-namespace.yaml
+
