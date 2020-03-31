@@ -1,11 +1,11 @@
 ---
-title: Onboarding into Cloud Platform Team
+title: Onboarding into the Cloud Platform Team
 weight: 9000
-last_reviewed_on: 2019-11-15
+last_reviewed_on: 2020-03-31
 review_in: 3 months
 ---
 
-# Joiners Guide
+# <%= current_page.data.title %>
 
 ## People Team
 
@@ -26,8 +26,9 @@ review_in: 3 months
 * Introduce new starter to team
 * How our teams works (meetings, board, calendar,
 * Working agreements
-* Roles in team
 * Who we are
+* Roles in team
+* How does the team work internally - org chart
 * Invite to slack channel(s), mail group, calendar
 * Timesheets
 
@@ -39,20 +40,30 @@ review_in: 3 months
 * What we are working on
 * Share Hosting strategy for the department (where we are trying to get to)
 * Deep dive
-* How does the team work internally - org chart
+  * Introduce important repos
+    * [Runbooks](https://runbooks.cloud-platform.service.justice.gov.uk/#cloud-platform-runbooks)
+    * [User guide](https://user-guide.cloud-platform.service.justice.gov.uk/#cloud-platform-user-guide)
+    * [Main CP repo](https://github.com/ministryofjustice/cloud-platform)
+      * [Architecture diagram](https://github.com/ministryofjustice/cloud-platform/blob/master/docs/Architecture-Offical.md)
+      * [ADRs](https://github.com/ministryofjustice/cloud-platform/tree/master/architecture-decision-record#cloud-platform-architecture-decisions)
+    * [environments repo](https://github.com/ministryofjustice/cloud-platform-environments)
+    * [Concourse](https://concourse.cloud-platform.service.justice.gov.uk/)
 
 ## ACCESS
 
-* Access to AWS accounts this includes MOJ DSD, Platforms Intergration,
+* Access to AWS accounts this includes MOJ DSD
 * Github access - (to be done by new starter)
-* Make an admin on [Auth0](https://manage.auth0.com/dashboard/eu/justice-cloud-platform/users)
-* New starter github user to be added to MOJ github organisation and Webops team
-* Add to [Rattic](https://rattic.service.dsd.io/) as part of the appropriate group
-* GO through user docs
+  * Explain github for RBAC
+* Invite as an admin on [Auth0](https://manage.auth0.com/dashboard/eu/justice-cloud-platform/users)
+  * (Switch to 'justice-cloud-platform tenant, then use the drop-down and select "Invite an admin")
+* New starter github user to be added to MOJ github organisation and WebOps team
+* Add to [MoJ Lastpass](https://lastpass.com)
 * Authenticate to live cluster
 * Create and destroy test cluster
 * Access to pagerduty
-* Create PGP key
+* Create GPG key
+* Add GPG key to git-crypt repositories
+  * [environments repo](https://github.com/ministryofjustice/cloud-platform-environments)
 * Add Key to cloud platform infrastructure repository
 * As access was needed it was given (what are these things)
 * Can everyone in team do this?
