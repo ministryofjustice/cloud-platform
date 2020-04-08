@@ -1,13 +1,19 @@
 ---
 title: Tips and Tricks
 weight: 9200
-last_reviewed_on: 2019-09-10
+last_reviewed_on: 2020-04-08
 review_in: 3 months
 ---
 
 # Tips and Tricks
 
 A collection of useful one-liners and code snippets.
+
+## Delete an RDS database snapshot
+
+```bash
+$ aws rds delete-db-snapshot --db-snapshot-identifier cloud-platform-2f8c3c1ceaf0a05d-finalsnapshot
+```
 
 ## Check the expiration date of the SSL certificate for a live domain
 
