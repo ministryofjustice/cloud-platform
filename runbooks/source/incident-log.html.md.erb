@@ -7,6 +7,33 @@ review_in: 3 months
 
 # Incident Log
 
+
+## April 2020
+
+### Incident on 2020-04-215 10:58 UTC
+
+- **Status**: Resolved at 2020-04-215 15:09 UTC
+
+- **Incident**: After an upgrade of the Nginx ingresses, support for legacy TLS was dropped.
+
+- **Impact**:
+    - IE11 users could not access any services running on the Cloud Platform 
+    - A few teams came forward with the issue :
+    --- LAA
+    --- Correspondence Tool
+    --- Prisoner Money
+
+- **Context**:
+    * After an upgrade of the Nginx Helm chart v1.24.0 to v1.35
+    * The current version of Nginx had deprecated support for TLS < 1.3
+    * The issue was spotted on IE11 browser. 
+    * Timeline : [https://docs.google.com/document/d/1SCf1WT82IlBYWozWN_FXZqL5h0KUcul_QAkxE84YDw0/edit?usp=sharing](https://docs.google.com/document/d/1SCf1WT82IlBYWozWN_FXZqL5h0KUcul_QAkxE84YDw0/edit?usp=sharing)
+    * Slack thread: [https://mojdt.slack.com/archives/C57UPMZLY/p1586954463298700](https://mojdt.slack.com/archives/C57UPMZLY/p1586954463298700)
+
+- **Resolution**:
+    The Nginx configuration was modified to enable TLSv1, TLSv1.1 and TLSv1.2
+
+
 ## February 2020
 
 ### Incident on 2020-02-25 10:58 UTC
