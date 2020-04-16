@@ -43,8 +43,9 @@ We have a series of repositories for our work that we have listed below. We have
 | Elasticsearch cluster | https://github.com/ministryofjustice/cloud-platform-terraform-elasticsearch | A Terraform module to create a VPC based Elasticsearch cluster and Kibana dashboard along with a HTTP Proxy to access it. |
 | Bastion | https://github.com/ministryofjustice/cloud-platform-terraform-bastion | A Terraform module to create a bastion inside an existing VPC |
 | Ingress controller | https://github.com/ministryofjustice/cloud-platform-terraform-ingress-controller | A Terraform module  that deploys cloud-platform ingress controllers among another resources (like certificates) |
-
-
+| CertManager | https://github.com/ministryofjustice/cloud-platform-terraform-certmanager | Terraform module that deploys cloud-platform certmanager among another resources (like Ingress) |
+| Monitoring | https://github.com/ministryofjustice/cloud-platform-terraform-monitoring | Terraform module that deploys cloud-platform monitoring solution. It has support for components like: proxy, thanos, cloudwatch datasource for grafana, side-car, ecr-exporter |
+| Logging | https://github.com/ministryofjustice/cloud-platform-terraform-logging | Terraform module that deploys cloud-platform logging solution. It includes components like: fluentd, eventrouter, circle-ci-stats |
 
 ## Other repos
 
