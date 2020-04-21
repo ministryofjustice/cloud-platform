@@ -1,7 +1,7 @@
 ---
 title: Helm Charts Repository
 weight: 710
-last_reviewed_on: 2020-01-20
+last_reviewed_on: 2020-04-21
 review_in: 3 months
 ---
 
@@ -11,39 +11,6 @@ The cloud-platform team uses Github pages as helm chart repository. The main adv
 
 The [github repository](https://github.com/ministryofjustice/cloud-platform-helm-charts) has more details about the it.
 
-## Workflow to update helm charts
+## Performing CRUD on Cloud Platform Helm repository
 
-### 1. Make the change
-
-The first step is branching from from master and make the desired changes. Before test the change and make sure everyone is happy with **don't forget** to increment the chart's _version_ field inside `Chart.yaml`.
-
-Test 
-
-### 2. Create the tarball
-
-Now we should create the artefact containing our helm chart. Using `helm package` command:
-
-```
-$ helm package fluentd-es/
-Successfully packaged chart and saved it to: /Users/mogaal/workspace/github/ministryofjustice/cloud-platform-helm-charts/fluentd-es-2.7.0.tgz
-$ file fluentd-es-2.7.0.tgz
-fluentd-es-2.7.0.tgz: gzip compressed data, extra field, has comment, original size modulo 2^32 47104
-```
-
-*NOTE*: Also include the the tarball/artifact in the PR. 
-
-### 3. Generate `index.yaml`
-
-The last step consists of regenerate the `index.yaml` which track all artefact within the repository:
-
-```
-$ helm repo index --url  https://ministryofjustice.github.io/cloud-platform-helm-charts/ --merge index.yaml .
-$
-```
-
-(yes, no output but the `index.yaml` should've been modified)
-
-### 4. Commit and create the PR
-
-The last step is to commit and create the PR, once it gets approved and merged it will take some minutes to appear in the repo.
-
+A detailed guide about create, delete and update Helm Chart repositories is found in main README of the [github proyect](https://github.com/ministryofjustice/cloud-platform-helm-charts)
