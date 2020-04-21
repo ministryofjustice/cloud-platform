@@ -10,7 +10,7 @@ This starts with the user pushing some code to GitHub, the PipeLine Automaticall
 
 This is a high-level overview of the components and services which comprise the Cloud Platform.
 
-![Cloud Platform Architecture](images/Cloud-Platform-Architecture-Diagram.png)
+![Cloud Platform Architecture](images/cloud-platform-architecture-diagram.png)
 
 The source for this diagram is [here][Architecture Diagram]
 
