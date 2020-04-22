@@ -1,0 +1,66 @@
+---
+title: Customised Prometheus Alerts
+weight: 45
+last_reviewed_on: 2020-04-21
+review_in: 3 months
+---
+
+# Customised Prometheus Alert Runbooks
+
+### Alert Name: "KubeAPILatencyWarning"
+
+* Message:
+
+`The API server has a 99th percentile latency of {{ $value }} seconds for {{$labels.verb}} {{$labels.resource}}.`
+
+`Ingress POST checks (smoke-tests) are excluded from this alert.`
+
+* Severity:
+warning
+
+
+### Alert Name: "KubeAPILatencyCritical"
+
+* Message:
+
+`The API server has a 99th percentile latency of {{ $value }} seconds for {{$labels.verb}} {{$labels.resource}}.`
+
+`Ingress POST checks (smoke-tests) are excluded from this alert.`
+
+* Severity:
+critical
+
+### Alert Name: "KubeAPILatencyWarning-IngressPost"
+
+* Message:
+
+`The API server has a 99th percentile latency of {{ $value }} seconds for {{$labels.verb}} {{$labels.resource}}.`
+
+`This alert can only be for Ingress POST checks (smoke-tests).`
+
+`Probably caused by the "nginx-ingress-acme-admission" "validatingwebhook".`
+
+`This web-hook is needed to validate our ingress to restrict applying invalid format.`
+
+`Therefore we need to have this web-hook, however it is taking more than {{ $value }} seconds to create(POST) an Ingress.`
+
+* Severity:
+warning
+
+
+### Alert Name: "KubeAPILatencyCritical-IngressPost"
+
+* Message:
+
+`The API server has a 99th percentile latency of {{ $value }} seconds for {{$labels.verb}} {{$labels.resource}}.`
+
+`This alert can only be for Ingress POST checks (smoke-tests).`
+
+`Probably caused by the "nginx-ingress-acme-admission" "validatingwebhook".`
+
+`This web-hook is needed to validate our ingress to restrict applying invalid format.`
+
+`Therefore we need to have this web-hook, however it is taking more than {{ $value }} seconds to create(POST) an Ingress.`
+
+* Severity:
+critical
