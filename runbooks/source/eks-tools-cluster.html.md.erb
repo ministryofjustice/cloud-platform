@@ -1,19 +1,19 @@
 ---
 title: EKS Tool/Manager Cluster
 weight: 350
-last_reviewed_on: 2020-01-06
+last_reviewed_on: 2020-04-22
 review_in: 3 months
 ---
 
 # Provisioning EKS clusters
 
-For the time being EKS is only used for the tools cluster, it mainly holds the Cloud Platform concourse CI and the Prometheus federation. 
+For the time being EKS is only used for the manager cluster, it mainly holds Cloud Platform concourse CI. 
 
-**IMPORTANT:** All cluster's names **must be globally unique**, each of them (EKS or kOps, doesn't matter) creates a Route53 hostzone which is unique
+**IMPORTANT:** All cluster's names **must be globally unique** (EKS or kOps). Each one creates a unique Route53 hostzone which is unique to the name
 
-## Pre-requisites 
+## Pre-requisites
 
-- Make sure you've access to Cloud Platform AWS account
+- Make sure you have access to Cloud Platform AWS account
 - Set your environment variables (you might also want to include `AWS_*` envs):
 
 ```
@@ -25,9 +25,10 @@ For the time being EKS is only used for the tools cluster, it mainly holds the C
 
 ### 1. VPC
 
-We need to create a VPC where to deploy the cluster, VPCs are deployed using terraform and its code-base can be found in [cloud-platform-infrastructure/terraform/cloud-platform-network](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/terraform/cloud-platform-network) folder
+We need to create a VPC to deploy the cluster, VPCs are deployed using terraform code under [cloud-platform-infrastructure/terraform/cloud-platform-network](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/terraform/cloud-platform-network) folder:
 
 ```
+cd cloud-platform-infrastructure/terraform/cloud-platform-network
 terraform init
 terraform workspace new <WorkspaceName>
 terraform apply
