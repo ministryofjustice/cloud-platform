@@ -1,7 +1,7 @@
 ---
 title: Cloud Platform Disaster Recovery Scenarios
 weight: 91
-last_reviewed_on: 2020-03-30
+last_reviewed_on: 2020-04-22
 review_in: 3 months
 ---
 
@@ -63,3 +63,74 @@ deployment.apps/deployment1          1/1     1            1           1m
 NAME                                 DESIRED   CURRENT   READY   AGE
 replicaset.apps/replicaset1          1         1         1       1m
 ````
+
+## Losing the whole cluster
+
+### Impact 
+
+Severity : HIGH
+Likelyhood: LOW
+
+Losing the whole kubernetes cluster will result in all services not available. This means all the 
+resources within all namespaces, networking, monitoring and logging systems.
+
+### Possible Cause
+
+Losing the whole cluster is less likely and the possible causes may vary. 
+
+User error - Deleting all EC2 instances of `<cluster-name>` from console by accident
+
+Most of the time, it can start/trigger with Pagerduty high/low priority alarms to the slack channel.
+
+### Assumptions
+- The procedure is carried out by creating cluster using the [script](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/create-cluster.rb). 
+- Not all AWS resources and their accessibility from application is tested. Only RDS module to use restored secrets to reconnect from application is tested
+- VPC of the cluster is not deleted
+- Smoke tests are run excluding one for `live-1`
+
+### Restore process
+As long as the namespace is over 3 hours old, it can be recovered using Velero.
+
+Create the cluster with the **same** name from the [source code](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/create-cluster.rb)
+and provide the exisiting `vpc-name`. This will link the velero backup locations to the lost cluster. 
+
+Find the name of the most recent backup of the `allnamespacebackup` schedule:
+
+```
+velero backup get
+
+NAME                                       STATUS      CREATED                         EXPIRES   STORAGE LOCATION   SELECTOR
+velero-allnamespacebackup-00000000000000   Completed   2020-03-30 12:00:37 +0100 BST   29d       default            <none>
+```
+Using the backup name, you can now run a `Velero restore` command to restore the deleted namespace.
+
+Restore command:
+
+```
+velero restore create <restore-name> --from-backup <backup-name> --include-namespaces <namespace> --wait
+```
+
+Example:
+
+```
+velero restore create my-namespace-dev-restore --from-backup velero-allnamespacebackup-00000000000000 --include-namespaces my-namespace-dev --wait
+```
+
+Once completed, you should be able to see the namespace and all resources recovered:
+
+```
+kubectl get all -n my-namespace-dev
+
+NAME                       READY   STATUS      RESTARTS   AGE
+pod/pod1                   2/2     Running     0          1m
+
+NAME                       TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)      AGE
+service/service1           ClusterIP   None             None          443/TCP      1m
+
+NAME                                 READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/deployment1          1/1     1            1           1m
+
+NAME                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/replicaset1          1         1         1       1m
+````
+
