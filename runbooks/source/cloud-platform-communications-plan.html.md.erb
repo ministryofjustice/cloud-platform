@@ -1,7 +1,7 @@
 ---
 title: Cloud Platform Communications Plan
 weight: 9190
-last_reviewed_on: 2020-03-03
+last_reviewed_on: 2020-04-21
 review_in: 3 months
 ---
 
@@ -60,15 +60,36 @@ The #cloud-platform-update channel is used for a number of different types of co
 - When the upgrade will take place (including times)
 - Why you are upgrading (in might be useful to include a link to some change notes or something that users can refer to if they want more information rather than adding it all in the comms.)
 - Details of any service impact or anthing users might need to take action on as a result of changes (including if we are pausing pipelines)
+- Details of any risks posed to services as a result of not taking requested actions
+- Include examples of code if it helps users understand the changes
+- Provide a high level overview of the process we will be taking to implement changes
 - Refer users back to the #ask-cloud-platform channel if they have questions or something isn't working as expected
 
 ### Example
 
-> **Kubernetes 1.14 Upgrade**
-> Please be aware that we will be upgrading the version of Kubernetes to 1.14 tomorrow (Friday 27th February) at 7am.
-> More information on what's new can be found here - https://sysdig.com/blog/whats-new-kubernetes-1-14/
-> There will be no downtime for this change. However we have noticed some latency during testing, and the Concourse pipeline will be paused.
-> If you need to deploy any urgent changes to the Environments repository, or if you experience any other problems while the upgrade is underway please let us know over at #ask-cloud-platform. Many thanks.
+> **Certificate Manager Upgrade**
+> **When**: 23rd April starts at 12:00 PM.
+> **What**: Cert-Manager upgrade to v0.14 from v0.8
+> **Description**:
+> We are upgrading cert-manager, which manages all of the SSL certificates for  > your websites and web applications, from version 0.8 to 0.14.
+>
+>This is a significant change. Version 0.14 removes the “v1alpha1” designation for > certificates, and changes the API group from certmanager.k82.io to > > > > cert-manager.io.
+>
+> **What you need to do**:
+> Move all of your certificate definitions into your namespace folders in the environments repository, by the end of 22nd April 2020.
+>
+> **Certificates in the old format will not work after the upgrade**.
+>
+> The Cloud Platform team will make all the required changes to any certificate definitions in the environments repository.
+>
+> If you have certificate definitions which are not in the environments repository, you will need to make the required changes to the certificate yaml files, and redeploy the certificates once the upgrade is complete.
+>
+> **Downtime**: 
+> We are not expecting any downtime as a result of this change.
+>
+> **Process**: (overview of steps that need to be taken my users and the the Cloud Platform Team)
+>
+> If you experience any issues during or after the changes implemented please contact the team over at #ask-cloud-platform
 
 
 ## Sharing information with the wider Ministry of Justice and the Public
