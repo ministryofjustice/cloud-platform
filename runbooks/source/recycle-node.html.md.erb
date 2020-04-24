@@ -1,17 +1,19 @@
 ---
 title: Guidance when recycle-node pipeline job fails
 weight: 250
-last_reviewed_on: 2019-12-11
+last_reviewed_on: 2020-04-24
 review_in: 3 months
 ---
 
 # Recycle-node
 
-[Recycle-node pipeline][recyclenode-pipeline-definition] runs every week-day, which executes the [recycle-node.rb][recycle-node-script] script to replace the oldest worker node by:
+[Recycle-node pipeline][recyclenode-pipeline-definition] runs every 8 hours, which executes the [recycle-node.rb][recycle-node-script] script to replace the oldest worker node by:
 
 * Draining the oldest node
 * Terminate the drained node.
 
+[delete-manually-created-pods][delete-manually-created-pods-live-1] pipeline, runs every 24 hours to delete the manually created pods. 
+Follow the below guidence, if you need to delete the manually created pods.
 
 ## Guidance for cloud-platform team, when recycle-node pipeline job fails:
 
@@ -69,3 +71,4 @@ In this case identify the pod and delete it manually and re-run the pipeline whi
 [recycle-node-script]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/recycle-node.rb
 [running-pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/recycle-node
 [recyclenode-pipeline-definition]: https://github.com/ministryofjustice/cloud-platform-concourse/blob/master/pipelines/live-1/main/recycle-node.yaml
+[delete-manually-created-pods-live-1]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/maintenance/jobs/delete-manually-created-pods-live-1
