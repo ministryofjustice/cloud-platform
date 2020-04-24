@@ -1,7 +1,7 @@
 ---
 title: Remove 'orphaned' namespaces and AWS resources
 weight: 180
-last_reviewed_on: 2019-09-10
+last_reviewed_on: 2020-04-24
 review_in: 3 months
 ---
 
@@ -9,7 +9,7 @@ review_in: 3 months
 
 Cluster namespaces, and the AWS resources associated with them, should be removed automatically by the build pipeline.
 
-Sometimes this process doesn't work correctly, or users don't follow it, and we end up with 'orphaned' namespaces in the cluster. i.e. namespaces which exist in the kubernetes cluster, but which have no associated source code in the [environments repo].
+Sometimes this process doesn't work correctly, and we end up with 'orphaned' namespaces in the cluster. i.e. namespaces which exist in the kubernetes cluster but which have no associated source code in the [environments repo].
 
 You can remove these namespaces, and their AWS resources, using the [environments checker].
 
@@ -35,17 +35,6 @@ This will run a `terraform plan` showing the resources that the script is going 
 
 This will actually delete the AWS resources and the namespace itself.
 
-## Possible Errors
-
-AWS resources which were created using older versions of our terraform modules defined the provider inside the code which invoked the module. The process above will not work for those resources, because the module definition disappeared when the source code was removed, so terraform doesn't know how to delete the resource.
-
-Fixing these problems usually requires getting the original namespace source code by finding the commit in the git log of the [environments repo] where it was removed, and checking out a version before then.
-
-Once you have the source code, you can use `terraform init` and `terraform plan` to target and destroy the specific AWS resources which are causing problems.
-
-See the runbook for [rotating AWS credentials] for an example of doing this.
-
 [environments repo]: https://github.com/ministryofjustice/cloud-platform-environments
 [environments checker]: https://github.com/ministryofjustice/cloud-platform-environments-checker
-[rotating AWS credentials]: rotate-user-aws-credentials.html
 
