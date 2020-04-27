@@ -1,7 +1,7 @@
 ---
 title: Add nodes to the cluster
 weight: 60
-last_reviewed_on: 2019-12-16
+last_reviewed_on: 2020-04-21
 review_in: 3 months
 ---
 
@@ -34,19 +34,22 @@ This will ensure you have the right versions of everything
 ### Inline edit
 
 Once authenticated to the cluster
+```
+$ kops get instancegroup
+Using cluster from kubectl context: live-1.cloud-platform.service.justice.gov.uk
 
-    % kops get instancegroup
-    Using cluster from kubectl context: live-1.cloud-platform.service.justice.gov.uk
-    NAME			ROLE	MACHINETYPE	MIN	MAX	ZONES
-    master-eu-west-2a	Master	c4.4xlarge	1	1	eu-west-2a
-    master-eu-west-2b	Master	c4.4xlarge	1	1	eu-west-2b
-    master-eu-west-2c	Master	c4.4xlarge	1	1	eu-west-2c
-    nodes			    Node	r5.xlarge	40	40	eu-west-2a,eu-west-2b,eu-west-2c
+NAME                    ROLE    MACHINETYPE     MIN     MAX     ZONES
+2xlarge-nodes-1.15.10   Node    r5.2xlarge      2       2       eu-west-2b
+master-eu-west-2a       Master  c4.4xlarge      1       1       eu-west-2a
+master-eu-west-2b       Master  c4.4xlarge      1       1       eu-west-2b
+master-eu-west-2c       Master  c4.4xlarge      1       1       eu-west-2c
+nodes-1.15.10           Node    r5.xlarge       21      21      eu-west-2a,eu-west-2b,eu-west-2c
+```
 
 Now, launch the editor and set `minSize` and `maxSize` to the same value, the increased number of nodes.
 
-    % kops edit instancegroup nodes
-    Spec:
+    % kops edit instancegroup nodes-1.15.10
+    spec:
         ...
         maxSize: 50
         minSize: 50
@@ -56,7 +59,7 @@ Before we apply the changes, kops allow us to confirm what is going to happen:
 
     % kops update cluster
     Will modify resources:
-    AutoscalingGroup/nodes.live-1.cloud-platform.service.justice.gov.uk
+    AutoscalingGroup/nodes-1.15.10.live-1.cloud-platform.service.justice.gov.uk
         MaxSize             	 40 -> 50
         MinSize             	 40 -> 50
 
@@ -76,13 +79,16 @@ The situation can be monitored with :
 In order to ensure that the new configuration does not get overwritten at the next `kops update`, we need to persist those changes in the code.
 
 #### 1. Create a new branch on the [cloud-platform-infrastructure ](https://github.com/ministryofjustice/cloud-platform-infrastructure)
+
 #### 2. In /terraform/cloud-platform/variables.tf, modify the `cluster_node_count` variable
     variable "cluster_node_count" {
         description = "The number of worker node in the cluster"
         default     = "50"
     }
+
 #### 3. Push, PR, Merge
-Once the PR is merged and a `terraform apply` is ran, the `cloud-platform-infrastructure/kops/live-1.yaml` will be updated with the new size.
+
+Once the PR is merged and a `terraform apply` is run, the `cloud-platform-infrastructure/kops/live-1.yaml` will be updated with the new size.
 
 For more information on `kops update` & `kops rolling-updtae`, have a look at this [runbook](https://runbooks.cloud-platform.service.justice.gov.uk/running-kops-update-rollingupdate.html#running-kops-update-and-rollingupdate).
 
