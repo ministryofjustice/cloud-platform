@@ -1,7 +1,7 @@
 ---
 title: Create a new cluster
 weight: 50
-last_reviewed_on: 2019-12-03
+last_reviewed_on: 2020-04-27
 review_in: 3 months
 ---
 
@@ -52,6 +52,12 @@ By default, the script will create a 'small' cluster. This means the master and 
 ```
 
 See the script source code for the precise machine types used for the different sizes. The machine types used for 'production' clusters should always be the same machine types as we use in production.
+
+See more options to use when creating the cluster by running 
+
+```bash
+./create-cluster.rb --help 
+```
 
 The script takes around 30 minutes to execute. At the end, you should see output like this:
 
