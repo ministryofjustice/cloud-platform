@@ -62,16 +62,16 @@ deployment.apps/deployment1          1/1     1            1           1m
 
 NAME                                 DESIRED   CURRENT   READY   AGE
 replicaset.apps/replicaset1          1         1         1       1m
-````
+```
 
 ## Losing the whole cluster
 
 ### Impact 
 
 Severity : HIGH
-Likelyhood: LOW
+Likelihood: LOW
 
-Losing the whole kubernetes cluster will result in all services not available. This means all the 
+Losing the whole kubernetes cluster will result in all services not being available. This means all the 
 resources within all namespaces, networking, monitoring and logging systems.
 
 ### Possible Cause
@@ -80,16 +80,27 @@ Losing the whole cluster is less likely and the possible causes may vary.
 
 User error - Deleting all EC2 instances of `<cluster-name>` from console by accident
 
-Most of the time, it can start/trigger with Pagerduty high/low priority alarms to the slack channel.
+The first sign of this happening is likely to be Pagerduty alarms to the high/low priority slack channels.
+
+### How this plan is tested:
+
+This way of restoring the whole cluster have been tested with below procedure
+1. Create cluster using the [script](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/create-cluster.rb)
+2. Deploy [starter pack](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/terraform/cloud-platform-starter-pack) to replicate user namespaces
+3. Take backup of the whole cluster using velero
+4. Destroy the cluster excluding the VPC using the [script](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/destroy-cluster.rb)
+5. Create cluster in the same name so velero can match the backup storage location
+6. Restore the cluster from the backup taken in Step 3
 
 ### Assumptions
-- The procedure is carried out by creating cluster using the [script](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/create-cluster.rb). 
-- Not all AWS resources and their accessibility from application is tested. Only RDS module to use restored secrets to reconnect from application is tested
 - VPC of the cluster is not deleted
+- Not all Kubernetes resources are tested for Recovery
+- Not all AWS resources are tested for reconnecting to application after restore
 - Smoke tests are run excluding one for `live-1`
+- Terraform state have been recreated
 
 ### Restore process
-As long as the namespace is over 3 hours old, it can be recovered using Velero.
+Any namespaces over 3 hours old can be recovered using Velero (newer namespaces might not have been backed up before the incident occurred).
 
 Create the cluster with the **same** name from the [source code](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/create-cluster.rb)
 and provide the exisiting `vpc-name`. This will link the velero backup locations to the lost cluster. 
@@ -107,30 +118,27 @@ Using the backup name, you can now run a `Velero restore` command to restore the
 Restore command:
 
 ```
-velero restore create <restore-name> --from-backup <backup-name> --include-namespaces <namespace> --wait
+velero restore create <restore-name> --from-backup <backup-name> --wait
 ```
 
 Example:
 
 ```
-velero restore create my-namespace-dev-restore --from-backup velero-allnamespacebackup-00000000000000 --include-namespaces my-namespace-dev --wait
+velero restore create my-namespace-dev-restore --from-backup velero-allnamespacebackup-00000000000000 --wait
 ```
 
-Once completed, you should be able to see the namespace and all resources recovered:
+Once completed, you should be able to see resources in all namespaces recovered. 
+
+Check the status of the restore and look for errors and warnings:
 
 ```
-kubectl get all -n my-namespace-dev
+velero restore describe velero-allnamespacebackup-00000000000000-00000000000000
+```
 
-NAME                       READY   STATUS      RESTARTS   AGE
-pod/pod1                   2/2     Running     0          1m
+Check the logs of the restore:
 
-NAME                       TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)      AGE
-service/service1           ClusterIP   None             None          443/TCP      1m
+```
+velero restore logs velero-allnamespacebackup-00000000000000-00000000000000
 
-NAME                                 READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/deployment1          1/1     1            1           1m
-
-NAME                                 DESIRED   CURRENT   READY   AGE
-replicaset.apps/replicaset1          1         1         1       1m
-````
+```
 
