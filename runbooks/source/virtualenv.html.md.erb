@@ -10,22 +10,21 @@ A copy of a working python virtualenv has been placed here [PaulFabricVirtualEnv
 
 Should you need to carry out fabric commands etc to update/deploy the remaining template-deploy repos and you do not have a virtualenv already set up then carry out the following:
 
-####Set up your Virtualenv:
+####Set up your [Virtualenv](https://virtualenv.pypa.io/en/latest/):
 
-* locate where your virtualenvs are being installed by creating one and then locating the directory 
-
-```
-mkvirtualenv boris
-````
+* locate where your virtualenvs are being installed by creating one 
 
 ```
-sudo find / -name boris
+mkvirtualenv [name]
 ````
+
+The output from this will give the location of where your virtualenv files are stored
+
 
 * Just to verify that it has been created
 
 ```
-workon boris
+workon [name]
 ````
 
 ```
@@ -41,19 +40,19 @@ It will probably only return a couple of things like :
 * exit the virtualenv by
 
 ```
-deactivate boris
+deactivate [name]
 ````
 
 * Download the file/folder [PaulFabricVirtualEnv](https://drive.google.com/open?id=1Zgl2CyUGsjMCLhZE2pbVjYxQ2PGnwMDE) from google drive 'MoJ Cloud Platforms'
 
-* Unzip/open and rename the unzipped file to the same as your virtualenv created above (boris)
+* Unzip/open and rename the unzipped file to the same as your virtualenv created above [name]
 
-* Copy/overwrite the directory you located earlier (boris)
+* Copy/overwrite the directory you located earlier [name]
 
 * Activate your virtualenv and verify that new env uploaded
 
 ```
-workon boris
+workon [name]
 ````
 
 ```
