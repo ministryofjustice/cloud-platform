@@ -1,7 +1,7 @@
 ---
 title: Replacing a master node
 weight: 225
-last_reviewed_on: 2019-09-10
+last_reviewed_on: 2020-05-06
 review_in: 3 months
 ---
 
@@ -44,20 +44,35 @@ Run kops validate cluster to identify failed master node.
 kops validate cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk
 ```
 
-You will see validation errors as below, which shows that one of the machines not joined the cluster. Make sure it is a master node by looking for the Instance ID, which should be named as `master-<availability-zone>.masters.<cluster_name>.cloud-platform.service.justice.gov.uk` in the Amazon EC2 console, on the Instances page.
+When a master node has failed, you will see validation errors like this:
 
- 
 ```bash
 VALIDATION ERRORS
 KIND    NAME            MESSAGE
 Machine i-046ed8d94d65719a6 machine "i-046ed8d94d65719a6" has not yet joined cluster
 ```
 
+This shows that one of the machines not joined the cluster. 
+
+Make sure it is a master node by looking for the Instance ID in the Amazon EC2 console, on the Instances page. The instance ID should be something like: 
+
+```
+master-<availability-zone>.masters.<cluster_name>.cloud-platform.service.justice.gov.uk
+``` 
+ 
 ##  Remove the unhealthy master node.
 
-As per [this guidance][remove-member-first] remove the unhealthy member first. Identify and remove the unhealthy member by accessing any of the working master nodes using SSH, via the bastion instance.
+As per [this guidance][remove-member-first] remove the unhealthy etcd member (i.e. the failed master node) first. 
+ 
+Identify and remove the unhealthy member by accessing any of the working master nodes using SSH, via the bastion instance.
 
-In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}`to locate bastion instance (`bastion.<cluster_name>.cloud-platform.service.justice.gov.uk`). Use Public DNS (IPv4) In the description of the Instance to login in to bastion as below:
+In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}`to locate the bastion instance:
+ 
+```
+ bastion.<cluster_name>.cloud-platform.service.justice.gov.uk
+ ```
+ 
+Use the Public DNS (IPv4) in the description of the Instance to login in to bastion like this:
 
 
 ```bash
@@ -75,7 +90,8 @@ While SSHed onto a master:
 ```bash
 $ sudo docker ps | grep etcd.manager
 ```
-You will see output as below:
+
+You will see output like this:
 
 ```
 e81b4622417b  kopeio/etcd-manager         k8s_etcd-manager_etcd-manager-main-...
@@ -143,11 +159,11 @@ Run the member list again and you will see the member has been removed:
 
 ##  Replacing the master via kops
 
-To be sure that everything runs smoothly and is setup correctly, you need to terminate the broken master and remove the volumes attached to it, and launch the new master with kops.
+You need to terminate the failed master and remove the volumes attached to it, and launch the new master with kops.
 
 1) Back up volumes for both etcd main and events by creating snapshots from AWS console.
 
-2) Take a etcdctl [backup][etcdctl-backup], by docker exec onto kopeio/etcd-manager container in any of the working master nodes and run the below command.
+2) Take a etcdctl [backup][etcdctl-backup], by using `docker exec` to launch a shell on the `kopeio/etcd-manager` container in any of the working master nodes and run this command:
 
 ```bash
 cd /opt/etcd-v3.3.10-linux-amd64/
@@ -160,13 +176,15 @@ ETCDCTL_API=3 \
   --cacert /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt  \
   --endpoints "https://${ETCD}-a.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT},https://${ETCD}-b.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT},https://${ETCD}-c.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT}" snapshot save /rootfs/mnt/snapshot.db
 ```
-You will get a message as below. The snapshot.db is saved at `/rootfs/mnt/`, which is volume mounted to a local directory at `/mnt`. 
+You will get a message like:
 
 ```
 Snapshot saved at /rootfs/mnt/snapshot.db
 ```
 
-3) Edit the kops instance group for the master you removed, to scale down by replacing maxSize and minSize values to 0, and run an kops update on the cluster.
+The snapshot.db is saved at `/rootfs/mnt/`, which is volume mounted to a local directory at `/mnt`. 
+
+3) Edit the kops instance group for the master you removed, to scale down by replacing maxSize and minSize values to 0, and run a kops update on the cluster. e.g:
 
 ```
 kops edit instancegroup master-eu-west-2a
@@ -176,18 +194,34 @@ kops edit instancegroup master-eu-west-2a
 kops update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk --yes
 ```
 
-4) In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}` to locate broken master instance (`master-<availability-zone>.masters.<cluster_name>.cloud-platform.service.justice.gov.uk`). Terminate the broken master instance following this [guide][terminate-ec2-instance]. 
+4) In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}` to locate the failed master instance:
+ 
+```
+ master-<availability-zone>.masters.<cluster_name>.cloud-platform.service.justice.gov.uk
+ ```
+ 
+Terminate the failed master instance following this [guide][terminate-ec2-instance]. 
 
-5) In the Amazon volume console, search using `${CLUSTER_NAME}` to locate the right volume associated with the broken master. Remove volumes (main and events) for the broken master.
+#### etcd volumes
 
-For example, volumes will be named as below, for master `master-eu-west-2a.masters.live-1.cloud-platform.service.justice.gov.uk`.
+Kubernetes live-1 cluster deployed with kops stores the etcd state in two different AWS EBS volumes per master node. One volume is used to store the Kubernetes main data, the other one for events. For a cluster with three masters this will result in six volumes for etcd data (one in each AZ).
+ 
+5) In the Amazon EBS volume console, search using `${CLUSTER_NAME}` to locate the right volume associated with the broken master. Remove the volumes (main and events) for the failed master.
 
+For example, for the master node instance 
+ 
+```
+master-eu-west-2a.masters.live-1.cloud-platform.service.justice.gov.uk
+```
+
+...you should see volumes called:
+ 
 ```
 a.etcd-main.live-1.cloud-platform.service.justice.gov.uk
 a.etcd-events.live-1.cloud-platform.service.justice.gov.uk
 ```
 
-6) Create the master instance with kops.
+6) Create the new master instance with kops.
 
 Edit the kops instancegroup, and scale back up by changing maxSize and minSize values to 1, then run a kops update on the cluster.
 
@@ -199,22 +233,17 @@ kops edit instancegroup master-eu-west-2a
 kops update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk --yes
 ```
 
-Master will be restarted with a clean config and should join the others. Give some time (10-15 min) and validate the cluster, the replacement master node should join the cluster and be in ready status.
+A new master will be launched, and should join the etcd cluster. This can take 10-15 minutes. After this, validate the cluster:
 
 ```bash
 kops validate cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk
 ```
 
-You can see the cluster is in ready status.
+You should see the new master in the list, and the cluster should be in `ready` status.
 
 ```
 Your cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk is ready
 ```
-## etcd volumes
-
-Kubernetes live-1 cluster deployed with kops stores the etcd state in two different AWS EBS volumes per master node. One volume is used to store the Kubernetes main data, the other one for events. For a cluster with three masters this will result in six volumes for etcd data (one in each AZ).
-
-
 
 [remove-member-first]: https://github.com/etcd-io/etcd/blob/master/Documentation/faq.md#should-i-add-a-member-before-removing-an-unhealthy-member
 [etcdctl-backup]: https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/recovery.md#snapshotting-the-keyspace
