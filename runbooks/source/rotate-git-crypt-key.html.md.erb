@@ -1,17 +1,17 @@
 ---
 title: Git-crypt
 weight: 75
-last_reviewed_on: 2019-12-27
+last_reviewed_on: 2020-05-11
 review_in: 3 months
 ---
 
-# Git-crypt 
+# Git-crypt
 
 We use `git-crypt` for securing secrets committed to `git`. It uses a symmetric encryption key which is then encrypted for users using their GPG keys.
 
 ## Adding new user to the keyring
 
-1. Ask the user (Slack, email, keyserver, etc) for their public key and import it inside your keyring:
+1. Ask the user (Slack, email, keyserver, etc) for their public key and import it into your keyring:
 
     ```
     gpg --import <<EOF
@@ -31,73 +31,102 @@ We use `git-crypt` for securing secrets committed to `git`. It uses a symmetric 
     EOF
     ```
 
-2. Using KeyID/email trust the key as *"5 = I trust ultimately"*: `gpg --edit-key "alejandro.garrido@digital.justice.gov.uk" trust quit`
-3. Create a new branch inside the git repository where user is going to be added: `git checkout -b add-alejandro-gpg`
-4. Use git-crypt CLI to add the user: `git-crypt add-gpg-user alejandro.garrido@digital.justice.gov.uk`
-5. Push the branch and create a PR: `git push origin add-alejandro-gpg`
+2. Using KeyID/email trust the key as *"5 = I trust ultimately"*:
+
+```
+gpg --edit-key "alejandro.garrido@digital.justice.gov.uk" trust quit
+```
+
+3. Create a new branch inside the git repository where user is going to be added:
+
+```
+git checkout -b add-alejandro-gpg
+```
+
+4. Use git-crypt CLI to add the user:
+
+```
+git-crypt add-gpg-user alejandro.garrido@digital.justice.gov.uk
+```
+
+5. Push the branch and create a PR:
+
+```
+git push origin add-alejandro-gpg
+```
 
 ## Rotating the git-crypt key
 
 When rotating the `git-crypt` symmetric key, you should follow the steps below:
 
-#### 1. Ensure you have unlocked the repository: `git-crypt unlock`
+#### 1. Ensure you have unlocked the repository:
+
+```
+git-crypt unlock
+```
 
 #### 2. Make a list of the current users:
 
 - for every file found, extract its filename minus the suffix, which corresponds to the user's key id
 
-  ```
-  ls .git-crypt/keys/default/0/*.gpg | xargs -I{} -- basename {} .gpg > git-crypt-users
-  ```
+```
+ls .git-crypt/keys/default/0/*.gpg | xargs -I{} -- basename {} .gpg > git-crypt-users
+```
 
 #### 3.  Make a list of the encrypted files:
 
 - for every currently encrypted file, extract its path, relative to the root of the repository
 
-  ```
-  git-crypt status -e | awk '{ print $2; }' > git-crypt-files
-  ```
+```
+git-crypt status -e | awk '{ print $2; }' > git-crypt-files
+```
+
 #### 4.  Remove `git-crypt` configuration:
 
-  ```
-  rm -rf .git-crypt .git/git-crypt
-  ```
+```
+rm -rf .git-crypt .git/git-crypt
+```
 
 #### 5.  Re-initialise `git-crypt`,
 
-  ```
-  git-crypt init
-  ``` 
+```
+git-crypt init
+```
+
 - make sure you have all the users' keys,
 
-  ```
-  cat git-crypt-users | xargs -I{} gpg --recv-key {}
-  ```
+```
+cat git-crypt-users | xargs -I{} gpg --recv-key {}
+```
+
 - and add all the users back,
 
-  ```
-  cat git-crypt-users | xargs -I{} git-crypt add-gpg-user -n --trusted {}
-  ```
+```
+cat git-crypt-users | xargs -I{} git-crypt add-gpg-user -n --trusted {}
+```
+
 - At this point, your git index will have a number of pending changes, do not commit them yet.
 
 #### 6.  Re-encrypt all the secrets: the list of secrets was extracted in `git-crypt-files` (see step 2. above). Since the master encryption key is being rotated, all of the secrets that have been encrypted with it *must* be rotated. Once finished, you can add the files to the index
 
-  ```
-  cat git-crypt-files | xargs git add
-  ```
+```
+cat git-crypt-files | xargs git add
+```
 
 #### 7. Commit your changes. One way to check that the files in the git index are properly encrypted before you commit your changes is like so:
 
-  ```
-  git show :<path-to-file>
-  ```
+```
+git show :<path-to-file>
+```
+
 - or after committing (and before you've pushed):
 
-  ```
-  git show HEAD:<path-to-file>
-  ```
+```
+git show HEAD:<path-to-file>
+```
+
 - where `<path-to-file>` is either absolute from the base of the git repo or relative (eg.: `git show:./my-secret-file.yaml`)
 
 - You should see binary output which begins with `^@GITCRYPT^@`.
 
-Note: If you need to `checkout` an older commit, branch, tag etc., make sure to `git-crypt lock` your repository before in order to avoid a broken local working directory. Once you've locked and checked out the desired revision, you can `git-crypt unlock`.
+Note: If you need to `checkout` an older commit, branch, tag etc., make sure to `git-crypt lock` your repository beforehand in order to avoid a broken local working directory. Once you've locked and checked out the desired revision, you can `git-crypt unlock`.
