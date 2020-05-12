@@ -1,11 +1,14 @@
 ---
 title: Template-deploy Run-books
 weight: 9200
-last_reviewed_on: 2019-09-10
+last_reviewed_on: 2020-05-12
 review_in: 3 months
 ---
 
 # Template-deploy Runbooks
+
+> A lot of this information is out of date, and not to be relied upon. However, it's probably not worth bringing it up to date, since the last Template Deploy service is (at the time of writing) in the process of migrating to the Cloud Platform. I'm leaving this document as-is for now, but it should be removed at the next review.
+
 (to be de-commissioned as and when template-deploy support ceases)
 
 Various procedures for supporting our production template-deploy services. If something goes wrong and you are on call you should be able to find the relevant information via the confluence links below
@@ -23,9 +26,10 @@ If there is a problem with one of these projects the general procedure is:
    - Each project should have a ‘sorry the service is currently unavailable’ holding page served from an alternative infrastructure for this case. Check the project's github repository for instructions on how to enable it for that project.
 
 * Email and notify people
+
 Keep people informed about the problem, let them know what sort of problem it is (i.e. hosting supplier problem, VM problem, app problem etc.) and if the holding page is up or not.
 
-   - Each project should have an incident email list with everyone who needs to know about service outages. Check the project's github repository under here for that address.
+   - Each project should have an incident email list with everyone who needs to know about service outages. Check the project's github repository for that address.
 
    - Generally we should keep the project owner and delivery manager (if we have these details) informed about how long we think it will take to fix the problem and if it is something we can fix ourselves or if we need to log a call with a third-party. Check the relevant run-book and/or the project github pages for project owner/delivery manager details. Additional informational can also be found here [Products Hosted by Cloud Platform](https://docs.google.com/spreadsheets/d/1y4i5d4YYj8rnkGFLLCZcnj5_i_mwI1kQZz9rs0OgQDI/edit#gid=0), also [Other Services](https://dsdmoj.atlassian.net/wiki/spaces/PLAT/pages/298778707/Other+Services) and [Contact Service Managers (template-deploy)](https://dsdmoj.atlassian.net/wiki/spaces/PLAT/pages/324273043/Contact+Service+Managers+template-deploy)
 
@@ -35,7 +39,8 @@ Keep people informed about the problem, let them know what sort of problem it is
 * Diagnose the problem:
 
    - Go to the alert URL. This may be found in different places depending on the alerting service and the nature of the alert. You might find it on the dashboard, in the [PagerDuty](https://moj-digital-tools.pagerduty.com/incidents) or  [Slack #high-priority-alarms messages](https://mojdt.slack.com/messages/C8PF51AT0), or elsewhere. You may not find it at all.
-NOTE: You may not get a correct URL. At the time of writing, preprod PVB only worked if called on /prisoner, but the alert shows the root URL.
+
+> NOTE: You may not get a correct URL. At the time of writing, preprod PVB only worked if called on /prisoner, but the alert shows the root URL.
 
    - Resolve the alert on pagerduty. You can do this by following the instruction in the text message on the Incident Response phone, or directly on PagerDuty. If you don’t, it will continue to re-alert.
 
@@ -51,13 +56,13 @@ NOTE: You may not get a correct URL. At the time of writing, preprod PVB only wo
 
 * Fix the problem and test the service is healthy again. Depending on the service, you may need to update your /etc/hosts file to gain access to the site (e.g. where you do not have access to the internal DNS, but the service is delivered via an Apache/Nginx vhost).
 
-* Take holding page down
+* Take down the holding page
 
 * Send a ‘resolved’ email and notify people
 
 * Send a final email to the project incident list to let everyone know that the service is back up.
 
-* - Notify the relevant team via their slack channel so that the team knows that the problem is resolved and the service is back up
+* Notify the relevant team via their slack channel so that the team knows that the problem is resolved and the service is back up
 
 ## Existing Runbooks
 
