@@ -1,7 +1,7 @@
 ---
 title: Remove data from Elasticsearch
 weight: 190
-last_reviewed_on: 2020-02-11
+last_reviewed_on: 2020-05-14
 review_in: 3 months
 ---
 
@@ -29,9 +29,7 @@ It is possible to reuse the body of a `search` query for a `delete` query.
 
 Therefore, if we narrow down a search query to exactly what we want to delete, we've done most of the work.
 
-Kibana offers a webconsole to test queries, head over to:  
-
-https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/kibana#/dev_tools/console?_g=()
+Kibana offers a [webconsole](https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/kibana#/dev_tools/console) to test queries.
 
 A standard query is : 
 
@@ -46,11 +44,11 @@ GET /logstash-2020.02.01/_search
 }
 ```
 
-**Important note: `.keyword` force elasticsearch to only return exact matches. Without it, you may end up deleting more than you wish**
+> Important note: `.keyword` forces elasticsearch to only return exact matches. Without it, you may end up deleting more than you wish
   
 
 
-As a `curl` command, the query above would translate as: 
+As a `curl` command, the query above would translate to: 
 
 ```
 curl -XGET "https://search-cloud-platform-live-dibidbfud3uww3lpxnhj2jdws4.eu-west-2.es.amazonaws.com/logstash-2020.02.01/_search" -H 'Content-Type: application/json' -d'
@@ -63,13 +61,13 @@ curl -XGET "https://search-cloud-platform-live-dibidbfud3uww3lpxnhj2jdws4.eu-wes
 }'
 ```
 
-Once the result of the search query fit what you want to delete exactly, carry on to the next step.
+Once the result of the search query exactly fits what you want to delete, carry on to the next step.
 
 ## Delete by query
 
 A `POST` request against the `_delete_by_query` endpoint will delete all documents matching the query in the request's body. 
 
-To come back to our use-case, if we want to delete all logs from the `my-namespace-production` from the 01/02/2020:
+If we want to delete all logs from the `my-namespace-production` from 01/02/2020:
 
 ```
     curl -XPOST \
