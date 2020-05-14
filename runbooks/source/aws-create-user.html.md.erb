@@ -1,7 +1,7 @@
 ---
 title: AWS Console Access
 weight: 115
-last_reviewed_on: 2020-02-10
+last_reviewed_on: 2020-05-14
 review_in: 3 months
 ---
 
@@ -11,13 +11,13 @@ New joiners for Cloud platform team will need AWS Console access for most things
 
 Related repositories: 
 
- - [cloud-platform-infrastructure/terraform/global-resources/iam](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/terraform/global-resources/iam)
+ - [cloud-platform-infrastructure/terraform/global-resources/iam][iam-main-tf]
 
  - [terraform-aws-iam module](https://github.com/terraform-aws-modules/terraform-aws-iam)
 
 ## Steps to create/delete users
 
-1) Create a git branch and add (or delete) the user as [terraform code](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/global-resources/iam/main.tf). Do not forget to link the user to a group.
+1) Create a git branch and add (or delete) the user as [terraform code][iam-main-tf]. Do not forget to link the user to a group.
 
 2) Using `terraform plan` verify you're happy with the terraform changes.
 
@@ -27,4 +27,6 @@ Related repositories:
 
 ## Activating MFA for new users
 
-Unfortunataly terraform can't activate MFA for users, this process must be done done manually either [thorugh AWS Console (UI)](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html) or [throgh the AWS CLI](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_cliapi.html).
+Unfortunataly terraform can't activate MFA for users, this process must be done done manually either [thorugh AWS Console (UI)](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html) or [through the AWS CLI](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_cliapi.html).
+
+[iam-main-tf](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/global-resources/iam/main.tf)
