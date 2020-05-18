@@ -89,7 +89,7 @@ This way of restoring the whole cluster have been tested with below procedure
 
 1. Create cluster using the [script](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/create-cluster.rb)
 2. Deploy [starter pack](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/cloud-platform-components/starter-pack.tf) to replicate user namespaces
-3. Take backup of the whole cluster using [velero](https://runbooks.cloud-platform.service.justice.gov.uk/velero.html#velero-cluster-backups-and-disaster-recovery)
+3. Take backup of the whole cluster using [velero](velero.html#velero-cluster-backups-and-disaster-recovery)
 4. Destroy the cluster excluding the VPC using the [script](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/destroy-cluster.rb)
 5. Create a cluster with the same name. That way velero can match the backup storage location
 6. Restore the cluster from the backup taken in Step 3
