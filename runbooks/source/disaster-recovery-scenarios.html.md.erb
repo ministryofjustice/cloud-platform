@@ -253,10 +253,6 @@ If the kops state is corrupted during the upgrade or involve instance group crea
 * Delete the old instance group
 * Scale the ingress-controllers down
 
-If the above procedure doesnot fix the kops state, Check the s3 bucket in the folder `cloud-platform-kops-state/<cluster name>`.
-Look at the timestamp of config file and instancegroup/* files and remove them until the working version that matches the reverted yaml file 
-and apply the yaml file changes to remote kops state.
-
 ### Restore process for deleted S3 bucket where kops state is stored
 Kops state of all clusters are backed up in a different s3 bucket `kops-backup-replication` in the region `eu-west-2`. 
 If the entire folder where the cluster state is stored is lost, copy the folder from the backup bucket by running below
