@@ -210,7 +210,7 @@ If the cluster state is corrupted due to the latest changes to the yaml file, re
 kops replace -f kops/<CLUSTER_NAME>.yaml
 kops update cluster
 ```
-For `live-1` the generated kops yaml file is stored in the (github)[https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/kops/live-1.yaml]. 
+For `live-1` the generated kops yaml file is stored in the [github](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/kops/live-1.yaml).
 So, checkout the previous working commit and update the remote kops state with that file.
 
 Once you are happy, kops update cluster --yes to apply the changes.
@@ -223,26 +223,14 @@ Do the rolling-update and with `--yes` option by running,
 ```
 kops rolling-update cluster --yes
 ```
-For more information on kops update, refer (runbook for kops update)[running-kops-update-rollingupdate.html#running-kops-update-and-rollingupdate]
 
-If the kops state is corrupted during the upgrade or involve instance group creation, revert the changes made in the yaml file, and run through the steps mentioned in 
-(Upgrade a cluster)[https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-cluster.html#upgrade-a-cluster] in the slightly modified way as below.
+For more information on kops update, refer [runbook for kops update](running-kops-update-rollingupdate.html#running-kops-update-and-rollingupdate)
 
-* Push the reverted changes to kops state.
+Follow a more delicate rolling-update process when recovery during the failed version upgrading process as mentioned in 
+[Upgrade a cluster](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-cluster.html#upgrade-a-cluster) in the slightly modified way as below.
 
-    Run the following to push the reverted changes to the kops state store in S3.
-
-    ```
-    kops update cluster
-    ```
-
-    Review the changes before committing with:
-
-    ```
-    kops update cluster -yes
-    ```
-
-* Perform a rolling-update
+* Push the reverted changes to kops state by updating the cluster.
+* Perform a rolling-update for master instance group
 * Take stock of current running worker nodes
 * Create new worker instance group with the working kubernetes version
 * Cordon not-working workers
@@ -261,3 +249,11 @@ If the entire folder where the cluster state is stored is lost, copy the folder 
 aws s3 cp s3://kops-backup-replication/<cluster_name>.cloud-platform.service.justice.gov.uk/ s3://cloud-platform-kops-state/ --recursive
 ```
 
+Validate the cluster
+
+```
+kops validate cluster
+```
+The validation should be success and should say 
+
+**"Your cluster `<cluster name>`.cloud-platform.service.justice.gov.uk is ready"**
