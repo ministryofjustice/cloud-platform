@@ -152,7 +152,7 @@ Severity : LOW
 
 Likelihood: LOW/MEDIUM
 
-When the kops state is corrupted, most cases the kubernetes cluster will still be operational. 
+When the kops state is corrupted, in most cases the kubernetes cluster will still be operational. 
 
 This means the services will not have any impact, if the issue is resolved in a shorter amount of time. 
 
@@ -162,15 +162,15 @@ Hence, Cloud platform team will not be able to perform any infrastructure change
 
 ### Possible Cause
 
-Kops state may get corrputed when the kops template is changed for
+Kops state may get corruputed when the kops template is changed for
 
-* upgrading the kubernetes
-* Changing the instance group
+* upgrading kubernetes
+* changing an instancegroup
 * any other config changes
 
-User deleted the s3 bucket by accident where the kops state is stored
+It could also be corrupted/lost if a user deleted the s3 bucket by accident where the kops state is stored
 
-The sign of this happening can be seen when doing `kops validate cluster <cluster name`
+The sign of this happening can be seen when doing `kops validate cluster <cluster name>`
 
 If the kops state is corrupted, some of the worker nodes or masters machines will not join the cluster. 
 
@@ -198,52 +198,54 @@ error reading cluster configuration: Cluster.kops.k8s.io "<cluster name>.cloud-p
 
 The cluster kops state is stored in the generated yaml file inside the folder kops/`<CLUSTER_NAME>`.yaml. 
 
-Authenticate to the cluster
+For `live-1` the generated kops yaml file is stored in the [github](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/kops/live-1.yaml).
+So, checkout the previous working commit and update the remote kops state with that file.
+
+If the cluster state is corrupted due to the latest changes to the yaml file, revert back the changes and update the remote kops state.
+
+Below are the steps to update and restore the kops state
+
+** Revert the kops yaml file kops/`<CLUSTER_NAME>`.yaml to previous working version.
+
+**Authenticate to the cluster**
 
 ```
 kops export kubecfg XXXXXXX.cloud-platform.service.justice.gov.uk
 ```
-
-If the cluster state is corrupted due to the latest changes to the yaml file, revert back the changes and update the remote kops state by running, 
+**Update the remote state with the reverted changes**
 
 ```
 kops replace -f kops/<CLUSTER_NAME>.yaml
 kops update cluster
 ```
-For `live-1` the generated kops yaml file is stored in the [github](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/kops/live-1.yaml).
-So, checkout the previous working commit and update the remote kops state with that file.
 
-Once you are happy, kops update cluster --yes to apply the changes.
+**Update the cluster with --yes to apply the changes**
 
 ```
 kops update cluster --yes
 ```
-Do the rolling-update and with `--yes` option by running,
+**If the above command reports that the cluster needs to be rolled, do the rolling-update and with `--yes` option**
 
 ```
 kops rolling-update cluster --yes
 ```
 
-For more information on kops update, refer [runbook for kops update](running-kops-update-rollingupdate.html#running-kops-update-and-rollingupdate)
+For more information on kops update, rolling-update and debugging instructions, refer 
+[runbook for kops update](running-kops-update-rollingupdate.html#running-kops-update-and-rollingupdate)
 
-Follow a more delicate rolling-update process when recovery during the failed version upgrading process as mentioned in 
-[Upgrade a cluster](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-cluster.html#upgrade-a-cluster) in the slightly modified way as below.
+If the restore process require creating new instancegroup for worker nodes, follow the procedure mentioned 
+in [Upgrade a cluster](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-cluster.html#upgrade-a-cluster).
 
-* Push the reverted changes to kops state by updating the cluster.
-* Perform a rolling-update for master instance group
-* Take stock of current running worker nodes
-* Create new worker instance group with the working kubernetes version
-* Cordon not-working workers
-* Scale number of ingress controllers
-* Drain the not-working worker nodes
-* Validate the cluster
-* Run integration tests
-* Delete the old instance group
-* Scale the ingress-controllers down
+The difference to the upgrading procedure would be 
+
+- reverting the kops yaml file to old working version of kubernetes and
+
+- if new instancegroup for worker nodes is needed, then to create one with working kubernetes version and move workload back to that worker nodes.
 
 ### Restore process for deleted S3 bucket where kops state is stored
 Kops state of all clusters are backed up in a different s3 bucket `kops-backup-replication` in the region `eu-west-2`. 
-If the entire folder where the cluster state is stored is lost, copy the folder from the backup bucket by running below
+
+If the entire folder where the cluster state is stored is lost/corrupted, copy the folder from the backup bucket by running below
 
 ```
 aws s3 cp s3://kops-backup-replication/<cluster_name>.cloud-platform.service.justice.gov.uk/ s3://cloud-platform-kops-state/ --recursive
@@ -252,7 +254,7 @@ aws s3 cp s3://kops-backup-replication/<cluster_name>.cloud-platform.service.jus
 Validate the cluster
 
 ```
-kops validate cluster
+kops validate cluster <cluster name>
 ```
 The validation should be success and should say 
 
