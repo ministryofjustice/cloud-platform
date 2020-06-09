@@ -156,9 +156,11 @@ When the kops state is corrupted, in most cases the kubernetes cluster will stil
 
 This means the services will not have any impact, if the issue is resolved in a shorter amount of time. 
 
-Leaving the cluster in the corrupted kops state for a prolonged period will lead the Kubernetes API server to work at the fullest.
+Leaving the cluster in the corrupted kops state for a prolonged period will reduce the cluster being highly available 
+and not handle any failover in case one or more masters has gone down.
 
-Hence, Cloud platform team will not be able to perform any infrastructure changes. Also, teams will not able to communicate with the cluster to deploy applications or schedule any jobs.
+Hence, Cloud platform team will not be able to perform any infrastructure changes. Also, teams will not able to communicate with the cluster 
+to deploy applications or schedule any jobs.
 
 ### Possible Cause
 
