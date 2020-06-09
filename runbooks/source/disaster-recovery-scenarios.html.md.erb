@@ -144,3 +144,120 @@ velero restore logs velero-allnamespacebackup-00000000000000-00000000000000
 
 ```
 
+## Deleted/corrupted the kops state
+
+### Impact 
+
+Severity : LOW
+
+Likelihood: LOW/MEDIUM
+
+When the kops state is corrupted, in most cases the kubernetes cluster will still be operational. 
+
+This means the services will not have any impact, if the issue is resolved in a shorter amount of time. 
+
+Leaving the cluster in the corrupted kops state for a prolonged period will reduce the cluster being highly available 
+and not handle any failover in case one or more masters has gone down.
+
+Hence, Cloud platform team will not be able to perform any infrastructure changes. Also, teams will not able to communicate with the cluster 
+to deploy applications or schedule any jobs.
+
+### Possible Cause
+
+Kops state may get corruputed when the kops template is changed for
+
+* upgrading kubernetes
+* changing an instancegroup
+* any other config changes
+
+It could also be corrupted/lost if a user deleted the s3 bucket by accident where the kops state is stored
+
+The sign of this happening can be seen when doing `kops validate cluster <cluster name>`
+
+If the kops state is corrupted, some of the worker nodes or masters machines will not join the cluster. 
+
+The above command will show something similar to 
+
+```
+
+VALIDATION ERRORS
+KIND	NAME			MESSAGE
+Machine	i-04195929decb7a43b				machine "i-04195929decb7a43b" has not yet joined cluster
+Node	ip-172-20-74-189.eu-west-2.compute.internal	node "ip-172-20-74-189.eu-west-2.compute.internal" is not ready
+Pod	kube-system/calico-node-kp6m7			kube-system pod "calico-node-kp6m7" is pending
+
+Validation Failed
+```
+
+If the s3 bucket is deleted where the kops state is stored, then `kops validate ...` show as
+
+```
+
+error reading cluster configuration: Cluster.kops.k8s.io "<cluster name>.cloud-platform.service.justice.gov.uk" not found
+```
+
+### Restore process for corrupted kops state
+
+The cluster kops state is stored in the generated yaml file inside the folder kops/`<CLUSTER_NAME>`.yaml. 
+
+For `live-1` the generated kops yaml file is stored in the [github](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/kops/live-1.yaml).
+So, checkout the previous working commit and update the remote kops state with that file.
+
+If the cluster state is corrupted due to the latest changes to the yaml file, revert back the changes and update the remote kops state.
+
+Below are the steps to update and restore the kops state
+
+** Revert the kops yaml file kops/`<CLUSTER_NAME>`.yaml to previous working version.
+
+**Authenticate to the cluster**
+
+```
+kops export kubecfg XXXXXXX.cloud-platform.service.justice.gov.uk
+```
+**Update the remote state with the reverted changes**
+
+```
+kops replace -f kops/<CLUSTER_NAME>.yaml
+kops update cluster
+```
+
+**Update the cluster with --yes to apply the changes**
+
+```
+kops update cluster --yes
+```
+**If the above command reports that the cluster needs to be rolled, do the rolling-update and with `--yes` option**
+
+```
+kops rolling-update cluster --yes
+```
+
+For more information on kops update, rolling-update and debugging instructions, refer 
+[runbook for kops update](running-kops-update-rollingupdate.html#running-kops-update-and-rollingupdate)
+
+If the restore process require creating new instancegroup for worker nodes, follow the procedure mentioned 
+in [Upgrade a cluster](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-cluster.html#upgrade-a-cluster).
+
+The difference to the upgrading procedure would be 
+
+- reverting the kops yaml file to old working version of kubernetes and
+
+- if new instancegroup for worker nodes is needed, then to create one with working kubernetes version and move workload back to that worker nodes.
+
+### Restore process for deleted S3 bucket where kops state is stored
+Kops state of all clusters are backed up in a different s3 bucket `kops-backup-replication` in the region `eu-west-2`. 
+
+If the entire folder where the cluster state is stored is lost/corrupted, copy the folder from the backup bucket by running below
+
+```
+aws s3 cp s3://kops-backup-replication/<cluster_name>.cloud-platform.service.justice.gov.uk/ s3://cloud-platform-kops-state/ --recursive
+```
+
+Validate the cluster
+
+```
+kops validate cluster <cluster name>
+```
+The validation should be success and should say 
+
+**"Your cluster `<cluster name>`.cloud-platform.service.justice.gov.uk is ready"**
