@@ -1,0 +1,71 @@
+---
+title: How We Work
+weight: 10
+last_reviewed_on: 2020-06-08
+review_in: 3 months
+---
+
+# <%= current_page.data.title %>
+
+This page describes the tasks and duties of members of the Cloud Platform (CP) team, and explains some of our working practices.
+
+## Getting Help
+
+If you need help at any point, don't hesitate to ask the team. Among other things, you can:
+
+* Post in #cloud-platform explaining the problem
+* Post in #cloud-platform to ask for someone to pair-program with you
+* Mention the issue during the daily standup
+
+## The Board / Tickets
+
+We use a kanban process to manage our backlog of work on this [zenhub board], which aggregates GitHub Issues from the various CP team repositories.
+
+We work in two-week sprints, and the process of getting work done should look like this:
+
+* Assign the topmost ticket (i.e. github issue) of the "This Sprint" column to yourself, and move it to the "In Progress" column
+* Let the team know what you're working on by posting in the `#cloud-platform` slack channel
+* Create a new branch in each affected github repository and make whatever changes are necessary
+* Raise a pull request (PR), and get at least one other CP team member to review your changes
+* After your PR has been approved, merge it and, if necessary, apply your changes using terraform or whatever else is required to apply your change to our infrastructure
+* Close the github issue, and move on to the next ticket
+
+### Adding tickets
+
+Anyone in the team is encouraged to add new tickets at any time. So if you think of something we ought to do, please [raise a ticket](https://github.com/ministryofjustice/cloud-platform/issues/new/choose) for it.
+
+### Making changes to code
+
+Please read these [technical guidelines](https://ministryofjustice.github.io/technical-guidance/guides/using-git) for how we prefer to work on code.
+
+### Reviewing/Merging PRs
+
+* Whoever raises a PR is responsible for getting someone to review it, and for merging it after it has been approved
+* Please be pro-active about reviewing other team members' PRs
+
+## The 🔨 Hammer of Justice
+
+The origin of the name is lost, but it sounds a lot more fun than "support manager" 😏
+
+We designate one member of the team to be the hammer on each working day. Please volunteer when you feel comfortable, so that we all take a turn.
+
+The main responsibility of the hammer is to monitor the `#ask-cloud-platform` slack channel, and ensure that any queries are handled, and that users' PRs against the [environments repository] are reviewed in a timely fashion.
+
+It is **not** the hammer's job to **do** all of the work necessary to solve every query in the channel.
+
+It **is** the hammer's job to ensure that all queries are handled. This may involve asking other team members for help with particular queries where they have relevant expertise, or if there are more queries coming in than you can handle.
+
+> Anyone can (and should) respond to queries in `#ask-cloud-platform`. You don't have to be the hammer to help.
+
+## Documentation
+
+Most of our user-facing documentation is in the [user guide], and documentation for the team is in the [runbooks] site.
+
+There are also a lot of important `README.md` files like [this one](https://github.com/ministryofjustice/cloud-platform#ministry-of-justice-cloud-platform-master-repo), especially for our terraform modules. We also have code samples like [this](https://github.com/ministryofjustice/cloud-platform-terraform-rds-instance/blob/master/example/rds.tf) for each of our terraform modules.
+
+It is important to keep all of this up to date as the underlying code changes, so please remember to factor this in when estimating and working on tickets.
+
+[zenhub board]: https://app.zenhub.com/workspaces/cloud-platform-team-5ccb0b8a81f66118c983c189/board
+[environments repository]: https://github.com/ministryofjustice/cloud-platform-environments
+[user guide]: https://user-guide.cloud-platform.service.justice.gov.uk
+[runbooks]: https://runbooks.cloud-platform.service.justice.gov.uk
