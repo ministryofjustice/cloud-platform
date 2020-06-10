@@ -64,6 +64,53 @@ NAME                                 DESIRED   CURRENT   READY   AGE
 replicaset.apps/replicaset1          1         1         1       1m
 ```
 
+## Losing a Resource
+
+### Impact 
+A loss of a resource will result in losing a specific kubernetes object such as deployments, secrets and pods etc.
+
+### Possible Cause
+User error - Executing `kubectl delete deployment/my-deployment-name ns my-namespace-dev` 
+
+```
+kubectl get deployment/my-deployment-name -n my-namespace-dev
+Error from server (NotFound): deployments.extensions "my-deployment-name" not found.
+```
+### Restore process
+As long as the namespace is over 3 hours old, it can be recovered using Velero.
+
+First step is to find the name of the most recent backup of the schedule:
+
+```
+velero backup get
+
+NAME                                       STATUS      CREATED                         EXPIRES   STORAGE   LOCATION   SELECTOR
+velero-backup-00000000000000              Completed   2020-03-30 12:00:37 +0100 BST     29d       default             <none>
+```
+Using the backup name, you can now run a `Velero restore` command to restore the deleted resource.
+
+Restore command:
+
+```
+velero restore create <restore-name> --from-backup <backup-name> --include-namespaces <namespace> --wait
+```
+
+Example:
+
+```
+velero restore create my-namespace-dev-restore --from-backup velero-backup-00000000000000 --include-namespaces my-namespace-dev --wait
+```
+
+Once completed, you should be able to see the resources recovered:
+
+```
+kubectl get deployment/my-depoyment-name -n my-namespace-dev
+
+NAME                                     READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/my-deployment-name        1/1       1            1         1m
+
+```
+
 ## Losing the whole cluster
 
 ### Impact 
