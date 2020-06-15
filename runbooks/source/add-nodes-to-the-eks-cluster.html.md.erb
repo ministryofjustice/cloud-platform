@@ -1,0 +1,109 @@
+---
+title: Add nodes/change the instance type of the AWS EKS cluster
+weight: 65
+last_reviewed_on: 2020-05-15
+review_in: 3 months
+---
+
+# Add nodes/change the instance type of the AWS EKS cluster
+
+This runbook covers how to increase the number of nodes in an eks cluster and/or change the instance type (worker_node_machine_type)
+
+This can address the problem of CPU high usage/load
+
+## Add nodes to the eks cluster
+
+### Requirements
+
+#### 1. Ensure you have access to the Cloud Platform AWS account
+
+#### 2. Access to the EKS cluster 
+
+[Access to the EKS cluster](https://runbooks.cloud-platform.service.justice.gov.uk/access-eks-cluster.html#access-eks-cluster)
+
+### Cluster configuration:
+
+
+#### [cluster.tf](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/cloud-platform-eks/cluster.tf)
+
+Use 
+
+`git crypt unlock` to see the following code:
+
+```
+ node_groups = {
+    default_ng = {
+      desired_capacity = var.cluster_node_count
+      max_capacity     = 30
+      min_capacity     = 1
+      subnets          = data.aws_subnet_ids.private.ids
+
+      instance_type = var.worker_node_machine_type
+      k8s_labels = {
+        Terraform = "true"
+        Cluster   = local.cluster_name
+        Domain    = local.cluster_base_domain_name
+      }
+      additional_tags = {
+        default_ng = "true"
+      }
+    }
+```
+
+#### [Variable.tf](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/cloud-platform-eks/variables.tf)
+
+```
+variable "vpc_name" {
+  description = "The VPC name where the cluster(s) are going to be provisioned. VPCs are created in cloud-platform-network"
+  default     = ""
+}
+
+variable "cluster_node_count" {
+  description = "The number of worker node in the cluster"
+  default     = "4"
+}
+
+variable "worker_node_machine_type" {
+  description = "The AWS EC2 instance types to use for worker nodes"
+  default     = "m4.large"
+}
+```
+### Issue
+
+There is an issue that you cannot update the default "cluster_node_count" (in isolation) with terraform
+ - unless you increase the default "worker_node_machine_type" too.<br>
+The issue is to do with auto-scaling complexities utilising Terrafom - please see [here](https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/docs/autoscaling.md#notes)
+
+Therefore you either have to update default "worker_node_machine_type" to - in above example "m4.xlarge" and also the default "cluster_node_count" to in above example "5" or "6"
+
+Or you have to edit the "Desired size" in the "AWS EKS dashboard Edit Node Group" (once you have carried out the AWS dashboard change - update the terraform config, `terraform apply`  accordingly - so that it is in sync with the AWS dashboard): 
+
+#### [AWS dashboard EKS - Edit Node Group:](https://eu-west-2.console.aws.amazon.com/eks/home?region=eu-west-2#/clusters/manager/nodegroups/manager-default_ng-able-koala/edit-nodegroup)
+
+```
+Group size
+Minimum size
+Set the minimum number of nodes that the group can scale in to.
+1
+nodes
+Maximum size
+Set the maximum number of nodes that the group can scale out to.
+30
+nodes
+Desired size
+Set the desired number of nodes that the group should launch with initially.
+4
+nodes
+```
+
+## Change the AWS EKS instance type (worker_node_machine_type)
+
+* update default "worker_node_machine_type" to - in above example "m4.xlarge"
+
+* A 'terraform plan' will show that that it will replace the existing nodes
+
+* `terraform apply' the changes in the usual way
+
+* monitor how the update is going in the [AWS Autoscaling dashboard:](https://eu-west-2.console.aws.amazon.com/ec2/autoscaling/home?region=eu-west-2#AutoScalingGroups:view=tags;filter=eks)
+
+Note that it will create the instances/nodes before it deletes the existing - so there should be no down time
