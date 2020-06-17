@@ -1,0 +1,54 @@
+---
+title: Export data from AWS Elasticsearch into a CSV file
+weight: 190
+last_reviewed_on: 2020-06-17
+review_in: 3 months
+---
+
+# Export data from Elasticsearch into a CSV file
+
+This runbook aims to guide you through exporting data from Elasticsearch into a CSV file. 
+
+The CSV Export feature in Kibana is a proprietary feature of Elasticsearch that requires X-Pack to be configured and installed in our Elasticsearch cluster which is not provided and supported in the Elasticsearch that is offered by AWS.
+
+##  Workaround 
+
+The workaround, is using [es2csv](https://github.com/gboddin/es2csv), which is a third party tool that saves the search result to a CSV file. Please refer this [blog page](https://www.skedler.com/blog/the-best-tools-for-exporting-elasticsearch-data-to-csv/) for more information.
+
+Cloud-platform-live Elasticsearch endpoint (https://search-cloud-platform-live-dibidbfud3uww3lpxnhj2jdws4.eu-west-2.es.amazonaws.com) is accessible within the cluster.
+
+### Install es2csv
+
+kubectl exec in to any of the fluentd pod in logging namespace and install es2csv
+
+  ```
+  kubectl -n logging exec -ti fluentd-es-xxxxx -- /bin/bash
+  ```
+
+You also need Python 2.7.x and pip
+
+  ```
+  apt update
+  apt install python-pip
+  apt install git
+  python -m pip install git+https://github.com/gboddin/es2csv.git
+  ```
+
+### Usage
+
+```
+es2csv -q 'kubernetes.namespace_name:starter-pack' -u https://<ES_endpoint>:443   -i logstash-* -f kubernetes_cluster -o kibanatest.csv --verify-certs
+
+	Here, the parameters are :
+		-q Query
+		-u URL
+		-i Indices
+		-f Fields to be preserved
+		-o Output file name
+```
+
+For more usage examples please refer [this](https://github.com/taraslayshchuk/es2csv/blob/master/docs/EXAMPLES.rst)
+
+Note: Once the export is completed, delete the fluentd pod you installed es2csv
+
+
