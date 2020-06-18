@@ -1,0 +1,26 @@
+---
+title: Add a custom domain
+weight: 80
+last_reviewed_on: 2020-06-18
+review_in: 3 months
+---
+
+# <%= current_page.data.title %>
+
+When a user is trying to set up a custom domain, as per this [user guide article], they will create a new hosted zone in the `cloud-platform` AWS account.
+
+If this is a new sub-domain of `service.justice.gov.uk`, these steps are required:
+
+* Wait for the new hosted zone to be created by the pipeline, once the user's PR to define it has been merged
+* Find the hosted zone record in the Route53 section of the AWS console of the cloud-platform account, and copy the nameserver details from the `NS` record. Create a temporary copy of these values (on the clipboard or a text file)
+* Switch to the mojdsd AWS account console, and find the [hosted zone for service.justice.gov.uk] in the Route53 section
+* Use the "Create Record Set" button:
+  * Name: The new sub-domain
+  * Type: NS - Name server
+  * TTL: 300
+  * Value: The nameserver details you copied from the cloud-platform AWS account hosted zone
+  * Routing Policy: Simple
+
+
+[user guide article]: https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/custom-domain-cert.html
+[hosted zone for service.justice.gov.uk]: https://console.aws.amazon.com/route53/home?region=eu-west-1#resource-record-sets:Z1QLRMQEXOI5G4
