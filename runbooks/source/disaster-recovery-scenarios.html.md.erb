@@ -308,3 +308,78 @@ kops validate cluster <cluster name>
 The validation should be success and should say 
 
 **"Your cluster `<cluster name>`.cloud-platform.service.justice.gov.uk is ready"**
+
+
+## Deleted terraform state
+
+Severity : low
+
+Likelihood: medium
+
+### Impact 
+Items removed from the terraform state are not physically destroyed but no longer managed by terraform. This means infrastructure is orphaned with no state. 
+
+For example, if you remove an AWS instance from the state, the AWS instance will continue running, but terraform plan will no longer see that instance.
+
+### Possible Cause
+User error - Executing `terraform state rm module.starter_pack.kubernetes_namespace.starter_pack`  will remove kubernetes starter_pack namespace from terraform state. When state is removed, running "terraform apply" will raise error, as terraform cannot track about existing resource and try to create new one.
+
+```
+terraform apply -target=module.starter_pack.kubernetes_namespace.starter_pack
+
+Error: namespaces "starter-pack" already exists
+```
+
+### Restore process
+
+In order to regain control of resource removed from terraform state, we will use the [import command](https://www.terraform.io/docs/import/index.html) to recover the metadata for this resource. Import requires a resource address and the resource ID. The resource address is a combination of the resource type and resource name.
+
+```
+terraform import module.starter_pack.kubernetes_namespace.starter_pack starter-pack
+
+```
+
+The import command creates a new state file pulling in information about the specified kubernetes_namespace. 
+
+```
+module.starter_pack.kubernetes_namespace.starter_pack: Importing from ID "starter-pack"...
+module.starter_pack.kubernetes_namespace.starter_pack: Refreshing state... [id=starter-pack]
+
+Import successful!
+
+The resources that were imported are shown above. These resources are now in
+your Terraform state and will henceforth be managed by Terraform.
+```
+
+Now running terraform apply after import, will not raise any error.
+
+```
+terraform apply -target=module.starter_pack.kubernetes_namespace.starter_pack
+
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+```
+
+### Recovering more complex scenarios
+
+There are scenarios, where terraform state is corrupted or terraform state is removed for the whole module.
+Executing `terraform state rm module.starter_pack`, will remove all resources in "starter_pack" module from terraform state.
+
+```
+terraform plan -target=module.starter_pack
+
+Plan: 7 to add, 0 to change, 0 to destroy.
+```
+
+In this scenario, terraform state can be restored from the remote_state stored in the terraform backend S3 bucket.
+
+For example [cloud-platform-components](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/terraform/cloud-platform-components) state is stored in "cloud-platform-terraform-state/cloud-platform-components" s3 bucket as defined [here](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/cloud-platform-components/main.tf#L1-L9).
+
+Access the S3 bucket where the effected terraform state is stored. From the list of terraform.tfstate file versions, identify the file before the state got removed and download as terraform.tfstate. Upload the file again, this will set uploaded file as latest version.
+
+Now running terraform plan will show, infrastructure is up-to-date.
+
+```
+terraform plan -target=module.starter_pack
+
+No changes. Infrastructure is up-to-date.
+```
