@@ -1,12 +1,12 @@
 ---
-title: AWS GuardDuty Information /How to Implement
+title: AWS GuardDuty Information / How to Implement
 weight: 130
-last_reviewed_on: 2020-03-17
+last_reviewed_on: 2020-06-19
 review_in: 3 months
 ---
 
-# AWS GuardDuty utilising Terraform
-  
+# <%= current_page.data.title %>
+
 ## Introduction
 
 [Amazon GuardDuty](https://docs.aws.amazon.com/guardduty/index.html) is a continuous security monitoring service that analyzes and processes the following data sources:
@@ -19,7 +19,7 @@ It uses threat intelligence feeds, such as:
 
 * lists of malicious IPs
 * lists of malicious domains
-* machine learning to identify unexpected and potentially unauthorized and malicious activity within your AWS environment. 
+* machine learning to identify unexpected and potentially unauthorized and malicious activity within your AWS environment.
 
 GuardDuty informs you of the status of your AWS environment by producing security [findings](https://eu-west-2.console.aws.amazon.com/guardduty/home?region=eu-west-2#/findings?macros=current) that you can be viewed in the GuardDuty console or through Amazon CloudWatch events.
 
@@ -43,19 +43,19 @@ Our setup at the moment is as follows:
 
 * There are at present two master accounts - both in the moj-cp AWS account:
 
-	*  One set up in the London AWS region 
+	*  One set up in the London AWS region
 		*  This is for our cloud-platform live-1 AWS resources [moj-cp -London region](https://eu-west-2.console.aws.amazon.com/guardduty/home?region=eu-west-2#/findings?macros=current)
-	*  One set up in the Ireland AWS region 
+	*  One set up in the Ireland AWS region
 		*  this controls several member AWS linked accounts. It is mainly for template-deploy related [member accounts](https://eu-west-1.console.aws.amazon.com/guardduty/home?region=eu-west-1#/linked-accounts).
-	
+
 ### AWS GuardDuty Findings for live-1 AWS resources
- 
-* Findings that AWS GuardDuty reports for Global AWS resources/services (i.e IAM, S3 etc) are found in the AWS GuardDuty Findings dashboard master account in the Ireland AWS region. 
-* Findings that AWS GuardDuty reports for specific regional AWS resources/services (i.e ec2, vpc etc) are found in the master account AWS GuardDuty Findings dashboard in the London AWS region. 
+
+* Findings that AWS GuardDuty reports for Global AWS resources/services (i.e IAM, S3 etc) are found in the AWS GuardDuty Findings dashboard master account in the Ireland AWS region.
+* Findings that AWS GuardDuty reports for specific regional AWS resources/services (i.e ec2, vpc etc) are found in the master account AWS GuardDuty Findings dashboard in the London AWS region.
 
 ### AWS GuardDuty Findings for AWS member account resources
 
-* Findings that AWS GuardDuty reports for  AWS member accounts appear in the AWS GuardDuty Findings dashboard for the relevant member (in that AWS account) and are collated in the master account (Ireland AWS region)  
+* Findings that AWS GuardDuty reports for  AWS member accounts appear in the AWS GuardDuty Findings dashboard for the relevant member (in that AWS account) and are collated in the master account (Ireland AWS region)
 
 Any findings in GuardDuty are sent to Cloudwatch event rules that then integrate with AWS SNS (Simple Notification Service) topics and subscriptions. These are alerted to Pagerduty (presently 'in office hours') and then onto slack channels (at the moment #lower-priority-alarms)
 
@@ -110,7 +110,7 @@ Please also see [terraform AWS GuardDuty detector ](https://www.terraform.io/doc
 
 * A json object that is used by 'AWS Cloudwatch Event Rules' and related 'Targets' to select 'AWS Guardduty Events' (findings) and route them to the AWS sns targets.
 
-When raising the actual finding in an AWS account, GuardDuty normalizes the raised finding to have one of three integer values. See [AWS Findings](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_findings.html#guardduty_filter-findings) for further information: 
+When raising the actual finding in an AWS account, GuardDuty normalizes the raised finding to have one of three integer values. See [AWS Findings](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_findings.html#guardduty_filter-findings) for further information:
 
 *   Severity Rating/ScoreRange: Value for Raised Findings
 	*   Low (0.1-3.9): 2
@@ -247,7 +247,7 @@ If possible to alleviate this problem - take the following action in the followi
 If the above is not possible - due to the AWS account having already been deleted then:
 
 	terraform state rm aws_guardduty_detector.member....
-	terraform state rm aws_guardduty_member.member....  
+	terraform state rm aws_guardduty_member.member....
 
 ### 4. Pagerduty to Slack integration
 
