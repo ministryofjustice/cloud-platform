@@ -64,10 +64,10 @@ NAME                                 DESIRED   CURRENT   READY   AGE
 replicaset.apps/replicaset1          1         1         1       1m
 ```
 
-## Losing a Resource
+## Losing a Kubernetes Component or Object
 
 ### Impact 
-A loss of a resource will result in losing a specific kubernetes object such as deployments, secrets and pods etc.
+A loss of a kubernetes object such as a deployment, secret and Namespace can result in an application not working correctly. A loss of a Kubernetes component such as kube-scheduler or kube-control-manger can result in the cluster not working correctly.
 
 ### Possible Cause
 User error - Executing `kubectl delete deployment/my-deployment-name ns my-namespace-dev` 
