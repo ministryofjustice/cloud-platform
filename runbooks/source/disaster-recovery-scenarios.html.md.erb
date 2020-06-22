@@ -67,7 +67,7 @@ replicaset.apps/replicaset1          1         1         1       1m
 ## Losing a Kubernetes Component or Object
 
 ### Impact 
-A loss of a kubernetes object such as a deployment, secret and Namespace can result in an application not working correctly. A loss of a Kubernetes component such as kube-scheduler or kube-control-manger can result in the cluster not working correctly.
+A loss of a kubernetes object such as a deployment, secret and Namespace can result in an application not working correctly. A loss of a Kubernetes component such as kube-scheduler or kube-control-manager can result in the cluster not working correctly.
 
 ### Possible Cause
 User error - Executing `kubectl delete deployment/my-deployment-name ns my-namespace-dev` 
@@ -104,7 +104,7 @@ velero restore create my-namespace-dev-restore --from-backup velero-backup-00000
 Once completed, you should be able to see the resources recovered:
 
 ```
-kubectl get deployment/my-depoyment-name -n my-namespace-dev
+kubectl get deployment/my-deployment-name -n my-namespace-dev
 
 NAME                                     READY   UP-TO-DATE   AVAILABLE   AGE
 deployment.apps/my-deployment-name        1/1       1            1         1m
