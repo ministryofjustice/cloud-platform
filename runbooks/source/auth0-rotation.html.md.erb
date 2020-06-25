@@ -5,19 +5,19 @@ last_reviewed_on: 2020-06-25
 review_in: 3 months
 ---
 
-# Credentials rotation for auth0 apps
+# <%= current_page.data.title %> 
 
-Cloud-Platform team uses auth0 with almost every component which requires authentication (clusters, Prometheus, Kibana, Grafana, etc). Credentials rotation within our live clusters requires to follow different steps and because of that users are not able to use the cluster until they re-authenticate (generate new kubeconfig file)
+Cloud-Platform team uses [auth0](https://auth0.com) with almost every component which requires authentication (clusters, Prometheus, Kibana, Grafana, etc). Credentials rotation within our live clusters requires to follow different steps and because of that users are not able to use the cluster until they re-authenticate (generate new kubeconfig file)
 
 ## Preparation
 
 - Ensure users are aware of the change. It is important to point out that **they will have to reauthenticate against the cluster after the change** (following [user guide](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/getting-started/kubectl-config.html#authentication)).
 - You must have all the tools and variables (such as Terraform, TF's auth0 provider, environment variables, kops, etc) ready to apply changes against our infrastructure repo.
-- It will be handy to have auth0 mangement console already openned in a browser tab, so you can verify and monitor the changes.
+- It will be handy to have auth0 management console already opened in a browser tab, so you can verify and monitor the changes.
 
 ## 1) Taint resources (terraform)
 
-The first step is to recreate auth0 app. We will have to taint the auth0 resource, so it gets recreated with new credentials:
+The first step is to recreate auth0 app. We will have to taint the auth0 resource, so it gets recreated with new credentials. Go to [`cloud-platform-infrastructure/terraform/cloud-platform` directory](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/terraform/cloud-platform) and run
 
 ```
 $ terraform workspace select live-1
@@ -34,11 +34,11 @@ $ terraform apply
 
 From the previous step a new [cloud-platform-infrastructure/kops/live-1.yaml](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/kops/live-1.yaml) file should have been generated. To apply this file we [already have a runbook](https://runbooks.cloud-platform.service.justice.gov.uk/running-kops-update-rollingupdate.html#updating-the-remote-kops-state), follow it step by step.
 
-**NOTE**: As you will see, the change will require a rolling restart
+**NOTE**: As you will see, the change will require rolling replacement of the master nodes
 
 ## 3) Apply changes within components (terraform)
 
-Execute `terraform plan` to ensure changes match resources below, if they do, apply them:
+Execute `terraform plan` inside [`cloud-platform-infrastructure/terraform/cloud-platform-components` directory](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/terraform/cloud-platform-components) and to ensure changes match resources below, if they do, apply them:
 
 ```
 $ terraform apply -target=module.prometheus.kubernetes_secret.grafana_secret -target=module.prometheus.helm_release.prometheus_proxy -target=module.prometheus.helm_release.alertmanager_proxy  -target=helm_release.kuberos
@@ -47,6 +47,7 @@ $ terraform apply -target=module.prometheus.kubernetes_secret.grafana_secret -ta
 Unfortunately, grafana pod will not pick up the secret change, so it needs to be recyled (just delete it and it will automatically get redeployed):
 
 ```
+$ GrafanaPodName=$(kubectl -n monitoring get pods -o name | grep grafana)
 $ kubectl -n monitoring delete pod $GrafanaPodName
 ```
 
@@ -61,10 +62,10 @@ This step requires a PR and someone available to approve it.
 In order to verify that the changes were successfully applied, follow the checklist below (order doesn't matter):
 
 - You can authenticate to the cluster (follow [user guide](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/getting-started/kubectl-config.html#authentication)) 
-- Ensure you can authenticate to Grafana
-- Ensure you can authenticate to AlertManager
-- Ensure you can authenticate to Kibana
-- Ensure you can authenticate to Prometheus
+- Ensure you can authenticate to [Grafana](https://grafana.cloud-platform.service.justice.gov.uk/)
+- Ensure you can authenticate to [AlertManager](https://alertmanager.cloud-platform.service.justice.gov.uk/)
+- Ensure you can authenticate to [Kibana](https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/kibana#/home?_g=())
+- Ensure you can authenticate to [Prometheus](https://prometheus.cloud-platform.service.justice.gov.uk/)
 
 If all of this works, jump to the last step which is update our pipelines.
 
@@ -72,4 +73,4 @@ If all of this works, jump to the last step which is update our pipelines.
 
 Our pipelines read auth0 credentials from a K8S secret inside the manager cluster. This secret is updated through concourse's TF module variable called `tf_provider_auth0_client_secret` and `tf_provider_auth0_client_id` in [cloud-platform-infrastructure/blob/master/terraform/cloud-platform-eks/components/terraform.tfvars](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/cloud-platform-eks/components/terraform.tfvars)
 
-
+You only need to update the source code file and have your changed merged to master. The [bootstrap pipeline] will apply your change.
