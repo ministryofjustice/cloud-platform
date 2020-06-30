@@ -1,7 +1,7 @@
 ---
 title: Tips and Tricks
 weight: 9200
-last_reviewed_on: 2020-04-08
+last_reviewed_on: 2020-06-30
 review_in: 3 months
 ---
 
@@ -118,3 +118,14 @@ sudo systemctl status docker
 
 Use [this script](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/bin/route53-to-csv.rb)
 
+## Add more RSS feeds to `#cloud-platform-rss` channel
+
+` /feed subscribe <feed address>`
+
+There are more slash commands for rss feed which can be used to list, remove and help. Type `/feed help` in the #cloud-platform-rss` channel to get more details.
+
+To validate your feed url, test using the [w3c validator](https://validator.w3.org/feed/)
+
+To get the RSS feed url for github projects, use `<github repo url>/releases.atom`
+
+To add your first feed to a new slack channel, follow steps provided by [slack](https://slack.com/intl/en-gb/help/articles/218688467-Add-RSS-feeds-to-Slac://slack.com/intl/en-gb/help/articles/218688467-Add-RSS-feeds-to-Slack)
