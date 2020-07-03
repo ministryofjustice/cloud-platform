@@ -49,7 +49,7 @@ error: cannot delete Pods not managed by ReplicationController, ReplicaSet, Job,
 Then you can track down the namespace owner and ask them to clear up their pods by sending a message in the #ask-cloud-platform, something like:
 
 ```
-The recycle-node job failed because of some manually-created pods. 
+The recycle-node job failed because of some manually-created pods.
 
 If any of these pods are yours, and you're not using them anymore, please could you delete them so that the next time the recycle-node job runs, it is able to replace the node?
 
@@ -58,6 +58,6 @@ licences-dev/port-forward
 
 Once the pod causing the issue gets deleted, you can re-run the pipeline or just wait for the next scheduled run.
 
-[recycle-node-script]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/recycle-node.rb
+[recycle-node-script]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/recycle-node.rb
 [running-pipeline]: https://github.com/ministryofjustice/cloud-platform-concourse/blob/af90d767e674a38127af34021bce3bac2749bb61/pipelines/manager/main/maintenance.yaml#L53
-[recyclenode-pipeline-definition]: https://github.com/ministryofjustice/cloud-platform-concourse/blob/master/pipelines/live-1/main/recycle-node.yaml
+[recyclenode-pipeline-definition]: https://github.com/ministryofjustice/cloud-platform-concourse/blob/main/pipelines/live-1/main/recycle-node.yaml

@@ -1,5 +1,5 @@
 ---
-title: Velero - Cluster backups and disaster recovery 
+title: Velero - Cluster backups and disaster recovery
 weight: 601
 last_reviewed_on: 2020-05-07
 review_in: 3 months
@@ -13,13 +13,13 @@ Velero consists of:
 - A server that runs on your cluster
 - A command-line client that runs locally
 
-#### Velero CLI Install: 
+#### Velero CLI Install:
 
 ```
 brew install velero
 ````
 
-Velero is installed on all clusters as part of the cloud-platform-components install. Click [here](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/cloud-platform-components/velero.tf) to view the velero.tf file.
+Velero is installed on all clusters as part of the cloud-platform-components install. Click [here](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-components/velero.tf) to view the velero.tf file.
 
 Velero is installed in `namespace:velero` using helm. The chart used can be found [here](https://github.com/helm/charts/tree/master/stable/velero)
 
@@ -51,13 +51,13 @@ There are hundreds of reasons why you need to backup parts and/or your full clus
 
 Velero can be used to back up as little as a single resource type to the whole cluster (all namespaces and resources).
 
-StatefulSets including corresponding persistent volumes are backed up together, as unlike stateless applications, it is not possible to easily get an application restored when it has persistent data. 
+StatefulSets including corresponding persistent volumes are backed up together, as unlike stateless applications, it is not possible to easily get an application restored when it has persistent data.
 
 Velero **does not** backup the Kubernetes state stored in etcd. It is highly recommenced that a specific backup solution is used for etcd and its relevant certificates in addition to Velero.
 
 ### How?
 
-It is possible to create manual backups as well as schedules ones. 
+It is possible to create manual backups as well as schedules ones.
 
 #### Manual backups
 
@@ -74,8 +74,8 @@ velero restore create --from-backup my-app-backup01
 
 #### Scheduled backups
 Currently there is one scheduled backup created as part of the default install.
-This schedule is called `velero-allnamespacebackup`. This backup includes all namespaces, resources and persistent volumes (EBS) associated with StatefulSets. 
-The Schedule is set to run every 3 hours. 
+This schedule is called `velero-allnamespacebackup`. This backup includes all namespaces, resources and persistent volumes (EBS) associated with StatefulSets.
+The Schedule is set to run every 3 hours.
 
 To view all stored backups within the cluster, run the following command:
 
@@ -115,4 +115,4 @@ kubectl patch backupstoragelocation <STORAGE LOCATION NAME> \
 ```
 
 
-Click [here](https://velero.io/docs/v1.2.0/) for the official Velero documentation. 
+Click [here](https://velero.io/docs/v1.2.0/) for the official Velero documentation.

@@ -17,16 +17,16 @@ This can address the problem of CPU high usage/load
 
 #### 1. Ensure you have access to the Cloud Platform AWS account
 
-#### 2. Access to the EKS cluster 
+#### 2. Access to the EKS cluster
 
 [Access to the EKS cluster](https://runbooks.cloud-platform.service.justice.gov.uk/access-eks-cluster.html#access-eks-cluster)
 
 ### Cluster configuration:
 
 
-#### [cluster.tf](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/cloud-platform-eks/cluster.tf)
+#### [cluster.tf](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-eks/cluster.tf)
 
-Use 
+Use
 
 `git crypt unlock` to see the following code:
 
@@ -50,7 +50,7 @@ Use
     }
 ```
 
-#### [Variable.tf](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/cloud-platform-eks/variables.tf)
+#### [Variable.tf](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-eks/variables.tf)
 
 ```
 variable "vpc_name" {
@@ -76,7 +76,7 @@ The issue is to do with auto-scaling complexities utilising Terrafom - please se
 
 Therefore you either have to update default "worker_node_machine_type" to - in above example "m4.xlarge" and also the default "cluster_node_count" to in above example "5" or "6"
 
-Or you have to edit the "Desired size" in the "AWS EKS dashboard Edit Node Group" (once you have carried out the AWS dashboard change - update the terraform config, `terraform apply`  accordingly - so that it is in sync with the AWS dashboard): 
+Or you have to edit the "Desired size" in the "AWS EKS dashboard Edit Node Group" (once you have carried out the AWS dashboard change - update the terraform config, `terraform apply`  accordingly - so that it is in sync with the AWS dashboard):
 
 #### [AWS dashboard EKS - Edit Node Group:](https://eu-west-2.console.aws.amazon.com/eks/home?region=eu-west-2#/clusters/manager/nodegroups/manager-default_ng-able-koala/edit-nodegroup)
 

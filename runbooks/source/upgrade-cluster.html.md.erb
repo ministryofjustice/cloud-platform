@@ -21,7 +21,7 @@ Setup the environment variables listed in `example.env.create-cluster` in the [i
 
 ### Run integration tests
 
-Run the [integration test pipeline] and wait for the tests to pass. This will ensure the live cluster is functioning as expected. 
+Run the [integration test pipeline] and wait for the tests to pass. This will ensure the live cluster is functioning as expected.
 
 ### Sanity checks
 
@@ -36,9 +36,9 @@ Take a snapshot of
 
 The cloud platform [tools image] has all the software required to run the build script and create a cluster.
 
-The image will need updates for new client tool versions, see https://github.com/ministryofjustice/cloud-platform-tools-image/pull/34 for an example. Make the required changes and push the new image to DockerHub. 
+The image will need updates for new client tool versions, see https://github.com/ministryofjustice/cloud-platform-tools-image/pull/34 for an example. Make the required changes and push the new image to DockerHub.
 
-From a local copy of the cloud-platform-infrastructure repository, run the following command (ensuring that you're using the new image): 
+From a local copy of the cloud-platform-infrastructure repository, run the following command (ensuring that you're using the new image):
 
 ```bash
 make tools-shell
@@ -59,7 +59,7 @@ kops export kubecfg XXXXXXX.cloud-platform.service.justice.gov.uk
 Open the cloud-platform-infrastructure repository and make the following changes to the kops/live-1.yaml manifest:
 
   - The Kubernetes release version, ensuring it is supported by Kops - verify on the [kops releases](https://github.com/kubernetes/kops/releases) page.
-  - The AMI in each instance group. This can be found here: https://github.com/kubernetes/kops/blob/master/channels/stable 
+  - The AMI in each instance group. This can be found here: https://github.com/kubernetes/kops/blob/master/channels/stable
 
 Now make the same changes to the template file `./terraform/cloud-platform/templates/kops.yaml.tpl`.
 
@@ -69,13 +69,13 @@ Run the following to push the above changes to the kops state store in S3.
 
 `kops update cluster`
 
-Review the changes before committing with: 
+Review the changes before committing with:
 
 `kops update cluster -yes`
 
 ### Perform a rolling-update
 
-This is a delicate procedure, so this article will proceed with extreme caution. 
+This is a delicate procedure, so this article will proceed with extreme caution.
 
 First, get the instance groups:
 
@@ -85,7 +85,7 @@ Update each master individually:
 
 `kops rolling-update cluster --instance-group <master-instance-group> (--yes)`
 
-Kops will safely eject the instance from the cluster and bring back a new one. 
+Kops will safely eject the instance from the cluster and bring back a new one.
 
 Once the new master is in a `ready` state, run the fast integration tests with:
 
@@ -117,7 +117,7 @@ kops create instancegroup nodes-<kubernetes-version>
 kops update cluster
 kops update cluster --yes
 ```
-note: we use the kubernetes-version to identify the new node group. 
+note: we use the kubernetes-version to identify the new node group.
 
 New instances will be created, which you'll see with:
 
@@ -139,7 +139,7 @@ We need to insert the following before each line in this file:
 
 `kubectl cordon`
 
-To do this quickly in vim I used: 
+To do this quickly in vim I used:
 
 ```
 qq shift+i “kubectl cordon ” esc j ^ q G@q
@@ -153,7 +153,7 @@ The ingress controllers play in important role in a live cluster. To ensure thes
 kubectl -n ingress-controllers edit deploy nginx-ingress-acme-controller
 ```
 
-And double the number of replicas. 
+And double the number of replicas.
 
 ### Drain the old worker nodes
 
@@ -173,7 +173,7 @@ and then
 
 at the end.
 
-To do this quickly in vim I used: 
+To do this quickly in vim I used:
 
 ```
 qq shift+i “kubectl drain ” esc shift+a “--ignore-daemonsets --delete-local-data” esc j ^ q G@q
@@ -197,7 +197,7 @@ kops validate cluster
 
 ### Run integration tests again
 
-Run the [integration test pipeline] and wait for the tests to pass. This will ensure you're live cluster is functioning as expected. 
+Run the [integration test pipeline] and wait for the tests to pass. This will ensure you're live cluster is functioning as expected.
 
 ### Delete the old instance group
 
@@ -205,7 +205,7 @@ When complete and all pods have migrated onto the new workers. Delete the older 
 
 ### Scale the ingress-controllers down
 
-We can now scale the ingress-controllers back down. 
+We can now scale the ingress-controllers back down.
 
 ```
 kubectl -n ingress-controllers edit deploy nginx-ingress-acme-controller
@@ -213,14 +213,14 @@ kubectl -n ingress-controllers edit deploy nginx-ingress-acme-controller
 
 ## Commit changes back to master
 
-Any changes made to the cloud-platform-infrastructure repository should be pushed for review. This includes manifest changes and image tag changes. 
+Any changes made to the cloud-platform-infrastructure repository should be pushed for review. This includes manifest changes and image tag changes.
 
 [infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
 [integration test pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/integration-tests/jobs/apply-tests-live-1
-[cluster naming policy]: https://github.com/ministryofjustice/cloud-platform/blob/master/architecture-decision-record/009-Naming-convention-for-clusters.md
+[cluster naming policy]: https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/009-Naming-convention-for-clusters.md
 [AWS CLI]: https://aws.amazon.com/cli/
 [docker]: https://www.docker.com/
 [PagerDuty]: https://www.pagerduty.com/
 [tools image]: https://github.com/ministryofjustice/cloud-platform-tools-image
-[kube-system-ns]: https://github.com/ministryofjustice/cloud-platform-environments/blob/master/namespaces/live-1.cloud-platform.service.justice.gov.uk/kube-system/00-namespace.yaml
+[kube-system-ns]: https://github.com/ministryofjustice/cloud-platform-environments/blob/main/namespaces/live-1.cloud-platform.service.justice.gov.uk/kube-system/00-namespace.yaml
 
