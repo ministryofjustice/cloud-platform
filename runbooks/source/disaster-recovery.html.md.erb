@@ -9,7 +9,7 @@ review_in: 3 months
 
 Cloud Platform Kubernetes cluster deployed with kops use [etcd-manager][etcd-manager-rep] to do backups periodically and before cluster modifications. Backups for both the main and events etcd clusters are stored in 's3://cloud-platform-kops-state/${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk' together with the cluster configuration.
 
-In case of a disaster situation (total failure, Kops delete cluster, lost data, cluster issues etc.) it's possible to do a restore from the backup using [etcd-manager][etcd-manager-rep]. More details about the usage can be found [here][etcd-manager-restore] and [here][kops-backup-restore]. 
+In case of a disaster situation (total failure, Kops delete cluster, lost data, cluster issues etc.) it's possible to do a restore from the backup using [etcd-manager][etcd-manager-rep]. More details about the usage can be found [here][etcd-manager-restore] and [here][kops-backup-restore].
 
 ## Restore process
 
@@ -114,9 +114,9 @@ To restore the deleted backups, follow the below steps:
 
 Sign in to the AWS Management Console and open the Amazon S3 console and access 'cloud-platform-kops-state/${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk/backups/etcd.
 
-Select main and click on `show` option in `versions`, you can view deleted backups now. 
+Select main and click on `show` option in `versions`, you can view deleted backups now.
 
-Click on the deleted backup you want to restore from, you will see `etcd_backup.meta` and `etcd.backup.gz` files set as (Delete marker). 
+Click on the deleted backup you want to restore from, you will see `etcd_backup.meta` and `etcd.backup.gz` files set as (Delete marker).
 
 Delete those (Delete marker) files by using delete option in actions (you can see in the below image), removing the delete marker files will get the backup files into active stage. Do the same for events.
 
@@ -155,7 +155,7 @@ I0829 10:57:53.294703   34271 vfs.go:94] listed backups in s3://cloud-platform-k
 
 Restore the latest backup in the list, or the one containing the timestamp you want to restore from (this will bring the entire cluster back to this point in time). Add a restore command for both main and events as below:
 
-Note: We can only use a backup file which is returned in the results of the list-backups command. If kops deleted the backups it will not show up in the list. Follow this [guidance][restore-deleted-backups] to get the deleted backups into active stage, which will then show up in the list-backups. 
+Note: We can only use a backup file which is returned in the results of the list-backups command. If kops deleted the backups it will not show up in the list. Follow this [guidance][restore-deleted-backups] to get the deleted backups into active stage, which will then show up in the list-backups.
 
 ```
 etcd-manager-ctl -backup-store=s3://cloud-platform-kops-state/${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk/backups/etcd/main restore-backup 2019-08-27T16:44:23Z-001038
@@ -179,7 +179,7 @@ The etcd-manager containers should restart automatically, and pick up the restor
 
 To reboot all masters, follow below process.
 
-In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}` to locate cluster master and worker instances(`master-<availability-zone>.masters.<cluster_name>.cloud-platform.service.justice.gov.uk`). 
+In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}` to locate cluster master and worker instances(`master-<availability-zone>.masters.<cluster_name>.cloud-platform.service.justice.gov.uk`).
 
 Select all master instances together, and run reboot from actions>instancestate>reboot.
 Run the below command to validate the cluster.
@@ -188,7 +188,7 @@ Run the below command to validate the cluster.
 kops validate cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk
 ```
 
-All master and worker node should join the cluster, you can see the cluster is in ready status. 
+All master and worker node should join the cluster, you can see the cluster is in ready status.
 
 ```
 Your cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk is ready
@@ -251,7 +251,7 @@ If you don't have etcd-manager-ctl installed on your workstation, you can run th
 
 Note: If you already performed restore process via etcd-manager-ctl on your [computer][etcd-managet-ctl-terminal], don't repeat this in etcd container.
 
-Run the below command on all the etcd-manager-main and etcd-manager-event containers, to find out the leader of the cluster for main and events. 
+Run the below command on all the etcd-manager-main and etcd-manager-event containers, to find out the leader of the cluster for main and events.
 
 ```
 kubectl -n kube-system logs etcd-manager-main-ip-172-xx-xx-226.eu-west-2.compute.internal | grep leader
@@ -269,7 +269,7 @@ etcd-manager-main-ip-172-xx-xx-223.eu-west-2.compute.internal etcd-manager I0830
 etcd-manager-main-ip-172-xx-xx-57.eu-west-2.compute.internal etcd-manager I0830  ..... we are not leader
 ```
 
-From the above output, ssh in to leader master node via bastion instance: 
+From the above output, ssh in to leader master node via bastion instance:
 
 In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}`to locate bastion instance (`bastion.<cluster_name>.cloud-platform.service.justice.gov.uk`). Use Public DNS (IPv4) In the description of the Instance to login in to bastion as below:
 
@@ -280,7 +280,7 @@ ssh -A admin@ec2-35-176-xx-xx.eu-west-2.compute.amazonaws.com -p 50422
 
 From the bastion, login to the leader master node:
 
-In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}` to locate master instance (`master-<availability-zone>.masters.<cluster_name>.cloud-platform.service.justice.gov.uk`). From the result above to identify the leader, use the ip address of the leader master node and ssh in to it. 
+In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}` to locate master instance (`master-<availability-zone>.masters.<cluster_name>.cloud-platform.service.justice.gov.uk`). From the result above to identify the leader, use the ip address of the leader master node and ssh in to it.
 
 ```bash
 ssh 172.20.xx.xx
@@ -370,7 +370,7 @@ subsets:
     protocol: TCP
 
 ```
-or 
+or
 
 You can get the old master IPs by describing the kubernetes service (under Endpoints):
 
@@ -509,7 +509,7 @@ subsets:
 
 1) If any Master node stuck in `not ready` status, [reboot][master-reboot] that master again, from the aws console or [restart][container-restart] etcd for that master node.
 
-2) Master nodes are in ready status but worker nodes has not yet joined cluster 
+2) Master nodes are in ready status but worker nodes has not yet joined cluster
 
 ```
 NODE STATUS
@@ -627,7 +627,7 @@ This issue is due to old master IPs being set as endpoints in the kubernetes ser
 
 [etcd-manager-rep]: https://github.com/kopeio/etcd-manager
 [cpi-repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
-[kops-repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/kops
+[kops-repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/kops
 [etcd-managet-ctl]: https://github.com/kopeio/etcd-manager/releases/
 [etcd-manager-restore]: https://github.com/kopeio/etcd-manager/blob/master/docs/backup-restore.md
 [kops-backup-restore]: https://github.com/kubernetes/kops/blob/master/docs/operations/etcd_backup_restore_encryption.md
@@ -641,4 +641,4 @@ This issue is due to old master IPs being set as endpoints in the kubernetes ser
 [master-reboot]: disaster-recovery.html#roll-masters-by-rebooting
 [container-restart]: disaster-recovery.html#restart-etcd
 [cleanup]: disaster-recovery.html#cleanup
-[tf-cloud-platform]: https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/terraform/cloud-platform
+[tf-cloud-platform]: https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/cloud-platform

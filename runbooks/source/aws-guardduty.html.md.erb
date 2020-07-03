@@ -81,7 +81,7 @@ Please also see [terraform AWS GuardDuty detector ](https://www.terraform.io/doc
 
 #### Main Configuration File
 
-['guardduty.tf'](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/global-resources/guardduty.tf) contains code for the following config:
+['guardduty.tf'](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/global-resources/guardduty.tf) contains code for the following config:
 
 * Enabling and turning GuardDuty on for the master account.
 * Enabling and turning GuardDuty on for the member account.
@@ -94,7 +94,7 @@ Please also see [terraform AWS GuardDuty detector ](https://www.terraform.io/doc
 
 #### Terraform Variables File
 
-['terraform.tfvars'](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/global-resources/terraform.tfvars) contains code for the following config variables:
+['terraform.tfvars'](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/global-resources/terraform.tfvars) contains code for the following config variables:
 
 * aws_region
 * aws_profile for the master and member accounts (set locally in ~/.aws/credentials). This is set up using format "moj-[account] (see terraform.tfvars file)
@@ -106,7 +106,7 @@ Please also see [terraform AWS GuardDuty detector ](https://www.terraform.io/doc
 * member_email (the email to which the initial invitation email(s) should be sent {from the master account} when setting up GuardDuty on the member account - this must match email used to set up the root account)
 #### AWS Cloudwatch Event Rules File
 
-['event-pattern.json'](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/global-resources/resources/event-pattern.json)
+['event-pattern.json'](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/global-resources/resources/event-pattern.json)
 
 * A json object that is used by 'AWS Cloudwatch Event Rules' and related 'Targets' to select 'AWS Guardduty Events' (findings) and route them to the AWS sns targets.
 
@@ -160,14 +160,14 @@ Example (high priority):
 
 #### Trusted ip List File
 
-['iplist.txt'](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/global-resources/resources/iplist.txt)
+['iplist.txt'](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/global-resources/resources/iplist.txt)
 
 * A trusted ip list. GuardDuty does not generate findings for IP addresses that are included in this trusted IP list/s
 At this point in time terraform is unable to update this list by 'terraform apply'. The list has to be manually deleted in the AWS dashboard >  Guardduty > Lists > Trusted IP Lists. Then you can run the 'terraform apply.
 
 #### Variables Initialisation File
 
-['variables.tf'](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/global-resources/variables.tf)
+['variables.tf'](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/global-resources/variables.tf)
 
 * Used to set up the terraform variables and defaults required by terraform 'guardduty.tf'
 
@@ -253,5 +253,5 @@ If the above is not possible - due to the AWS account having already been delete
 
 This is is also set up utilising terraform separately config here:
 
-* https://github.com/ministryofjustice/cloudplatforms-terraform-ops/blob/master/main.tf
-* https://github.com/ministryofjustice/cloudplatforms-terraform-ops/blob/master/services/amazon-guardduty-notifications/pagerduty.tf
+* https://github.com/ministryofjustice/cloudplatforms-terraform-ops/blob/main/main.tf
+* https://github.com/ministryofjustice/cloudplatforms-terraform-ops/blob/main/services/amazon-guardduty-notifications/pagerduty.tf

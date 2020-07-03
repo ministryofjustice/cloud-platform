@@ -11,7 +11,7 @@ When Development Teams require to send custom alarms to their own channels the A
 
 ## Pre-requisites
 
-You must have the below details from the development team. 
+You must have the below details from the development team.
 
 * namespace name
 * team name
@@ -22,9 +22,9 @@ You must have the below details from the development team.
 
 ## Creating a new receiver set
 
-1. Fill in the template with the details provided from development team and add the array to [`terraform.tfvars`](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/cloud-platform-components/terraform.tfvars) file.
-The `terraform.tfvars` file is encrypted so you have to `git-crypt unlock` to view the contents of the file. 
-Check [git-crypt documentation in user guide](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/git-crypt-setup.html#git-crypt) for more information on how to setup git-crypt. 
+1. Fill in the template with the details provided from development team and add the array to [`terraform.tfvars`](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-components/terraform.tfvars) file.
+The `terraform.tfvars` file is encrypted so you have to `git-crypt unlock` to view the contents of the file.
+Check [git-crypt documentation in user guide](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/git-crypt-setup.html#git-crypt) for more information on how to setup git-crypt.
 
     ```
     {
@@ -79,7 +79,7 @@ spec:
 
 AlertManager receivers for slack integration are configured for 2 type of alerts.
 
-1. to send a warning upon a alert rule condition is met and a recovery message once the condition is reversed  
+1. to send a warning upon a alert rule condition is met and a recovery message once the condition is reversed
 2. to send a information type alert for monitoring non-problem/non-failure events and no recovery message - e.g for rule condition to positively know something happened (like a database refresh, or app deployment etc) which is not of type of problem/failure.
 
 All alerts are routed using the severity label set from the prometheus rule. If the severity label matches the keyword `info-`<severity> then it is routed to information type receivers.
@@ -118,5 +118,5 @@ spec:
       annotations:
         message: Latest backup checker Job completed on Namespace {{ $labels.namespace }}
 ```
- 
+
 Check the user guide for more details on [how to setup custom prometheus alerts](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts).

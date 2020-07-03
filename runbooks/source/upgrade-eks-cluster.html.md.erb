@@ -24,11 +24,11 @@ Before you begin, there are a few pre-requisites:
 
 ## Run the upgrade
 
-### Upgrade Control Plane 
+### Upgrade Control Plane
 
 As we mentioned before: almost always new EKS version implies new [terraform-aws-eks module version](https://github.com/terraform-aws-modules/terraform-aws-eks). As an example, the following instructions were applied to upgrade from 1.14 to 1.15:
 
-1) Create a PR in Cloud Platform Infrastructure repo [against EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/terraform/cloud-platform-eks/cluster.tf) (file encrypted with git-crypt to protect users identity) which upgrade to the desired [terraform-aws-eks version](https://github.com/terraform-aws-modules/terraform-aws-eks) that supports the EKS version you want to upgrade to
+1) Create a PR in Cloud Platform Infrastructure repo [against EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-eks/cluster.tf) (file encrypted with git-crypt to protect users identity) which upgrade to the desired [terraform-aws-eks version](https://github.com/terraform-aws-modules/terraform-aws-eks) that supports the EKS version you want to upgrade to
 
 ```
  module "eks" {
@@ -48,7 +48,7 @@ $
 
 ![AWS Console](../images/aws-eks-upgrade.png)
 
-4) Most of the time new EKS version implies new versions for `kube-proxy`/`kube-dns`/`aws-node daemonset`. The upgrade process can be found directly in the official [AWS Control Plane upgrade documentation](https://docs.aws.amazon.com/eks/latest/userguide/update-cluster.html) and **MUST BE FOLLOWED, PLEASE DON'T SKIP IT**. 
+4) Most of the time new EKS version implies new versions for `kube-proxy`/`kube-dns`/`aws-node daemonset`. The upgrade process can be found directly in the official [AWS Control Plane upgrade documentation](https://docs.aws.amazon.com/eks/latest/userguide/update-cluster.html) and **MUST BE FOLLOWED, PLEASE DON'T SKIP IT**.
 
 ### Upgrade Node Groups
 

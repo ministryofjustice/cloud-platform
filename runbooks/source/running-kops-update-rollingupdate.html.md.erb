@@ -86,19 +86,19 @@ At this point, you should have an updated `kops/[cluster name].yaml` file in you
 Commit and push your changes, including those in the terraform source and template files.
 
 ### Applying local changes to the kops state store
-  
+
 #### Backup the remote kops state
-  
+
 If you want to preserve a backup of the current kops state on S3, you can do so like this:
-  
+
 ```bash
 aws s3 cp --recursive $KOPS_STATE_STORE/live-1.cloud-platform.service.justice.gov.uk $KOPS_STATE_STORE/live-1-backup
 ```
 
 This takes a couple of minutes. At time of writing, this was around 10G of data (mostly etcd backup tarballs).
-  
+
 > While the backup exists, `kops get clusters` will report "live-1" *twice*. This doesn't do any harm, but you do need to delete the backup in order to resolve this, either via the `aws` CLI too, or using the AWS web interface for S3.
-  
+
 #### Updating the remote kops state
 
 To apply your local changes to the kops state stored on S3:
@@ -193,4 +193,4 @@ While draining a node there is a chance that rolling update might be stuck at ev
 $ kubectl get pods -owide --all-namespaces | grep ${node_name}
 ```
 
-[kops dir]: https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/terraform/cloud-platform
+[kops dir]: https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/cloud-platform

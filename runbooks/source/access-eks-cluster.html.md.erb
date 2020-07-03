@@ -10,7 +10,7 @@ review_in: 3 months
 
 In order for kubectl to find and access a EKS cluster, it needs a kubeconfig file. When you create a new EKS cluster, the kubeconfig file is created locally within the [cloud-platform-eks/files/][files-folder] named as `files/kubeconfig_${WorkspaceName}` and only available for the user who created the cluster, other users who is authorized to access the cluster can create the kubeconfig file following the below process.
 
-## Pre-requisites 
+## Pre-requisites
 
 - Make sure you've access to Cloud Platform AWS account
 - Set your environment variables
@@ -55,7 +55,7 @@ You should now be able to run kubectl commands, try running such as `kubectl get
 
 ### Create kubeconfig manually using template
 
-Kubeconfig file can be created manually, using the below template. Login to AWS console, in the EKS service select the cluster you need to access. You will see all the information related to the EKS cluster, update `API server endpoint`, `Certificate authority` and `Cluster name` in the below kubeconfig template. 
+Kubeconfig file can be created manually, using the below template. Login to AWS console, in the EKS service select the cluster you need to access. You will see all the information related to the EKS cluster, update `API server endpoint`, `Certificate authority` and `Cluster name` in the below kubeconfig template.
 
 
 ```
@@ -92,5 +92,5 @@ users:
 Save the kubeconfig with a filename (eg.: ~/.kube/config_eks) and use the saved kubeconfig file to access the EKS cluster.
 
 
-[files-folder]: https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/master/terraform/cloud-platform-eks/files
+[files-folder]: https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/cloud-platform-eks/files
 

@@ -52,26 +52,26 @@ KIND    NAME            MESSAGE
 Machine i-046ed8d94d65719a6 machine "i-046ed8d94d65719a6" has not yet joined cluster
 ```
 
-This shows that one of the machines not joined the cluster. 
+This shows that one of the machines not joined the cluster.
 
-Make sure it is a master node by looking for the Instance ID in the Amazon EC2 console, on the Instances page. The instance ID should be something like: 
+Make sure it is a master node by looking for the Instance ID in the Amazon EC2 console, on the Instances page. The instance ID should be something like:
 
 ```
 master-<availability-zone>.masters.<cluster_name>.cloud-platform.service.justice.gov.uk
-``` 
- 
+```
+
 ##  Remove the unhealthy master node.
 
-As per [this guidance][remove-member-first] remove the unhealthy etcd member (i.e. the failed master node) first. 
- 
+As per [this guidance][remove-member-first] remove the unhealthy etcd member (i.e. the failed master node) first.
+
 Identify and remove the unhealthy member by accessing any of the working master nodes using SSH, via the bastion instance.
 
 In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}`to locate the bastion instance:
- 
+
 ```
  bastion.<cluster_name>.cloud-platform.service.justice.gov.uk
  ```
- 
+
 Use the Public DNS (IPv4) in the description of the Instance to login in to bastion like this:
 
 
@@ -127,7 +127,7 @@ You will see list of members like this:
 27aaafc750f8d2f7, started, etcd-c, https://etcd-c.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:2380, https://etcd-c.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:4001
 8d4a23328d324c94, started, etcd-b, https://etcd-b.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:2380, https://etcd-b.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:4001
 ```
-The first value in each line is the ID of the member. We will need this to remove the member from the etcd cluster. 
+The first value in each line is the ID of the member. We will need this to remove the member from the etcd cluster.
 
 Identify the unhealthy member (the old master node) and run the command below to remove the member.
 
@@ -182,7 +182,7 @@ You will get a message like:
 Snapshot saved at /rootfs/mnt/snapshot.db
 ```
 
-The snapshot.db is saved at `/rootfs/mnt/`, which is volume mounted to a local directory at `/mnt`. 
+The snapshot.db is saved at `/rootfs/mnt/`, which is volume mounted to a local directory at `/mnt`.
 
 3) Edit the kops instance group for the master you removed, to scale down by replacing maxSize and minSize values to 0, and run a kops update on the cluster. e.g:
 
@@ -195,27 +195,27 @@ kops update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk --yes
 ```
 
 4) In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}` to locate the failed master instance:
- 
+
 ```
  master-<availability-zone>.masters.<cluster_name>.cloud-platform.service.justice.gov.uk
  ```
- 
-Terminate the failed master instance following this [guide][terminate-ec2-instance]. 
+
+Terminate the failed master instance following this [guide][terminate-ec2-instance].
 
 #### etcd volumes
 
 Kubernetes live-1 cluster deployed with kops stores the etcd state in two different AWS EBS volumes per master node. One volume is used to store the Kubernetes main data, the other one for events. For a cluster with three masters this will result in six volumes for etcd data (one in each AZ).
- 
+
 5) In the Amazon EBS volume console, search using `${CLUSTER_NAME}` to locate the right volume associated with the broken master. Remove the volumes (main and events) for the failed master.
 
-For example, for the master node instance 
- 
+For example, for the master node instance
+
 ```
 master-eu-west-2a.masters.live-1.cloud-platform.service.justice.gov.uk
 ```
 
 ...you should see volumes called:
- 
+
 ```
 a.etcd-main.live-1.cloud-platform.service.justice.gov.uk
 a.etcd-events.live-1.cloud-platform.service.justice.gov.uk
