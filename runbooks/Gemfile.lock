@@ -39,6 +39,8 @@ GEM
       eventmachine (>= 0.12.9)
       http_parser.rb (~> 0.6.0)
     erubis (2.7.0)
+    ethon (0.12.0)
+      ffi (>= 1.3.0)
     eventmachine (1.2.7)
     execjs (2.7.0)
     fast_blank (1.0.0)
@@ -66,6 +68,14 @@ GEM
     hamster (3.0.0)
       concurrent-ruby (~> 1.0)
     hashie (3.6.0)
+    html-proofer (3.15.3)
+      addressable (~> 2.3)
+      mercenary (~> 0.3)
+      nokogumbo (~> 2.0)
+      parallel (~> 1.3)
+      rainbow (~> 3.0)
+      typhoeus (~> 1.3)
+      yell (~> 2.0)
     http_parser.rb (0.6.0)
     i18n (0.9.5)
       concurrent-ruby (~> 1.0)
@@ -74,6 +84,7 @@ GEM
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
     memoist (0.16.2)
+    mercenary (0.4.0)
     method_source (1.0.0)
     middleman (4.3.7)
       coffee-script (~> 2.2)
@@ -129,8 +140,10 @@ GEM
     mini_portile2 (2.4.0)
     minitest (5.14.1)
     multi_json (1.14.1)
-    nokogiri (1.10.10)
+    nokogiri (1.10.9)
       mini_portile2 (~> 2.4.0)
+    nokogumbo (2.0.2)
+      nokogiri (~> 1.8, >= 1.8.4)
     openapi3_parser (0.5.2)
       commonmarker (~> 0.17)
     padrino-helpers (0.13.3.4)
@@ -147,6 +160,7 @@ GEM
     rack (2.2.3)
     rack-livereload (0.3.17)
       rack
+    rainbow (3.0.0)
     rb-fsevent (0.10.4)
     rb-inotify (0.10.1)
       ffi (~> 1.0)
@@ -165,19 +179,22 @@ GEM
     thor (1.0.1)
     thread_safe (0.3.6)
     tilt (2.0.10)
+    typhoeus (1.4.0)
+      ethon (>= 0.9.0)
     tzinfo (1.2.7)
       thread_safe (~> 0.1)
     uglifier (3.2.0)
       execjs (>= 0.3.0, < 3)
+    yell (2.2.2)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   govuk_tech_docs
-
-RUBY VERSION
-   ruby 2.7.1p83
+  html-proofer
+  tzinfo-data
+  wdm (~> 0.1.0)
 
 BUNDLED WITH
    2.1.4
