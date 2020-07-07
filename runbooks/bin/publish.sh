@@ -9,7 +9,9 @@
 set -euo pipefail
 
 # Check for internal and external broken links
-bundle exec htmlproofer ./docs --http-status-ignore 429 --allow-hash-href --url-swap "https?\:\/\/runbooks\.cloud-platform\.service\.justice\.gov\.uk:" ./docs
+# TODO: disabled 2020-07-07 because the github action hung at this point.
+#       we didn't have the htmlproofer step before, so remove it makes sense until I figure out what's happening
+# bundle exec htmlproofer ./docs --http-status-ignore 429 --allow-hash-href --url-swap "https?\:\/\/runbooks\.cloud-platform\.service\.justice\.gov\.uk:" ./docs
 
 # PUBLISHING_GIT_TOKEN is a secret in the source repository. It should contain a github personal access token
 # with `public_repo` scope, and MoJ SSO enabled.
