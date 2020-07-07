@@ -3,7 +3,7 @@ name: Publish
 on:
   push:
     branches:
-      - "publish-github-action"
+      - "main"
 
 jobs:
   run:
@@ -21,6 +21,6 @@ jobs:
         GITHUB_PAGES_REPO_OWNER: ministryofjustice
         GITHUB_PAGES_REPO_AUTHOR: cloud-platform-moj
         GITHUB_PAGES_REPO_AUTHOR_EMAIL: platforms@digital.justice.gov.uk
-        GITHUB_PAGES_REPO_NAME: cloud-platform-runbooks2
+        GITHUB_PAGES_REPO_NAME: cloud-platform-runbooks
         GITHUB_PAGES_RELEASE_BRANCH: gh-pages
         PROJECT_BUILD_FOLDER: docs
