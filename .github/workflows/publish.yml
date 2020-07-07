@@ -1,0 +1,26 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - "publish-github-action"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    container:
+      image: ministryofjustice/cloud-platform-tech-docs-publisher:1.0
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: cd runbooks; bundle exec middleman build --build-dir docs
+    - name: Run the script
+      run: cd runbooks; bin/publish.sh
+      env:
+        PUBLISHING_GIT_TOKEN: ${{ secrets.PUBLISHING_GIT_TOKEN }}
+        GITHUB_PAGES_REPO_OWNER: ministryofjustice
+        GITHUB_PAGES_REPO_AUTHOR: cloud-platform-moj
+        GITHUB_PAGES_REPO_AUTHOR_EMAIL: platforms@digital.justice.gov.uk
+        GITHUB_PAGES_REPO_NAME: cloud-platform-runbooks2
+        GITHUB_PAGES_RELEASE_BRANCH: gh-pages
+        PROJECT_BUILD_FOLDER: docs
