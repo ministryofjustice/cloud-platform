@@ -1,7 +1,7 @@
 ---
 title: Manually Delete Namespace Resources
 weight: 190
-last_reviewed_on: 2020-04-28
+last_reviewed_on: 2020-07-08
 review_in: 3 months
 ---
 
@@ -30,6 +30,10 @@ To run the script:
 ```
 ./bin/delete-namespace.rb mynamespace
 ```
+
+If you need to delete a production namespace, you will have to comment out the code which prevents that from happening.
+
+That's the code block [here](https://github.com/ministryofjustice/cloud-platform-environments/blob/dd2e0049b5eb17d2925a55b22f4102896909a96b/lib/cp_env/namespace_deleter.rb#L71)
 
 > If the script fails partway through, it may leave a new file in your local working copy:
 >
