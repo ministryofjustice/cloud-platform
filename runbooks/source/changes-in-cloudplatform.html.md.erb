@@ -29,7 +29,7 @@ Mostly all Cloud Platform infrastructure are compose in blocks of terraform modu
 1. Create PR and ask a team member for approval.
 2. Merge PR
 3. Create a release following [semantic version spec.](https://semver.org/)
-4. In order to keep our definitions/instances [up to date](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/015-Keeping-Terraform-modules-up-to-date.md): update all existing instances in [environments repo](https://github.com/ministryofjustice/cloud-platform-environments) and [cloud-platform-infrastructure repo](https://github.com/ministryofjustice/cloud-platform-infrastructure).
+4. In order to keep our definitions/instances [up to date](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/015-Keeping-Terraform-modules-up-to-date.md): update all existing instances in [environments repo](https://github.com/ministryofjustice/cloud-platform-environments) and [cloud-platform-infrastructure repo](https://github.com/ministryofjustice/cloud-platform-infrastructure). If this step affects team's environments it will need planning and communication.
 
 Step 2 and 3 can be done at any time and they don't affect the running infrastructure because all terraform modules calls have pinned release version. None terraform module should point to master branches or latest releases automatically.
 
