@@ -1,7 +1,7 @@
 ---
 title: Remove data from Elasticsearch
 weight: 190
-last_reviewed_on: 2020-05-14
+last_reviewed_on: 2020-07-14
 review_in: 3 months
 ---
 
@@ -45,7 +45,6 @@ GET /logstash-2020.02.01/_search
 ```
 
 > Important note: `.keyword` forces elasticsearch to only return exact matches. Without it, you may end up deleting more than you wish
-  
 
 
 As a `curl` command, the query above would translate to: 
@@ -77,4 +76,91 @@ If we want to delete all logs from the `my-namespace-production` from 01/02/2020
 ```
 
 Here again, `.keyword` is essential.
+
+To run the `curl` commands, you can `exec` into any of the pods(eg. fluentd-es) inside the cluster. You may have to install `curl`.
+
+Make sure to delete the pod after executing the commands and removing the data.
+
+## Removing specific logs filtered by phrase
+
+If you want to delete logs which has a certain phrase, you can use below queries.
+
+Searching for a phrase "What is your name?" between certain dates, the `curl` command would look like
+
+```
+
+curl -XGET https://search-cloud-platform-live-dibidbfud3uww3lpxnhj2jdws4.eu-west-2.es.amazonaws.com/logstash-2*/_search?pretty \
+-H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "bool": {
+      "must": [],
+      "filter": [
+        {
+          "multi_match": {
+            "type": "phrase",
+            "query": "What is your name?",
+            "lenient": true
+          }
+        },
+        {
+          "range": {
+            "@timestamp": {
+              "format": "strict_date_optional_time",
+              "gte": "2020-06-13T12:19:24.804Z",
+              "lte": "2020-07-14T15:19:24.804Z"
+            }
+          }
+        }
+      ],
+      "should": [],
+      "must_not": []
+    }
+  }
+}'
+
+```
+
+Deleting the logs which has a phrase "What is your name?" between certain dates, the `curl` command would look like
+
+```
+curl -XPOST https://search-cloud-platform-live-dibidbfud3uww3lpxnhj2jdws4.eu-west-2.es.amazonaws.com/logstash-2*/_delete_by_query?pretty \
+-H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "bool": {
+      "must": [],
+      "filter": [
+        {
+          "multi_match": {
+            "type": "phrase",
+            "query": "What is your name?",
+            "lenient": true
+          }
+        },
+        {
+          "range": {
+            "@timestamp": {
+              "format": "strict_date_optional_time",
+              "gte": "2020-06-13T12:19:24.804Z",
+              "lte": "2020-07-14T15:19:24.804Z"
+            }
+          }
+        }
+      ],
+      "should": [],
+      "must_not": []
+    }
+  }
+}'
+
+```
+
+If you have complex search patterns used in kibana which you want to delete, 
+ - narrow down the kibana search in the webconsole
+ - click on the "Inspect"
+ - In the popup search window, click on the tab "Request"
+ - Copy and paste the object which mentions `"query": {` to the above curl command and modify dates as you need
+ 
+
 
