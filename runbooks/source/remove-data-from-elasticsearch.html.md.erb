@@ -18,6 +18,7 @@ An index contains documents. In our case, documents are log entries.
 
 The current logging strategy is to have one index per day, containing all the daily logs.
 All application logs are sent to that daily index, ex:  `logstash-2020.02.01`
+If you want your query to cover all log data stored in the Elasticsearch cluster, you can use expression in the index like `logstash-2*`
 
 Although it is possible to delete a whole index with a curator job, this guide will only cover the deletion of specific documents.
 
@@ -79,7 +80,8 @@ Here again, `.keyword` is essential.
 
 To run the `curl` commands, you can `exec` into any of the pods(eg. fluentd-es) inside the cluster. You may have to install `curl`.
 
-Make sure to delete the pod after executing the commands and removing the data.
+After executing the commands and removing the data, make sure to delete the pod as it will contain the search results of sensitve data 
+you have queried using `curl`. A fluentd pod will be recreated automatically.
 
 ## Removing specific logs filtered by phrase
 
@@ -162,5 +164,3 @@ If you have complex search patterns used in kibana which you want to delete,
  - In the popup search window, click on the tab "Request"
  - Copy and paste the object which mentions `"query": {` to the above curl command and modify dates as you need
  
-
-
