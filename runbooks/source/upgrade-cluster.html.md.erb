@@ -61,7 +61,7 @@ Open the cloud-platform-infrastructure repository and make the following changes
   - The Kubernetes release version, ensuring it is supported by Kops - verify on the [kops releases](https://github.com/kubernetes/kops/releases) page.
   - The AMI in each instance group. This can be found here: https://github.com/kubernetes/kops/blob/master/channels/stable
 
-Now make the same changes to the template file `./terraform/cloud-platform/templates/kops.yaml.tpl`.
+Make the same changes to the template file located inside [cloud-platform-terraform-kops terraform module](https://github.com/ministryofjustice/cloud-platform-terraform-kops/blob/main/templates/kops.yaml.tpl) followed by a new release. The release must be also referenced in our [definition/instance file](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform/main.tf#L57-L75).
 
 ### Push changes to kops state
 
