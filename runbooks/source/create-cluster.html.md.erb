@@ -45,13 +45,19 @@ NB: Your cluster name must be **no more than 12 characters**. Any longer, and so
 
 See our [cluster naming policy] for information on how to choose a suitable name for your cluster.
 
-By default, the script will create a 'small' cluster. This means the master and worker EC2 instances will be less powerful machine types than in our production cluster. To create a 'medium' or 'production' cluster, run the script like this:
+By default, the script will create a 'small' cluster. This means the master and worker EC2 instances will be less powerful machine types than in our production cluster. To create a 'production' size cluster you have to add your cluster name inside the [terraform map variables](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform/variables.tf#L37-L60):
 
 ```bash
-./create-cluster.rb --name david-test1 --size medium # or --size production
+variable "worker_node_machine_type" {
+  description = "The AWS EC2 instance types to use for worker nodes"
+  default = {
+    live-1       = "r5.xlarge"
+    test_cluster = "r5.xlarge"
+    default      = "r5.large"
+  }
 ```
 
-See the script source code for the precise machine types used for the different sizes. The machine types used for 'production' clusters should always be the same machine types as we use in production.
+In this terraform map you can visualise the different machine types used for our clusters, including our production/live ones.
 
 See more options to use when creating the cluster by running
 
