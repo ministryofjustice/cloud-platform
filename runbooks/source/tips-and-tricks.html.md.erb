@@ -129,3 +129,9 @@ To validate your feed url, test using the [w3c validator](https://validator.w3.o
 To get the RSS feed url for github projects, use `<github repo url>/releases.atom`
 
 To add your first feed to a new slack channel, follow steps provided by [slack](https://slack.com/intl/en-gb/help/articles/218688467-Add-RSS-feeds-to-Slac://slack.com/intl/en-gb/help/articles/218688467-Add-RSS-feeds-to-Slack)
+  
+## Find files which *don't* contain a particular string
+  
+```
+for file in $(find * -name '*.erb'); do grep -q last_reviewed_on $file || echo $file; done
+```
