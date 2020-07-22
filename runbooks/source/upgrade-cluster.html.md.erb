@@ -1,6 +1,8 @@
 ---
 title: Upgrade a cluster
 weight: 52
+last_reviewed_on: 2020-07-22
+review_in: 3 months
 ---
 
 # Upgrade a cluster
@@ -126,6 +128,9 @@ watch kubectl get nodes
 ```
 
 We have multiple worker instance groups. Perform the same process on the other node instance groups.
+  
+> The "main" worker instancegroup (i.e. the one which contains the bulk of our worker nodes) is referenced in the [recycle-node.rb] script.
+> Update that file with the new instancegroup name, so that the [recycle node pipeline job] continues to work after the upgrade.
 
 ### Cordon old workers
 
@@ -223,4 +228,5 @@ Any changes made to the cloud-platform-infrastructure repository should be pushe
 [PagerDuty]: https://www.pagerduty.com/
 [tools image]: https://github.com/ministryofjustice/cloud-platform-tools-image
 [kube-system-ns]: https://github.com/ministryofjustice/cloud-platform-environments/blob/main/namespaces/live-1.cloud-platform.service.justice.gov.uk/kube-system/00-namespace.yaml
-
+[recycle-node.rb]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/3b73b4616d22818fe297f1a1821e58c4c7aa1989/recycle-node.rb#L25
+[recycle node pipeline job]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/maintenance/jobs/recycle-node-live-1
