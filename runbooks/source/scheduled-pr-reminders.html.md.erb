@@ -1,0 +1,37 @@
+---
+title: Scheduled PR Reminders
+weight: 9101
+last_reviewed_on: 2020-07-23
+review_in: 3 months
+---
+
+# Scheduled PR Reminders
+
+Scheduled reminders helps the Cloud Platform focus on the most important review requests that require their attention. Scheduled reminders for pull requests will send a message to various Slack channels with all open pull requests that the team have been asked to review (or need merging), at a specified time. For example, you can create a scheduled reminder to send a message to your team's main communication channel in Slack, including all open pull requests that the team is requested to review, every Wednesday at 9:00 a.m.
+
+All reminders are created on Github Team level - For the Cloud Platform team, the team is `webops`
+
+To view all scheduled reminders for team webops;
+
+https://github.com/ministryofjustice > Teams > Webops > Settings > Scheduled Reminders 
+
+There is currently 2 reminders setup;
+
+- **cloud-platform-notify**
+
+    Report all open PRs for all cloud-platform-* repos every hour between 9am-5pm UTC Monday to Friday.  
+
+- **cloud-platform** 
+
+    Report all open PRs for the cloud-platform-environments and cloud-platform-infrastructure repos at 9am UTC Monday to Friday.
+
+### Steps required for new repositories 
+
+New repositories are not automatically added to reminders and require the following steps;
+
+1. Add the new repository to the Github Slack app - 
+https://github.com/ministryofjustice > Settings > Installed Github Apps > Slack
+
+2. Go into the reminder that the new repository is required to be reported on and add it in the 'select repositories' section.   
+
+
