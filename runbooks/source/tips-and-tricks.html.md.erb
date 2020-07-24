@@ -98,6 +98,14 @@ If you need to install `jq`, do `brew install jq`
 kubectl get pods --all-namespaces -o wide --field-selector spec.nodeName=ip-172-20-80-62.eu-west-2.compute.internal
 ```
 
+## Count pods running on all nodes
+
+Paste this into the search field on [Prometheus]:
+  
+```
+max by(node) (max by(instance) (kubelet_running_pod_count{job="kubelet",metrics_path="/metrics"}) * on(instance) group_left(node) kubelet_node_name{job="kubelet",metrics_path="/metrics"})
+```
+  
 ## Install tmux and docker on the live-1 bastion host
 
 From [here](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-debian-9)
@@ -135,3 +143,5 @@ To add your first feed to a new slack channel, follow steps provided by [slack](
 ```
 for file in $(find * -name '*.erb'); do grep -q last_reviewed_on $file || echo $file; done
 ```
+
+[Prometheus]: https://prometheus.cloud-platform.service.justice.gov.uk
