@@ -5,6 +5,19 @@ weight: 52
 
 # Upgrade a cluster
 
+## Planning
+
+When you start working on a upgrade ticket, checkout the below points which will give a synopsis for the upgrade.
+
+- Check which versions are available to upgrade to. 
+- Check whether the current cluster is upgradable to that version (skipping a major version is not recommended)
+- Check the release notes of the kops and kubernetes version for any breaking changes
+- Check and add notes of every CHANGELOG.md of kops between the current kops version of your cluster to the version you want to upgrade to
+- Check and add notes of every CHANGELOG.md of kubernetes between the current kubernetes version of your cluster to the version you want to upgrade to.
+  - There might be few changes between certain minor version which might not be mentioned in major version CHANGELOG.
+- Review the CHANGELOG notes with another member of the team
+  - Check for breaking changes, deprecations and suggested alternatives for any addons/components. 
+
 ## Pre-requisites
 
 Before you begin, there are a few pre-requisites:
