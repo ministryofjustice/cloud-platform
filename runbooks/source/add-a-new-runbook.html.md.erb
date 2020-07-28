@@ -1,7 +1,7 @@
 ---
 title: Add a new runbook
 weight: 9999
-last_reviewed_on: 2020-04-21
+last_reviewed_on: 2020-07-28
 review_in: 3 months
 ---
 
@@ -9,11 +9,11 @@ review_in: 3 months
 
 To add a new runbook, you will create a file in the `runbooks/source` directory of the [cloud-platform] repository.
 
-#### 1. `git pull` to get the latest changes
-#### 2. Create a feature branch for your new runbook
-#### 3. `cd runbooks`
-#### 4. Run `make server` to start a development webserver to view your changes
-#### 5. Add your runbook as a new file in the [source] directory
+* `git pull` to get the latest changes
+* Create a feature branch for your new runbook
+* `cd runbooks`
+* Run `bundle install`, `bundle exec middleman server` to start a development webserver to view your changes
+* Add your runbook as a new file in the [source] directory
 
 * Your filename must match `*.html.md.erb`
 * Your file must have a header section like this
