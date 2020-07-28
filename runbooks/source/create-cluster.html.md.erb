@@ -1,11 +1,15 @@
 ---
 title: Create a new cluster
 weight: 50
-last_reviewed_on: 2020-04-27
+last_reviewed_on: 2020-07-28
 review_in: 3 months
 ---
 
 # Create a new cluster
+
+You can create a new kops test cluster using the [cluster build pipeline].
+
+Alternatively, if you need more control over the test cluster parameters, or you just prefer to do it manually, the rest of this document describes the process.
 
 ## Pre-requisites
 
@@ -21,7 +25,7 @@ Before you begin, there are a few pre-requisites:
 
 See the file `example.env.create-cluster` in the [infrastructure repo]. This shows examples of the environment variables which must be set in order to run the `create-cluster.rb` script to create a new cluster.
 
-You can get the auth0 values from the `terraform-provider-auth0` application on [auth0](https://manage.auth0.com/#/applications).
+You can get the auth0 values from the `terraform-provider-auth0` application on [auth0](https://manage.auth0.com/dashboard/eu/justice-cloud-platform/applications).
 
 ## Run the build script, via the tools image
 
@@ -75,9 +79,11 @@ variable "cluster_node_count" {
 }
 ```
 
-In this terraform map you can visualise different machine types (for masters and nodes) and also number of workers (`cluster_node_count`) used for our clusters  Notice there is not need to commit/PR this change.
+In this terraform map you can specify different machine types (for masters and nodes) and also the number of worker nodes (`cluster_node_count`) for your cluster. 
 
-See more options to use when creating the cluster by running
+> You do not need to commit/PR this change, if you are just specifying values for a single test cluster.
+
+You can see more options to use when creating the cluster by running:
 
 ```bash
 ./create-cluster.rb --help
@@ -173,7 +179,7 @@ in via auth0, rather than using `kops export kubecfg...`), the auth0 login URL i
 https://login.apps.[cluster name].cloud-platform.service.justice.gov.uk
 ```
 
-e.g. for a cluster called "david-test1", the URL to authenticate and download a `kubeconfg` file is:
+e.g. for a cluster called "david-test1", the URL to authenticate and download a `~/.kube/config` file is:
 
 ```
 https://login.apps.david-test1.cloud-platform.service.justice.gov.uk
@@ -185,3 +191,4 @@ https://login.apps.david-test1.cloud-platform.service.justice.gov.uk
 [docker]: https://www.docker.com/
 [PagerDuty]: https://www.pagerduty.com/
 [tools image]: https://github.com/ministryofjustice/cloud-platform-tools-image
+[cluster build pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/build-test-cluster/jobs/build-test-cluster
