@@ -1,0 +1,46 @@
+---
+title: How to Investigate Divergence Errors
+weight: 210
+last_reviewed_on: 2020-07-30
+review_in: 3 months
+---
+
+# <%= current_page.data.title %>
+
+The [divergence pipelines] alert us if the state of the cluster does not match the source code in our git repositories.
+
+Usually, the pipeline failure will include the `terraform plan` output that explains exactly what has diverged. But you may sometimes see pipelines failing, with an error like this:
+
+```bash
+ERRO[0159] cmd.Run() failed                              err="<nil>" stderr= stdout=
+FATA[0159] Error executing plan, either an error or a divergence  subcommand=check-divergence
+```
+
+## Reproduce the error
+
+You can use the `cloud-platform` CLI tool to manually reproduce the pipeline error.
+
+* Ensure you have the following environment variables set:
+    * `AWS_ACCESS_KEY_ID`
+    * `AWS_SECRET_ACCESS_KEY`
+* Start in a working copy of the [cloud-platform-infrastructure] repo
+* `cd` into the directory matching the pipeline which is failing:
+
+| Pipeline | Directory |
+| - | - |
+| divergence-global-iam | terraform/cross-account-IAM |
+| divergence-kops |terraform/cloud-platform |
+| divergence-eks | terraform/cloud-platform-eks |
+| divergence-networking | terraform/cloud-platform-network |
+| divergence-k8s-components | terraform/cloud-platform-components |
+
+* Check you're using the correct terraform workspace (usually `terraform workspace select default`)
+* Check you're targeting the correct kubernetes cluster, by running `kubectl cluster-info`
+* Run the divergence check:
+
+```bash
+cloud-platform terraform check-divergence
+```
+
+[divergence pipelines]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/divergence
+[cloud-platform-infrastructure]: https://github.com/ministryofjustice/cloud-platform-infrastructure
