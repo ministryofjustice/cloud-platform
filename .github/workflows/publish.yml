@@ -1,9 +1,11 @@
-name: Publish
+name: Publish runbooks
 
 on:
   push:
     branches:
       - "main"
+    paths:
+      - "runbooks/**"
 
 jobs:
   run:
