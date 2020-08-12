@@ -7,11 +7,8 @@ review_in: 3 months
 
 # <%= current_page.data.title %>
 
-There is a [lambda function] in place which runs weekly and revokes public access for all our S3 Buckets. If we want grant public access to S3 buckets they must be [added as exceptions within module definion] followed by `terraform apply`.
-
-NOTE: If we create s3 bucket as private and try to change to public later, terraform apply is failing with `Error: Error putting S3 ACL: AccessDenied: Access Denied`.
-Running `terraform apply` again will say no changes to make, but you will notice that the bucket is not changed to public. There is an open [terraform issue] related to this error.
+There is a [lambda function] in place which runs weekly and revokes public access for all our S3 Buckets. If we want grant public access to S3 buckets they must be [added as exceptions within module definion] followed by `terraform apply`. It should also be followed the instructions described within the [S3 module "Usage" section]
 
 [lambda function]: https://github.com/ministryofjustice/cloud-platform-terraform-awsaccounts-baselines/blob/main/modules/lambdas/functions/s3-bucket-block-publicaccess/index.py
 [added as exceptions within module definion]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-account/main.tf#L35-L39
-[terraform issue]: https://github.com/terraform-providers/terraform-provider-aws/issues/762
+[S3 module "Usage" section]: https://github.com/ministryofjustice/cloud-platform-terraform-s3-bucket#usage
