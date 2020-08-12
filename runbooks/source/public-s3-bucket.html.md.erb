@@ -7,18 +7,8 @@ review_in: 3 months
 
 # <%= current_page.data.title %>
 
-This [lambda function] created by the security team runs weekly, and revokes public access for all our S3 Buckets.
+There is a [lambda function] in place which runs weekly and revokes public access for all our S3 Buckets. If we want grant public access to S3 buckets they must be [added as exceptions within module definion] followed by `terraform apply`. It should also be followed the instructions described within the [S3 module "Usage" section]
 
-The lambda function has a `S3_EXCEPTION` environment variable which stores a list of S3 buckets to ignore. To enable public access to a bucket, it must be added to this list.
-
-The easiest way to do this is to [edit the environment variable] directly via the aws console.
-
-The function uses a substring test to see if the current bucket name appears in the `S3_EXCEPTION` string, so you can use any separator you want when you add the new bucket name to the variable.
-
-Note: If we create s3 bucket as private and try to change to public later, terraform apply is failing with "Error: Error putting S3 ACL: AccessDenied: Access Denied". 
-Running Terraform apply again will say no changes to make, but you will notice that the bucket is not changed to public. There is an open [terraform issue] related to this error.
-
-
-[lambda function]: https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/cloudformation/aws-account-baseline-templates/aws-s3-enable-encryption-block-public-access
-[edit the environment variable]: https://eu-west-1.console.aws.amazon.com/lambda/home?region=eu-west-1#/functions/S3BucketBlockPublicAccess?tab=configuration
-[terraform issue]: https://github.com/terraform-providers/terraform-provider-aws/issues/762
+[lambda function]: https://github.com/ministryofjustice/cloud-platform-terraform-awsaccounts-baselines/blob/main/modules/lambdas/functions/s3-bucket-block-publicaccess/index.py
+[added as exceptions within module definion]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-account/main.tf#L35-L39
+[S3 module "Usage" section]: https://github.com/ministryofjustice/cloud-platform-terraform-s3-bucket#usage
