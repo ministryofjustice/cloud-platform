@@ -4,7 +4,7 @@ Date: 04/07/2019
 
 ## Status
 
-Accepted
+✅ Accepted
 
 ## Context
  
