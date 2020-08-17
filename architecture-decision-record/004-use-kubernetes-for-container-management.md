@@ -1,4 +1,4 @@
-# Use kubernetes for running containerised applications 
+# Use kubernetes for running containerised applications
 
 Date: 10/04/18
 

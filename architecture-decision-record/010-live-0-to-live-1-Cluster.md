@@ -25,7 +25,7 @@ Creation of the live-1 cluster, which includes a move to the moj-cp AWS account,
 
 2. Live-1 Kubernetes version bump to 1.11.8 using kops, this is for security and feature implementation. 1.11.8 is the latest version kops will allow. live-0 is using 1.10
 
-3. Change tenant to justice-cloud-platform. 
+3. Change tenant to justice-cloud-platform.
 
 4. Change all references to the integration.dsd.io to cloud-platform.service.justice.gov.uk.
 

@@ -8,7 +8,7 @@ Date: 05/02/2018
 
 ## Context
 
-The cloud platforms team self-host an Elasticsearch cluster with Kibana and Logstash (ELK). This cluster has suffered numerous outages (see [CPT-282](https://dsdmoj.atlassian.net/browse/CPT-282) and [CPT-152](https://dsdmoj.atlassian.net/browse/CPT-152) in Jira) that have been difficult to recover from. 
+The cloud platforms team self-host an Elasticsearch cluster with Kibana and Logstash (ELK). This cluster has suffered numerous outages (see [CPT-282](https://dsdmoj.atlassian.net/browse/CPT-282) and [CPT-152](https://dsdmoj.atlassian.net/browse/CPT-152) in Jira) that have been difficult to recover from.
 
 Reasons behind this move were:
 
@@ -32,4 +32,4 @@ Replace our self hosted ELK stack with the managed AWS Elasticsearch
 
 Product teams have confirmed their application logs being shipped and searchable in new ELK cluster with as of now - zero downtime and maintenance from Cloud Platforms side.
 
-We don't have any admin power over the cluster, unable to install either kibana plugins or change ES connectivity settings. 
+We don't have any admin power over the cluster, unable to install either kibana plugins or change ES connectivity settings.

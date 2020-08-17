@@ -13,14 +13,14 @@ The cloud platforms team currently use Docker Registry for storage of docker ima
 Example of an issue [CPT-274](https://dsdmoj.atlassian.net/browse/CPT-274).
 
 
-We want to update the container registry to avoid some of the problems we have been seeing with it. The container registry will also be a key part of our new [Kubernetes based infrastructure](https://github.com/ministryofjustice/cloud-platform/blob/master/architecture-decision-record/004-use-kubernetes-for-container-management.md).  
+We want to update the container registry to avoid some of the problems we have been seeing with it. The container registry will also be a key part of our new [Kubernetes based infrastructure](https://github.com/ministryofjustice/cloud-platform/blob/master/architecture-decision-record/004-use-kubernetes-for-container-management.md).
 
 
 The criteria for selecting a new solution included:
 
 * Finding a solution that would work with well GitHub based identity which is one of our [major architectural choices](https://github.com/ministryofjustice/cloud-platform/blob/master/architecture-decision-record/006-Use-github-as-user-directory.md)
 * Decreasing the amount of day to day ops work, perhaps by using a managed service
-* Good value for money  
+* Good value for money
 * Preference for open source tooling
 * Can or is able to run addons i.e. security scanners
 * We can make images that we host public by default

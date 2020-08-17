@@ -26,7 +26,7 @@ Replace self hosted Jenkins with self hosted Concourse CI pipeline
 1. Spike into deploying Concourse CI into AWS or Kubernetes [CPT-486](https://dsdmoj.atlassian.net/browse/CPT-486)
 2. Decision made to deploy to Kubernetes [CPT-488](https://dsdmoj.atlassian.net/browse/CPT-488)
 3. Automate deployment of concourse using Terraform and Helm
-4. WIP 
+4. WIP
 
 
 ~~Product teams have confirmed their success builds and deploys. zero downtime and minimal maintenance from Cloud Platforms side.~~
