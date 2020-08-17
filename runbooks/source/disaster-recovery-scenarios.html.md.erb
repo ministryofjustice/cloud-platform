@@ -443,7 +443,7 @@ The EKS components are applied whilst the ```kubectl context``` is set to a kops
 
 Use ```terraform destroy``` to delete all existing components from the ``` cloud-platform-eks/components ``` folder and re-apply using ```terraform apply``` from the ```cloud-platform-components``` folder.
 
-Only those resources that are part of the state can be re-applied, however there are certain resources created by service teams such as certificates and resources created from CRDs that will not be restored by ```terraform apply```
+Only those resources that are part of the state can be re-applied, however there are certain resources created by service teams such as certificates and resources created from CRDs that will not be restored by ```terraform apply.```
 For these resources a valero restore will have to be executed.
 
 
@@ -485,7 +485,7 @@ spec:
   - name: node.rules
     rules:
     - alert: cica--Quota-Exceeded--dev
-      expr: 100 * kube_resourcequota{job="kube-state-metrics",type="used",namespace="hello"} / ignoring(instance, job, type) (kube_resourcequota{job="kube-state-metrics",type="hard"} > 0) > 90
+      expr: 100 * kube_resourcequota{job="kube-state-metrics",type="used",namespace="<NAMESPACE>"} / ignoring(instance, job, type) (kube_resourcequota{job="kube-state-metrics",type="hard"} > 0) > 90
       for: 5m
       labels:
         severity: cica-dev-dev
@@ -496,12 +496,12 @@ spec:
       annotations:
         message: Job {{ $labels.namespace }}/{{ $labels.job_name }} failed to complete.
         runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubejobfailed
-      expr: kube_job_status_failed{job="kube-state-metrics",namespace="hello"}  > 0
+      expr: kube_job_status_failed{job="kube-state-metrics",namespace="<NAMESPACE>"}  > 0
       for: 1m
       labels:
         severity: cica-dev-dev
     - alert: cica--KubeletTooManyPods--dev
-      expr: kubelet_running_pod_count{job="kubelet",namespace="hello"}
+      expr: kubelet_running_pod_count{job="kubelet",namespace="<NAMESPACE>"}
         > 0 * 0.9
       for: 5m
       labels:
@@ -522,14 +522,16 @@ spec:
       annotations:
        message: Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched the expected number of replicas for longer than an hour.
        runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubedeploymentreplicasmismatch
-      expr: kube_deployment_spec_replicas{job="kube-state-metrics",namespace="hello"}
-        != kube_deployment_status_replicas_available{job="kube-state-metrics",namespace="hello"}
+      expr: kube_deployment_spec_replicas{job="kube-state-metrics",namespace="<NAMESPACE>"}
+        != kube_deployment_status_replicas_available{job="kube-state-metrics",namespace="<NAMESPACE>"}
       for: 1h
       labels:
         severity: cica-dev-dev
 
 ```
 
+Replace the placeholder ```<NAMESPACE>``` with the namespace where this will will created.
+ 
 Save the above yaml and execute into the desired namespace e.g ```kubectl create -f <FILE_NAME>.yaml -n <NAMESPACE>```
 
 
@@ -562,9 +564,9 @@ Before destroying ensure you have taken a backup using velero.
 
 ### Apply the EKS components to the KOPS cluster
 
-1) Ensure you have access to both a test kops cluster and a EKS test cluster
+1) Ensure you have access to both a test KOPS cluster and a EKS test cluster
 
-2) Ensure kubectl context is set to the kops cluster
+2) Ensure kubectl context is set to the KOPS cluster
 
 3) Browse to the ``` cloud-platform-infrastructure/terraform/cloud-platform-eks/components ```
 
@@ -638,7 +640,7 @@ Ensure you in the ```cloud-platform-infrastructure/terraform/cloud-platform-eks/
 Execute ``` terraform destroy -auto-approve ```
 
 
-### Re-apply the kops components 
+### Re-apply the KOPS components 
 
 Re-create the components but this time run ``` terraform apply -auto-approve ``` from the ```...terraform/cloud-platform-components``` directory 
 
