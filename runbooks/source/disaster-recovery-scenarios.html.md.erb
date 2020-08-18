@@ -427,7 +427,7 @@ Validation Failed
 Restoring corrupt or lost etcd involves two steps: remove the unhealthy etcd member and replace the effected master node via kops. Covering both steps, we already have a [runbook](https://runbooks.cloud-platform.service.justice.gov.uk/replacing-failed-master-node.html#replacing-a-failed-master-node), follow it step by step to restore unhealthy etcd.
 
 
-## Overriding KOPS cluster's components with EKS components
+## Overwriting KOPS cluster's components with EKS components
 
 ### Impact
 
@@ -444,13 +444,13 @@ The EKS components are applied whilst the ```kubectl context``` is set to a kops
 Use ```terraform destroy``` to delete all existing components from the ``` cloud-platform-eks/components ``` folder and re-apply using ```terraform apply``` from the ```cloud-platform-components``` folder.
 
 Only those resources that are part of the state can be re-applied, however there are certain resources created by service teams such as certificates and resources created from CRDs that will not be restored by ```terraform apply.```
-For these resources a valero restore will have to be executed.
+For these resources a Velero restore will have to be executed.
 
 
 ### Reproducing Incident Steps 
 
 
-To test the recovery of the CRD resources, first ensure that they exist so that when recovering we can verify they are restored by valero. Below are templates for each of the CRDs used. 
+To test the recovery of the CRD resources, first ensure that they exist so that when recovering we can verify they are restored by Velero. Below are templates for each of the CRDs used. 
 
 Service Monitor 
 
@@ -645,7 +645,7 @@ Execute ``` terraform destroy -auto-approve ```
 Re-create the components but this time run ``` terraform apply -auto-approve ``` from the ```...terraform/cloud-platform-components``` directory 
 
 
-After re-creating the components you may notice that the CRD resources and ingress certificates are still missing. To restore these run ``` valero restore ``` as follows:
+After re-creating the components you may notice that the CRD resources and ingress certificates are still missing. To restore these run ``` Velero restore ``` as follows:
 
 
 ``` 
