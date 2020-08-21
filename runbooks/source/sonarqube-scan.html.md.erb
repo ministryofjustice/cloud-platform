@@ -1,0 +1,79 @@
+---
+title: Sonarqube - Code quality and security scanning
+weight: 602
+last_reviewed_on: 2020-08-21
+review_in: 3 months
+---
+
+# Sonarqube - Code quality and security scanning
+
+TODO:
+
+## Scanning
+
+### Why?
+
+### What?
+
+### How?
+
+
+### Sonarqube Github Action
+
+We have implemented a Github Action to initiate an automated scan of any branch, where a PR is created. 
+If this scan fails, it will block the PR from being able to merge into Main. 
+
+#### Pre-requisites
+
+Two Github secrets are required to be added to each repo using the GHA:
+
+- `SONAR_URL` - The sonarqube URL
+- `SONAR_TOKEN` - A token created using the admin account for access. 
+
+#### Github Action
+
+```yaml
+name: Analyse Branch
+on:
+  push:
+    branches-ignore:
+      - 'master'
+      - 'main'
+jobs:
+  build:
+    name: Sonarqube Scan 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup sonarqube
+        uses: warchant/setup-sonar-scanner@v1
+
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Run sonar scanner
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # to get access to secrets.SONAR_TOKEN, provide GITHUB_TOKEN
+        run: sonar-scanner
+          -Dsonar.host.url=${{ secrets.SONAR_URL }}
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.projectKey=${{ github.repository }}:${GITHUB_REF:11}
+          -Dsonar.pullrequest.github.repository=${{ github.repository }}
+```
+ - The GHA pulls the branch where the PR is created from
+ - Creates a project within sonarqube
+ - Runs a scan of the branch from within the project
+ - Feeds back the result to Github with a pass or fail.
+
+
+`-Dsonar.host.url=${{ secrets.SONAR_URL }}` <br />
+This is the Sonarqube URL - https://sonarqube.thistheurl.com
+
+`-Dsonar.login=${{ secrets.SONAR_TOKEN }}`<br />
+Token required for access to Sonarqube.
+
+`-Dsonar.projectKey=${{ github.repository }}:${GITHUB_REF:11}`<br />
+A unique project key is required for Sonarqube to create a project for each branch - ministryofjustice/reponame:branch
+
+`-Dsonar.pullrequest.github.repository=${{ github.repository }}`<br />
+The name of the repository to scan. 
