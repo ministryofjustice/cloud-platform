@@ -645,7 +645,7 @@ Execute ``` terraform destroy -auto-approve ```
 Re-create the components but this time run ``` terraform apply -auto-approve ``` from the ```...terraform/cloud-platform-components``` directory 
 
 
-After re-creating the components you may notice that the CRD resources and ingress certificates are still missing. To restore these run ``` Velero restore ``` as follows:
+After re-creating the components you may notice that the CRD resources and ingress certificates are still missing. To restore these run ``` velero restore... ``` as follows:
 
 
 ``` 
@@ -654,7 +654,8 @@ velero backup get
 NAME                                       STATUS      CREATED                         EXPIRES   STORAGE   LOCATION   SELECTOR
 velero-backup-00000000000000              Completed   2020-03-30 12:00:37 +0100 BST     29d       default             <none>
 ```
-Using the backup name, you can now run a `Velero restore` command to restore the deleted resource.
+
+Using the backup name, you can now run a ```velero restore...``` command to restore the deleted resource.
 
 Restore command:
 
