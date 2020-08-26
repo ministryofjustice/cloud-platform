@@ -22,6 +22,7 @@ weight: 45
 - **Context**:
     * Pods and Nodes sitting in other Availability Zones (b & c) were not impacted
     * Slack threads: (Issue detected)[https://mojdt.slack.com/archives/C514ETYJX/p1598351210195200], (Incident Declared)[https://mojdt.slack.com/archives/C514ETYJX/p1598351210195200],
+    * We now have 25 pods in the cluster, instead of 21
 
 - **Resolution**:
     The incident was mitigated by deploying more 2-4 nodes in healthy Availability Zones, manually deleting the non-responding pods ,and terminating the impacted nodes
