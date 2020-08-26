@@ -7,6 +7,25 @@ weight: 45
 
 ## August 2020
 
+### Incident on 2020-08-25 11.26 UTC - Connectivity issues with eu-west-2a
+
+- **Status**: Resolved at 2020-08-25 12.30 UTC
+
+- **Incident**: The AWS  Availability Zones `eu-west-2a`, which contain some of our kubernetes nodes had an outage. API latency was elevated, some EC2 became unreachable and overall connectivity was unstable.
+
+- **Impact**:  
+    - Two kubernetes nodes became unreachable
+    - No new node could be launched in eu-west-2a 
+    - Kubernetes had issues talking to some of these nodes, preventing some API calls to succeed (Pods were not terminating)
+    - New pods were not able to pull their Docker images.
+
+- **Context**:
+    * Pods and Nodes sitting in other Availability Zones (b & c) were not impacted
+    * Slack threads: (Issue detected)[https://mojdt.slack.com/archives/C514ETYJX/p1598351210195200], (Incident Declared)[https://mojdt.slack.com/archives/C514ETYJX/p1598351210195200],
+
+- **Resolution**:
+    The incident was mitigated by deploying more 2-4 nodes in healthy Availability Zones, manually deleting the non-responding pods ,and terminating the impacted nodes
+
 ### Incident on 2020-08-14  10.43 UTC - Ingress-controllers crashlooping
 
 - **Status**: Resolved at 2020-08-14 11:38 UTC
