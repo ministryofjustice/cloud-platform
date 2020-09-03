@@ -17,7 +17,8 @@ Although this was both easy to manage, and saved us some money on load
 balancers (approx. $25/month per ingress), it has become unsustainable. We
 usually have 6 replicas of the ingress controller pod, and we have started to
 see instances of several of these pods crash-looping (usually because they have
-run out of shared memory).
+run out of shared memory, which cannot be increased in kubernetes. See [this
+issue] for more information).
 
 We believe this is because the nginx config has become so large (over 100K
 lines), that sometimes pods fail to reload it when it is changed, or the pod is
@@ -47,3 +48,4 @@ ingress-controller should stay within acceptable limits.
   will further increase our hosting costs.
 
 [module repository]: https://github.com/ministryofjustice/cloud-platform-terraform-teams-ingress-controller
+[this issue]: https://github.com/kubernetes/kubernetes/issues/28272
