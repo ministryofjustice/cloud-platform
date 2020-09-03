@@ -26,6 +26,7 @@ see [ADR-000](000-Record-Architecture-Decisions.md)
 * ✅  [15. Keeping Terraform modules up to date](015-Keeping-Terraform-modules-up-to-date.md)
 * ✅  [16. Kibana is open to all service teams](016-Kibana-is-open-to-all-service-teams.md)
 * 🤔  [17. Variable names are in snake-case](017-Variable-Naming.md)
+* 🤔  [18. Dedicated ingress controllers](018-Dedicated-Ingress-Controllers.md)
 
 ### Statuses:
 
