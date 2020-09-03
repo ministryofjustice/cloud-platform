@@ -1,26 +1,23 @@
 ---
 title: Sonarqube - Code quality and security scanning
 weight: 602
-last_reviewed_on: 2020-08-21
+last_reviewed_on: 2020-09-03
 review_in: 3 months
 ---
 
 # Sonarqube - Code quality and security scanning
 
-TODO:
+## Sonarqube scanning
 
-## Scanning
+[SonarQube][SonarQube] is a code analyzer used for major programming languages. We have setup [sonarqube][sq-console] in EKS cluster to run scan on our repositories and monitor code such as Duplicated code, Coding standards, Unit tests, Complex code, Potential bugs, Comments and Design and architecture.
 
-### Why?
+### Sonarqube scan all repositories
 
-### What?
-
-### How?
-
+We have set up a sonarqube scanning [concouse job][sq-concourse-job], which will run sonar-scanner on github repositories mentioned in "cloud-platform.justice.gov.uk/source-code" namespace annotation.
 
 ### Sonarqube Github Action
 
-We have implemented a Github Action to initiate an automated scan of any branch, where a PR is created. 
+We have implemented a Github Action for some of cloud-platform repositories to initiate an automated scan of any branch, where a PR is created. 
 If this scan fails, it will block the PR from being able to merge into Main. 
 
 #### Pre-requisites
@@ -33,16 +30,17 @@ Two Github secrets are required to be added to each repo using the GHA:
 #### Github Action
 
 ```yaml
-name: Analyse Branch
+name: Run sonar scanner
+
 on:
-  push:
-    branches-ignore:
-      - 'master'
-      - 'main'
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
 jobs:
-  build:
+  run-scan:
     name: Sonarqube Scan 
     runs-on: ubuntu-latest
+
     steps:
       - name: Setup sonarqube
         uses: warchant/setup-sonar-scanner@v1
@@ -57,14 +55,13 @@ jobs:
         run: sonar-scanner
           -Dsonar.host.url=${{ secrets.SONAR_URL }}
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-          -Dsonar.projectKey=${{ github.repository }}:${GITHUB_REF:11}
-          -Dsonar.pullrequest.github.repository=${{ github.repository }}
+          -Dsonar.projectKey=${{ github.repository }}:${{ github.head_ref }}
 ```
+
  - The GHA pulls the branch where the PR is created from
  - Creates a project within sonarqube
  - Runs a scan of the branch from within the project
  - Feeds back the result to Github with a pass or fail.
-
 
 `-Dsonar.host.url=${{ secrets.SONAR_URL }}` <br />
 This is the Sonarqube URL - https://sonarqube.thistheurl.com
@@ -72,8 +69,11 @@ This is the Sonarqube URL - https://sonarqube.thistheurl.com
 `-Dsonar.login=${{ secrets.SONAR_TOKEN }}`<br />
 Token required for access to Sonarqube.
 
-`-Dsonar.projectKey=${{ github.repository }}:${GITHUB_REF:11}`<br />
+`-Dsonar.projectKey=${{ github.repository }}:${{ github.head_ref }}`<br />
 A unique project key is required for Sonarqube to create a project for each branch - ministryofjustice/reponame:branch
 
-`-Dsonar.pullrequest.github.repository=${{ github.repository }}`<br />
-The name of the repository to scan. 
+
+[sq-concourse-job]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/scanning
+[SonarQube]: https://www.sonarqube.org/   
+[sq-console]: https://sonarqube.cloud-platform.service.justice.gov.uk
+[source-code-ul]: https://github.com/ministryofjustice/cloud-platform-environments/blob/main/namespace-resources-cli-template/00-namespace.yaml#L13
