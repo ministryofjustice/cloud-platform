@@ -5,6 +5,31 @@ weight: 45
 
 # Incident Log
 
+## September 2020
+
+### Incident on 2020-09-07 12.54 UTC - All users are unable to create new ingress rules.
+
+- **Status**: Resolved at 2020-09-07 15.56 UTC
+
+- **Incident**: The Ingress API refused 100% of POST requests.
+
+- **Impact**:
+    - If a user were to provision a new service, they would be unable to create an ingress into the cluster.
+
+- **Context**:
+  * [Version 0.1.0](https://github.com/ministryofjustice/cloud-platform-terraform-teams-ingress-controller/compare/0.0.9...0.1.0) of the [teams ingress controller module](https://github.com/ministryofjustice/cloud-platform-terraform-teams-ingress-controller) enabled the creation of a `validationwebhookconfiguration` resource.
+  * By enabling this option we created a single point of failure for all ingress-controller pods in the `ingress-controller` namespace.
+  * A new 0.1.0 ingress controller failed to create in the "live-1" cluster due to AWS resource limits.
+  * Validation webhook stopped new rules from creating, with the error:
+  ```
+  Error from server (InternalError): error when creating "ingress.yaml": Internal error occurred: failed calling webhook "validate.nginx.ingress.kubernetes.io": Post https://offender-categorisation-prod-nx-controller-admission.ingress-controllers.svc:443/extensions/v1beta1/ingresses?timeout=30s: x509: certificate signed by unknown authority
+  ```
+  * Initial investigation thread: https://mojdt.slack.com/archives/C514ETYJX/p1599478794246900
+  * Incident declared: https://mojdt.slack.com/archives/C514ETYJX/p1599479640251900
+
+- **Resolution**:
+    The team manually removed the all the additional admission controllers created by 0.1.0. They then removed the admission webhook from the module and created a new release (0.1.1). All ingress modules currently on 0.1.0 were upgraded to the new release 0.1.1.
+
 ## August 2020
 
 ### Incident on 2020-08-25 11.26 UTC - Connectivity issues with eu-west-2a
