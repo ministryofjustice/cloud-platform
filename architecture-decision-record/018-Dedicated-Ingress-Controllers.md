@@ -4,7 +4,7 @@ Date: 02/09/2020
 
 ## Status
 
-🤔 Proposed
+❌ Rejected (see [019](019-Shared-Ingress-Controllers.md))
 
 ## Context
 
