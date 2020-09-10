@@ -1,0 +1,35 @@
+---
+title: Grafana Dashboards
+weight: 9106
+last_reviewed_on: 2020-09-10
+review_in: 3 months
+---
+
+# Grafana Dashboards
+
+## Kubernetes Number of Pods per Node  
+
+This [dashboard](https://grafana.cloud-platform.service.justice.gov.uk/d/anzGBBJHiz/kubernetes-number-of-pods-per-node?orgId=1) was created to show the current number of pods per node in the cluster. 
+
+
+### Dashboard Layout 
+
+Each box on the dashboard has the name of the node and the number of pods on the node  - This number includes pods with a statuses such as "DeadlineExceeded" and completed".
+
+The exception is the `Max Pods per Node` box. This is a constant number set on creation for the maximum allowed pods per node. 
+
+The current architecture does not allow instance group id to be viewed on the dashboard: 
+
+We currently have 5 instance groups:
+
+* Masters (one per each of the 3 availability zones in the London region)
+* Nodes
+* 2xlarge Nodes
+
+As the dashboard is set in descending order, the last two boxes are normally from the 2xlarge Nodes group (2 instances), the next 3 boxes are normally the masters, and the rest are from the Nodes group.
+
+You can run the following command to confirm this and get more information about a node:
+
+```
+kubectl describe node <node_name>
+```
