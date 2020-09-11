@@ -11,6 +11,12 @@ This runbook aims to guide you through purging specific logs/data from Elasticse
 
 Let's assume in this guide that we are trying to delete all logs of the  `my-namespace-production` namespace, from the 01/02/2020
 
+## Stop the breach first
+
+If you're removing data from Elasticsearch, this is presumably because sensitive information has been logged by mistake.
+Please ensure that the underlying problem has been fixed, and no more sensitive data is going to be logged by the same
+application, before spending time removing what's already there.
+
 ## Things to know 
 
 An important thing to understand is the difference between an index and a document. 
