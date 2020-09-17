@@ -7,7 +7,7 @@ review_in: 3 months
 
 # Recover from an etcd failure
 
-The intention of this document is to provide you with instruction on how to recover from an etcd failure. Etcd failures can include data corruption, volume deletion or hardware malfunctions which cause a mirriad of issues on Kubernetes master nodes. By following the instructions in this document you should be able to:
+The intention of this document is to provide you with instruction on how to recover from an etcd failure. Etcd failures can include data corruption, volume deletion or hardware malfunctions which cause a myriad of issues on Kubernetes master nodes. By following the instructions in this document you should be able to:
 - Identify a failed etcd instance.
 - Remove the failed etcd instance from the cluster.
 - Backup the etcd EBS volume and perform a local data snapshot.
@@ -85,7 +85,12 @@ echo $DIRNAME
 Run etcdctl like this to get the member list of `etcd-main`. Change the `PORT=4002` and `ETCD=etcd-events` and run it again to get the member list of `etcd-events`
 
 ```bash
-ETCDCTL_API=3 $DIRNAME/etcdctl --cacert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt --cert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt --key=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key --endpoints=https://127.0.0.1:4001 member list
+ETCDCTL_API=3 $DIRNAME/etcdctl \
+  --cacert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt \
+  --cert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt \
+  --key=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key \
+  --endpoints=https://127.0.0.1:4001 \
+member list
 ```
 
 You will see list of members like this:
@@ -103,7 +108,12 @@ Identify the unhealthy member (the old master node) and run the command below to
 _NOTE: Kops maintains a separate etcd cluster for events, so we need to remove the old node from the etcd-events cluster as well. Change the `PORT=4002` and `ETCD=etcd-events` and run it again to remove the old member from the events etcd cluster._
 
 ```bash
-ETCDCTL_API=3 $DIRNAME/etcdctl --cacert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt --cert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt --key=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key --endpoints=https://127.0.0.1:4001 member remove <member_id>
+ETCDCTL_API=3 $DIRNAME/etcdctl \
+  --cacert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt \
+  --cert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt \
+  --key=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key \
+  --endpoints=https://127.0.0.1:4001 \
+member remove <member_id>
 ```
 
 You will get a message:
@@ -128,7 +138,12 @@ You need to terminate the failed master and remove the volumes attached to it, a
 2) Take a etcdctl [backup][etcdctl-backup], by using `docker exec` to launch a shell on the `kopeio/etcd-manager` container in any of the working master nodes and run this command:
 
 ```bash
-ETCDCTL_API=3 $DIRNAME/etcdctl --cacert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt --cert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt --key=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key --endpoints=https://127.0.0.1:4001 snapshot save /rootfs/mnt/snapshot.db
+ETCDCTL_API=3 $DIRNAME/etcdctl \
+  --cacert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt \
+  --cert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt \
+  --key=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key \
+  --endpoints=https://127.0.0.1:4001 \
+snapshot save /rootfs/mnt/snapshot.db
 ```
 
 You will get a message like:
