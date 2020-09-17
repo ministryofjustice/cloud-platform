@@ -1,16 +1,18 @@
 ---
-title: Replacing a failed master node
+title: Recover from an etcd failure
 weight: 225
-last_reviewed_on: 2020-08-12
+last_reviewed_on: 2020-09-17
 review_in: 3 months
 ---
 
-# Replacing a failed master node
+# Recover from an etcd failure
 
-If one of the master nodes fails due to hardware failure, data directory corruption, etcd volume deletion, or some other problem, it should be replaced as soon as possible.
-
-To replace the Master node, follow the instructions below for removing the unhealthy etcd member from the cluster, and then replacing the failed master node and its volumes via kops
-
+The intention of this document is to provide you with instruction on how to recover from an etcd failure. Etcd failures can include data corruption, volume deletion or hardware malfunctions which cause a mirriad of issues on Kubernetes master nodes. By following the instructions in this document you should be able to:
+- Identify a failed etcd instance.
+- Remove the failed etcd instance from the cluster.
+- Backup the etcd EBS volume and perform a local data snapshot.
+- Add a new master with a new etcd instance.
+- Validate the cluster following etcd replacement.
 
 ## Pre-requisites
 
@@ -41,7 +43,7 @@ $ export KOPS_STATE_STORE=s3://cloud-platform-kops-state
 Run kops validate cluster to identify failed master node.
 
 ```bash
-kops validate cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk
+kops validate cluster <cluster_name>.cloud-platform.service.justice.gov.uk
 ```
 
 When a master node has failed, you will see validation errors like this:
@@ -57,7 +59,7 @@ This shows that one of the machines not joined the cluster.
 Make sure it is a master node by looking for the Instance ID in the Amazon EC2 console, on the Instances page. The instance ID should be something like:
 
 ```
-master-<availability-zone>.masters.<cluster_name>.cloud-platform.service.justice.gov.uk
+master-<availability_zone>.masters.<cluster_name>.cloud-platform.service.justice.gov.uk
 ```
 
 ##  Remove the unhealthy etcd member.
@@ -66,83 +68,42 @@ As per [this guidance][remove-member-first] remove the unhealthy etcd member (i.
 
 Identify and remove the unhealthy member by accessing any of the working master nodes using SSH, via the bastion instance.
 
-In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}`to locate the bastion instance:
+Open your terminal and execute the following command to exec onto an etcd pod:
 
 ```
- bastion.<cluster_name>.cloud-platform.service.justice.gov.uk
- ```
+CONTAINER=$(kubectl get pods -n kube-system | grep etcd-manager-main | head -n 1 | awk '{print $1}')
+kubectl exec -it -n kube-system $CONTAINER bash
+```
 
-Use the Public DNS (IPv4) in the description of the Instance to login in to bastion like this:
-
+When inside the container, determine which version of etcd is running:
 
 ```bash
-ssh -A admin@ec2-35-176-xx-xx.eu-west-2.compute.amazonaws.com -p 50422
-```
-
-From the bastion, login to any of the working master nodes:
-
-```bash
-ssh 172.20.xx.xx
-```
-
-While SSHed onto a master:
-
-```bash
-$ sudo docker ps | grep etcd.manager
-```
-
-You will see output like this:
-
-```
-e81b4622417b  kopeio/etcd-manager         k8s_etcd-manager_etcd-manager-main-...
-39c186fba5ea  kopeio/etcd-manager         k8s_etcd-manager_etcd-manager-events-...
-8c77d710ce46  k8s.gcr.io/pause-amd64:3.0  k8s_POD_etcd-manager-main-...
-806e5af8125d  k8s.gcr.io/pause-amd64:3.0  k8s_POD_etcd-manager-events-...
-```
-
-Pick the kopeio/etcd-manager container you're interested in ('main' or 'events') and then docker exec onto it
-
-```bash
-$ sudo docker exec -it [container id] bash
+DIRNAME=$(ps -ef | grep --color=never /opt/etcd | head -n 1 | awk '{print $8}' | xargs dirname)
+echo $DIRNAME
 ```
 
 Run etcdctl like this to get the member list of `etcd-main`. Change the `PORT=4002` and `ETCD=etcd-events` and run it again to get the member list of `etcd-events`
 
 ```bash
-cd /opt/etcd-v3.3.10-linux-amd64/
-CLUSTER=live-1
-PORT=4001
-ETCD=etcd
-ETCDCTL_API=3 \
-  ./etcdctl --key /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key \
-  --cert  /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt \
-  --cacert /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt  \
-  --endpoints "https://${ETCD}-a.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT},https://${ETCD}-b.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT},https://${ETCD}-c.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT}" member list
+ETCDCTL_API=3 $DIRNAME/etcdctl --cacert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt --cert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt --key=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key --endpoints=https://127.0.0.1:4001 member list
 ```
 
 You will see list of members like this:
 
-```
+```bash
 26153d5a331dc13d, started, etcd-a, https://etcd-a.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:2380, https://etcd-a.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:4001
 27aaafc750f8d2f7, started, etcd-c, https://etcd-c.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:2380, https://etcd-c.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:4001
 8d4a23328d324c94, started, etcd-b, https://etcd-b.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:2380, https://etcd-b.internal.test-etcd-1.cloud-platform.service.justice.gov.uk:4001
 ```
+
 The first value in each line is the ID of the member. We will need this to remove the member from the etcd cluster.
 
 Identify the unhealthy member (the old master node) and run the command below to remove the member.
 
-Kops maintains a separate etcd cluster for events, so we need to remove the old node from the etcd-events cluster as well. Change the `PORT=4002` and `ETCD=etcd-events` and run it again to remove the old member from the events etcd cluster.
+_NOTE: Kops maintains a separate etcd cluster for events, so we need to remove the old node from the etcd-events cluster as well. Change the `PORT=4002` and `ETCD=etcd-events` and run it again to remove the old member from the events etcd cluster._
 
 ```bash
-cd /opt/etcd-v3.3.10-linux-amd64/
-CLUSTER=live-1
-PORT=4001
-ETCD=etcd
-ETCDCTL_API=3 \
-  ./etcdctl --key /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key \
-  --cert  /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt \
-  --cacert /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt  \
-  --endpoints "https://${ETCD}-a.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT},https://${ETCD}-b.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT},https://${ETCD}-c.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT}" member remove <member-id>
+ETCDCTL_API=3 $DIRNAME/etcdctl --cacert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt --cert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt --key=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key --endpoints=https://127.0.0.1:4001 member remove <member_id>
 ```
 
 You will get a message:
@@ -150,6 +111,7 @@ You will get a message:
 ```
 Member 26153d5a331dc13d removed from cluster bdfd883e2bfa8594
 ```
+
 Run the member list again and you will see the member has been removed:
 
 ```
@@ -166,16 +128,9 @@ You need to terminate the failed master and remove the volumes attached to it, a
 2) Take a etcdctl [backup][etcdctl-backup], by using `docker exec` to launch a shell on the `kopeio/etcd-manager` container in any of the working master nodes and run this command:
 
 ```bash
-cd /opt/etcd-v3.3.10-linux-amd64/
-CLUSTER=live-1
-PORT=4001
-ETCD=etcd
-ETCDCTL_API=3 \
-  ./etcdctl --key /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key \
-  --cert  /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt \
-  --cacert /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt  \
-  --endpoints "https://${ETCD}-a.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT},https://${ETCD}-b.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT},https://${ETCD}-c.internal.${CLUSTER}.cloud-platform.service.justice.gov.uk:${PORT}" snapshot save /rootfs/mnt/snapshot.db
+ETCDCTL_API=3 $DIRNAME/etcdctl --cacert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt --cert=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt --key=/rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key --endpoints=https://127.0.0.1:4001 snapshot save /rootfs/mnt/snapshot.db
 ```
+
 You will get a message like:
 
 ```
@@ -193,20 +148,20 @@ kops edit instancegroup master-eu-west-2a
 ```
 
 ```bash
-kops update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk --yes
+kops update cluster <cluster_name>.cloud-platform.service.justice.gov.uk --yes
 ```
 
-4) In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}` to locate the failed master instance:
+4) In the Amazon EC2 console, on the Instances page, search using `<cluster_name>` to locate the failed master instance:
 
 ```
- master-<availability-zone>.masters.<cluster_name>.cloud-platform.service.justice.gov.uk
- ```
+ master-<availability_zone>.masters.<cluster_name>.cloud-platform.service.justice.gov.uk
+```
 
 Terminate the failed master instance following this [guide][terminate-ec2-instance].
 
 #### Delete etcd volumes
 
-5) In the Amazon EBS volume console, search using `${CLUSTER_NAME}` to locate the right volume associated with the broken master. Remove the volumes (main and events) for the failed master.
+5) In the Amazon EBS volume console, search using `<cluster_name>` to locate the right volume associated with the broken master. Remove the volumes (main and events) for the failed master.
 
 For example, for the master node instance
 
@@ -232,19 +187,19 @@ kops edit instancegroup master-eu-west-2a
 ```
 
 ```bash
-kops update cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk --yes
+kops update cluster <cluster_name>.cloud-platform.service.justice.gov.uk --yes
 ```
 
 A new master will be launched along with new etcd volumes attached to it, and should join the etcd cluster. This can take 10-15 minutes. After this, validate the cluster:
 
 ```bash
-kops validate cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk
+kops validate cluster <cluster_name>.cloud-platform.service.justice.gov.uk
 ```
 
 You should see the new master in the list, and the cluster should be in `ready` status.
 
 ```
-Your cluster ${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk is ready
+Your cluster <cluster_name>.cloud-platform.service.justice.gov.uk is ready
 ```
 
 If the cluster is still in 'not ready' status, restart etcd on all masters. Follow the procedure menctioned in [restart etcd](https://runbooks.cloud-platform.service.justice.gov.uk/disaster-recovery.html#restart-etcd).
