@@ -5,11 +5,22 @@ weight: 45
 
 # Incident Log
 
-## September 2020
+## Q3 2020 (July - September)
 
-### Incident on 2020-09-07 12.54 UTC - All users are unable to create new ingress rules.
+- **Mean Time To Repair**: 1h 15m
 
-- **Status**: Resolved at 2020-09-07 15.56 UTC
+- **Mean Time To Resolve**: 9h 39m
+
+### Incident on 2020-09-07 12:54 - All users are unable to create new ingress rules
+
+- **Key times**
+  - First detected 2020-09-07 12:39
+  - Incident declared 2020-09-07 12:54
+  - Resolved 2020-09-07 15:56
+
+- **Time to repair**: 3h 02m
+
+- **Time to resolve**: 3h 17m
 
 - **Incident**: The Ingress API refused 100% of POST requests.
 
@@ -30,11 +41,16 @@ weight: 45
 - **Resolution**:
     The team manually removed the all the additional admission controllers created by 0.1.0. They then removed the admission webhook from the module and created a new release (0.1.1). All ingress modules currently on 0.1.0 were upgraded to the new release 0.1.1.
 
-## August 2020
+### Incident on 2020-08-25 11:26 - Connectivity issues with eu-west-2a
 
-### Incident on 2020-08-25 11.26 UTC - Connectivity issues with eu-west-2a
+- **Key events**
+  - First detected 2020-08-25 11:01
+  - Incident declared 2020-08-25 11:26
+  - Resolved 2020-08-25 12:11
 
-- **Status**: Resolved at 2020-08-25 12.30 UTC
+- **Time to repair**: 45m
+
+- **Time to resolve**: 1h 10m
 
 - **Incident**: The AWS  Availability Zones `eu-west-2a`, which contain some of our kubernetes nodes had an outage. API latency was elevated, some EC2 became unreachable and overall connectivity was unstable.
 
@@ -50,11 +66,18 @@ weight: 45
     * We now have 25 pods in the cluster, instead of 21
 
 - **Resolution**:
-    The incident was mitigated by deploying more 2-4 nodes in healthy Availability Zones, manually deleting the non-responding pods ,and terminating the impacted nodes
+    The incident was mitigated by deploying more 2-4 nodes in healthy Availability Zones, manually deleting the non-responding pods, and terminating the impacted nodes
 
-### Incident on 2020-08-14  10.43 UTC - Ingress-controllers crashlooping
+### Incident on 2020-08-14 11:01 - Ingress-controllers crashlooping
 
-- **Status**: Resolved at 2020-08-14 11:38 UTC
+- **Key events**
+  - First detected 2020-08-14 10:43
+  - Incident declared 2020-08-14 11:01
+  - Resolved 2020-08-14 11:38
+
+- **Time to repair**: 37m
+
+- **Time to resolve**: 55m
 
 - **Incident**: There are 6 replicas of the ingress-controller pod and 2 out of the 6 were crashlooping. A restart of the pods did not resolve the issue. As per a normal runbook process, a recycle of all pods was required. However after restarting pods 4 and 5, they also started to crashloop. The risk was when restarting pods 5 and 6 -  all 6 pods could be down and all ingresses down for the cluster.
 
@@ -71,9 +94,17 @@ weight: 45
 - **Resolution**:
     A restart of the leader ingress-controller pod was required so the other pods in the replica-set could connect and get the latest nginx.config file.
 
-### Incident on 2020-08-07 16:39 UTC - Master node provisioning failure
+### Incident on 2020-08-07 16:39 - Master node provisioning failure
 
-- **Status**: Resolved at 2020-08-14 10:06 UTC
+- **Key events**
+  - First detected 2020-08-07 15:51
+  - Repaired 2020-08-07 16:29
+  - Incident declared 2020-08-07 16:39
+  - Resolved 2020-08-14 10:06
+
+- **Time to repair**: 38m
+
+- **Time to resolve**: 33h 15m (during support hours 10:00-17:00 M-F)
 
 - **Incident**: Routine replacement of a master node failed because AWS did not have any c4.4xlarge instances available in the relevant availability zone.
 
@@ -92,15 +123,29 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
     * We replaced all our master nodes with c5.4xlarge instances, which (currently) have better availability
     * We and AWS are still investigating longer-term and more reliable fixes
 
-### Incident on 2020-08-04  17:13 UTC
+## Q2 2020 (April - June)
 
-- **Status**: Resolved at 2020-08-05 16:16 UTC
+- **Mean Time To Repair**: 2h 49m
+
+- **Mean Time To Resolve**: 7h 12m
+
+### Incident on 2020-08-04 17:13
+
+- **Key events**
+  - Fault occurs 2020-08-04 13:30
+  - Fault detected 2020-08-04 18:13
+  - Incident declared 2020-08-05 11:04
+  - Resolved 2020-08-05 16:16
+
+- **Time to repair**: 5h 8m
+
+- **Time to resolve**: 9h 16m (during support hours 10:00-17:00)
 
 - **Incident**: Integration tests failed for cert-manager, apply pipeline failed showing it doesnot have permissions and
  divergence pipeline shows drift for live-1 components
 
 - **Impact**:
-    - Increased risk for cluster failure because some of the components doesnot have the correct configuration needed for the `live-1` production cluster
+    - Increased risk for cluster failure because some of the components do not have the correct configuration needed for the `live-1` production cluster
 
 - **Context**:
     * One of the engineers was creating a test EKS cluster and ran `terraform apply` on EKS components
@@ -112,31 +157,19 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
 - **Resolution**:
     Compare each resource configuration with the terraform state and applied the correct configuration from the code specific to kops cluster
 
-### Incident on 2020-08-04  17:13 UTC
+### Incident on 2020-04-15 10:58 Nginx/TLS
 
-- **Status**: Resolved at 2020-08-05 16:16 UTC
-
-- **Incident**: Integration tests failed for cert-manager, apply pipeline failed showing it doesnot have permissions and
- divergence pipeline shows drift for live-1 components
-
-- **Impact**:
-    - Increased risk for cluster failure because some of the components doesnot have the correct configuration needed for the `live-1` production cluster
-
-- **Context**:
-    * One of the engineers was creating a test EKS cluster and ran `terraform apply` on EKS components
-    * Without fully aware of the current cluster context, the `terraform apply` for EKS test cluster components has been applied to the `live-1` kops cluster
-    * This has changed the configuration of several resources in the `live-1` cluster
-    * Timeline : [https://docs.google.com/document/d/1VrABxeHLMOnoM4yYoCi9N4N4zRY1SK1hTjrZ9s05zuc/edit?usp=sharing](https://docs.google.com/document/d/1VrABxeHLMOnoM4yYoCi9N4N4zRY1SK1hTjrZ9s05zuc/edit?usp=sharing)
-    * Slack thread: [https://mojdt.slack.com/archives/C514ETYJX/p1596621864015400](https://mojdt.slack.com/archives/C514ETYJX/p1596621864015400),
-
-- **Resolution**:
-    Compare each resource configuration with the terraform state and applied the correct configuration from the code specific to kops cluster
-
-## April 2020
-
-### Incident on 2020-04-15 10:58 UTC
+- **Key events**
+  - Fault occurs 2020-04-15 07:15
+  - Fault detected 2020-04-15 13:45
+  - Incident declared 2020-04-15 14:39
+  - Resolved 2020-04-15 15:09
 
 - **Status**: Resolved at 2020-04-15 15:09 UTC
+
+- **Time to repair**: 30m
+
+- **Time to resolve**: 5h 09m (during support hours 10:00-17:00)
 
 - **Incident**: After an upgrade of the Nginx ingresses, support for legacy TLS was dropped.
 
@@ -158,11 +191,23 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
     The Nginx configuration was modified to enable TLSv1, TLSv1.1 and TLSv1.2
 
 
-## February 2020
+## Q1 2020 (January - March)
 
-### Incident on 2020-02-25 10:58 UTC
+- **Mean Time To Repair**: 1h 40m
 
-- **Status**: Resolved at 2020-02-25 17:07 UTC
+- **Mean Time To Resolve**: 2h 42m
+
+### Incident on 2020-02-25 10:58
+
+- **Key events**
+  - Fault occurs 2020-02-25 07:32
+  - Team aware 2020-02-25 07:36
+  - Incident declared 2020-02-25 10:58
+  - Resolved 2020-02-25 17:07
+
+- **Time to repair**: 4h 9m
+
+- **Time to resolve**: 7h (during support hours 10:00-17:00)
 
 - **Incident**: During an upgrade, new masters were not coming up correctly (missing calico networking and other pods)
 
@@ -181,7 +226,14 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
 
 ### Incident on 2020-02-18 14:13 UTC
 
-- **Status**: Resolved at 2020-02-18 14:59 UTC
+- **Key events**
+  - Fault occurs 2020-02-18 14:13
+  - Incident declared 2020-02-18 14:23
+  - Resolved 2020-02-18 14:59
+
+- **Time to repair**: 36m
+
+- **Time to recovery**: 46m
 
 - **Incident**: Pingdom reported that Prometheus was down (prometheus.cloud-platform.service.justice.gov.uk).
 
@@ -194,6 +246,7 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
    - There seemed to be an issue preventing requests to reach the prometheus pods.
    - Disk space and other resources, the usual suspects, were ruled out as the cause.
    - The domain name amd ingress were both valid.
+   - Slack thread: <https://mojdt.slack.com/archives/C514ETYJX/p1582035803248800>
 
 - **Resolution**:
     We suspect an intermittent & external networking issue to be the cause of this outage.
@@ -201,7 +254,14 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
 
 ### Incident on 2020-02-12 11:45 UTC
 
-- **Status**: Resolved at 2020-02-18 12:07 UTC
+- **Key events**
+  - Fault occurs 2020-02-12 11:45
+  - Incident declared 2020-02-12 11:51
+  - Resolved 2020-02-12 12:07
+
+- **Time to repair**: 16m
+
+- **Time to recovery**: 22m
 
 - **Identified**: Pingdom reported Concourse (concourse.cloud-platform.service.justice.gov.uk) down.
 
@@ -210,3 +270,21 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
 - **Resolution**: Using terraform (`terraform apply -var-file vars/manager.tfvars` specifically) the cluster nodes where created and the infrastructure aligned? to the desired terraform state
 
 
+# About this incident log
+
+The purpose of publishing this incident log:
+
+* for the Cloud Platform team to learn from incidents
+* for the Cloud Platform team and its stakeholders to track incident trends and performance
+* because we operate in the open
+
+Definitions:
+
+* The words used in the timeline of an incident: fault occurs, team becomes aware (of something bad), incident declared (the team acknowledges and has an idea of the impact), repaired (system is fully functional), resolved (fully functional and future failures are prevented)
+* *Incident time* - The start of the failure (Before March 2020 it was the time the incident was declared)
+* *Time to Repair* - (Used only up to March 2020) The time between the incident being declared and when service is fully restored. Only includes [Hours of Support](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/reference/operational-processes.html#hours-of-support).
+* *Time to Resolve* - The time between when the fault occurs and when system is fully functional (and include any immediate work done to prevent future failures). Only includes [Hours of Support](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/reference/operational-processes.html#hours-of-support). This is a broader metric of incident response performance, compared to Time to Repair.
+
+Source: [Atlassian](https://www.atlassian.com/incident-management/kpis/common-metrics)
+
+Datestamps: please use `YYYY-MM-DD HH:MM` (almost ISO 8601, but more readable), for the London timezone
