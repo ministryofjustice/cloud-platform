@@ -1,0 +1,33 @@
+---
+title: Zero-downtime Ingress Controller Upgrade
+weight: 250
+last_reviewed_on: 2020-09-21
+review_in: 3 months
+---
+
+# <%= current_page.data.title %>
+
+This is a placeholder based on the notes in this [github issue].  Please revise
+it and add details (e.g. code snippets for the route53 changes) when we go
+through this process for real.
+
+This procedure should enable upgrading the ingress controller used by a
+particular ingress without incurring downtime due to traffic being sent to the
+(old, no-longer-existing) ingress because of cached DNS entries on the user's
+computer.
+
+## Procedure
+
+1. Create a 2nd ingress-controller
+1. Use that ingress controller class and create a new ingress
+1. In route53 identify the A and txt record, update the txt record with the new ingress name
+1. external-dns will trigger and update the A record with the NLB belonging to the 2nd ingress-controller
+1. Traffic will be routed to the new NLB (but traffic arriving via the old NLB will still be handled correctly)
+1. Wait for however long the DNS TTL is (plus a bit, for safety). All traffic should now be routed through the new NLB
+1. Upgrade (or make other required changes to) the old ingress-controller
+1. Switch traffic back by updating the route53 txt record with the original ingress name
+1. external-dns will trigger and update the A record with the NLB belonging to the original ingress-controller
+1. Wait for however long the DNS TTL is (plus a bit, for safety). All traffic should now be routed through the original NLB
+1. Delete the new ingress you created
+
+[github issue]: https://github.com/ministryofjustice/cloud-platform/issues/2301
