@@ -8,6 +8,7 @@ review_in: 3 months
 # <%= current_page.data.title %>
 
 The intention of this document is to provide you with instruction on how to recover from an etcd failure. Etcd failures can include data corruption, volume deletion or hardware malfunctions which cause a myriad of issues on Kubernetes master nodes. By following the instructions in this document you should be able to:
+
 - Identify a failed etcd instance.
 - Remove the failed etcd instance from the cluster.
 - Backup the etcd EBS volume and perform a local data snapshot.
@@ -65,8 +66,6 @@ master-<availability_zone>.masters.<cluster_name>.cloud-platform.service.justice
 ##  Remove the unhealthy etcd member.
 
 As per [this guidance][remove-member-first] remove the unhealthy etcd member (i.e. the failed master node) first.
-
-Identify and remove the unhealthy member by accessing any of the working master nodes using SSH, via the bastion instance.
 
 Open your terminal and execute the following command to exec onto an etcd pod:
 
