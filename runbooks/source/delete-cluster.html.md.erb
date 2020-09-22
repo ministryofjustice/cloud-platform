@@ -20,11 +20,13 @@ Start from the root directory of a working copy of the [infrastructure repo].
 
 There is a [destroy-cluster.rb] script which you can use to delete your cluster.
 
-> Read the script before using it. Deleting a cluster is something you should be very cautious about, and ensure you know exactly what you're doing.
+Read the script before using it. Deleting a cluster is something you should be very cautious about, and ensure you know exactly what you're doing.
 
-> The script is entirely non-interactive, and will not prompt you to confirm anything. It just destroys things.
+The script is entirely non-interactive, and will not prompt you to confirm anything. It just destroys things.
 
-First, run `make tools-shell`
+### First, run `make tools-shell`
+
+> The delete cluster script must *always* be run in a container. This ensures that the environment of the script is fully controlled, and you don't run into problems such as the kubernetes context being changed in another window, or extra environment variables causing unwanted effects.
 
 Then invoke the script like this:
 
