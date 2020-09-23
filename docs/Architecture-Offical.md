@@ -1,9 +1,8 @@
 # The Cloud Platform - Architectural Overview
 
 ## Purpose
-This document is to provide an overview and breakdown of the individual components of the Pipeline Architecture.
 
-This starts with the user pushing some code to GitHub, the PipeLine Automatically detecting the new change and then processing it, which ultimately results in a resource change in AWS. This document focuses on each of these stages in detail and architecture the enables it.
+This document is to provide an overview and breakdown of the individual components of the Cloud Platform.
 
 ## Principles
 
@@ -35,6 +34,12 @@ Cloud Platform team should use a 'delete and replace' process to perform upgrade
 
 As hosting technology and ideas change and improve, we will relentlessly reinvent all aspects of the platform, to serve user needs better. We shall not be afraid to replace the whole platform, if that serves users best.
 
+## Pipeline architecture
+
+The 'pipeline' is the key part of Cloud Platform that deploys the Kubernetes and AWS resources, that a service team has defined.
+
+The process starts with the user pushing some code to GitHub. The pipeline automatically detects the new change and then processes it. This ultimately results in a resource change in Kubernetes/AWS. This document focuses on each of these stages in detail and architecture the enables it.
+
 ## Architecture Diagram
 
 This is a high-level overview of the components and services which comprise the Cloud Platform.
@@ -48,10 +53,12 @@ Below is a diagram that gives an architectural overview of the pipeline process:
 ![Architecture Diagram](images/arch-dia-v1.png)
 
 ## Components
+
 As seen in the diagram, there are a few different components that the architecture is comprised of.
 This section will break-down these components and detail the context in which they are used.
 
 ### Concourse
+
 Concourse is the core application of the pipeline architecture.
 
 In terms of the architectural overview, concourse handles the following tasks:
@@ -64,29 +71,34 @@ In terms of the architectural overview, concourse handles the following tasks:
 Concourse is hosted on the 'cloud-platform-live-0' cluster.
 
 ### Terraform
+
 Terraform is our chosen format for defining infrastructure as code.
 
-AWS resources are defined and maintained in Terraform files, written by developers and approved by us.
+AWS resources are defined and maintained in Terraform files, written by developers and approved by the Cloud Platform team.
 
 Concourse is able to interpret Terraform files and apply the changes to the relevant AWS resources.
 
 ### GitHub
+
 GitHub is where all of our code repositories that are used by pipeline are stored.
 
 Concourse is configured to watch the 'master' branches of our selected application repos.
 
 The GitHub process flows as follows:
+
 1. A developer will make a change to a Terraform file/s in one of our repos and then raise a PR.
 2. A member of the Cloud Platform team will review the PR and if successful, the developer is notified.
 3. The developer is now allowed to merge the code change into the 'master' branch.
 4. The code change in 'master' is noticed by Concourse, and the pipeline is triggered.
 
 ### AWS
+
 AWS is where all of our infrastructure is hosted.
 
 AWS is the end-point of the pipeline and destination where we expect to see the resources defined in Terraform to match what we intended before it was sent through the pipeline.
 
 ### Slack Notifications
+
 During the final stages of the pipeline process, there will come a point where Concourse will decide if the code submitted has been applied successfully, or for whatever reason, has failed.
 
 This outcome will automatically be posted into the '#cp-build-notification' Slack channel.
