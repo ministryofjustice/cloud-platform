@@ -5,6 +5,35 @@ This document is to provide an overview and breakdown of the individual componen
 
 This starts with the user pushing some code to GitHub, the PipeLine Automatically detecting the new change and then processing it, which ultimately results in a resource change in AWS. This document focuses on each of these stages in detail and architecture the enables it.
 
+## Principles
+
+### Platforms scale, ops teams don't
+
+We want to minimize the need for any 'central web ops team', which does bespoke work, inevitably for only a handful of service teams. Instead we believe in platforms, which offer a standardized approach to hosting. A good platform includes lots of automation and a good service wrapper, to meet the common needs of scores of service teams.
+
+Web ops people shall either work on a platform, delivering value at scale, or in the cases where service teams genuinely need bespoke work.
+
+### A high tide raises all boats
+
+We embed ops tools and best practices into a platform, to benefit all service teams.
+
+For example in Cloud Platform we offer tools: monitoring, logging, alerts, security scanning, and best practises: Infrastructure as Code, GitOps.
+
+### Self service
+
+Providing service teams with the ability to get started with minimal friction means minimizing waiting for humans to decide or provide. Self-service encourages users if they just want to try things out, to spin something up to test a theory, a different config or different infrastructure.
+
+Self-service requires good documentation, automated processes, and maintaining sufficient oversight.
+
+### Clusters are cattle
+
+Service teams should expect that pods will be treated like "cattle not pets", which is what Kubernetes is designed for. Pods will be shuffled between nodes for lots of reasons, such as nodes being drained due to planned recycling schedule, or due to failures. This means service teams design for High Availability (HA), which typically means pod images are stateless, have multiple replicas and state is held in stores which are replicated.
+
+Cloud Platform team should use a 'delete and replace' process to perform upgrades, fix problems and disaster recovery.
+
+### Constant reinvention
+
+As hosting technology and ideas change and improve, we will relentlessly reinvent all aspects of the platform, to serve user needs better. We shall not be afraid to replace the whole platform, if that serves users best.
 
 ## Architecture Diagram
 
