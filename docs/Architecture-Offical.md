@@ -10,13 +10,15 @@ This document is to provide an overview and breakdown of the individual componen
 
 We want to minimize the need for any 'central web ops team', which does bespoke work, inevitably for only a handful of service teams. Instead we believe in platforms, which offer a standardized approach to hosting. A good platform includes lots of automation and a good service wrapper, to meet the common needs of scores of service teams.
 
-Web ops people shall either work on a platform, delivering value at scale, or in the cases where service teams genuinely need bespoke work.
+Web ops people should mostly work on a platform, delivering value at scale.
 
 ### A high tide raises all boats
 
-We embed ops tools and best practices into a platform, to benefit all service teams.
+We embed ops tools and best practices into a platform. This increases service teams' ability to operate their services and promotes high quality engineering.
 
-For example in Cloud Platform we offer tools: monitoring, logging, alerts, security scanning, and best practises: Infrastructure as Code, GitOps.
+Service teams should feel the platform supports them to deliver, without being constrained.
+
+For example in Cloud Platform we offer tools: monitoring, logging, alerts, security scanning, and best practices: Infrastructure as Code, GitOps.
 
 ### Self service
 
@@ -24,11 +26,13 @@ Providing service teams with the ability to get started with minimal friction me
 
 Self-service requires good documentation, automated processes, and maintaining sufficient oversight.
 
-### Clusters are cattle
+### Cattle not pets
 
-Service teams should expect that pods will be treated like "cattle not pets", which is what Kubernetes is designed for. Pods will be shuffled between nodes for lots of reasons, such as nodes being drained due to planned recycling schedule, or due to failures. This means service teams design for High Availability (HA), which typically means pod images are stateless, have multiple replicas and state is held in stores which are replicated.
+Apps are cattle. When a service team hosts its software on Cloud Platform, it needs to accept it will be treated like cattle not pets. The containers/pods will be herded between server nodes for lots of reasons, such as nodes being drained due to a planned recycling schedule, or due to failures. This approach is great for scaling, efficiency and high availability (HA). But it needs the software containers to be designed as a [12 Factor App](https://12factor.net/) and data/state held in cloud storage.
 
-Cloud Platform team should use a 'delete and replace' process to perform upgrades, fix problems and disaster recovery.
+Infrastructure is cattle. Cloud Platform team should use a 'delete and replace' process to perform upgrades, fix problems and disaster recovery.
+
+Clusters are cattle. We can't have one cluster, vulnerable to a fault, YOLO changes and upgrades. Clusters need to be disposible. Replacement is automatic and seamless.
 
 ### Constant reinvention
 
@@ -38,7 +42,7 @@ As hosting technology and ideas change and improve, we will relentlessly reinven
 
 The 'pipeline' is the key part of Cloud Platform that deploys the Kubernetes and AWS resources, that a service team has defined.
 
-The process starts with the user pushing some code to GitHub. The pipeline automatically detects the new change and then processes it. This ultimately results in a resource change in Kubernetes/AWS. This document focuses on each of these stages in detail and architecture the enables it.
+The process starts with the user pushing some code to GitHub. The pipeline automatically detects the new change and then processes it. This ultimately results in a resource change in Kubernetes/AWS. This document focuses on each of these stages in detail and the architecture that enables it.
 
 ## Architecture Diagram
 
