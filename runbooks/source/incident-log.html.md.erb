@@ -17,7 +17,7 @@ weight: 45
   - First detected 2020-09-22 18:27
   - Incident declared 2020-09-22 18:40
   - Repaired 2020-09-22 19:05
-  - Resolved 2020-08-14 21:41
+  - Resolved 2020-09-14 21:41
 
 - **Time to repair**: 38m
 
@@ -43,7 +43,7 @@ weight: 45
   new NLB and kiam for providing AWSAssumeRole for external-dns, these components (ingress-controller, external-dns and kiam) got restored successfully. Services start to come back up.
   - Formbuilder services are still pointing to the old NLB (network load balancer before ingress got replaced), reason for this is route53 TXT records was set incorrect owner field, so external-dns couldn't update the new NLB information in the A record. Team fixed the owner information in the TXT record, external DNS updated formbuilder route53 records to point to new NLB. Formbuilder services is up and running.
   - Team did target apply to restore remaining components. 
-  - Apply pipleine run to restore all the certificates, servicemonitors and prometheus rules from the [environment repository](https://github.com/ministryofjustice/cloud-platform-environments).
+  - Apply pipleine run to restore all the certificates, servicemonitors and prometheus-rules from the [environment repository](https://github.com/ministryofjustice/cloud-platform-environments).
 
 ### Incident on 2020-09-07 12:54 - All users are unable to create new ingress rules
 
