@@ -32,8 +32,8 @@ weight: 45
   - Cannot create new certificates.
 
 - **Context**:
-  - Test cluster deletion script triggered to delete a test cluster, kube context was incorrectly targeted live-1 cluster and deleted some cloud-platform components.
-  - Compents include default ingress-controller, prometheus-operator, logging, cert-manager, kiam and external-dns. As ingress-controller gone down some users could not access services running on the Cloud Platform.
+  - Test cluster deletion script triggered to delete a test cluster, kube context incorrectly targeted the live-1 cluster and deleted some cloud-platform components.
+  - Components include default ingress-controller, prometheus-operator, logging, cert-manager, kiam and external-dns. As ingress-controller gone down some users could not access services running on the Cloud Platform.
   - Formbuilder services not accessible even after ingress-controller is restored.
   - Timeline: [Timeline](https://docs.google.com/document/d/1nmhFcLkOEmyvN2E7PwUdo8l2O9EDpVx7c8-4d9pMBSg/edit#heading=h.ttkde0ugh32m) for the incident.
   - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1600710001173700) for the incident.
