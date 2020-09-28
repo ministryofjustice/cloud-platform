@@ -1,0 +1,244 @@
+---
+title: Upgrade Ingress Controller
+weight: 50
+last_reviewed_on: 2020-09-25
+review_in: 3 months
+---
+
+# Overview
+
+This run book illustrates the steps to upgrade the ingress controller to a new version. There are two different approaches to upgrading
+the Ingress Controller. Both will incur down time. 
+
+
+## Pre-requisites
+
+- Identify the Ingress Controller version you are upgrading to. For this browse to the official GitHub repository to view the latest Chart version. 
+
+```https://github.com/kubernetes/ingress-nginx/blob/master/charts/ingress-nginx/values.yaml```
+
+Usually the Chart version corresponds to the image tag used by the ingress controller `Deployment` resource which you can cross reference here:
+
+```https://github.com/kubernetes/ingress-nginx/blob/master/charts/ingress-nginx/values.yaml```
+
+- Ensure you have access to the cluster from where the ingress controller you intend to upgrade is running
+
+- Ensure your AWS_PROFILE creds are set 
+
+- Ensure you have the following tools installed in your working environment: 
+
+   kubectl 
+   Helm 3
+   Terraform 
+
+
+### Upgrading the Ingress Controller module
+
+Before applying the Ingress Controller, first upgrade the Ingress Controller module to the desired version. Specifically the ```helm chart``` needs to be updated. Below
+are the steps: 
+
+* Create a new feature branch for the ```cloud-platform-terraform-ingress-controller``` repository
+
+* In the ```main.tf``` of the ```cloud-platform-terraform-ingress-controller``` module identify the resource ```helm_release``` called ```nginx_ingress``` 
+
+* In this resource amend the ```version``` and also ensure the repository is now pointing to the new ```ingress-nginx``` repo (not stable) as follows:
+
+```bash
+
+data "helm_repository" "ingress-nginx" {
+  name = "ingress-nginx"
+  url  = "https://kubernetes.github.io/ingress-nginx"
+}
+
+
+resource "helm_release" "nginx_ingress" {
+   ...
+
+  repository = data.helm_repository.stable.metadata[0].name
+  repository = data.helm_repository.ingress-nginx.metadata[0].name
+
+  version     = "<DESIRED_VERSION>"
+  ....
+}
+```
+
+Check in the above changes to your feature branch. Before raising a PR it maybe better to first test the version on a test cluster first by calling the local 
+version of your module. 
+
+There are two methods for upgrading the ingress controller. Both incur downtime. Below are the summary steps for each:
+
+
+### Method 1 (Directly Upgrading Default Ingress Controller)
+
+SUMMARY OF STEPS 
+
+* In this method the default ingress controller is upgraded to the desired version
+
+* Rolling upgrade of the ingress controller will start once upgrade is applied 
+
+* Around 4 minutes of downtime will be incurred until all new controller pods are updated with the new version 
+
+* New ELB will be created 
+
+* External DNS will automatically amend the existing Route 53 record to point the ingress DNS to the new ELB host name 
+
+* Traffic to all services should now resume as normal
+
+DETAILED STEPS 
+
+* Browse to ```cloud-platform-infrastructure/terraform/cloud-platform-components```
+
+* Ensure you are in the correct workspace that corresponds to the cluster you are deploying to ```terraform workspace select <WORKSPACE-NAME>```
+
+* In the ```module "ingress_controllers" { ...``` module amend the source so that it is now pointing to the new upgraded local ingress module 
+
+```bash
+module "ingress-controllers" {
+  source = "<LOCAL_PATH_TO_INGRESS_NEW_CONTROLLER_MODULE>"
+```
+
+* Run ```terraform init```
+
+* Run ```terraform apply -target=module.ingress_controllers``` 
+
+* Observe the output and ensure that it will only destroy / create the ingress controller
+
+* Enter to 'yes' to the ```terraform apply...```
+
+* Ensure the new ingress controller is up and running by observing the deployment using kubectl 
+
+* At his point there will be aproximatley 4 mintutes of downtime (This is the time for the controller pods to be restared with the new version and also the time 
+  for external_dns to update the DNS record with the new ELB)
+
+
+
+### Method 2 (Amending Ingress Annotation)
+
+SUMMARY OF STEPS 
+
+* Amend the module 
+* In this method we deploy a second ingress controller (new version) that will run in parallel to the existing default controller
+
+* We then amend the ingress annotation nginx class to point to this new controller
+
+* The 'external-dns' will then automatically amend the Route53 dns record so the ingress dns is pointing to the new Load Balancer that belongs to this
+new ingress controller
+
+* During this interim period we take the opportunity to upgrade the default ingress controller
+
+* Once updated we revert the ingress annotation on the ingress_class so that it references the default ingress controller
+
+* Finally delete the secondary controller that was created in step 1
+
+STEPS FOR METHOD 1 
+
+(1) Deploy Secondary Ingress Controller
+
+
+Deploy a new Ingress Controller (ensure the `ingressClass` name is different to the existing controller e.g nginx-new)
+
+In values.yaml for the Ingress Controller helm chart amend the `ingressClass` as below.
+
+```bash
+controller:
+  replicaCount: 6
+  ingressClass: ${ingress_class}
+```
+
+The ```${ingress_class}``` is passed in when calling the ```ingress-controller``` module as below: 
+
+```bash
+module "ingress-controllers" {
+  source = "<LOCAL_PATH_TO_INGRESS_NEW_CONTROLLER_MODULE>"
+  cluster_domain_name        = "<CLU§STER-NAME>.cloud-platform.service.justice.gov.uk"
+  is_live_cluster            = false
+  ingress_class              = "nginx-new"
+}
+```
+
+Note: By default the `ingress_class` is hard-coded to `nginx` in the ingress controller module. You will need to call this module locally with the parameter added manually as above.
+
+Execute ```terraform apply``` from the location where you are calling the ingress controller module. Once executed you should now observe two ingress deployments with two
+load balancers
+
+
+(2) Amend the Ingress Class Annotation:
+
+
+The `Ingress` resource has an annotation for the ingress class, as follows:
+
+```bash
+kubernetes.io/ingress.class: nginx
+```
+
+This name of the ingress class specified in this annoation indicates which Ingress Controller is to be used. For example the above annotation is set to 'nginx'. 
+This means that any Ingress Controller that has its `ingressClass` set to 'nginx' in its `values.yaml` helm chart will use the traffic rules defined in this ingress.
+
+By default the Ingress Controller's `ingressClass` is set to `nginx`. However this can be amended in the Ingress Controller's helm chart `values.yaml` file as below:
+
+```bash
+controller:
+  replicaCount: 6
+  ingressClass: ${ingress_class}
+```
+
+Below are the high level steps to upgrade the controller
+
+Before amending the ```ingress``` its worth running a ```curl``` command that repeatedly hits the DNS and outputs the status of the page, with the status of anything other than '200'
+indicating that the page is down. Open a new session and run the following
+
+```bash
+do=true
+while $do; do
+  curl -i https://<DOMAN_PREFIX>.<CLUSTER_NAME>.cloud-platform.service.justice.gov.uk | grep "^HTTP\/"
+  sleep 2
+```
+
+Lastly you now need to amend the ```ingress``` resource so that its ```nginx-class``` annotation is referencing the new ingress-controller created above. 
+
+```kubernetes.io/ingress.class: nginx-new```
+
+Once applied, observe the status of the curl output. You should expect the status to now be '404'. The downtime should last no more than 2 mintutes. So after this time
+your output status should now return to '200'.
+
+The downtime is due to 'external-module' amending the A-record for the DNS to point to the new load balancer
+
+(3) Upgrade Existing Ingress Controller
+
+Now that the traffic is following through the secondary (interim) ingress controller, we can upgrade the original controller to the desired version. Below are the steps. 
+
+* Browse to ```cloud-platform-infrastructure/terraform/cloud-platform-components```
+
+* Ensure you are in the correct workspace that corresponds to the cluster you are deploying to ```terraform workspace select <WORKSPACE-NAME>```
+
+* In the ```module "ingress_controllers" { ...``` module amend the source so that it is now pointing to the new upgraded local ingress module 
+
+```bash
+module "ingress-controllers" {
+  source = "<LOCAL_PATH_TO_INGRESS_NEW_CONTROLLER_MODULE>"
+```
+
+* Run ```terraform init```
+
+* Run ```terraform apply -target=module.ingress_controllers``` 
+
+* Observe the output of and ensure that it will only destroy / create the ingress controller
+
+* Ensure the new ingress controller is up and running by observing the deployment using kubectl 
+
+(3) Revert the Ingress Class Annotation:
+
+By now removing the annotation for the ingress class, the ingress should now point back to the newly upgraded default controller (default controller class is nginx):
+
+Amend the ingress and remove the following annoation 
+
+```bash
+kubernetes.io/ingress.class: nginx-new
+```
+
+(4) Run ```kubectl get ingress <INGRESS-NAME> -n <NAMESPACE>``` to confirm that the ingress is now being referenced by the load balancer belonging to the default controller
+
+```bash
+NAME   HOSTS                                                         ADDRESS                                                                         PORTS     AGE
+demo   demo.apps.upgrade-ing.cloud-platform.service.justice.gov.uk   a186b8eef3b574e97a1404e6e32d61b0-2ecb6dc599ddf732.elb.eu-west-2.amazonaws.com   80, 443   3d22h
+```
