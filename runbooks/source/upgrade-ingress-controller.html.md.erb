@@ -8,20 +8,30 @@ review_in: 3 months
 # Overview
 
 This run book illustrates the steps to upgrade the ingress controller to a new version. There are two different approaches to upgrading
-the Ingress Controller. Both will incur down time. 
+the Ingress Controller. Both will incur down time. The first method involves upgrading the default ingress controller directly. The second method involves
+deploying a new ingress controller running alongside the defalt one and amending the nginx class annotation of the ingress so that the new ingress controller is the 
+one which directs the traffic. During this interim period the default ingress controller is upgraded and the annotation from the ingress is removed to restore the original flow 
+flow of traffic from the upgraded default ingress controller. 
 
+There are pros and cons with both methods. 
+
+The first method, of upgrading the ingress controller, is the most easiest and the one with the least steps. However downtime 
+is greater (around 5 minutes). 
+
+The second method, of amending the ingress class annotation of the ingresses, has much less downtime (2 minutes) but involves many more steps.
+However if this method can be automated then it would be the most ideal. 
 
 ## Pre-requisites
 
-- Identify the Ingress Controller version you are upgrading to. For this browse to the official GitHub repository to view the latest Chart version. 
+- Identify the ingress controller version you are upgrading to. For this browse to the official GitHub repository to view the latest Chart version. 
 
 ```https://github.com/kubernetes/ingress-nginx/blob/master/charts/ingress-nginx/values.yaml```
 
-Usually the Chart version corresponds to the image tag used by the ingress controller `Deployment` resource which you can cross reference here:
+Usually the Chart version corresponds to the image tag used by the ingress controller ```Deployment``` resource which you can cross reference here:
 
 ```https://github.com/kubernetes/ingress-nginx/blob/master/charts/ingress-nginx/values.yaml```
 
-- Ensure you have access to the cluster from where the ingress controller you intend to upgrade is running
+- Ensure you have access to the kubernetes cluster that is running the ingress controller
 
 - Ensure your AWS_PROFILE creds are set 
 
@@ -34,7 +44,7 @@ Usually the Chart version corresponds to the image tag used by the ingress contr
 
 ### Upgrading the Ingress Controller module
 
-Before applying the Ingress Controller, first upgrade the Ingress Controller module to the desired version. Specifically the ```helm chart``` needs to be updated. Below
+Before upgrading the ingress controller, first upgrade the ingress controller module to the desired version. Specifically the ```helm chart``` needs to be updated. Below
 are the steps: 
 
 * Create a new feature branch for the ```cloud-platform-terraform-ingress-controller``` repository
@@ -62,10 +72,10 @@ resource "helm_release" "nginx_ingress" {
 }
 ```
 
-Check in the above changes to your feature branch. Before raising a PR it maybe better to first test the version on a test cluster first by calling the local 
+Check-in the above changes to your feature branch. Before raising a PR it maybe better to first test the version on a test cluster first by calling the local 
 version of your module. 
 
-There are two methods for upgrading the ingress controller. Both incur downtime. Below are the summary steps for each:
+As mentioned above there are two methods for upgrading the ingress controller. Both incur downtime. Below are the summary steps for each:
 
 
 ### Method 1 (Directly Upgrading Default Ingress Controller)
@@ -76,7 +86,7 @@ SUMMARY OF STEPS
 
 * Rolling upgrade of the ingress controller will start once upgrade is applied 
 
-* Around 4 minutes of downtime will be incurred until all new controller pods are updated with the new version 
+* Around 4 minutes of downtime will be incurred until all new ingress controller pods are updated with the new version 
 
 * New ELB will be created 
 
@@ -90,7 +100,7 @@ DETAILED STEPS
 
 * Ensure you are in the correct workspace that corresponds to the cluster you are deploying to ```terraform workspace select <WORKSPACE-NAME>```
 
-* In the ```module "ingress_controllers" { ...``` module amend the source so that it is now pointing to the new upgraded local ingress module 
+* Ensure the ingress-controller module is amended so the source is now pointing to the new upgraded local ingress module 
 
 ```bash
 module "ingress-controllers" {
@@ -103,12 +113,12 @@ module "ingress-controllers" {
 
 * Observe the output and ensure that it will only destroy / create the ingress controller
 
-* Enter to 'yes' to the ```terraform apply...```
+* Enter 'yes' to the ```terraform apply...```
 
 * Ensure the new ingress controller is up and running by observing the deployment using kubectl 
 
-* At his point there will be aproximatley 4 mintutes of downtime (This is the time for the controller pods to be restared with the new version and also the time 
-  for external_dns to update the DNS record with the new ELB)
+* At his point there will be aproximatley 4 mintutes of downtime. This is the time for the controller pods to be restared with the new version and also the time 
+  for external_dns to update the DNS record with the new ELB
 
 
 
@@ -116,10 +126,11 @@ module "ingress-controllers" {
 
 SUMMARY OF STEPS 
 
-* Amend the module 
+* Amend the module (as above)
+
 * In this method we deploy a second ingress controller (new version) that will run in parallel to the existing default controller
 
-* We then amend the ingress annotation nginx class to point to this new controller
+* Amend the ingress annotation nginx class to point to this new controller
 
 * The 'external-dns' will then automatically amend the Route53 dns record so the ingress dns is pointing to the new Load Balancer that belongs to this
 new ingress controller
@@ -130,16 +141,16 @@ new ingress controller
 
 * Finally delete the secondary controller that was created in step 1
 
-STEPS FOR METHOD 1 
+STEPS FOR METHOD 2
 
 (1) Deploy Secondary Ingress Controller
 
 
 Deploy a new Ingress Controller (ensure the `ingressClass` name is different to the existing controller e.g nginx-new)
 
-In values.yaml for the Ingress Controller helm chart amend the `ingressClass` as below.
+By default the ingress controller `ingressClass` is set to `nginx`. However this can be amended in the Ingress Controller's helm chart `values.yaml` file as below:
 
-```bash
+```
 controller:
   replicaCount: 6
   ingressClass: ${ingress_class}
@@ -147,7 +158,7 @@ controller:
 
 The ```${ingress_class}``` is passed in when calling the ```ingress-controller``` module as below: 
 
-```bash
+```
 module "ingress-controllers" {
   source = "<LOCAL_PATH_TO_INGRESS_NEW_CONTROLLER_MODULE>"
   cluster_domain_name        = "<CLU§STER-NAME>.cloud-platform.service.justice.gov.uk"
@@ -156,10 +167,12 @@ module "ingress-controllers" {
 }
 ```
 
+Below are the high level steps to upgrade the controller
+
 Note: By default the `ingress_class` is hard-coded to `nginx` in the ingress controller module. You will need to call this module locally with the parameter added manually as above.
 
 Execute ```terraform apply``` from the location where you are calling the ingress controller module. Once executed you should now observe two ingress deployments with two
-load balancers
+load balancers.
 
 
 (2) Amend the Ingress Class Annotation:
@@ -171,18 +184,8 @@ The `Ingress` resource has an annotation for the ingress class, as follows:
 kubernetes.io/ingress.class: nginx
 ```
 
-This name of the ingress class specified in this annoation indicates which Ingress Controller is to be used. For example the above annotation is set to 'nginx'. 
-This means that any Ingress Controller that has its `ingressClass` set to 'nginx' in its `values.yaml` helm chart will use the traffic rules defined in this ingress.
-
-By default the Ingress Controller's `ingressClass` is set to `nginx`. However this can be amended in the Ingress Controller's helm chart `values.yaml` file as below:
-
-```bash
-controller:
-  replicaCount: 6
-  ingressClass: ${ingress_class}
-```
-
-Below are the high level steps to upgrade the controller
+This name of the ingress class specified in this annoation indicates which ingress controller is to be used. For example the above annotation is set to 'nginx'. 
+This means that any ingress controller that has its `ingressClass` set to 'nginx' in its `values.yaml` helm chart will use the traffic rules defined in this ingress.
 
 Before amending the ```ingress``` its worth running a ```curl``` command that repeatedly hits the DNS and outputs the status of the page, with the status of anything other than '200'
 indicating that the page is down. Open a new session and run the following
