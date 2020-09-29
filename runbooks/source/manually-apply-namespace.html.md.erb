@@ -1,7 +1,7 @@
 ---
 title: Manually Plan/Apply Namespace Resources
 weight: 180
-last_reviewed_on: 2020-07-28
+last_reviewed_on: 2020-09-28
 review_in: 3 months
 ---
 
@@ -17,6 +17,18 @@ git checkout main
 git pull
 git checkout -b [BRANCH-NAME] origin/[BRANCH-NAME]
 ```
+
+##Set pingdom environment variables(Optional) 
+
+If the changes involve applying "pingdom_check", set the environment variables for pingdom.
+The values are stored as secrets in `manager` cluster - `concourse-main` namespace.
+
+```
+export PINGDOM_USER="XXXXXXXXXXX"
+export PINGDOM_PASSWORD="XXXXXXXXXXXX"
+export PINGDOM_API_KEY="XXXXXXXXXXXXX"
+```
+
 
 ## Target the live-1 cluster
 
