@@ -7,9 +7,39 @@ weight: 45
 
 ## Q3 2020 (July - September)
 
-- **Mean Time To Repair**: 1h 8m
+- **Mean Time To Repair**: 59m
 
-- **Mean Time To Resolve**: 8h 37m
+- **Mean Time To Resolve**: 7h 22m
+
+### Incident on 2020-09-28 13:10 - Termination of nodes updating kops Instance Group.
+
+- **Key events**
+  - First detected 2020-09-28 13:14
+  - Incident declared 2020-09-28 14:05
+  - Repaired 2020-09-28 14:20
+  - Resolved 2020-09-28 14:44
+
+- **Time to repair**: 15m
+
+- **Time to resolve**: 1h 30m
+
+- **Incident**: Periods of downtime while the cloud-platform team was applying per Availability Zone instance groups for worker nodes change in live-1. Failures caused mainly due to termination of a group of 9 nodes and letting kops to handle the cycling of pods, which took very long time for the new containers to be created in the new node group.
+
+- **Impact**:
+  - Some users noticed cycling of pods but taking a long time for the containers to be created.
+  - Prometheus/alertmanager/kibana health check failures.
+  - Users noticed short-lived pingdom alerts & health check failures.
+
+- **Context**:
+  - kops node group (nodes-1.16.13) updated minSize from 25 to 18 nodes and ran kops update cluster --yes, this terminated 9 nodes from existing worker node  group (nodes-1.16.13).
+  - Pods are in pending status for a long time waiting to be scheduled in the new nodes.
+  - Teams using their own ingress-controller have 1 replica for non-prod namespaces, causing some pingdom alerts & health check failures.
+  - Timeline: [Timeline](https://docs.google.com/document/d/1ysz7KYjFrZ7YJ3QhyWQGvbgoPW8D0XHJpMgfJB6g2hc/edit#heading=h.ttkde0ugh32m) for the incident.
+  - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1601298352147700) for the incident.
+
+- **Resolution**:
+  - This is resolved by cordoning and draining nodes one by one before deleting the instance group.
+
 
 ### Incident on 2020-09-21 18:27 - Some cloud-platform components destroyed.
 
