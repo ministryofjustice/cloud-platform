@@ -1,7 +1,7 @@
 ---
 title: Tips and Tricks
 weight: 9200
-last_reviewed_on: 2020-06-30
+last_reviewed_on: 2020-10-05
 review_in: 3 months
 ---
 
@@ -43,7 +43,7 @@ $ sudo docker exec -it [container id] bash
 Now you can run etcdctl like this:
 
 ```bash
-cd /opt/etcd-v3.3.10-linux-amd64/
+cd /opt/etcd-v3.4.3-linux-amd64
 
 ETCDCTL_API=3 \
   ./etcdctl --key /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key \
@@ -56,18 +56,24 @@ ETCDCTL_API=3 \
 
 kubectl can freeze with resources in status "Terminating", these workarounds can force a cleanup:
 
-Identify what resources are still present in a namspace:
+Identify what resources are still present in a namespace:
+
 ```
 ns=my-app ; for api in `kubectl api-resources --verbs=list --namespaced -o name` ; do echo $api ;  kubectl get $api -n $ns ; done
 ```
+
 If a regular `delete` does not remove the resource, try
+
 ```
 kubectl delete <resource> --grace-period=0 --force
 ```
+
 and/or
+
 ```
 patch <resource> -p '{"metadata":{"finalizers":[]}}' --type=merge
 ```
+
 Where "resource" can be namespace, crd, pod etc
 
 ## Filter namespaces by specific label or annotation
