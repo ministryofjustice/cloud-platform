@@ -48,15 +48,31 @@ Please read these [technical guidelines](https://ministryofjustice.github.io/tec
 
 The origin of the name is lost, but it sounds a lot more fun than "support manager" 😏
 
-We designate one member of the team to be the hammer on each working day. Please volunteer when you feel comfortable, so that we all take a turn.
+We designate one member of the team to be the Hammer on each working day. Please volunteer when you feel comfortable, so that we all take a turn.
 
-The main responsibility of the hammer is to monitor the `#ask-cloud-platform` slack channel, and ensure that any queries are handled, and that users' PRs against the [environments repository] are reviewed in a timely fashion.
+The Hammer is responsible for:
 
-It is **not** the hammer's job to **do** all of the work necessary to solve every query in the channel.
+* Ensuring questions/problems in the `#ask-cloud-platform` slack channel are being worked on, and that users receive frequent updates until a problem is resolved
+* Ensuring that users' PRs raised against the [environments repository] are reviewed in a timely fashion
+* Ensuring that Cloud Platform team members' PRs are reviewed in a timely fashion
 
-It **is** the hammer's job to ensure that all queries are handled. This may involve asking other team members for help with particular queries where they have relevant expertise, or if there are more queries coming in than you can handle.
+It is **not** the Hammer's job to **answer** every query in the channel, and **review** every PR
 
-> Anyone can (and should) respond to queries in `#ask-cloud-platform`. You don't have to be the hammer to help.
+It **is** the Hammer's job to ensure that all queries are handled, and that PRs are reviewed. This may involve asking other team members for help with particular queries where they have relevant expertise, or if there are more queries coming in than you can handle.
+
+> Anyone can (and should) respond to queries in `#ask-cloud-platform`, and review PRs. You don't have to be the Hammer to help.
+
+### Backlog Tickets
+
+Working on tickets in the backlog when you're the Hammer is not advised. The constant context switching makes it hard to get significant work done, and there is also the risk that questions go unanswered and PRs get blocked waiting for review because you're head down in a problem and don't notice them.
+
+Instead, when not answering queries and reviewing PRs, the Hammer should work on fixing "squeaky wheels" - the minor alerts and problems that crop up which don't necessarily result in backlog tickets, or where such tickets never become high-priority enough to get selected during sprint planning.
+
+"Squeaky wheels" could include things like:
+
+* Todo items reported by [How out of date are we?] (e.g. reviewing documentation pages, or (carefully) destroying orphaned AWS resources)
+* Intermittent alerts in the `#lower-priority-alarms` slack channel
+* Improving our integration tests
 
 ## Documentation
 
@@ -72,3 +88,4 @@ It is important to keep all of this up to date as the underlying code changes, s
 [environments repository]: https://github.com/ministryofjustice/cloud-platform-environments
 [user guide]: https://user-guide.cloud-platform.service.justice.gov.uk
 [runbooks]: https://runbooks.cloud-platform.service.justice.gov.uk
+[How out of date are we?]: https://how-out-of-date-are-we.apps.live-1.cloud-platform.service.justice.gov.uk/dashboard
