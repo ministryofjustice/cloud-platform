@@ -5,6 +5,38 @@ weight: 45
 
 # Incident Log
 
+## Q4 2020 (October - December)
+
+- **Mean Time to repair**: 2h 8m
+
+- **Mean Time to resolve**: 8h 46m
+
+### Incident on 2020-10-06 09:07 - Intermittent "micro-downtimes" on various services using dedicated ingress controllers
+
+- **Key events**
+  - First detected 2020-10-06 08:33
+  - Incident declared 2020-10-06 09:07
+  - Repaired 2020-10-06 10:41
+  - Resolved 2020-10-06 17:19
+
+- **Time to repair**: 2h 8m
+
+- **Time to resolve**: 8h 46m
+
+- **Identified**: User reported service problems in #ask-cloud-platform. Confirmed by checking Pingdom
+
+- **Impact**:
+  - Numerous brief and intermittent outages for multiple (but not all) services (production and non-production) which were using dedicated ingress controllers
+
+- **Context**:
+  - Occurred immediately after upgrading live-1 to kubernetes 1.17
+  - 1.17 creates 2 additional SecurityGroupRules per ingress-controller, this took us over a hard AWS limit
+  - Timeline: [Timeline](https://docs.google.com/document/d/108pSsVxt_YJFj2jrY86dIvuuP8g8j5aLFsMdlb1YMeI/edit#heading=h.z8h3a4mkgult) for the incident.
+  - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1601971645475700) for the incident.
+
+- **Resolution**:
+  - Migrate all ingresses back to the default ingress controller
+
 ## Q3 2020 (July - September)
 
 - **Mean Time To Repair**: 59m
@@ -69,10 +101,10 @@ weight: 45
   - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1600710001173700) for the incident.
 
 - **Resolution**:
-  - Team prioritised to restore default ingress controller, ingress-controller has a dependency of external-dns to update route53 records with  
+  - Team prioritised to restore default ingress controller, ingress-controller has a dependency of external-dns to update route53 records with
   new NLB and kiam for providing AWSAssumeRole for external-dns, these components (ingress-controller, external-dns and kiam) got restored successfully. Services start to come back up.
   - Formbuilder services are still pointing to the old NLB (network load balancer before ingress got replaced), reason for this is route53 TXT records was set incorrect owner field, so external-dns couldn't update the new NLB information in the A record. Team fixed the owner information in the TXT record, external DNS updated formbuilder route53 records to point to new NLB. Formbuilder services is up and running.
-  - Team did target apply to restore remaining components. 
+  - Team did target apply to restore remaining components.
   - Apply pipleine run to restore all the certificates, servicemonitors and prometheus-rules from the [environment repository](https://github.com/ministryofjustice/cloud-platform-environments).
 
 ### Incident on 2020-09-07 12:54 - All users are unable to create new ingress rules
@@ -118,9 +150,9 @@ weight: 45
 
 - **Incident**: The AWS  Availability Zones `eu-west-2a`, which contain some of our kubernetes nodes had an outage. API latency was elevated, some EC2 became unreachable and overall connectivity was unstable.
 
-- **Impact**:  
+- **Impact**:
   - Two kubernetes nodes became unreachable
-  - No new node could be launched in eu-west-2a 
+  - No new node could be launched in eu-west-2a
   - Kubernetes had issues talking to some of these nodes, preventing some API calls to succeed (Pods were not terminating)
   - New pods were not able to pull their Docker images.
 
@@ -354,3 +386,27 @@ Definitions:
 Source: [Atlassian](https://www.atlassian.com/incident-management/kpis/common-metrics)
 
 Datestamps: please use `YYYY-MM-DD HH:MM` (almost ISO 8601, but more readable), for the London timezone
+
+## Template
+
+### Incident on YYYY-MM-DD HH:MM - [Brief description]
+
+- **Key events**
+  -
+
+- **Time to repair**: 0h 0m
+
+- **Time to resolve**: 0h 0m
+
+- **Identified**:
+
+- **Impact**:
+  -
+
+- **Context**:
+  -
+  - Timeline: [Timeline](url of google document) for the incident
+  - Slack thread: [Slack thread](url of primary incident thread) for the incident.
+
+- **Resolution**:
+  -
