@@ -6,7 +6,6 @@
 #
 
 require "date"
-require "pry-byebug"
 
 INCIDENT_LOG = "incident-log.html.md.erb"
 
@@ -115,11 +114,10 @@ class Incident
 
   private
 
+  # "1h 5m" => 3900 (seconds)
   def to_seconds(str)
     hours, minutes = str.split(" ").map(&:to_i)
     (hours * 3600) + (minutes * 60)
-  rescue
-    binding.pry
   end
 end
 
