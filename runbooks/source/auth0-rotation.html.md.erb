@@ -1,13 +1,13 @@
 ---
 title: Credentials rotation for auth0 apps
 weight: 68
-last_reviewed_on: 2020-06-25
+last_reviewed_on: 2020-10-08
 review_in: 3 months
 ---
 
 # <%= current_page.data.title %>
 
-Cloud-Platform team uses [auth0](https://auth0.com) with almost every component which requires authentication (clusters, Prometheus, Kibana, Grafana, etc). Credentials rotation within our live clusters requires to follow different steps and because of that users are not able to use the cluster until they re-authenticate (generate new kubeconfig file)
+Cloud-Platform team uses [auth0](https://auth0.com) in almost every component requiring authentication (clusters, Prometheus, Kibana, Grafana, etc). To rotate credentials we should we must follow steps below but it is important to keep in mind that users will require to re-authenticate (generate new kubeconfig file)
 
 ## Preparation
 
@@ -17,14 +17,16 @@ Cloud-Platform team uses [auth0](https://auth0.com) with almost every component 
 
 ## 1) Taint resources (terraform)
 
-The first step is to recreate auth0 app. We will have to taint the auth0 resource, so it gets recreated with new credentials. Go to [`cloud-platform-infrastructure/terraform/cloud-platform` directory](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/cloud-platform) and run
+Tainting auth0 resource will force new credentials generation. Go to [`cloud-platform-infrastructure/terraform/cloud-platform` directory](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/cloud-platform) and run
 
 ```
 $ terraform workspace select live-1
 $ terraform taint module.auth0.auth0_client.components
 ```
 
-Ensure with `terraform plan` that auth0 resource is going to be recreated. It will also recreate kops template file, which we are going to need in the next step. If you are happy with the changes apply them:
+Make sure with `terraform plan` that auth0 resource is going to be recreated as well as kops template file (it's going to be needed in the next step). 
+
+Apply changes if you are happy with them:
 
 ```
 $ terraform apply
@@ -32,9 +34,9 @@ $ terraform apply
 
 ## 2) Rolling update of cluster (kops)
 
-From the previous step a new [cloud-platform-infrastructure/kops/live-1.yaml](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/kops/live-1.yaml) file should have been generated. To apply this file we [already have a runbook](https://runbooks.cloud-platform.service.justice.gov.uk/running-kops-update-rollingupdate.html#updating-the-remote-kops-state), follow it step by step.
+From the previous step a new [cloud-platform-infrastructure/kops/live-1.yaml](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/kops/live-1.yaml) file should have been generated. To apply this file we [already have a runbook to follow](https://runbooks.cloud-platform.service.justice.gov.uk/running-kops-update-rollingupdate.html#updating-the-remote-kops-state).
 
-**NOTE**: As you will see, the change will require rolling replacement of the master nodes
+**NOTE**: The change will require rolling replacement of the master nodes
 
 ## 3) Apply changes within components (terraform)
 
@@ -55,8 +57,6 @@ $ kubectl -n monitoring delete pod $GrafanaPodName
 
 We already have a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/2006) to get rid of this step. Meanwhile we get it done, we should update [`oidc-components-secret.yaml` file](https://github.com/ministryofjustice/cloud-platform-environments/blob/main/namespaces/live-1.cloud-platform.service.justice.gov.uk/monitoring/oidc-components-secret.yaml) with the new auth0 credentials.
 
-This step requires a PR and someone available to approve it.
-
 ## 5) Verifiying changes
 
 In order to verify that the changes were successfully applied, follow the checklist below (order doesn't matter):
@@ -67,10 +67,8 @@ In order to verify that the changes were successfully applied, follow the checkl
 - Ensure you can authenticate to [Kibana](https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/kibana#/home?_g=())
 - Ensure you can authenticate to [Prometheus](https://prometheus.cloud-platform.service.justice.gov.uk/)
 
-If all of this works, jump to the last step which is update our pipelines.
-
 ## 6) Update pipelines
 
 Our pipelines read auth0 credentials from a K8S secret inside the manager cluster. This secret is updated through concourse's TF module variable called `tf_provider_auth0_client_secret` and `tf_provider_auth0_client_id` in [cloud-platform-infrastructure/blob/main/terraform/cloud-platform-eks/components/terraform.tfvars](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-eks/components/terraform.tfvars)
 
-You only need to update the source code file and have your changed merged to master. The [bootstrap pipeline] will apply your change.
+You only need to update the source code file and have your changed merged to master. The [bootstrap pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/bootstrap) will apply your change.
