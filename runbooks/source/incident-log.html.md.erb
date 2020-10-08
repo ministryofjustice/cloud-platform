@@ -5,6 +5,8 @@ weight: 45
 
 # Incident Log
 
+> Use the [mean-time-to-repair.rb] script to view performance metrics
+
 ## Q4 2020 (October - December)
 
 - **Mean Time to repair**: 2h 8m
@@ -39,9 +41,9 @@ weight: 45
 
 ## Q3 2020 (July - September)
 
-- **Mean Time To Repair**: 59m
+- **Mean Time To Repair**: 1h 9m
 
-- **Mean Time To Resolve**: 7h 22m
+- **Mean Time To Resolve**: 7h 26m
 
 ### Incident on 2020-09-28 13:10 - Termination of nodes updating kops Instance Group.
 
@@ -51,11 +53,11 @@ weight: 45
   - Repaired 2020-09-28 14:20
   - Resolved 2020-09-28 14:44
 
-- **Time to repair**: 15m
+- **Time to repair**: 0h 15m
 
 - **Time to resolve**: 1h 30m
 
-- **Incident**: Periods of downtime while the cloud-platform team was applying per Availability Zone instance groups for worker nodes change in live-1. Failures caused mainly due to termination of a group of 9 nodes and letting kops to handle the cycling of pods, which took very long time for the new containers to be created in the new node group.
+- **Identified**: Periods of downtime while the cloud-platform team was applying per Availability Zone instance groups for worker nodes change in live-1. Failures caused mainly due to termination of a group of 9 nodes and letting kops to handle the cycling of pods, which took very long time for the new containers to be created in the new node group.
 
 - **Impact**:
   - Some users noticed cycling of pods but taking a long time for the containers to be created.
@@ -81,11 +83,11 @@ weight: 45
   - Repaired 2020-09-21 19:05
   - Resolved 2020-09-21 21:41
 
-- **Time to repair**: 38m
+- **Time to repair**: 0h 38m
 
 - **Time to resolve**: 3h 14m
 
-- **Incident**: Some components of our production kubernetes cluster (live-1) were accidentally deleted, this caused some services running on cloud-platform gone down.
+- **Identified**: Some components of our production kubernetes cluster (live-1) were accidentally deleted, this caused some services running on cloud-platform gone down.
 
 - **Impact**:
   - Some users could not access services running on the Cloud Platform.
@@ -109,7 +111,7 @@ weight: 45
 
 ### Incident on 2020-09-07 12:54 - All users are unable to create new ingress rules
 
-- **Key times**
+- **Key events**
   - First detected 2020-09-07 12:39
   - Incident declared 2020-09-07 12:54
   - Resolved 2020-09-07 15:56
@@ -118,7 +120,7 @@ weight: 45
 
 - **Time to resolve**: 3h 17m
 
-- **Incident**: The Ingress API refused 100% of POST requests.
+- **Identified**: The Ingress API refused 100% of POST requests.
 
 - **Impact**:
   - If a user were to provision a new service, they would be unable to create an ingress into the cluster.
@@ -144,11 +146,11 @@ weight: 45
   - Incident declared 2020-08-25 11:26
   - Resolved 2020-08-25 12:11
 
-- **Time to repair**: 45m
+- **Time to repair**: 0h 45m
 
 - **Time to resolve**: 1h 10m
 
-- **Incident**: The AWS  Availability Zones `eu-west-2a`, which contain some of our kubernetes nodes had an outage. API latency was elevated, some EC2 became unreachable and overall connectivity was unstable.
+- **Identified**: The AWS  Availability Zones `eu-west-2a`, which contain some of our kubernetes nodes had an outage. API latency was elevated, some EC2 became unreachable and overall connectivity was unstable.
 
 - **Impact**:
   - Two kubernetes nodes became unreachable
@@ -171,11 +173,11 @@ weight: 45
   - Incident declared 2020-08-14 11:01
   - Resolved 2020-08-14 11:38
 
-- **Time to repair**: 37m
+- **Time to repair**: 0h 37m
 
-- **Time to resolve**: 55m
+- **Time to resolve**: 0h 55m
 
-- **Incident**: There are 6 replicas of the ingress-controller pod and 2 out of the 6 were crashlooping. A restart of the pods did not resolve the issue. As per a normal runbook process, a recycle of all pods was required. However after restarting pods 4 and 5, they also started to crashloop. The risk was when restarting pods 5 and 6 -  all 6 pods could be down and all ingresses down for the cluster.
+- **Identified**: There are 6 replicas of the ingress-controller pod and 2 out of the 6 were crashlooping. A restart of the pods did not resolve the issue. As per a normal runbook process, a recycle of all pods was required. However after restarting pods 4 and 5, they also started to crashloop. The risk was when restarting pods 5 and 6 -  all 6 pods could be down and all ingresses down for the cluster.
 
 - **Impact**:
   - Increased risk for all ingresses failing in the cluster if all 6 ingress-controller pods are in a crashloop state.
@@ -198,11 +200,11 @@ weight: 45
   - Incident declared 2020-08-07 16:39
   - Resolved 2020-08-14 10:06
 
-- **Time to repair**: 38m
+- **Time to repair**: 0h 38m
 
 - **Time to resolve**: 33h 15m (during support hours 10:00-17:00 M-F)
 
-- **Incident**: Routine replacement of a master node failed because AWS did not have any c4.4xlarge instances available in the relevant availability zone.
+- **Identified**: Routine replacement of a master node failed because AWS did not have any c4.4xlarge instances available in the relevant availability zone.
 
 - **Impact**:
   - Increased risk because the cluster was running on 2 out of 3 master nodes, for a brief period
@@ -221,9 +223,9 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
 
 ## Q2 2020 (April - June)
 
-- **Mean Time To Repair**: 2h 49m
+- **Mean Time To Repair**: 2h 5m
 
-- **Mean Time To Resolve**: 7h 12m
+- **Mean Time To Resolve**: 15h 53m
 
 ### Incident on 2020-08-04 17:13
 
@@ -237,7 +239,7 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
 
 - **Time to resolve**: 9h 16m (during support hours 10:00-17:00)
 
-- **Incident**: Integration tests failed for cert-manager, apply pipeline failed showing it doesnot have permissions and
+- **Identified**: Integration tests failed for cert-manager, apply pipeline failed showing it doesnot have permissions and
  divergence pipeline shows drift for live-1 components
 
 - **Impact**:
@@ -263,11 +265,11 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
 
 - **Status**: Resolved at 2020-04-15 15:09 UTC
 
-- **Time to repair**: 30m
+- **Time to repair**: 0h 30m
 
 - **Time to resolve**: 5h 09m (during support hours 10:00-17:00)
 
-- **Incident**: After an upgrade of the Nginx ingresses, support for legacy TLS was dropped.
+- **Identified**: After an upgrade of the Nginx ingresses, support for legacy TLS was dropped.
 
 - **Impact**:
   - IE11 users could not access any services running on the Cloud Platform
@@ -289,9 +291,9 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
 
 ## Q1 2020 (January - March)
 
-- **Mean Time To Repair**: 1h 40m
+- **Mean Time To Repair**: 1h 22m
 
-- **Mean Time To Resolve**: 2h 42m
+- **Mean Time To Resolve**: 2h 36m
 
 ### Incident on 2020-02-25 10:58
 
@@ -305,7 +307,7 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
 
 - **Time to resolve**: 7h (during support hours 10:00-17:00)
 
-- **Incident**: During an upgrade, new masters were not coming up correctly (missing calico networking and other pods)
+- **Identified**: During an upgrade, new masters were not coming up correctly (missing calico networking and other pods)
 
 - **Impact**:
   - Degraded kubernetes API performance (because some API calls were being directed to non-functioning masters)
@@ -327,11 +329,11 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
   - Incident declared 2020-02-18 14:23
   - Resolved 2020-02-18 14:59
 
-- **Time to repair**: 36m
+- **Time to repair**: 0h 36m
 
-- **Time to recovery**: 46m
+- **Time to resolve**: 0h 46m
 
-- **Incident**: Pingdom reported that Prometheus was down (prometheus.cloud-platform.service.justice.gov.uk).
+- **Identified**: Pingdom reported that Prometheus was down (prometheus.cloud-platform.service.justice.gov.uk).
 
 - **Impact**:
   - The prometheus dashboard was unavailable for everyone, for the whole duration of the incident.
@@ -355,9 +357,9 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
   - Incident declared 2020-02-12 11:51
   - Resolved 2020-02-12 12:07
 
-- **Time to repair**: 16m
+- **Time to repair**: 0h 16m
 
-- **Time to recovery**: 22m
+- **Time to resolve**: 0h 22m
 
 - **Identified**: Pingdom reported Concourse (concourse.cloud-platform.service.justice.gov.uk) down.
 
@@ -394,9 +396,9 @@ Datestamps: please use `YYYY-MM-DD HH:MM` (almost ISO 8601, but more readable), 
 - **Key events**
   -
 
-- **Time to repair**: 0h 0m
+- **Time to repair**: Xh Xm
 
-- **Time to resolve**: 0h 0m
+- **Time to resolve**: Xh Xm
 
 - **Identified**:
 
@@ -410,3 +412,5 @@ Datestamps: please use `YYYY-MM-DD HH:MM` (almost ISO 8601, but more readable), 
 
 - **Resolution**:
   -
+
+  [mean-time-to-repair.rb]: https://github.com/ministryofjustice/cloud-platform/blob/main/runbooks/bin/mean-time-to-repair.rb
