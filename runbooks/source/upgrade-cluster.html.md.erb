@@ -142,9 +142,6 @@ watch kubectl get nodes
 
 We have multiple worker instance groups. Perform the same process on the other node instance groups.
   
-> The "main" worker instancegroup (i.e. the one which contains the bulk of our worker nodes) is referenced in the [recycle-node.rb] script.
-> Update that file with the new instancegroup name, so that the [recycle node pipeline job] continues to work after the upgrade.
-
 ### Cordon old workers
 
 Copy the file we created earlier:
