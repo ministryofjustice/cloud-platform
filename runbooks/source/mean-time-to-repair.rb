@@ -90,9 +90,9 @@ class Quarter
     hours_and_minutes(sum / incidents.length)
   end
 
-  def hours_and_minutes(i)
-    hours = i / 3600
-    seconds = i % 3600
+  def hours_and_minutes(seconds)
+    hours = seconds / 3600
+    seconds = seconds % 3600
     minutes = seconds / 60
     "#{hours}h #{minutes}m"
   end
