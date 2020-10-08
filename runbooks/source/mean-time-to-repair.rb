@@ -14,7 +14,6 @@ QUARTER_REGEX = %r[^## Q\d \d\d\d\d ]
 INCIDENT_REGEX = %r[^### Incident on ]
 TIME_TO_REPAIR_REGEX = %r[- ..Time to repair..: (\d+h \d+m)]
 TIME_TO_RESOLVE_REGEX = %r[- ..Time to resolve..: (\d+h \d+m)]
-TIME_REGEX = %r[(\d\d\d\d-\d\d-\d\d \d\d:\d\d)]
 
 def main
   puts parse_incident_log
@@ -23,6 +22,12 @@ def main
     .map(&:report)
 end
 
+# Turn the incident log into a hash of:
+#
+#   { [quarter label] => [ list of incidents in quarter ], ... }
+#
+# ...where each 'incident' is a hash: { time_to_repair: "Xh Ym", time_to_resolve: "Xh Ym" }
+#
 def parse_incident_log
   data = {}
   current_quarter = nil
@@ -53,13 +58,6 @@ def parse_incident_log
   data[current_quarter].push(current_incident) unless current_incident == {}
   data
 end
-
-def time_from_line(line)
-  if m = TIME_REGEX.match(line)
-    DateTime.parse m[1]
-  end
-end
-
 
 class Quarter
   attr_reader :title, :incidents
