@@ -2,7 +2,9 @@
 
 # Consume the incident log file and output incident performance metrics
 #
-#   Usage: ./mean_time_to_repair.rb
+#   Usage (from inside the `runbooks/source` directory):
+#
+#     ../bin/mean_time_to_repair.rb
 #
 
 require "date"
