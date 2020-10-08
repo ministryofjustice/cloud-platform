@@ -37,24 +37,32 @@ def parse_incident_log
 
     case line
     when QUARTER_REGEX
-      if current_quarter
+      if current_quarter # i.e. this isn't the first quarter marker in the file
+        # We just reached the next quarter, so add the current incident to the current quarter
         data[current_quarter].push(current_incident) unless current_incident.nil?
       end
+
+      # initialise a new 'quarter' hash
       current_quarter = line
       data[current_quarter] = []
     when INCIDENT_REGEX
+      # We reached an incident marker. Finish off this incident and start a new hash.
       data[current_quarter].push(current_incident) unless current_incident.nil?
       current_incident = {}
     when TIME_TO_REPAIR_REGEX
+      # We've found the time_to_repair line for this incident
       m = TIME_TO_REPAIR_REGEX.match(line)
       current_incident[:time_to_repair] = m[1]
     when TIME_TO_RESOLVE_REGEX
+      # We've found the time_to_resolve line for this incident
       m = TIME_TO_RESOLVE_REGEX.match(line)
       current_incident[:time_to_resolve] = m[1]
     end
   end
 
+  # Ensure we handle the last incident in the file
   data[current_quarter].push(current_incident) unless current_incident == {}
+
   data
 end
 
