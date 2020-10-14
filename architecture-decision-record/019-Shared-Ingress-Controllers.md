@@ -47,3 +47,11 @@ teams.
   environments repository, since our current setup would enable teams to
   'overload' a given ingress controller by using its ingress class in their
   ingress definitions. This could impact other services.
+  
+## UPDATE 2020-10-14
+
+During the last kubernetes upgrade, we hit another AWS limit on the number of SecurityGroupRules (details in the [incident log]).
+
+As part of the remediation, we removed all dedicated ingress controllers and migrated ingresses to the default controller, removing any modsecurity annotations.
+
+[incident log]: https://runbooks.cloud-platform.service.justice.gov.uk/incident-log.html#incident-on-2020-10-06-09-07-intermittent-quot-micro-downtimes-quot-on-various-services-using-dedicated-ingress-controllers
