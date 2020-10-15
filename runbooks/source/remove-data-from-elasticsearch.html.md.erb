@@ -1,7 +1,7 @@
 ---
 title: Remove data from Elasticsearch
 weight: 190
-last_reviewed_on: 2020-07-14
+last_reviewed_on: 2020-10-15
 review_in: 3 months
 ---
 
@@ -24,11 +24,11 @@ An index contains documents. In our case, documents are log entries.
 
 The current logging strategy is to have one index per day, containing all the daily logs.
 All application logs are sent to that daily index, ex:  `logstash-2020.02.01`
-If you want your query to cover all log data stored in the Elasticsearch cluster, you can use expression in the index like `logstash-2*`
+If you want your query to cover all log data stored in the Elasticsearch cluster, you can use an expression like `logstash-2*`
 
 Although it is possible to delete a whole index with a curator job, this guide will only cover the deletion of specific documents.
 
-**Running `curl` queries has to be done from within the live-1 VPC.**
+> Running `curl` queries has to be done from within the live-1 VPC
 
 ## Build your query
 
@@ -84,16 +84,16 @@ If we want to delete all logs from the `my-namespace-production` from 01/02/2020
 
 Here again, `.keyword` is essential.
 
-To run the `curl` commands, you can `exec` into any of the pods(eg. fluentd-es) inside the cluster. You may have to install `curl`.
+> To run the `curl` commands, you can `exec` into any of the pods(eg. fluentd-es) inside the cluster. You may have to install `curl`
 
 After executing the commands and removing the data, make sure to delete the pod as it will contain the search results of sensitve data 
 you have queried using `curl`. A fluentd pod will be recreated automatically.
 
 ## Removing specific logs filtered by phrase
 
-If you want to delete logs which has a certain phrase, you can use below queries.
+If you want to delete log entries which contain a certain phrase, you can use the queries below.
 
-Searching for a phrase "What is your name?" between certain dates, the `curl` command would look like
+Searching for the phrase "What is your name?" between certain dates, the `curl` command would look like:
 
 ```
 
@@ -129,7 +129,7 @@ curl -XGET https://search-cloud-platform-live-dibidbfud3uww3lpxnhj2jdws4.eu-west
 
 ```
 
-Deleting the logs which has a phrase "What is your name?" between certain dates, the `curl` command would look like
+Deleting the log entries which have the phrase "What is your name?" between certain dates, the `curl` command would look like this:
 
 ```
 curl -XPOST https://search-cloud-platform-live-dibidbfud3uww3lpxnhj2jdws4.eu-west-2.es.amazonaws.com/logstash-2*/_delete_by_query?pretty \
@@ -166,8 +166,8 @@ curl -XPOST https://search-cloud-platform-live-dibidbfud3uww3lpxnhj2jdws4.eu-wes
 
 If you have complex search patterns used in kibana which you want to delete, 
  - narrow down the kibana search in the webconsole
- - click on the "Inspect"
+ - click on "Inspect"
  - In the popup search window, click on the tab "Request"
- - Copy and paste the object which mentions `"query": {` to the above curl command and modify dates as you need
+ - Copy and paste the object which mentions `"query": {` to the above curl command and modify dates as needed
 
- If you are searching for phrases which has single-quote characters, it may need special handling when adding those to the query.
+> If you are searching for phrases which contain single-quote characters, those will need special handling when adding the phrases to the query
