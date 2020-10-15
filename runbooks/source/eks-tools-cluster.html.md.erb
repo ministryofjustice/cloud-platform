@@ -116,6 +116,13 @@ $ cd terraform/cloud-platform-eks/components
 $ terraform init
 $ terraform workspace select <clusterName e.g. tools-cluster-eks>
 $ terraform destroy
+```
+> The destroy process often gets stuck on prometheus operator. If that happens, running this in a separate window usually works:
+> ```
+> kubectl -n monitoring delete job prometheus-operator-operator-cleanup
+> ```
+    
+```
 $ terraform workspace select default
 $ terraform workspace delete <clusterName>
 ```
