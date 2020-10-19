@@ -99,7 +99,8 @@ First, set the kubectl context for the EKS cluster you are deleting. The easiest
 
 ```
 $ export KUBECONFIG=~/.kube/config
-$ aws eks --region eu-west-2 update-kubeconfig --name <cluster-name>
+$ export cluster=<cluster-name>
+$ aws eks --region eu-west-2 update-kubeconfig --name ${cluster}
 ```
 
 You should see this output:
@@ -109,12 +110,13 @@ Added new context arn:aws:eks:eu-west-2:754256621582:cluster/<cluster-name> to .
 
 ```
 
-Then, from the components directory, run these commands to destroy all cluster components, and delete the terraform workspace.
+Then, from the root of a checkout of the `cloud-platform-infrastructure` repository, run 
+these commands to destroy all cluster components, and delete the terraform workspace:
 
 ```
 $ cd terraform/cloud-platform-eks/components
 $ terraform init
-$ terraform workspace select <clusterName e.g. tools-cluster-eks>
+$ terraform workspace select ${cluster}
 $ terraform destroy
 ```
 > The destroy process often gets stuck on prometheus operator. If that happens, running this in a separate window usually works:
@@ -124,7 +126,7 @@ $ terraform destroy
     
 ```
 $ terraform workspace select default
-$ terraform workspace delete <clusterName>
+$ terraform workspace delete ${cluster}
 ```
 
 Change directories and perform the following to destroy the EKS cluster, and delete the terraform workspace.
@@ -132,10 +134,10 @@ Change directories and perform the following to destroy the EKS cluster, and del
 ```
 $ cd .. # working dir is now `cloud-platform-eks`
 $ terraform init
-$ terraform workspace select <clusterName e.g. tools-cluster-eks>
+$ terraform workspace select ${cluster}
 $ terraform destroy
 $ terraform workspace select default
-$ terraform workspace delete <clusterName>
+$ terraform workspace delete ${cluster}
 ```
 
 [create a cluster](https://runbooks.cloud-platform.service.justice.gov.uk/create-cluster.html#create-a-new-cluster)
