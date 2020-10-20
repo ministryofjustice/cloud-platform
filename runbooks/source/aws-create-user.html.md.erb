@@ -1,7 +1,7 @@
 ---
 title: AWS Console Access
 weight: 115
-last_reviewed_on: 2020-08-18
+last_reviewed_on: 2020-10-19
 review_in: 3 months
 ---
 
@@ -11,19 +11,33 @@ New joiners for Cloud platform team will need AWS Console access for most things
 
 Related repositories:
 
+ - [cloud-platform-infrastructure (/terraform/cloud-platform-account)](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/cloud-platform-account)
+
  - [cloud-platform-terraform-awsaccounts-iam][awsaccounts-iam]
 
  - [terraform-aws-iam module](https://github.com/terraform-aws-modules/terraform-aws-iam)
 
 ## Steps to create/delete users
 
-1) Create a git branch and add (or delete) the user as [terraform code][awsaccounts-iam]. Do not forget to link the user to a group.
+1) Check the user is in the [webops GitHub team](https://github.com/orgs/ministryofjustice/teams/webops/members), which authorizes access to this AWS account.
 
-2) Using `terraform plan` in `cloud-platform-infrastructure/terraform/cloud-platform-account/` to verify you're happy with the terraform changes.
+2) Create a git branch and add (or delete) the user as [terraform code][awsaccounts-iam]. Do not forget to link the user to a group.
 
-3) Create the PR and ask the team to review it.
+3) Using `terraform plan` in `cloud-platform-infrastructure/terraform/cloud-platform-account/` to verify you're happy with the terraform changes.
 
-4) Once PR gets merged you must proceed to execute `terraform apply` and verify the user (you can use AWS Console for this).
+4) Create the PR, ask the team to review it, and merge it.
+
+5) [Create a release](https://github.com/ministryofjustice/cloud-platform-terraform-awsaccounts-iam/releases).
+
+6) In the infrastructure repo, edit [the terraform config that calls that module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-account/main.tf), to use the new release - see [example](https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/938/files)
+
+7) Create the PR, ask the team to review it, and merge it.
+
+8) Execute `terraform apply` for [terraform/cloud-platform-account](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/cloud-platform-account)
+
+9) Verify the user is created. (You can use AWS Console for this.)
+
+10) Tell them they can login here: https://aws-login.cloud-platform.service.justice.gov.uk
 
 ## Activating MFA for new users
 
