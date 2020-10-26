@@ -1,7 +1,7 @@
 ---
 title: Leavers Guide
 weight: 9100
-last_reviewed_on: 2020-09-29
+last_reviewed_on: 2020-10-26
 review_in: 3 months
 ---
 
@@ -17,7 +17,9 @@ Contact the [Service Desk](mailto:servicedesk%40digital.justice.gov.uk)  (or s
 
 * Note - it is worth reminding the service desk to transfer the leaver's Google Drive to someone in their team
 
-* Note - for leavers from the cloud-platforms team - ask the service desk to transfer any slack webhook integrations to someone in the team
+* Note - for leavers from the cloud-platforms team - ask the service desk to transfer any slack webhook integrations to someone in the team.<br>
+IT IS MOST IMPORTANT THAT YOU REQUEST THIS BEFORE THE PERSON LEAVES.<br> 
+This is because if the person has created a slack-webhook for alerting purposes, the loss of that slack-webhook can cause problems - when their profile is deleted (as the webhook link is referenced in [cloud-platform-infrastructure/blob/main/terraform/cloud-platform-components/terraform.tfvars](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-components/terraform.tfvars).
 
 ### AWS Accounts
 
@@ -32,13 +34,15 @@ Use the link above to login to the moj-cp account. For the others, you will need
 
 * As per [this PR](https://github.com/ministryofjustice/cloud-platform-terraform-awsaccounts-iam/pull/2/files)
 
-#### 3/ Remove their access to:
+#### 3/ Request [LastPass](https://docs.google.com/document/d/1Q6bHUyGEuVi81Bmvi7kOa-DvC-y-L-H3BR13DPsYiVs/edit) removal 
+
+#### 4/ Request [vpn](https://docs.google.com/document/d/1Q6bHUyGEuVi81Bmvi7kOa-DvC-y-L-H3BR13DPsYiVs/edit) removal
+
+#### 5/ Remove their access to:
 
 * [Auth0 justice-cloud-platform](https://manage.auth0.com/dashboard/eu/justice-cloud-platform/users)
 
 * [Auth0 moj-cloud-platforms](https://manage.auth0.com/dashboard/eu/moj-cloud-platforms-dev/users)
-
-* [Pingdom](https://my.pingdom.com/3/users)
 
 * [Pagerduty](https://moj-digital-tools.pagerduty.com/users)
 
@@ -46,17 +50,15 @@ Use the link above to login to the moj-cp account. For the others, you will need
 
 * [Sentry](https://sentry.service.dsd.io/organizations/mojds/members/)
 
-* [CI](https://ci.service.dsd.io/configureSecurity/)
-
 * [MoJ teams on docker hub](https://cloud.docker.com/orgs/ministryofjustice/teams)
 
 * Email the administrator of our password management provider to remove the leaver's login access [contact details here](https://docs.google.com/document/d/1Q6bHUyGEuVi81Bmvi7kOa-DvC-y-L-H3BR13DPsYiVs/edit)
 
 * Email the VPN provider requesting removal of their VPN access [contact details here](https://docs.google.com/document/d/1Q6bHUyGEuVi81Bmvi7kOa-DvC-y-L-H3BR13DPsYiVs/edit)
 
-#### 3/ Remove them from the support rota (if applicable). [Pagerduty](https://moj-digital-tools.pagerduty.com/schedules#PFX6FHX/edit)
+#### 6/ Remove them from the support rota (if applicable). [Pagerduty](https://moj-digital-tools.pagerduty.com/schedules#PFX6FHX/edit)
 
-#### 4/ Remove them from platforms@digital.justice.gov.uk google group (if applicable). [Link here](https://groups.google.com/a/digital.justice.gov.uk/forum/#!managemembers/platforms/members/active)  
+#### 7/ Remove them from platforms@digital.justice.gov.uk google group (if applicable). [Link here](https://groups.google.com/a/digital.justice.gov.uk/forum/#!managemembers/platforms/members/active)  
 
 Reference [platforms@digital.justice.gov.uk](mailto:platforms@digital.justice.gov.uk)
 
