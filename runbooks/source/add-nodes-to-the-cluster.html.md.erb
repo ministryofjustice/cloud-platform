@@ -1,7 +1,7 @@
 ---
 title: Add nodes to the cluster
 weight: 60
-last_reviewed_on: 2020-07-22
+last_reviewed_on: 2020-10-28
 review_in: 3 months
 ---
 
@@ -9,7 +9,7 @@ review_in: 3 months
 
 This runbook covers how to increase the number of nodes in a Kops Kubernetes cluster.
 
-In the steps below, we assume we want to increase the number of nodes in Live-1, from 21 to 30.
+In the steps below, we assume we want to increase the number of nodes in Live-1, from 27 to 30.
 
 ### Requirements
 
@@ -36,35 +36,45 @@ This will ensure you have the right versions of everything
 Once authenticated to the cluster
 
 ```
-$ kops get instancegroup
+bash-5.0# kops get instancegroup
 Using cluster from kubectl context: live-1.cloud-platform.service.justice.gov.uk
 
-NAME                    ROLE    MACHINETYPE     MIN     MAX     ZONES
-2xlarge-nodes-1.15.10   Node    r5.2xlarge      2       2       eu-west-2b
-master-eu-west-2a       Master  c4.4xlarge      1       1       eu-west-2a
-master-eu-west-2b       Master  c4.4xlarge      1       1       eu-west-2b
-master-eu-west-2c       Master  c4.4xlarge      1       1       eu-west-2c
-nodes-1.15.10           Node    r5.xlarge       21      21      eu-west-2a,eu-west-2b,eu-west-2c
+NAME                                    ROLE    MACHINETYPE     MIN     MAX     ZONES
+2xlarge-nodes-1.17.12                   Node    r5.2xlarge      2       2       eu-west-2b
+ingress-nodes-1.17.12-eu-west-2a        Node    c5.xlarge       1       1       eu-west-2a
+ingress-nodes-1.17.12-eu-west-2b        Node    c5.xlarge       1       1       eu-west-2b
+ingress-nodes-1.17.12-eu-west-2c        Node    c5.xlarge       1       1       eu-west-2c
+master-eu-west-2a                       Master  c5.4xlarge      1       1       eu-west-2a
+master-eu-west-2b                       Master  c5.4xlarge      1       1       eu-west-2b
+master-eu-west-2c                       Master  c5.4xlarge      1       1       eu-west-2c
+nodes-1.17.12-eu-west-2a                Node    r5.xlarge       9       9       eu-west-2a
+nodes-1.17.12-eu-west-2b                Node    r5.xlarge       9       9       eu-west-2b
+nodes-1.17.12-eu-west-2c                Node    r5.xlarge       9       9       eu-west-2c
 ```
 
-Now, launch the editor and set `minSize` and `maxSize` to the same value, the increased number of nodes.
+The 3 main worker node groups are `nodes-1.17.12-eu-west-2*`. To increase the worker node count to 30, you need to add 1 to each of those groups.
 
-    % kops edit instancegroup nodes-1.15.10
+Do an inline edit for each group, and set `minSize` and `maxSize` to the same value, the increased number of nodes.
+
+    bash-5.0# kops edit instancegroup nodes-1.17.12-eu-west-2a
     spec:
         ...
-        maxSize: 30
-        minSize: 30
+        maxSize: 10
+        minSize: 10
         ...
 
-Before we apply the changes, kops allow us to confirm what is going to happen:
+Repeat for the `2b` and `2c` instancegroups.
+
+Before we apply the changes, kops allows us to confirm what is going to happen:
 
     % kops update cluster
     Will modify resources:
-    AutoscalingGroup/nodes-1.15.10.live-1.cloud-platform.service.justice.gov.uk
-        MaxSize             	 21 -> 30
-        MinSize             	 21 -> 30
+    AutoscalingGroup/nodes-1.17.12-eu-west-2a.live-1.cloud-platform.service.justice.gov.uk
+        MaxSize             	 9 -> 10
+        MinSize             	 9 -> 10
+    ...
 
-`THIS SHOULD BE THE ONLY CHANGE THAT YOU SEE, IF YOU SEE ANYTHING MORE: ABORT`
+`THESE SHOULD BE THE ONLY CHANGES THAT YOU SEE, IF YOU SEE ANYTHING MORE: ABORT`
 
 If happy with the information above, the changes can be applied with:
 
@@ -81,17 +91,19 @@ In order to ensure that the new configuration does not get overwritten at the ne
 
 #### 1. Create a new branch of the [cloud-platform-infrastructure ](https://github.com/ministryofjustice/cloud-platform-infrastructure) repo
 
-#### 2. In /terraform/cloud-platform/variables.tf, modify the `cluster_node_count` variable
+#### 2. In /terraform/cloud-platform/variables.tf, modify the `cluster_node_count_*` variables
 
 ```
-variable "cluster_node_count" {
-  description = "The number of worker node in the cluster"
+variable "cluster_node_count_a" {
+  description = "The number of worker node in the cluster in Availability Zone eu-west-2a"
   default = {
-    live-1  = "21"
-    default = "3"
+    live-1  = "10"
+    default = "1"
   }
 }
 ```
+
+Make the same change for `cluster_node_count_b` and `cluster_node_count_c`.
 
 #### 3. Push, Review, Merge
 
