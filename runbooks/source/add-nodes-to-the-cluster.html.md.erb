@@ -76,6 +76,8 @@ Before we apply the changes, kops allows us to confirm what is going to happen:
 
 `THESE SHOULD BE THE ONLY CHANGES THAT YOU SEE, IF YOU SEE ANYTHING MORE: ABORT`
 
+> If you need to abort, overwrite the kops state on S3 with the unchanged YAML file in the repo [like this](/running-kops-update-rollingupdate.html#updating-the-remote-kops-state)
+
 If happy with the information above, the changes can be applied with:
 
     % kops update cluster --yes
