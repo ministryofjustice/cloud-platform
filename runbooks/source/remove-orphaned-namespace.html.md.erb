@@ -1,11 +1,11 @@
 ---
 title: Remove 'orphaned' namespaces and AWS resources
 weight: 180
-last_reviewed_on: 2020-07-28
+last_reviewed_on: 2020-10-29
 review_in: 3 months
 ---
 
-# Remove 'orphaned' namespaces and AWS resources
+# <%= current_page.data.title %>
 
 Cluster namespaces, and the AWS resources associated with them, should be removed automatically by the build pipeline.
 
@@ -17,7 +17,8 @@ You can remove these namespaces, and their AWS resources, using the [environment
 
 ### 2. Create a `.env.live1` file, containing the environment variables the checker requires
 
-The repository contains an `example.env.live-1` file. Copy this to `.env.live1` and replace the placeholders with real AWS credentials.
+The repository contains an [example.env.live-1](https://github.com/ministryofjustice/cloud-platform-environments-checker/blob/main/example.env.live-1)
+file. Copy this to `.env.live1` and replace the placeholders with real AWS credentials.
 
 ### 3. Do a dry run of deleting the target namespace
 
