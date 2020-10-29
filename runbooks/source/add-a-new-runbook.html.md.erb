@@ -1,18 +1,18 @@
 ---
 title: Add a new runbook
 weight: 9999
-last_reviewed_on: 2020-07-28
+last_reviewed_on: 2020-10-29
 review_in: 3 months
 ---
 
-# Add a new runbook
+# <%= current_page.data.title %>
 
 To add a new runbook, you will create a file in the `runbooks/source` directory of the [cloud-platform] repository.
 
 * `git pull` to get the latest changes
 * Create a feature branch for your new runbook
 * `cd runbooks`
-* Run `bundle install`, `bundle exec middleman server` to start a development webserver to view your changes
+* Run `make preview` to start a development webserver to view your changes
 * Add your runbook as a new file in the [source] directory
 
 * Your filename must match `*.html.md.erb`
@@ -40,12 +40,12 @@ review_in: 3 months
 You can also use this to use the title as the heading
 
 ```
-# <%= current_page.data.title %>
+# <%%= current_page.data.title %>
 ```
 
 #### 6. Push your feature branch and raise a PR
 #### 7. Merge your PR and delete your feature branch
 
-CircleCI will compile and deploy a new version of the runbooks guide, with your changes.
+A GitHub action will compile and deploy a new version of the runbooks guide, with your changes.
 
 [cloud-platform]: https://github.com/ministryofjustice/cloud-platform
