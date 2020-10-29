@@ -1,11 +1,11 @@
 ---
 title: Terraform state lock - Error refreshing state
 weight: 200
-last_reviewed_on: 2020-07-28
+last_reviewed_on: 2020-10-29
 review_in: 3 months
 ---
 
-# Terraform state lock - Error refreshing state
+# <%= current_page.data.title %>
 
 > Error refreshing state: state data in S3 does not have the expected content.
 
@@ -16,7 +16,7 @@ locking mechanism, i.e. they didn't pass this command-line argument during
     -backend-config="dynamodb_table=${PIPELINE_TERRAFORM_STATE_LOCK_TABLE}" \
 
 In this case, the content of the terraform state file will not match the md5
-hash recorded in the corresponding dynamodb record.
+hash recorded in the corresponding DynamoDB record.
 
 The full error will look something like this:
 
@@ -33,7 +33,7 @@ simply delete the dynamodb record for this terraform state file, which will
 have the same effect.
 
 
-NB: There seems to be a bug in the AWS console web interface for dynamodb, and
+> There seems to be a bug in the AWS console web interface for DynamoDB, and
 it sometimes happens that the record you want doesn't appear in the
 [alphabetical list of records][dynamodb_table]. If this happens, use the
 `query` function to search for the records LockID value, and you will find it.
