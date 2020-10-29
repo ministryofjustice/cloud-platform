@@ -1,7 +1,7 @@
 ---
 title: Create a new cluster
 weight: 50
-last_reviewed_on: 2020-07-28
+last_reviewed_on: 2020-10-29
 review_in: 3 months
 ---
 
@@ -17,13 +17,13 @@ Before you begin, there are a few pre-requisites:
 
 - Your GPG key must be added to the [infrastructure repo] so that you are able to run `git-crypt unlock` (the script will run this for you, but you must be *able* to do it)
 
-- You have [AWS CLI] profiles `moj-cp` and `moj-dsd` with suitable credentials
+- You have an [AWS CLI] profile `moj-cp`, with suitable credentials
 
 - You have [docker] installed
 
 ## Environment Variables
 
-See the file `example.env.create-cluster` in the [infrastructure repo]. This shows examples of the environment variables which must be set in order to run the `create-cluster.rb` script to create a new cluster.
+See the file [example.env.create-cluster] in the [infrastructure repo]. This shows examples of the environment variables which must be set in order to run the `create-cluster.rb` script to create a new cluster.
 
 You can get the auth0 values from the `terraform-provider-auth0` application on [auth0](https://manage.auth0.com/dashboard/eu/justice-cloud-platform/applications).
 
@@ -49,37 +49,51 @@ NB: Your cluster name must be **no more than 12 characters**. Any longer, and so
 
 See our [cluster naming policy] for information on how to choose a suitable name for your cluster.
 
-By default, the script will create a 'small' cluster. This means the master and worker EC2 instances will be less powerful machine types than in our production cluster. To create a 'production' size cluster you have to add your cluster name inside [terraform map variables](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform/variables.tf#L37-L60):
+By default, the script will create a 'small' cluster. This means the master and worker EC2 instances will be less powerful machine types than in our production cluster, and you'll get 3 worker nodes. To create a 'production' size cluster you have to add your cluster name and values inside these [terraform map variables](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform/variables.tf#L29-L67):
 
 ```bash
-variable "worker_node_machine_type" {
-  description = "The AWS EC2 instance types to use for worker nodes"
+variable "cluster_node_count_a" {
+  description = "The number of worker node in the cluster in Availability Zone eu-west-2a"
   default = {
-    live-1       = "r5.xlarge"
-    test_cluster = "r5.xlarge"
-    default      = "r5.large"
+    live-1  = "9"
+    default = "1"
   }
+}
+
+variable "cluster_node_count_b" {
+  description = "The number of worker node in the cluster in Availability Zone eu-west-2b"
+  default = {
+    live-1  = "9"
+    default = "1"
+  }
+}
+
+variable "cluster_node_count_c" {
+  description = "The number of worker node in the cluster in Availability Zone eu-west-2c"
+  default = {
+    live-1  = "9"
+    default = "1"
+  }
+}
 
 variable "master_node_machine_type" {
   description = "The AWS EC2 instance types to use for master nodes"
   default = {
-    live-1       = "c4.4xlarge"
-    test_cluster = "c4.4xlarge"
-    default      = "c4.large"
+    live-1  = "c5.4xlarge"
+    default = "c5.large"
   }
 }
 
-variable "cluster_node_count" {
-  description = "The number of worker node in the cluster"
+variable "worker_node_machine_type" {
+  description = "The AWS EC2 instance types to use for worker nodes"
   default = {
-    live-1       = "21"
-    test_cluster = "15"
-    default      = "3"
+    live-1  = "r5.xlarge"
+    default = "r5.large"
   }
 }
 ```
 
-In this terraform map you can specify different machine types (for masters and nodes) and also the number of worker nodes (`cluster_node_count`) for your cluster. 
+In this terraform map you can specify different machine types (for masters and nodes) and also the number of worker nodes (`cluster_node_count_a|b|c`) for your cluster. 
 
 > You do not need to commit/PR this change, if you are just specifying values for a single test cluster.
 
@@ -106,7 +120,7 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
 
 The section before `kubectl cluster-info` is the cluster integration tests, which run at the end of the build
-process. The number of tests will increase, so the output will vary from what is shown here.
+process. The number of tests will change, so the output will vary from what is shown here.
 
 Each dot in the line represents a passing test. If any tests fail, you will see more output explaining
 the nature of the failure.
@@ -186,6 +200,7 @@ https://login.apps.david-test1.cloud-platform.service.justice.gov.uk
 ```
 
 [infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
+[example.env.create-cluster]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/example.env.create-cluster
 [cluster naming policy]: https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/009-Naming-convention-for-clusters.md
 [AWS CLI]: https://aws.amazon.com/cli/
 [docker]: https://www.docker.com/
