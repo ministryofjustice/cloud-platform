@@ -42,6 +42,7 @@ We have a series of repositories for our work that we have listed below. We have
 | SNS topic |  https://github.com/ministryofjustice/cloud-platform-terraform-sns-topic | A Terraform module to create an SNS Topic in AWS, along with an IAM User to access it. |
 | DynamoDB cluster | https://github.com/ministryofjustice/cloud-platform-terraform-dynamodb-cluster | A Terraform module to create a DynamoDB instance and IAM credentials, with optional autoscaling. |
 | Elasticsearch cluster | https://github.com/ministryofjustice/cloud-platform-terraform-elasticsearch | A Terraform module to create a VPC based Elasticsearch cluster and Kibana dashboard along with a HTTP Proxy to access it. |
+| RDS Aurora Cluster | https://github.com/ministryofjustice/cloud-platform-terraform-rds-aurora | Terraform module that will create an RDS Aurora Cluster, Primary DB Instance, KMS key, Database Subnet Group and credentials in AWS. |    
 | Bastion | https://github.com/ministryofjustice/cloud-platform-terraform-bastion | A Terraform module to create a bastion inside an existing VPC |
 | Ingress controller | https://github.com/ministryofjustice/cloud-platform-terraform-ingress-controller | A Terraform module  that deploys cloud-platform ingress controllers among another resources (like certificates) |
 | CertManager | https://github.com/ministryofjustice/cloud-platform-terraform-certmanager | Terraform module that deploys cloud-platform certmanager among another resources (like Ingress) |
