@@ -1,7 +1,7 @@
 ---
 title: Expanding Persistent Volumes created using StatefulSets
 weight: 600
-last_reviewed_on: 2020-08-04
+last_reviewed_on: 2020-11-06
 review_in: 3 months
 ---
 
@@ -68,4 +68,6 @@ kubectl delete statefulset --cascade=false web # `web` is the name of the Statef
 
 Apply the StatefulSet template with new pvc size (with everything else exactly the same) to your namespace.
 
-There is a enhancement issue for expansion using StatefulSet templates in github waiting to be actioned, at which the above will not be required - https://github.com/kubernetes/enhancements/issues/661
+There is an [open issue] for expanding PVs using StatefulSet templates in github. Once this is implemented, the above workaround will no longer be required.
+
+[open issue]: https://github.com/kubernetes/enhancements/issues/661
