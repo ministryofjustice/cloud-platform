@@ -1,7 +1,7 @@
 ---
 title: Cloud Platform Disaster Recovery
 weight: 90
-last_reviewed_on: 2020-08-12
+last_reviewed_on: 2020-11-23
 review_in: 3 months
 ---
 
@@ -9,7 +9,7 @@ review_in: 3 months
 
 Cloud Platform Kubernetes cluster deployed with kops use [etcd-manager][etcd-manager-rep] to do backups periodically and before cluster modifications. Backups for both the main and events etcd clusters are stored in 's3://cloud-platform-kops-state/${CLUSTER_NAME}.cloud-platform.service.justice.gov.uk' together with the cluster configuration.
 
-In case of a disaster situation (total failure, Kops delete cluster, lost data, cluster issues etc.) it's possible to do a restore from the backup using [etcd-manager][etcd-manager-rep]. More details about the usage can be found [here][etcd-manager-restore] and [here][kops-backup-restore].
+In case of a disaster situation (total failure, Kops delete cluster, lost data, cluster issues etc.) it's possible to do a restore from the backup using [etcd-manager][etcd-manager-rep]. Check [etcd-manager backup restore][etcd-manager-restore] and [kops backup restore][kops-backup-restore] for more details.
 
 ## Restore process
 
