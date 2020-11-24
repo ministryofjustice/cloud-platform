@@ -1,7 +1,7 @@
 ---
 title: Create a new cluster
 weight: 50
-last_reviewed_on: 2020-10-29
+last_reviewed_on: 2020-11-24
 review_in: 3 months
 ---
 
@@ -207,3 +207,25 @@ https://login.apps.david-test1.cloud-platform.service.justice.gov.uk
 [PagerDuty]: https://www.pagerduty.com/
 [tools image]: https://github.com/ministryofjustice/cloud-platform-tools-image
 [cluster build pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/build-test-cluster/
+
+## Docker authentication
+
+Due to [Docker Hub rate limiting](https://www.docker.com/increase-rate-limits), it may be necessary to [add authentication](https://github.com/kubernetes/kops/blob/master/docs/cli/kops_create_secret_dockerconfig.md) to your Docker clients running in a Kops cluster.
+
+The following error message will appear if your cluster has been rate limited by Docker Hub:
+
+```
+Failed to pull image \"docker.io/prometheus:1.0"
+
+ERROR: toomanyrequests: Too Many Requests.
+```
+
+### Adding a Docker config file to your cluster
+
+If you wish to authenticate to Docker Hub, you can use the argument `-d` and specify the target Docker config file to pass, i.e.
+
+```
+./create-cluster.rb --name test-01 -d /path/to/local/docker/config.json
+```
+
+To generate a local `docker/config.json` file you need to use `docker login` from the command line.
