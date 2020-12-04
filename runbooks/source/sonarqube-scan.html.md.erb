@@ -1,7 +1,7 @@
 ---
 title: Sonarqube - Code quality and security scanning
 weight: 602
-last_reviewed_on: 2020-09-03
+last_reviewed_on: 2020-12-04
 review_in: 3 months
 ---
 
@@ -9,11 +9,11 @@ review_in: 3 months
 
 ## Sonarqube scanning
 
-[SonarQube][SonarQube] is a code analyzer used for major programming languages. We have setup [sonarqube][sq-console] in EKS cluster to run scan on our repositories and monitor code such as Duplicated code, Coding standards, Unit tests, Complex code, Potential bugs, Comments and Design and architecture.
+[SonarQube][SonarQube] is a code analyzer used for major programming languages. [sonarqube][sq-console] run in our EKS "manager" looking for problems in source repositories, such as duplicated code, non-compliance with coding standards, lack of unit tests, over-complex code, and other issues.
 
 ### Sonarqube scan all repositories
 
-We have set up a sonarqube scanning [concourse job][sq-concourse-job], which will run sonar-scanner on github repositories mentioned in "cloud-platform.justice.gov.uk/source-code" namespace annotation.
+Sonarqube runs via a [concourse job][sq-concourse-job], and scans the github repositories mentioned in the "cloud-platform.justice.gov.uk/source-code" namespace annotations.
 
 ### Sonarqube Github Action
 
@@ -43,7 +43,7 @@ jobs:
 
     steps:
       - name: Setup sonarqube
-        uses: warchant/setup-sonar-scanner@v1
+        uses: warchant/setup-sonar-scanner@v3
 
       - name: Checkout Code
         uses: actions/checkout@v2
