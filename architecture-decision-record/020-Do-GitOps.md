@@ -27,6 +27,7 @@ These existing practise have lots of benefits:
 * Tests are run in an environment that is in line with production, meaning that deployment risk is reduced.
 * Automating the deployment of code changes removes the possibility of human error at deployment time.
 * Automating the deployment of code changes frees up significant amounts of time in the team.
+* Test/development environments which are guaranteed to be sufficiently "live-like" can be created by running a single command. It's hard to overstate how much of an accelerator this is.
 
 [GitOps](https://rancher.com/blog/2020/gitops-kubernetes-connection/) takes these further:
 
