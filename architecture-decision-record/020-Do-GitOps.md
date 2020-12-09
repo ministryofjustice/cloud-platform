@@ -42,13 +42,13 @@ GitOps also helps us to being able to treat the platform elements as [cattle not
 
 In Cloud Platform, existing implementation of GitOps has meant:
 
-* CP has [Terraform files](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform) and associated [CI/CD pipelines]() [TODO add link] for applying it automatically
+* CP has [Terraform files](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform) and associated [CI/CD pipelines](https://github.com/ministryofjustice/cloud-platform-concourse/tree/main/pipelines) for applying it automatically
 
 * kops and EKS clusters ...
 
 * Helm charts
 
-There remains number of questions and challenges to that model:
+There remain a number of questions and challenges to that model:
 
 * Config needs storing somewhere - Terraform state, kops state, Helm values, secrets, differences between environments
 
