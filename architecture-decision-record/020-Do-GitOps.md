@@ -21,7 +21,7 @@ GitOps relies on existing practices:
 
 These existing practise have lots of benefits:
 
-* Having the whole stack as code in git makes it reviewable and auditable.
+* Having the whole stack as code in git makes it reproducible, reviewable and auditable.
 * Testing and applying it all automatically with CI/CD builds tight coupling between the design in git and the production server. So you can trust that what is in git is what's on the server - git becomes the source of truth. This supports reliable deployments and quick delivery of changes to users.
 * Automated tools can suggest improvements, such as linting terraform and checking for updated versions of terraform modules
 * Tests are run in an environment that is in line with production, meaning that deployment risk is reduced.
