@@ -66,6 +66,8 @@ GitOps is our aim. We define the Cloud Platform as code, store that in git and d
 
 Opportunities to aim for:
 
+* The ability to recreate the entire Cloud Platform in a fresh AWS account by running a single command. In theory, this sets a maximum time to recovery for major incidents, because we know we can recreate everything from scratch in X minutes (in  practice, things are a bit more nuanced).
+* The ability to create additional production-ready clusters by merging a single, small PR (supports [cattle not pets]).
 * Test the terraform and Helm charts, for example with Terratest
 * Automated checks of terraform, Helm charts, for example with terraform lint and checking for updated Helm charts
 * [TODO any more?]
