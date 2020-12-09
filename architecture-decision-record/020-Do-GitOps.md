@@ -36,7 +36,7 @@ These existing practise have lots of benefits:
 
 All these areas gain similar benefits: reviewable, auditable, testable, auto-suggestions, tight coupling between code and prod environment for low risk deploys.
 
-GitOps also helps us to being able to treat the platform elements as [cattle not pets](/docs/Architecture-Official.md#cattle-not-pets).
+GitOps also helps us to being able to treat the platform elements as [cattle not pets].
 
 ## Context
 
@@ -73,3 +73,5 @@ Opportunities to aim for:
 [TODO address config, ClickOps and 'Chicken and egg' questions.]
 
 GitOps is not suitable for some types of state, such as secrets and application databases.
+
+[cattle not pets]: /docs/Architecture-Official.md#cattle-not-pets
