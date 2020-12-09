@@ -25,6 +25,8 @@ These existing practise have lots of benefits:
 * Testing and applying it all automatically with CI/CD builds tight coupling between the design in git and the production server. So you can trust that what is in git is what's on the server - git becomes the source of truth. This supports reliable deployments and quick delivery of changes to users.
 * Automated tools can suggest improvements, such as linting terraform and checking for updated versions of terraform modules
 * Tests are run in an environment that is in line with production, meaning that deployment risk is reduced.
+* Automating the deployment of code changes removes the possibility of human error at deployment time.
+* Automating the deployment of code changes frees up significant amounts of time in the team.
 
 [GitOps](https://rancher.com/blog/2020/gitops-kubernetes-connection/) takes these further:
 
