@@ -1,31 +1,31 @@
 
 ---
-title: Connecting the Cloud Platform to a transit gateway.
+title: Adding a route to connect to a TGW
 weight: 10
 last_reviewed_on: 2020-12-16
 review_in: 6 months
 ---
 
-# Connecting the Cloud Platform to a transit gateway.
+# Adding a route to connect to a TGW
 
 This document is a description of the current CP <=> TGW setup. ]
-It also explain how to modify the Relevant route table
+It also explain how to modify the relevant route table
 
-*The scope of this guide is limited on purpose, for the responsibility of the TGW has been passed on to a different team*
+*The scope of this guide is limited on purpose, it only covers the Cloud Platform responsibilities*
 
 ## Quick introduction
 
-AWS Transit Gateways allows VPCs, from different account or regions, to be connected securely.
-Transit Gateway have their own route-table. 
+AWS Transit Gateways allows VPCs, from different accounts or regions, to be connected securely.
+Transit Gateways have their own route-table. 
 Transit Gateways (TGW) also support connecting to VPNs, AWS Direct Connect and other Transit Gateway
 
-An important limitation: TGW ccan only work with TGW in the same region it is in. However, TGW from different regions can be peered.
+An important limitation: a TGW can only work with TGW in the same region it is in. However, TGW from different regions can be peered.
 
 The MoJ current Transit Gateway infrastructure is managed here : [github repository]
 
 ## Transit Gateway
 
-The Cloud Platform VPC is attached to the eu-west-1 TGW located in the `moj-transit-gateway` account.
+The Cloud Platform VPC is attached to the eu-west-2 TGW located in the `moj-transit-gateway` account.
 However, the attachment alone doesn't allow traffic to flow: A new route need to be added to VPC's route-table for each target VPC.
 
 Example: The Analytical Platform wants to access the Cloud Platform VPC. 
@@ -44,12 +44,11 @@ resource "aws_route" "my-new-route" {
         count = length(local.route_tables)
         route_table_id            = local.route_tables[count.index]
         destination_cidr_block    = "100.X.X.X/22"
-        transit_gateway_id = "my-eu-west-1-TGW"
+        transit_gateway_id        = "my-eu-west-2-TGW"
 }
 ```
 
-The TGW gateway ID can be found in the readme of the repo. 
-The CIDR block is the one of the target VPC.
+The TGW gateway ID can be found in the Readme of the repo. 
 
 Note: Something similar need to be done on the 'other side', terraform or not.
 
