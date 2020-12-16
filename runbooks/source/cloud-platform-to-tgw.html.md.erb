@@ -1,14 +1,14 @@
 
 ---
 title: Adding a route to connect to a TGW
-weight: 10
+weight: 9000
 last_reviewed_on: 2020-12-16
 review_in: 6 months
 ---
 
 # Adding a route to connect to a TGW
 
-This document is a description of the current CP <=> TGW setup. ]
+This document is a description of the current Cloud Platform & TGW setup. 
 It also explain how to modify the relevant route table
 
 *The scope of this guide is limited on purpose, it only covers the Cloud Platform responsibilities*
@@ -19,7 +19,7 @@ AWS Transit Gateways allows VPCs, from different accounts or regions, to be conn
 Transit Gateways have their own route-table. 
 Transit Gateways (TGW) also support connecting to VPNs, AWS Direct Connect and other Transit Gateway
 
-An important limitation: a TGW can only work with TGW in the same region it is in. However, TGW from different regions can be peered.
+An important limitation: a TGW can only work with VPCs in the same region it is in. However, TGW from different regions can be peered.
 
 The MoJ current Transit Gateway infrastructure is managed here : [github repository]
 
@@ -28,10 +28,10 @@ The MoJ current Transit Gateway infrastructure is managed here : [github reposit
 The Cloud Platform VPC is attached to the eu-west-2 TGW located in the `moj-transit-gateway` account.
 However, the attachment alone doesn't allow traffic to flow: A new route need to be added to VPC's route-table for each target VPC.
 
-Example: The Analytical Platform wants to access the Cloud Platform VPC. 
+Example: The Analytical Platform(AP) wants to access the Cloud Platform (CP) VPC. 
  - Both are attached the the TGW 
- - the CP route-table says 'to go the AP CIDR block, route traffic to the TGW'
- - vice-versa
+ - The CP route-table should contain a route with the CP VPC's CIDR block as a destination, but with the TGW ID as a target.
+ - The same needs to be done on the AP VPC, to route back to CP.
 
 ## Making the change
 
