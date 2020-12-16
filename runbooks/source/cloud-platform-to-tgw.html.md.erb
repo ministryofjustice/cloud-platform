@@ -1,0 +1,57 @@
+
+---
+title: Connecting the Cloud Platform to a transit gateway.
+weight: 10
+last_reviewed_on: 2020-12-16
+review_in: 6 months
+---
+
+# Connecting the Cloud Platform to a transit gateway.
+
+This document is a description of the current CP <=> TGW setup. ]
+It also explain how to modify the Relevant route table
+
+*The scope of this guide is limited on purpose, for the responsibility of the TGW has been passed on to a different team*
+
+## Quick introduction
+
+AWS Transit Gateways allows VPCs, from different account or regions, to be connected securely.
+Transit Gateway have their own route-table. 
+Transit Gateways (TGW) also support connecting to VPNs, AWS Direct Connect and other Transit Gateway
+
+An important limitation: TGW ccan only work with TGW in the same region it is in. However, TGW from different regions can be peered.
+
+The MoJ current Transit Gateway infrastructure is managed here : [github repository]
+
+## Transit Gateway
+
+The Cloud Platform VPC is attached to the eu-west-1 TGW located in the `moj-transit-gateway` account.
+However, the attachment alone doesn't allow traffic to flow: A new route need to be added to VPC's route-table for each target VPC.
+
+Example: The Analytical Platform wants to access the Cloud Platform VPC. 
+ - Both are attached the the TGW 
+ - the CP route-table says 'to go the AP CIDR block, route traffic to the TGW'
+ - vice-versa
+
+## Making the change
+
+Everything is managed in the github repository, in the route.tf file of the [cloud-platform folder]
+Only an admin of the cloud-platform (`moj-cp`) is able to run that code. 
+
+Here is the snippet to add to the route.tf :
+```ruby
+resource "aws_route" "my-new-route" {
+        count = length(local.route_tables)
+        route_table_id            = local.route_tables[count.index]
+        destination_cidr_block    = "100.X.X.X/22"
+        transit_gateway_id = "my-eu-west-1-TGW"
+}
+```
+
+The TGW gateway ID can be found in the readme of the repo. 
+The CIDR block is the one of the target VPC.
+
+Note: Something similar need to be done on the 'other side', terraform or not.
+
+[github repository]: https://github.com/ministryofjustice/transit-gateways/
+[cloud-platform folder]: https://github.com/ministryofjustice/transit-gateways/blob/master/terraform/cloud-platform/routes.tf
