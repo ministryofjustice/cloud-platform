@@ -22,6 +22,37 @@ previous run failed to release the lock when it should have.
 
 To fix this, you need to delete the lock record.
 
+## Command-line method
+
+Save this code as a script.
+
+`delete-state-lock.sh`
+
+```bash
+#!/bin/bash
+
+set -euo pipefail
+
+NAMESPACE=$1
+
+for suffix in terraform.tfstate-md5 terraform.tfstate; do
+  json='{"LockID":{"S":"cloud-platform-terraform-state/cloud-platform-environments/live-1.cloud-platform.service.justice.gov.uk/'${NAMESPACE}/${suffix}'"}}'
+
+  aws dynamodb delete-item \
+    --region eu-west-1 \
+    --table-name cloud-platform-environments-terraform-lock \
+    --key $json
+done
+```
+
+Invoke it like this:
+
+```bash
+./delete-state-lock.sh hmpps-book-video-link-prod
+```
+
+## AWS Console method
+
 1. Go to the [dynamodb] page of the AWS web console (NB: the relevant table is in the `eu-west-1` region)
 2. Click on the [cloud-platform-environments-terraform-lock] table, and then the `Items` tab
 3. Click `Add filter`
