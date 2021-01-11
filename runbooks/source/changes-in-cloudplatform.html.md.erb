@@ -17,10 +17,9 @@ Mostly all components are terraform modules and they are managed in their own gi
 
 ## Making Changes to cloud-plarform-infrastructure
 
-1. Create a PR which includes the change you want to make.
+1. Create a PR which includes the change you want to make. Make sure the [plan pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/cloud-platform-infrastructure/jobs/plan-cloud-platform-infrastructure) is happy with the change. 
 2. Chase the team to get your PR approved, if it involves downtime ensure you have communications in place.
-3. Apply changes from your branch without merging the PR.
-4. If the change is successful merge the PR inmediatly.
+3. Merge and wait until the [apply pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/cloud-platform-infrastructure/jobs/apply-cloud-platform-infrastructure/) applies your change.
 
 ## Marking Changes to terraform modules
 
