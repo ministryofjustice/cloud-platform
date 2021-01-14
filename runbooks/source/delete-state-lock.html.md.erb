@@ -37,7 +37,7 @@ NAMESPACE=$1
 
 PREFIX=cloud-platform-terraform-state/cloud-platform-environments
 
-for key in "${PREFIX}/live-1.cloud-platform.service.justice.gov.uk/${NAMESPACE}/terraform.tfstate-md5" "${PREFIX}/namespaces/live-1.cloud-platform.service.justice.gov.uk/${NAMESPACE}/terraform.tfstate"; do
+for key in "${PREFIX}/live-1.cloud-platform.service.justice.gov.uk/${NAMESPACE}/terraform.tfstate-md5" "${PREFIX}/live-1.cloud-platform.service.justice.gov.uk/${NAMESPACE}/terraform.tfstate"; do
   json='{"LockID":{"S":"'${key}'"}}'
 
   aws dynamodb delete-item \
