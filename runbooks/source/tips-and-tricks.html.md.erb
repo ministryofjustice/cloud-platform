@@ -155,5 +155,11 @@ for file in $(find * -name '*.erb'); do grep -q last_reviewed_on $file || echo $
 ```
 aws ec2 describe-instances --filters 'Name=private-dns-name,Values=ip-172-20-127-140.eu-west-2.compute.internal'
 ```
+  
+## Create a one-off job to repeat a cronjob
+
+```
+kubectl -n concourse-main create job ds-update-orphaned-statefiles --from=cronjob/orphaned-terraform-statefiles
+```
 
 [Prometheus]: https://prometheus.cloud-platform.service.justice.gov.uk
