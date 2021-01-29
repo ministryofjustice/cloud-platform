@@ -163,3 +163,12 @@ kubectl -n concourse-main create job ds-update-orphaned-statefiles --from=cronjo
 ```
 
 [Prometheus]: https://prometheus.cloud-platform.service.justice.gov.uk
+
+## Hijack a concourse job container
+
+```
+fly -t manager hijack -j environments-terraform/apply-namespace-changes-live-1
+```
+
+You'll be presented with a list of containers to choose from.
+  
