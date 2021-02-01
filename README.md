@@ -34,20 +34,20 @@ We have a series of repositories for our work that we have listed below. We have
 | Name            | Link          | Description         |
 |-----------------|---------------|---------------------|
 | Amazon MQ broker | https://github.com/ministryofjustice/cloud-platform-terraform-amq-broker | AWS MQ broker instance and credentials for the Cloud Platform |
+| Bastion | https://github.com/ministryofjustice/cloud-platform-terraform-bastion | A Terraform module to create a bastion inside an existing VPC |
+| CertManager | https://github.com/ministryofjustice/cloud-platform-terraform-certmanager | Terraform module that deploys cloud-platform certmanager among another resources (like Ingress) |
+| DynamoDB cluster | https://github.com/ministryofjustice/cloud-platform-terraform-dynamodb-cluster | A Terraform module to create a DynamoDB instance and IAM credentials, with optional autoscaling. |
 | ECR credentials  | https://github.com/ministryofjustice/cloud-platform-terraform-ecr-credentials | Terraform module which creates ECR credentials and repository on AWS. |
+| Elasticsearch cluster | https://github.com/ministryofjustice/cloud-platform-terraform-elasticsearch | A Terraform module to create a VPC based Elasticsearch cluster and Kibana dashboard along with a HTTP Proxy to access it. |
 | Elaticache cluster | https://github.com/ministryofjustice/cloud-platform-terraform-elasticache-cluster | A Terraform module that users can create an ElastiCache cluster |
+| Ingress controller | https://github.com/ministryofjustice/cloud-platform-terraform-ingress-controller | A Terraform module  that deploys cloud-platform ingress controllers among another resources (like certificates) |
+| Logging | https://github.com/ministryofjustice/cloud-platform-terraform-logging | Terraform module that deploys cloud-platform logging solution. It includes components like: fluentd, eventrouter, circle-ci-stats |
+| Monitoring | https://github.com/ministryofjustice/cloud-platform-terraform-monitoring | Terraform module that deploys cloud-platform monitoring solution. It has support for components like: proxy, thanos, cloudwatch datasource for grafana, side-car, ecr-exporter |
+| RDS Aurora Cluster | https://github.com/ministryofjustice/cloud-platform-terraform-rds-aurora | Terraform module that will create an RDS Aurora Cluster, Primary DB Instance, KMS key, Database Subnet Group and credentials in AWS. |
 | RDS instance | https://github.com/ministryofjustice/cloud-platform-terraform-rds-instance | Terraform module that will create an RDS instance, KMS key, Database Subnet Group and credentials in AWS. |
 | S3 bucket |  https://github.com/ministryofjustice/cloud-platform-terraform-s3-bucket | Terraform module that will create an S3 bucket and credentials in AWS. |
-| SQS resource |  https://github.com/ministryofjustice/cloud-platform-terraform-sqs | A Terraform module to provision SQS resources to the Cloud Platform. |
 | SNS topic |  https://github.com/ministryofjustice/cloud-platform-terraform-sns-topic | A Terraform module to create an SNS Topic in AWS, along with an IAM User to access it. |
-| DynamoDB cluster | https://github.com/ministryofjustice/cloud-platform-terraform-dynamodb-cluster | A Terraform module to create a DynamoDB instance and IAM credentials, with optional autoscaling. |
-| Elasticsearch cluster | https://github.com/ministryofjustice/cloud-platform-terraform-elasticsearch | A Terraform module to create a VPC based Elasticsearch cluster and Kibana dashboard along with a HTTP Proxy to access it. |
-| RDS Aurora Cluster | https://github.com/ministryofjustice/cloud-platform-terraform-rds-aurora | Terraform module that will create an RDS Aurora Cluster, Primary DB Instance, KMS key, Database Subnet Group and credentials in AWS. |    
-| Bastion | https://github.com/ministryofjustice/cloud-platform-terraform-bastion | A Terraform module to create a bastion inside an existing VPC |
-| Ingress controller | https://github.com/ministryofjustice/cloud-platform-terraform-ingress-controller | A Terraform module  that deploys cloud-platform ingress controllers among another resources (like certificates) |
-| CertManager | https://github.com/ministryofjustice/cloud-platform-terraform-certmanager | Terraform module that deploys cloud-platform certmanager among another resources (like Ingress) |
-| Monitoring | https://github.com/ministryofjustice/cloud-platform-terraform-monitoring | Terraform module that deploys cloud-platform monitoring solution. It has support for components like: proxy, thanos, cloudwatch datasource for grafana, side-car, ecr-exporter |
-| Logging | https://github.com/ministryofjustice/cloud-platform-terraform-logging | Terraform module that deploys cloud-platform logging solution. It includes components like: fluentd, eventrouter, circle-ci-stats |
+| SQS resource |  https://github.com/ministryofjustice/cloud-platform-terraform-sqs | A Terraform module to provision SQS resources to the Cloud Platform. |
 
 ## Other repos
 
