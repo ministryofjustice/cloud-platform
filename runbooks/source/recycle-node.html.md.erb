@@ -1,13 +1,13 @@
 ---
 title: Guidance when recycle-node pipeline job fails
 weight: 250
-last_reviewed_on: 2020-10-28
+last_reviewed_on: 2021-02-01
 review_in: 3 months
 ---
 
 # Recycle-node
 
-The [recycle-node pipeline][recyclenode-pipeline-definition] runs every 8 hours, and executes the [recycle-node.rb][recycle-node-script] script to replace the oldest worker node by:
+The [recycle-node pipeline][recyclenode-pipeline-definition] runs every two hours between midnight and 6am, it executes the [recycle-node.rb][recycle-node-script] script to replace the oldest worker node by:
 
 * Cordoning the oldest node
 * Deleting any "stuck" pods
