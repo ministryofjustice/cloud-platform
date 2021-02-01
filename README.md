@@ -48,6 +48,7 @@ We have a series of repositories for our work that we have listed below. We have
 | S3 bucket |  https://github.com/ministryofjustice/cloud-platform-terraform-s3-bucket | Terraform module that will create an S3 bucket and credentials in AWS. |
 | SNS topic |  https://github.com/ministryofjustice/cloud-platform-terraform-sns-topic | A Terraform module to create an SNS Topic in AWS, along with an IAM User to access it. |
 | SQS resource |  https://github.com/ministryofjustice/cloud-platform-terraform-sqs | A Terraform module to provision SQS resources to the Cloud Platform. |
+| ServiceAccount | https://github.com/ministryofjustice/cloud-platform-terraform-serviceaccount | Create a serviceaccount in a Cloud Platform namespace. |
 
 ## Other repos
 
