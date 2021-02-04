@@ -1,7 +1,7 @@
 ---
 title: How to Investigate Divergence Errors
 weight: 210
-last_reviewed_on: 2020-11-02
+last_reviewed_on: 2021-02-04
 review_in: 3 months
 ---
 
@@ -23,11 +23,11 @@ To run the same `terraform plan` command as the pipeline does:
 
 | Pipeline | Directory |
 | - | - |
-| divergence-global-iam | terraform/cross-account-IAM |
 | divergence-kops |terraform/cloud-platform |
-| divergence-eks | terraform/cloud-platform-eks |
-| divergence-networking | terraform/cloud-platform-network |
 | divergence-k8s-components | terraform/cloud-platform-components |
+| divergence-eks | terraform/cloud-platform-eks |
+| divergence-eks-components | terraform/cloud-platform-eks/components |
+| divergence-networking | terraform/cloud-platform-network |
 
 * Check you're using the correct terraform workspace (e.g. `terraform workspace select live-1`)
 * Check you're targeting the correct kubernetes cluster, by running `kubectl cluster-info`
