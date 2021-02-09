@@ -172,3 +172,13 @@ fly -t manager hijack -j environments-terraform/apply-namespace-changes-live-1
 
 You'll be presented with a list of containers to choose from.
   
+## Help when manually deleting AWS resources
+
+Occasionally you'll need to manually delete AWS components. A neat trick is to use the [AWS Tag Editor](https://docs.aws.amazon.com/ARG/latest/userguide/tag-editor.html).
+
+- Open the [Tag Editor](https://eu-west-1.console.aws.amazon.com/resource-groups/tag-editor/find-resources?region=eu-west-1).
+- Select "All Supported Resources" from the "Resource type" drop down.
+- Click "Search Resources".
+- Use the filter to search for a tag, for example a cluster name: `cp-0909-1202`.
+
+You'll be presented with all resources with your tag associated, click the link to navigate to each resource and delete as appropriate.
