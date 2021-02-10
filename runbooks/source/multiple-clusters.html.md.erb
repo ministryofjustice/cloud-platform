@@ -21,28 +21,40 @@ Below is the list of components and how to enable them in test clusters for test
 
 - Ingress Controllers
 
-  For `live-1` External DNS annotation include domains from `var.live_domain` with default value `*.cloud-platform.service.justice.gov.uk`
-  Variable to enable: `is_live_cluster` to `true`.
+    For `live-1`, External DNS annotation include domains from `var.live_domain` with default value `*.cloud-platform.service.justice.gov.uk`
+
+    Variable to enable:
+    `is_live_cluster` to `true`
      
 - Kuberos
 
     Provision the aws-redirect ingress. Required only once and hence applied in live-1
-    Variable to enable: `create_aws_redirect` to `true`
+
+    Variable to enable: 
+    `create_aws_redirect` to `true`
 
 - Logging
 
-  Fluent-bit connects to the `cloud-platform-live` and `cloud-platform-audit` elasticsearch cluster to send output logs.
-  For test cluster, there is a placeholder instead.
-  
-  There is also a curator cron job which runs every hour to delete incices older than 30 days 
-  of `cloud-platform-live` elasticsearch cluster
+    Fluent-bit connects to the `cloud-platform-live` and `cloud-platform-audit` elasticsearch cluster to send output logs.
+    For test cluster, there is a placeholder instead.
+    
+    There is also a curator cron job which runs every hour to delete incices older than 30 days 
+    of `cloud-platform-live` elasticsearch cluster
 
-  To link a test elasticsearch cluster to the fluent-bit, set the test elasticsearch cluster endpoints to variables below.
-  - for container logs `elasticsearch_host`
-  - for audit logs `elasticsearch_audit_host`
-  - To enable curator cron job - `enable_curator_cronjob`
+    To link a test elasticsearch cluster to the fluent-bit, set the test elasticsearch cluster endpoints to variables below.
 
-- Prometheus
+    - for container logs `elasticsearch_host`
+    - for audit logs `elasticsearch_audit_host`
+    - To enable curator cron job - `enable_curator_cronjob`
 
-  Thanos sidecar components gets deployed with a prometheus instance only for `live-1` and `manager` cluster.
-  Variable to enable: `enable_thanos_sidecar` to `true`
+- Monitoring
+
+    Thanos sidecar component is deployed with a prometheus instance only for `live-1` and `manager` cluster.
+
+    Variable to enable: 
+    `enable_thanos_sidecar` to `true`
+    
+    In `live-1` cluster, thanos helm chart is installed which deploy thanos querier, store gateway, bucket Web UI and query frontend.
+
+    Variable to enable: 
+    `enable_thanos_helm_chart` to true
