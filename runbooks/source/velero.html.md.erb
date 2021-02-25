@@ -114,5 +114,23 @@ kubectl patch backupstoragelocation <STORAGE LOCATION NAME> \
        --patch '{"spec":{"accessMode":"ReadWrite"}}'
 ```
 
+#### Point Cluster B to to backup folder of Cluster A 
+    
+It is possible to restore resources from backups from antoher cluster. You need to add a new Backup Storage Location and Volume Snapshot Location within the primary cluster pointing it to the backup cluster forlder you want to restore from.
 
-Click [here](https://velero.io/docs/v1.2.0/) for the official Velero documentation.
+```
+velero backup-location create <location-name> --provider aws --bucket <bucket-name> --prefix <clusterprefix>  --access-mode=ReadOnly
+```
+
+```
+ velero snapshot-location create <location-name> --provider aws
+```
+
+At this point, when you execute `velero backups get` you will see 2 different locations under the storage location column.     
+
+If you want to create normal backups with 2 different storage locations configured, you either have to set one of the locatons as default. or add `--volume-snapshot-locations` to your backup command.   
+```
+velero backup create <backup-name> --volume-snapshot-locations <location-name>
+```
+
+Click [here](https://velero.io/docs/v1.5.0/) for the official Velero documentation.
