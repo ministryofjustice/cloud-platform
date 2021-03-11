@@ -182,3 +182,19 @@ Occasionally you'll need to manually delete AWS components. A neat trick is to u
 - Use the filter to search for a tag, for example a cluster name: `cp-0909-1202`.
 
 You'll be presented with all resources with your tag associated, click the link to navigate to each resource and delete as appropriate.
+  
+## Find out why your namespace isn't deleting
+ 
+```
+kubectl api-resources --verbs=list --namespaced -o name \
+| xargs -n 1 kubectl get --show-kind --ignore-not-found -n <namespace-name>
+```
+  
+It should show you the reason the API doesn't want to delete. For example:
+
+```
+Error from server: conversion webhook for acme.cert-manager.io/v1alpha2, Kind=Order failed: Post https://cert-manager-webhook.cert-manager.svc:443/convert?timeout=30s: service "cert-manager-webhook" not found
+Error from server: conversion webhook for cert-manager.io/v1alpha2, Kind=CertificateRequest failed: Post https://cert-manager-webhook.cert-manager.svc:443/convert?timeout=30s: service "cert-manager-webhook" not found
+Error from server: conversion webhook for cert-manager.io/v1alpha2, Kind=Certificate failed: Post https://cert-manager-webhook.cert-manager.svc:443/convert?timeout=30s: service "cert-manager-webhook" not found
+```
+ 
