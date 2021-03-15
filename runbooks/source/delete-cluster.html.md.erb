@@ -1,7 +1,7 @@
 ---
 title: Delete a cluster
 weight: 55
-last_reviewed_on: 2020-12-23
+last_reviewed_on: 2021-03-15
 review_in: 3 months
 ---
 
@@ -71,7 +71,7 @@ First, cd to the working copy of the concourse [pipelines repo][pipelines repo].
   commenting out this will not set the CLUSTER_NAME provided by the create-cluster-run-tests job.
 
 
-Run the below commands updating the <cluster-name-to-be-deleted>. The first fly command will apply the changes made for the [create-test-destroy.yaml][create-test-destroy] file and set the CLUSTER_NAME [static var][concourse-static-vars], the second command will trigger the destroy-cluster job using the CLUSTER_NAME provided.
+Run the below commands updating the `<cluster-name-to-be-deleted>`. The first fly command will apply the changes made for the [create-test-destroy.yaml][create-test-destroy] file and set the CLUSTER_NAME [static var][concourse-static-vars], the second command will trigger the destroy-cluster job using the CLUSTER_NAME provided.
 
 ```
 fly -t manager sp -p create-test-destroy -c create-test-destroy.yaml -v CLUSTER_NAME=<cluster-name-to-be-deleted>
