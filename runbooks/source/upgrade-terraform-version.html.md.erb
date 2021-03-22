@@ -5,7 +5,6 @@ last_reviewed_on: 2021-03-22
 review_in: 3 months
 ---
 
-
 # Upgrade Terraform Version
 
 ## Introduction
@@ -45,8 +44,57 @@ This sounds simple enough but it is vitally important you understand what change
 #### Run a terraform init
 Using a tool such as tf-switch, switch to your new version and perform the command `terraform init -backend=false`. The output of this command will give you a general idea of what needs to change before your perform the upgrade. the `-backend=false` ensures the state isn't touched.
 
+Please note - this process is a lot harder to test on an Environments state file.
+
 ### Environments state files
+Arguably the most disruptive state files we have. The Cloud Platform Environments repository contains directories for every namespace in the MoJ Cloud Platform, for each namespace there is a single Terraform state file stored in an S3 bucket. As there are so many state files it is recommened to perform the following.
+
+#### Use the "apply" pipeline
+We currently use a concourse pipeline to `terraform init/apply` everything in the cloud-platform-environments GitHub repository. This pipeline has a number of environment variables that allow it to comminicate with the state bucket and amend the necessary state file. Use this pipeline to make amendments to any further state.
+
+#### Upgrade the tools image
+Add your new Terraform version to the cloud-platform-tools image along with the old version. This will allow you to run both versions simultaneously.
+
+#### Add conditional logic
+Add an if condition to the apply library that checks the version outlined in each `versions.tf` files in a namespace.
+
+#### Upgrade all Terraform modules
+This is fairly tricky as there may be over fifty repositories to upgrade. If the Terraform syntax has changed you'll need to run the `upgrade` command on each module (repository). This can be tedious if performed manually so there is some Go code that does this on your behalf. https://github.com/ministryofjustice/cloud-platform-terraform-upgrade
+
+Using the example of upgrading to Terraform 0.13, run the following:
+
+```bash
+git clone https://github.com/ministryofjustice/cloud-platform-terraform-upgrade
+go run main.go -o "ministryofjustice" -r "cloud-platform-terraform" -c "terraform 0.13upgrade"
+```
+
+The code will pull down every repository in the "ministryofjustice" organisation with the name that contains "cloud-platform-terraform" and run the command "terraform 0.13upgrade". The code will then commit and create a Pull Request against each repository using your GitHub credentials.
+
+Note: Terraform will release an upgrade command for each release that contains syntax changes, in the example above 0.13upgrade was used to create a more detailed `versions.tf`.
+
+Once all the Pull Requests have been reviewed, merge them into main and create a new release.
+
+#### Upgrade a test namespace
+It is difficult to test an upgrade on the Environments state, this is the best way to do so as of writing this document. 
+
+- Create a test namespace in the cloud-platform-environments repository called `abdundance-namespace-dev` (will probably be the first namespace applied).
+- Add every resource available using the new release version (as stated above), i.e. RDS, S3 (a full list can be found here).
+- Change the version in versions.tf, this should reflect the upgrade.
+- Create a Pull Request against main.
+- Monitor possible changes in the plan. It should require no changes.
+
+#### Upgrade all non-production namespaces
+#### Upgrade all production namespaces
+#### Potential gotchas
+#### Tidying up
 
 ### Infrastructure state files
 
-### Cleaning up
+#### Start outwards
+#### Run terraform init/validate
+#### Upgrade all Terraform modules
+#### Ensure all "third-party" modules conform
+#### Perform terraform init/valdidate manually
+#### Work inwards
+#### Upgrade the cloud-platform-cli image
+
