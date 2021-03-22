@@ -15,10 +15,35 @@ The intention of this document is to provide you a method to upgrade the Terrafo
 - Install TF Switch to allow you to switch between Terraform versions.
 
 ## Caveats
-This document was originally written following the Terraform 0.13 to 0.14 upgrade, it's worth noting this was the best course of action for that particular upgrade. Over time, this document will be improved and eventually automated.
+This document was originally written following the Terraform 0.13 to 0.14 upgrade, it's worth noting this was the best course of action for that particular upgrade. Over time, this document will evolve with the intention of full automation.
 
 ## How to perform the upgrade
-The Cloud Platform has two 
+As The Cloud Platform team have decided to use a multi-repository approach to Terraform modules, this means there's a large distributed code base you'll be required to ammend. This section of the guide will suggest an approach to break this work down and tackle section by section. At a high level we have two Terraform state monoliths managed within the same state bucket:
+
+- Cloud Platform Environments. This holds tenant state, things like a Kubernetes namespace or RDS instance.
+- Cloud Platform Infrastructure. This state represents everything required to build an MoJ Cloud Platform Kubernetes cluster and it's accompanying components.
+
+Each of the sections above require individual attention that will be outlined below.
+
+### Before the upgrade
+There are three tasks that are recommended before performing a Terraform upgrade.
+
+#### Check warnings and notices
+Terraform is good at warning end users of deprecations in future releases. Check the output of a Terraform init/validation/plan for messages of deprecations of resources that will disappear in future releases. For example, this message appeared in our Environments CI/CD:
+
+```bash
+Warning: Interpolation-only expressions are deprecated
+
+  on .terraform/modules/example_team_es/main.tf line 104, in data "aws_iam_policy_document" "elasticsearch_role_snapshot_policy":
+```
+
+It is recommended to act on these messages and look for how and why Terraform are deprecating to implement a work around or solution.
+
+#### Read the release notes carefully
+This sounds simple enough but it is vitally important you understand what changes are being made to your Terraform state.
+
+#### Run a terraform init
+Using a tool such as tf-switch, switch to your new version and perform the command `terraform init -backend=false`. The output of this command will give you a general idea of what needs to change before your perform the upgrade. the `-backend=false` ensures the state isn't touched.
 
 ### Environments state files
 
