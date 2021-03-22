@@ -8,21 +8,23 @@ review_in: 3 months
 # Upgrade Terraform Version
 
 ## Introduction
-The intention of this document is to provide you a method to upgrade the Terraform version used in state across the MoJ Cloud Platform.
+The intention of this document is to provide you a method to upgradethe Terraform version used in state across the MoJ Cloud Platform.
 
 ## Recommendations
-- Install TF Switch to allow you to switch between Terraform versions.
+- Install [TF Switch](https://tfswitch.warrensbox.com/) to allow you to switch between Terraform versions.
 
 ## Caveats
-This document was originally written following the Terraform 0.13 to 0.14 upgrade, it's worth noting this was the best course of action for that particular upgrade. Over time, this document will evolve with the intention of full automation.
+This document was originally written following the Terraform 0.13 to 0.14 upgrade, it's worth noting this was the best course of action for that particular upgrade. Over time this document will evolve and the process of upgrading will improve.
 
 ## How to perform the upgrade
-As The Cloud Platform team have decided to use a multi-repository approach to Terraform modules, this means there's a large distributed code base you'll be required to ammend. This section of the guide will suggest an approach to break this work down and tackle section by section. At a high level we have two Terraform state monoliths managed within the same state bucket:
+As the Cloud Platform team have decided to use a [multi-repository](https://patrickleet.medium.com/mono-repo-or-multi-repo-why-choose-one-when-you-can-have-both-e9c77bd0c668) approach to Terraform modules it means we have a large distributed code base you'll be required to ammend. This section of the guide will suggest an approach to break this work down and tackle it section by section. At a high level we have two Terraform state monoliths managed within the same state bucket:
 
-- Cloud Platform Environments. This holds tenant state, things like a Kubernetes namespace or RDS instance.
-- Cloud Platform Infrastructure. This state represents everything required to build an MoJ Cloud Platform Kubernetes cluster and it's accompanying components.
+- Cloud Platform Environments (referred to as "Environments" thoughout this document). This holds tenant (user) state, things like a Kubernetes namespace or RDS instance.
+- Cloud Platform Infrastructure (referred to as "Infrastructure" thoughout this document). This state represents everything required to build an MoJ Cloud Platform Kubernetes cluster, and it's accompanying components.
 
-Each of the sections above require individual attention that will be outlined below.
+Each of the sections above require individual action, outlined below.
+
+Note - Not all Terraform upgrades require you to make a change to the code base.
 
 ### Before the upgrade
 There are three tasks that are recommended before performing a Terraform upgrade.
@@ -39,52 +41,52 @@ Warning: Interpolation-only expressions are deprecated
 It is recommended to act on these messages and look for how and why Terraform are deprecating to implement a work around or solution.
 
 #### Read the release notes carefully
-This sounds simple enough but it is vitally important you understand what changes are being made to your Terraform state.
+This sounds simple enough but it is vitally important you understand what [changes](https://github.com/hashicorp/terraform/blob/main/CHANGELOG.md) are being made to your Terraform state.
 
-#### Run a terraform init
-Using a tool such as tf-switch, switch to your new version and perform the command `terraform init -backend=false`. The output of this command will give you a general idea of what needs to change before your perform the upgrade. the `-backend=false` ensures the state isn't touched.
-
-Please note - this process is a lot harder to test on an Environments state file.
+#### Remove any test clusters
+After upgrading to a new version of Terraform you don't want test clusters lying around using the old version. Remove any test clusters before upgrading the Infrastructure state.
 
 ### Environments state files
-Arguably the most disruptive state files we have. The Cloud Platform Environments repository contains directories for every namespace in the MoJ Cloud Platform, for each namespace there is a single Terraform state file stored in an S3 bucket. As there are so many state files it is recommened to perform the following.
+The [cloud-platform-environments](https://github.com/ministryofjustice/cloud-platform-environments) repository contains directories for every namespace in the MoJ Cloud Platform, for each namespace there is a single Terraform state file stored in an S3 bucket. As there are so many state files it is recommened to perform the following.
 
 #### Use the "apply" pipeline
-We currently use a concourse pipeline to `terraform init/apply` everything in the cloud-platform-environments GitHub repository. This pipeline has a number of environment variables that allow it to comminicate with the state bucket and amend the necessary state file. Use this pipeline to make amendments to any further state.
+We currently use a [concourse pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/environments-terraform/jobs/apply-live-1) to `terraform init/apply` everything in the cloud-platform-environments GitHub repository. This pipeline has a number of environment variables that allow it to comminicate with the state bucket and amend the necessary state file. Use this pipeline to make amendments to any state in this repository.
 
 #### Upgrade the tools image
-Add your new Terraform version to the cloud-platform-tools image along with the old version. This will allow you to run both versions simultaneously.
+Add your new Terraform version to the [cloud-platform-tools](https://github.com/ministryofjustice/cloud-platform-tools-image) image along with the old version. This will allow you to run both versions simultaneously. You can see how this has been achieved [previously](https://github.com/ministryofjustice/cloud-platform-tools-image/commit/9d042e2fe2a5e15e992e9dbbd403fafd3098c10d).
 
 #### Add conditional logic
-Add an if condition to the apply library that checks the version outlined in each `versions.tf` files in a namespace.
+Add an if condition to the apply library that checks the version outlined in each `versions.tf` files in a namespace. Previously, this was achieved by simply making the `terraform` command [variable](https://github.com/ministryofjustice/cloud-platform-environments/pull/4366/files). This conditional logic allows you to upgrade the state slowly, ensuring you don't have issues in non-production namespaces before you upgrade production.
 
 #### Upgrade all Terraform modules
-This is fairly tricky as there may be over fifty repositories to upgrade. If the Terraform syntax has changed you'll need to run the `upgrade` command on each module (repository). This can be tedious if performed manually so there is some Go code that does this on your behalf. https://github.com/ministryofjustice/cloud-platform-terraform-upgrade
+Not all Terraform upgrades require this, but in 0.12 and 0.13 you were required to run upgrade your code base. This can be a fairly tricky task as we maintain over 50 Terraform modules. Terraform do provide a `terraform upgrade` toold if a syntax change is required, but this will need to executed against all modules and a new release created. This can be tedious if performed manually so there is some [Go code](https://github.com/ministryofjustice/cloud-platform-terraform-upgrade) that does this on your behalf.
 
-Using the example of upgrading to Terraform 0.13, run the following:
+Using the example of upgrading to Terraform 0.13, the following was executed:
 
 ```bash
 git clone https://github.com/ministryofjustice/cloud-platform-terraform-upgrade
 go run main.go -o "ministryofjustice" -r "cloud-platform-terraform" -c "terraform 0.13upgrade"
 ```
 
-The code will pull down every repository in the "ministryofjustice" organisation with the name that contains "cloud-platform-terraform" and run the command "terraform 0.13upgrade". The code will then commit and create a Pull Request against each repository using your GitHub credentials.
+The code will pull down every repository in the "ministryofjustice" organisation with the name that contains "cloud-platform-terraform" and run the command "terraform 0.13upgrade". It will then commit and create a Pull Request against each repository using your GitHub credentials.
 
-Note: Terraform will release an upgrade command for each release that contains syntax changes, in the example above 0.13upgrade was used to create a more detailed `versions.tf`.
+This will result in a Pull Request output similar to the one outlined [here](https://github.com/ministryofjustice/cloud-platform-terraform-rds-instance/pull/85/files).
 
 Once all the Pull Requests have been reviewed, merge them into main and create a new release.
 
-#### Upgrade a test namespace
-It is difficult to test an upgrade on the Environments state, this is the best way to do so as of writing this document. At this point you should have new releases for each Terraform module, if not then please perform the steps above.
+Note: Terraform will release an [upgrade](https://www.terraform.io/docs/cli/commands/0.13upgrade.html) command for each release that contains syntax changes, in the example above 0.13upgrade was used to create a more detailed `versions.tf`.
 
-- Create a test namespace in the cloud-platform-environments repository called `abdundance-namespace-dev` (will probably be the first namespace applied).
-- Add every resource available using the release before the Terraform upgrade work above, i.e. RDS, S3 (a full list can be found here).
+#### Upgrade a test namespace
+It is difficult to test an upgrade on the Environments state, this is the best way to do so, with examples.
+
+- [Create](https://github.com/ministryofjustice/cloud-platform-environments/commit/ad452137912a667c67c6ed065209eb2a92b85a7e#diff-b3457cb07a4d137eb78293d179b3344d1446bc9a0573b85f37639163029eaa07) a test namespace in the cloud-platform-environments repository called `abdundance-namespace-dev` (will probably be the first namespace applied).
+- Add every resource available using the release before the Terraform upgrade work above, i.e. RDS, S3 (a full list can be found [here](https://github.com/ministryofjustice/cloud-platform/blob/main/README.md#our-core-repos)).
 - Create a pull request and then merge to main.
 
-After the above resources are built, then perform:
+When the above resources are successfully built:
 
-- Bump all of your resources to the latest, containing the Terraform upgrade.
-- Change the version in versions.tf to reflect the new version.
+- [Bump](https://github.com/ministryofjustice/cloud-platform-environments/commit/2769a63f88117865440e60abe5ee0dc6e64e0761#diff-b3457cb07a4d137eb78293d179b3344d1446bc9a0573b85f37639163029eaa07) all of your resources to the latest, containing the Terraform upgrade.
+- [Change](https://github.com/ministryofjustice/cloud-platform-environments/commit/2298836af43290e0bdb8020ffd2033703260fc51#diff-b3457cb07a4d137eb78293d179b3344d1446bc9a0573b85f37639163029eaa07) the version in versions.tf in the cloud-platform-environments to reflect the new version.
 - Create a Pull Request against main.
 - Monitor possible changes in the plan. It should require no changes.
 - If you're happy with the output of the plan pipeline, merge it into main.
@@ -100,7 +102,7 @@ go run main.go -o "ministryofjustice" -r "cloud-platform-environments" -c "terra
 cd repositories
 ```
 
-The `no-commit` argument pulls down the required repository, runs the command against all namespaces but doesn't commit the changes. You'll want to pick and choose which namespaces to commit to ensure you're happy. I'd recommend creating a new branch and commiting the non-production namespaces only, i.e. any namespace that isn't "-prod".
+The `no-commit` argument pulls down the required repository and stores it in a directory called 'repositories', it then runs the upgrade against all namespaces but doesn't commit the changes. You'll want to pick and choose which namespaces to commit to ensure you're happy. I'd recommend creating a new branch and commiting the non-production namespaces only, i.e. any namespace that isn't "-prod".
 
 Create a pull request against main and watch the plan pipeline once more. Again this should be clean.
 
@@ -110,17 +112,54 @@ If the plan applies no changes and you're happy, merge this into main.
 Perform the above on all production namespaces.
 
 #### Tidying up
-When all namespaces are using the new version of Terraform you can begin to clean-up any changes you've made. 
+When all namespaces in the cloud-platform-environments repository are using the new version of Terraform you can begin to clean-up any changes you've made. 
 
-- Remove the multiple Terraform binaries from the cloud-platform-tools image.
-- Remove the conditional logic in the apply library.
+- [Remove](https://github.com/ministryofjustice/cloud-platform-tools-image/commit/3827ea89a95cf78146812a0275b40f3c2d20ed21) the multiple Terraform binaries from the cloud-platform-tools image, leaving only the new version.
+- [Remove](https://github.com/ministryofjustice/cloud-platform-environments/commit/b11b0372fe71289e51739395664355014df0e655) the conditional logic in the apply library.
 
 ### Infrastructure state files
+The Infrastructure state we have in the Cloud Platform is structured in a tree related to its dependency, so for example, the [components](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/cloud-platform-components) state (in the output below) relies heavily on the directory above and so on. Here is a snapshot of how our directory looks but this is likely to change:
 
-#### Start outwards
+```
+aws-accounts
+├── cloud-platform-aws
+│   ├── account                  # AWS Account specific configuration.
+│   └── vpc                  # VPC creation. Workspaces for individual clusters
+│       ├── eks                  # Holding EKS, workspaces for individual clusters.
+│       │   └── components       # EKS components. Workspaces for individual clusters
+│       └── kops                 # Holding KOPS, workspaces for individual clusters.
+│           └── components       # KOPS components. Workspaces for individual clusters
+├── cloud-platform-dsd
+│   └── main.tf
+├── cloud-platform-ephemeral-test
+│   ├── account
+│   └── vpc
+│       ├── eks
+│       │   └── components
+│       └── kops
+│           └── components
+└── README.md
+```
+
+#### Where to start
+Because of the structure outlined above, it's best to start at the components layer and work in.
+
 #### Run terraform init/validate
+Using a tool such as tf-switch, switch to your new version and perform the command `terraform init -backend=false`. The output of this command will give you a general idea of what needs to change before your perform the upgrade. the `-backend=false` ensures the state isn't touched.
+
 #### Upgrade all Terraform modules
+Like the Environments, you need to ensure all Terraform modules will work with the new Terraform version. If there is a syntax change, it's recommended to run the `terraform upgrade` command on all repositories that contain "cloud-platform-terraform". Either perform this manually or:
+
+```bash
+git clone https://github.com/ministryofjustice/cloud-platform-terraform-upgrade
+go run main.go -o "ministryofjustice" -r "cloud-platform-terraform" -c "<insert upgrade command here>"
+```
+
+Which will perform the upgrade command on each repository containing "cloud-platform-terraform" in the name and then create a Pull Request.
+
 #### Ensure all "third-party" modules conform
+
+
 #### Perform terraform init/valdidate manually
 #### Work inwards
 #### Upgrade the cloud-platform-cli image
