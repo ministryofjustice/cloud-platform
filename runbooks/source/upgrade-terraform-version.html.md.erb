@@ -8,7 +8,7 @@ review_in: 3 months
 # Upgrade Terraform Version
 
 ## Introduction
-The intention of this document is to provide you a method to upgradethe Terraform version used in state across the MoJ Cloud Platform.
+The intention of this document is to provide you a method to upgrade the Terraform version used in state across the MoJ Cloud Platform.
 
 ## Recommendations
 - Install [TF Switch](https://tfswitch.warrensbox.com/) to allow you to switch between Terraform versions.
@@ -27,10 +27,10 @@ Each of the sections above require individual action, outlined below.
 Note - Not all Terraform upgrades require you to make a change to the code base.
 
 ### Before the upgrade
-There are three tasks that are recommended before performing a Terraform upgrade.
+There are three recommended tasks required before upgrading Terraform.
 
 #### Check warnings and notices
-Terraform is good at warning end users of deprecations in future releases. Check the output of a Terraform init/validation/plan for messages of deprecations of resources that will disappear in future releases. For example, this message appeared in our Environments CI/CD:
+Terraform is good at warning end users of deprecations in future releases. Check the output of a Terraform init/validation/plan for messages of deprecations of resources that will disappear in future releases. For example, this message appeared in our Environments apply pipeline:
 
 ```bash
 Warning: Interpolation-only expressions are deprecated
@@ -56,10 +56,10 @@ We currently use a [concourse pipeline](https://concourse.cloud-platform.service
 Add your new Terraform version to the [cloud-platform-tools](https://github.com/ministryofjustice/cloud-platform-tools-image) image along with the old version. This will allow you to run both versions simultaneously. You can see how this has been achieved [previously](https://github.com/ministryofjustice/cloud-platform-tools-image/commit/9d042e2fe2a5e15e992e9dbbd403fafd3098c10d).
 
 #### Add conditional logic
-Add an if condition to the apply library that checks the version outlined in each `versions.tf` files in a namespace. Previously, this was achieved by simply making the `terraform` command [variable](https://github.com/ministryofjustice/cloud-platform-environments/pull/4366/files). This conditional logic allows you to upgrade the state slowly, ensuring you don't have issues in non-production namespaces before you upgrade production.
+Add an if statement to the apply library that checks the version outlined in each `versions.tf` files in a namespace. Previously, this was achieved by simply making the `terraform` command [variable](https://github.com/ministryofjustice/cloud-platform-environments/pull/4366/files). This conditional logic allows you to upgrade the state slowly, ensuring you don't have issues in non-production namespaces before you upgrade production.
 
 #### Upgrade all Terraform modules
-Not all Terraform upgrades require this, but in 0.12 and 0.13 you were required to run upgrade your code base. This can be a fairly tricky task as we maintain over 50 Terraform modules. Terraform do provide a `terraform upgrade` toold if a syntax change is required, but this will need to executed against all modules and a new release created. This can be tedious if performed manually so there is some [Go code](https://github.com/ministryofjustice/cloud-platform-terraform-upgrade) that does this on your behalf.
+Not all Terraform upgrades require this, but in 0.12 and 0.13 you were required change some syntax in your code base. This can be a fairly tricky task as we maintain over 50 Terraform modules. Terraform do provide a `terraform upgrade` tool if a syntax change is required, but this will need to executed against all modules and a new release created. This can be tedious if performed manually so there is some [Go code](https://github.com/ministryofjustice/cloud-platform-terraform-upgrade) that does this on your behalf.
 
 Using the example of upgrading to Terraform 0.13, the following was executed:
 
@@ -158,9 +158,14 @@ go run main.go -o "ministryofjustice" -r "cloud-platform-terraform" -c "<insert 
 Which will perform the upgrade command on each repository containing "cloud-platform-terraform" in the name and then create a Pull Request.
 
 #### Ensure all "third-party" modules conform
-
+We use a number of third party Terraform modules (modules we don't control), these mainly belong to AWS, so it's important that you update the version of these modules and ensure it works with the Terraform version you're upgrading to. [Here's](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/commit/ce9fb73249775c8efe09020d3db7c96ccb9ef251) an example of a change to a third party module.
 
 #### Perform terraform init/valdidate manually
+With all the leg work complete, you can now perform a Terraform upgrade. We do have a pipeline that can do this on your behalf but I'd recommend manually performing a `terraform init && terraform apply`.
+
 #### Work inwards
+When you complete the upgrade on the directory/state you've chosen, e.g. components, then you can work on the directory above and peform the same steps as outlined.
+
 #### Upgrade the cloud-platform-cli image
+Finally, following the successful upgrade to your new Terraform version, upgrade the version of Terraform used in the cloud-platform-cli docker image.
 
