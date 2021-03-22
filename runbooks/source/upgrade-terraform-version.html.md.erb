@@ -75,18 +75,45 @@ Note: Terraform will release an upgrade command for each release that contains s
 Once all the Pull Requests have been reviewed, merge them into main and create a new release.
 
 #### Upgrade a test namespace
-It is difficult to test an upgrade on the Environments state, this is the best way to do so as of writing this document. 
+It is difficult to test an upgrade on the Environments state, this is the best way to do so as of writing this document. At this point you should have new releases for each Terraform module, if not then please perform the steps above.
 
 - Create a test namespace in the cloud-platform-environments repository called `abdundance-namespace-dev` (will probably be the first namespace applied).
-- Add every resource available using the new release version (as stated above), i.e. RDS, S3 (a full list can be found here).
-- Change the version in versions.tf, this should reflect the upgrade.
+- Add every resource available using the release before the Terraform upgrade work above, i.e. RDS, S3 (a full list can be found here).
+- Create a pull request and then merge to main.
+
+After the above resources are built, then perform:
+
+- Bump all of your resources to the latest, containing the Terraform upgrade.
+- Change the version in versions.tf to reflect the new version.
 - Create a Pull Request against main.
 - Monitor possible changes in the plan. It should require no changes.
+- If you're happy with the output of the plan pipeline, merge it into main.
 
 #### Upgrade all non-production namespaces
+When you're happy to begin upgrading users namespaces run the upgrade command against the cloud-platform-environments repository or upgrade all namespaces manually.
+
+If you decide to use the tool above then perform the following:
+
+```bash
+git clone https://github.com/ministryofjustice/cloud-platform-terraform-upgrade
+go run main.go -o "ministryofjustice" -r "cloud-platform-environments" -c "terraform 0.13upgrade" --no-commit
+cd repositories
+```
+
+The `no-commit` argument pulls down the required repository, runs the command against all namespaces but doesn't commit the changes. You'll want to pick and choose which namespaces to commit to ensure you're happy. I'd recommend creating a new branch and commiting the non-production namespaces only, i.e. any namespace that isn't "-prod".
+
+Create a pull request against main and watch the plan pipeline once more. Again this should be clean.
+
+If the plan applies no changes and you're happy, merge this into main.
+
 #### Upgrade all production namespaces
-#### Potential gotchas
+Perform the above on all production namespaces.
+
 #### Tidying up
+When all namespaces are using the new version of Terraform you can begin to clean-up any changes you've made. 
+
+- Remove the multiple Terraform binaries from the cloud-platform-tools image.
+- Remove the conditional logic in the apply library.
 
 ### Infrastructure state files
 
