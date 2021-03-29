@@ -44,6 +44,8 @@ kops export kubecfg live-1.cloud-platform.service.justice.gov.uk
 export TF_VAR_cluster_name="live-1"
 export TF_VAR_cluster_state_bucket=cloud-platform-terraform-state
 export TF_VAR_cluster_state_key="cloud-platform/live-1/terraform.tfstate"
+#needed by tf k8s provider
+export KUBE_CONFIG_PATH=${HOME}/.kube/config
 ```
 
 ## Set the namespace name
