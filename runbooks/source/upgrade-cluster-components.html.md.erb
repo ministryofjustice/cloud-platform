@@ -1,0 +1,133 @@
+---
+title: Upgrade cluster components
+weight: 54
+last_reviewed_on: 2021-03-31
+review_in: 3 months
+---
+
+# Upgrade cluster components
+
+Cluster components are application layer components that are installed in a cluster such as prometheus, external-dns, opa, kiam etc.
+
+Components are configured as terraform modules and are called from [cloud-platform-infrastructure repo] with a release tag. 
+
+## Planning
+
+When you start working on upgrading any cloud-platform-components ticket:
+
+- Check which chart versions are available to upgrade to
+- Check whether the component is upgradeable to that chart version from the current one (some major versions cannot be skipped)
+- Check the release notes of the component for any breaking changes
+- Check and add notes from the upgrading process mentioned in the original github repository related the component (if any)
+- Check and add notes of every CHANGELOG.md of the component between the current chart version installed in your cluster to the chart version you want to upgrade to
+- Review the CHANGELOG notes with another member of the team (check for breaking changes, deprecations, change to values file and suggested plan for upgrading the production clusters `live-1` and `eks-manager`)
+
+## Testing the upgrade in a test cluster
+
+It is important to test the upgrade of the component in both kops and EKS cluster.
+
+- Your GPG key must be added to the [cloud-platform-infrastructure repo] so that you are able to run `git-crypt unlock`
+
+- You have the [AWS CLI] profile `moj-cp` with suitable credentials
+
+- You have [docker] installed
+
+### Setup environment
+
+Setup the environment variables listed in [example.env.create-cluster] in the [cloud-platform-infrastructure repo].
+
+### Run a shell in the tools image
+
+The cloud platform [tools image] has all the software required to update a cluster.
+
+From a local copy of the [cloud-platform-infrastructure repo],  run the following command:
+
+```bash
+make tools-shell
+```
+
+### Authenticate to the test cluster
+
+Create the file `~/.kube/config` in your tools-image container by running:
+
+For Kops cluster
+
+```bash
+kops export kubecfg XXXXXXX.cloud-platform.service.justice.gov.uk
+```
+
+For EKS cluster
+
+```bash
+aws eks --region eu-west-2 update-kubeconfig --name <cluster-name>
+```
+
+### Run the integration tests
+
+ This is the ensure the test cluster doesnot have any existing issues and ready to use
+
+```
+cd smoke-tests
+bundle binstubs bundler --force --path /usr/local/bin
+bundle binstubs rspec-core --path /usr/local/bin
+```
+
+For kops cluster
+
+```bash
+rspec --tag ~live-1 --tag ~eks-manager --format progress --format documentation
+```
+
+For EKS cluster
+
+```bash
+rspec --tag ~live-1 --tag ~kops --format progress --format documentation
+```
+
+### Testing the upgrade 
+
+  1. Make the changes required to the module. For example, for upgrading the cert-manager, change the [cert-manager terraform module](https://github.com/ministryofjustice/cloud-platform-terraform-certmanager). This might include
+      - The helm chart version
+      - changes to the values file (in needed) 
+
+  2. Push changes to a branch(upgrade) of the module
+
+  3. Update the local copy of the [cloud-platform-infrastructure repo] with the branch reference.
+     For cert-manager module, the code would change to
+
+    ```hcl
+    source = "github.com/ministryofjustice/cloud-platform-terraform-certmanager?ref=upgrade"
+    ```
+
+  4. Do a `terraform plan` for the changes, verify whether the changes are correct and do `terraform apply` to apply the changes
+
+  5. Check the [things to observe] section for specific components 
+
+  6. Run the integration tests again
+
+  4. Once the testing is complete and integration tests are passed, create a PR to be reviewed by the team and have the module unit tests passed. 
+     After the PR is approved, merge the changes to the main branch of the module and make a release.
+
+  5. Change the module release tag in the kops/components and eks/components folder of [cloud-platform-infrastructure repo] and raise a PR. 
+     Verify the terraform plan from the [cloud-platform-infrastructure plan pipeline] and get it reviewed by the team.
+
+  6. Once approved, merge the PR and monitor the [cloud-platform-infrastructure apply pipeline] when applying the changes.
+
+### Things to observe when testing the upgrade
+
+  The below are some of the general things to check when during the upgrade and not a complete list.
+    
+#### Cert manager
+      
+  - The CRDs for cert-manager doesnot get deleted
+  - The existing certificates doesnot change in any way. This can be done by checking the timestamps of certificate creation
+  - Able to create and validate new certificates
+
+[cloud-platform-infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
+[cloud-platform-infrastructure plan pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/cloud-platform-infrastructure/jobs/plan-cloud-platform-infrastructure
+[cloud-platform-infrastructure apply pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/cloud-platform-infrastructure/jobs/apply-cloud-platform-infrastructure
+[example.env.create-cluster]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/example.env.create-cluster
+[AWS CLI]: https://aws.amazon.com/cli/
+[docker]: https://www.docker.com/
+[tools image]: https://github.com/ministryofjustice/cloud-platform-tools-image
+[things to observe]: http://localhost:4567/upgrade-cluster-components.html#things-to-observe-when-testing-the-upgrade]
