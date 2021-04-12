@@ -1,0 +1,17 @@
+---
+title: How to add authorized keys
+weight: 8600
+last_reviewed_on: 2021-04-12
+review_in: 3 months
+---
+
+
+# How to add authorized keys
+
+We have a [maintenance](https://github.com/ministryofjustice/cloud-platform-concourse/blob/main/pipelines/manager/main/maintenance.yaml) pipeline that runs every hour and checks if a member of the ministryofjustice/webops GitHub team has a new public key. If so, the pipeline will fail and a triggered event will appear in the `lower-priority-alarms` slack channel. To action this event, simple perform the following:
+
+- The [script executed by the pipeline](https://github.com/ministryofjustice/cloud-platform-terraform-bastion/blob/main/bin/update-authorized-keys.rb) will create a pull request. Open [this](https://github.com/ministryofjustice/cloud-platform-terraform-bastion/pulls).
+- Review it carefully.
+- When happy approve and merge it into main.
+
+You don't need to re-trigger the pipeline as this runs every hour.
