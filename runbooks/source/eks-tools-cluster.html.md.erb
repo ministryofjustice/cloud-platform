@@ -1,7 +1,7 @@
 ---
 title: EKS Tool/Manager Cluster
 weight: 350
-last_reviewed_on: 2021-03-09
+last_reviewed_on: 2021-04-20
 review_in: 3 months
 ---
 
@@ -52,7 +52,7 @@ You should be able to see your new VPC (called `WorkspaceName`) inside the AWS C
 
 ### 2. Creating EKS cluster
 
-Now it's time to provision the cluster itself, we change directory to [cloud-platform-infrastructure/terraform/cloud-platform-eks](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/cloud-platform-eks) and follow very similar terraform workflow:
+Now it's time to provision the cluster itself, we change directory to [terraform/aws-accounts/cloud-platform-aws/vpc/eks](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks) and follow very similar terraform workflow:
 
 ```
 terraform init
@@ -83,7 +83,7 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 
 ### 3. Deploy components
 
-Components installation is the last step, for that we need to have the `KUBECONFIG` variable exported and make sure you have access to the cluster. To deploy components we go to [cloud-platform-infrastructure/terraform/cloud-platform-eks/components](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/cloud-platform-eks/components) and follow exactly the same terraform workflow:
+Components installation is the last step, for that we need to have the `KUBECONFIG` variable exported and make sure you have access to the cluster. To deploy components we go to [terraform/aws-accounts/cloud-platform-aws/vpc/eks/components](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components) and follow exactly the same terraform workflow:
 
 ```
 terraform init
@@ -114,7 +114,7 @@ Then, from the root of a checkout of the `cloud-platform-infrastructure` reposit
 these commands to destroy all cluster components, and delete the terraform workspace:
 
 ```
-$ cd terraform/cloud-platform-eks/components
+$ cd terraform/aws-accounts/cloud-platform-aws/vpc/eks/components
 $ terraform init
 $ terraform workspace select ${cluster}
 $ terraform destroy
