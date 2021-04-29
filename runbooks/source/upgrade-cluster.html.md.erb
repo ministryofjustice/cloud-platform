@@ -1,7 +1,7 @@
 ---
 title: Upgrade a cluster
 weight: 52
-last_reviewed_on: 2021-02-01
+last_reviewed_on: 2021-04-29
 review_in: 3 months
 ---
 
@@ -80,6 +80,7 @@ The new release must be also referenced in our [definition/instance file](https:
 
 Run the following to push the above changes to the kops state store in S3.
 
+`kops replace -f kops/live-1.yaml`
 `kops update cluster`
 
 Review the changes before committing with:
@@ -129,6 +130,7 @@ To ensure minimal application downtime, we're going to create new worker instanc
 kops create instancegroup nodes-<kubernetes-version>-eu-west-2a
 kops create instancegroup nodes-<kubernetes-version>-eu-west-2b
 kops create instancegroup nodes-<kubernetes-version>-eu-west-2c
+kops create instancegroup 2xlarge-nodes-<kubernetes-version>     # <--- Monitoring/Prometheus nodes
 kops update cluster
 kops update cluster --yes
 ```
@@ -160,7 +162,7 @@ bash cordon_nodes
 To ensure ingress controllers are running on the new nodes run:
 
 ```
-kubectl -n ingress-controllers edit deployment nginx-ingress-acme-controller
+kubectl -n ingress-controllers edit deployment nginx-ingress-acme-ingress-nginx-controller
 ```
 
 ...and double the number of replicas.
@@ -201,6 +203,7 @@ When complete and all pods have migrated onto the new workers. Delete the old in
 kops delete instancegroup nodes-<old-kubernetes-version>-eu-west-2a
 kops delete instancegroup nodes-<old-kubernetes-version>-eu-west-2b
 kops delete instancegroup nodes-<old-kubernetes-version>-eu-west-2c
+kops delete instancegroup 2xlarge-nodes-<kubernetes-version>
 kops update cluster
 kops update cluster --yes
 ```
