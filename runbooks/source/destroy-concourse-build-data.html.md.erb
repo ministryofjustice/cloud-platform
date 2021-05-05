@@ -1,0 +1,76 @@
+---
+title: Destroy Concourse Build Data
+weight: 9000
+last_reviewed_on: 2021-05-05
+review_in: 3 months
+---
+
+
+# Destroy Concourse Build Data
+
+## Overview
+
+This document will briefly outline the steps required to empty the Concourse postgres persistent volume. Things to know before reading this document:
+- We store concourse build data in this database. After deliberation with the team it was decided that this data isn't important enough to keep, meaning the volume attached to Concourse is considered ephemeral.
+- Some of the steps in this document require performing a `terraform destroy` on the Concourse module, so please ensure you have valid AWS credentials and your GPG key is added to the Cloud Platform infrastructure repository.
+- The persistent volume for Concourse build data is not large (currently 8G) so will fill up over the course of a few months.
+- A low and high priority alarm will trigger for `KubePersistentVolumeFillingUp`.
+- When performing these steps, you will lose concourse-web for a while (minutes rather than hours).
+
+## Steps to remove the built data
+
+- Ensure you're authenticated to the correct cluster.
+- Destroy the Concourse Helm release with (this assumes you have the infrastructure repository cloned):
+
+```bash
+cd cloud-platform-infrastructure/terraform/aws-accounts/cloud-platform-aws/vpc/eks
+terraform destroy -target=module.concourse.helm_release.concourse
+```
+
+- Identify the persistent volume (PV) in question: 
+
+```bash
+kubectl get pv
+```
+
+You'll see a claim by the name of `concourse/data-concourse-postgres-0`. Copy the `Name` to your clipboard i.e. `pvc-1234`
+
+Please note - This name is due to change in the future.
+
+- Delete the PV with:
+
+```bash
+kubectl delete pv pvc-1234 --grace-period=0 --force
+```
+
+This will get stuck in a `Terminating` state.
+
+- Patch the PV with:
+
+```bash
+kubectl patch pv pvc-1234 -p '{"metadata":{"finalizers": []}}' --type=merge
+```
+
+Which should instantly delete the volume.
+
+- Identify the persistent volume claim (PVC):
+
+```bash
+kubectl get pvc -n concourse
+```
+
+Copy the `Name` to your clipboard i.e. `data-concourse-postgres-0`
+- Delete the PVC with:
+
+```bash
+kubectl -n concourse delete pvc data-concourse-postgresql-0 --grace-period=0 --force
+```
+
+This shouldn't get stuck and will be removed instantly.
+- Re-apply the Concourse Helm chart with:
+
+```bash
+terraform apply -target=module.concourse.helm_release.concourse
+```
+ 
+You should start to see pods returning and the creation of a new PV.
