@@ -11,6 +11,7 @@ review_in: 3 months
 ## Overview
 
 This document will briefly outline the steps required to empty the Concourse postgres persistent volume. Things to know before reading this document:
+
 - We store concourse build data in this database. After deliberation with the team it was decided that this data isn't important enough to keep, meaning the volume attached to Concourse is considered ephemeral.
 - Some of the steps in this document require performing a `terraform destroy` on the Concourse module, so please ensure you have valid AWS credentials and your GPG key is added to the Cloud Platform infrastructure repository.
 - The persistent volume for Concourse build data is not large (currently 8G) so will fill up over the course of a few months.
