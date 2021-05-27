@@ -1,4 +1,4 @@
-PUBLISHING_IMAGE := ministryofjustice/cloud-platform-tech-docs-publisher:1.1
+PUBLISHING_IMAGE := ministryofjustice/cloud-platform-tech-docs-publisher:1.3
 
 # Use this to run a local instance of the documentation site, while editing
 .PHONY: preview
