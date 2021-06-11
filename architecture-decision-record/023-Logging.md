@@ -15,6 +15,7 @@ Concerns with existing ElasticSearch logging:
 * ElasticSearch costs a lot to run - it holds indexes in memory
 * CP team doesn't need the power of ElasticSearch very often - rather than use Kibana to look at logs, the CP team mostly uses `kubectl logs`
 * Service teams have access to other teams' logs, which is a concern should personal information be inadvertantly logged
+* Fluentd + AWS ElasticSearch combination has no flexibility to parse/define the JSON structure of logs, so all our teams right now have to contend with grabbing the contents of a single log field and parsing it outside ES
 
 With these concerns in mind, and the [migration to EKS](022-EKS.html) meaning we'd need to reimplement log shipping, we reevaluate this strategy.
 
