@@ -7,19 +7,90 @@ weight: 45
 
 > Use the [mean-time-to-repair.rb] script to view performance metrics
 
+## Q2 2021 (Apr-May)
+
+- **Mean Time to Repair**: 2h 32m
+
+- **Mean Time to Resolve**: 2h 44m
+
+### Incident on 2021-06-09 12:47 - All users are unable to create new ingress rules, following bad ModSec Ingress-controller upgrade
+
+- **Key events**
+  - First detected 2021-06-09 13:15
+  - Repaired 2021-06-09 13:46
+  - Incident declared 2020-06-09 13:54
+  - Resolved 2021-06-09 13:58
+
+- **Time to repair**: 0h 31m
+
+- **Time to resolve**: 0h 43m
+
+- **Identified**: User reported in #ask-cloud-platform an error when deploying UAT application:
+```kind Ingress: Internal error occurred: failed calling webhook "validate.nginx.ingress.kubernetes.io": Post https://modsec01-nx-modsec-admission.ingress-controllers.svc:443/networking/v1beta1/ingresses?timeout=10s: x509: certificate is valid for modsec01-nx-controller-admission, modsec01-nx-controller-admission.ingress-controllers.svc, not modsec01-nx-modsec-admission.ingress-controllers.svc```
+
+- **Impact**: It blocked all ingress API calls, so no new ingresses could be created, nor changes to current ingresses could be deployed, which included all user application deployments.
+
+- **Context**:
+  - Occurred immediately following an upgrade to the ModSec Ingress-controller module v3.33.0, which apparently successfully deployed
+  - It caused any new ingress or changes to current ingresses to be blocked by the ModSec Validation webhook
+  - Timeline: [Timeline](https://docs.google.com/document/d/1s5pos29Gcq0ssVnpf0biqG2aE-Kt2PtyxEcpjG88rdc/edit#) for the incident.
+  - Slack thread: [#ask-cloud-platform](https://mojdt.slack.com/archives/C57UPMZLY/p1623240948285500) for the incident, [#cloud-platform](https://mojdt.slack.com/archives/C514ETYJX/p1623242510212300) for the recovery.
+
+- **Resolution**: Rollback to ModSec Ingress-controller module v0.0.7
+
+- **Review actions**:
+  - Find out why this issue didn’t get flagged in the test cluster - try to reproduce the issue - maybe need another test? Ticket [#2972](https://github.com/ministryofjustice/cloud-platform/issues/2972)
+  - Add test that checks the alerts in alertmanager in smoke tests. Ticket [#2973](https://github.com/ministryofjustice/cloud-platform/issues/2973)
+  - Add helloworld app that uses modsec controller, for the smoke tests to check traffic works. Ticket [#2974](https://github.com/ministryofjustice/cloud-platform/issues/2974)
+  - Modsec module, new version, needs to be working on EKS for live-1 and live (neither old or new version work on live). Ticket [#2975](https://github.com/ministryofjustice/cloud-platform/issues/2975)
+
+
+### Incident on 2021-05-10 12:15 - Apply Pipeline downtime due to accidental destroy of Manager cluster
+
+- **Key events**
+  - First detected 2021-05-10 12:15
+  - Incident not declared, but later agreed it was one
+  - Repaired 2021-05-10 16:48
+  - Resolved 2021-05-11 10:00
+
+- **Time to repair**: 4h 33m
+
+- **Time to resolve**: 4h 45m
+
+- **Identified**: CP team member did 'terraform destroy components', intending it to destroy a test cluster, but it was on Manager cluster by mistake. Was immediately aware of the error.
+
+- **Impact**:
+  - Users couldn't create or change their namespace definitions or AWS resources, due to Concourse being down
+
+- **Context**:
+  - Timeline: [Timeline](https://docs.google.com/document/d/1rrROMuq5D6wajAPZGy3sq_P98ZmvMmaHygWKUgLyTCM/edit#) for the incident
+  - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1620645898320200) for the incident.
+
+- **Resolution**:
+  - Manager cluster was recreated.
+  - During this we encountered a certificate issue with Concourse, so it was restored manually. The terraform had got out of date for the Manager cluster.
+  - Route53 zones were hard-coded and had to be [changed manually](https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/1162/files).
+
+- **Actions following review**:
+  - Spike ways to avoid applying to wrong cluster - see 3 options above. Ticket [#3016](https://github.com/ministryofjustice/cloud-platform/issues/3016)
+  - Try ‘Prevent destroy’ setting on R53 zone - Ticket [#2899](https://github.com/ministryofjustice/cloud-platform/issues/2899)
+  - Disband the cloud-platform-concourse repository. This includes Service accounts, and pipelines. We should split this repository up and move it to the infra/terraform-concourse repos. Ticket [#3017](https://github.com/ministryofjustice/cloud-platform/issues/3017)
+  - Manager needs to use our PSPs instead of eks-privilege - this has already been done.
+
+
 ## Q1 2021 (January - March)
 
-- **Mean Time to repair**: N/A
+- **Mean Time to Repair**: N/A
 
-- **Mean Time to resolve**: N/A
+- **Mean Time to Resolve**: N/A
 
 ### No incidents declared
 
 ## Q4 2020 (October - December)
 
-- **Mean Time to repair**: 2h 8m
+- **Mean Time to Repair**: 2h 8m
 
-- **Mean Time to resolve**: 8h 46m
+- **Mean Time to Resolve**: 8h 46m
 
 ### Incident on 2020-10-06 09:07 - Intermittent "micro-downtimes" on various services using dedicated ingress controllers
 
@@ -390,7 +461,7 @@ Definitions:
 
 - The words used in the timeline of an incident: fault occurs, team becomes aware (of something bad), incident declared (the team acknowledges and has an idea of the impact), repaired (system is fully functional), resolved (fully functional and future failures are prevented)
 - *Incident time* - The start of the failure (Before March 2020 it was the time the incident was declared)
-- *Time to Repair* - The time between the incident being declared and when service is fully restored. Only includes [Hours of Support](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/reference/operational-processes.html#hours-of-support).
+- *Time to Repair* - The time between the incident being declared (or when the team became aware of the fault) and when service is fully restored. Only includes [Hours of Support](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/reference/operational-processes.html#hours-of-support).
 - *Time to Resolve* - The time between when the fault occurs and when system is fully functional (and include any immediate work done to prevent future failures). Only includes [Hours of Support](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/reference/operational-processes.html#hours-of-support). This is a broader metric of incident response performance, compared to Time to Repair.
 
 Source: [Atlassian](https://www.atlassian.com/incident-management/kpis/common-metrics)
@@ -402,7 +473,10 @@ Datestamps: please use `YYYY-MM-DD HH:MM` (almost ISO 8601, but more readable), 
 ### Incident on YYYY-MM-DD HH:MM - [Brief description]
 
 - **Key events**
-  -
+  - First detected YYYY-MM-DD HH:MM
+  - Incident declared YYYY-MM-DD HH:MM
+  - Repaired YYYY-MM-DD HH:MM
+  - Resolved YYYY-MM-DD HH:MM
 
 - **Time to repair**: Xh Xm
 

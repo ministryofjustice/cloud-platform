@@ -4,7 +4,7 @@
 #
 #   Usage (from inside the `runbooks/source` directory):
 #
-#     ../bin/mean_time_to_repair.rb
+#     ../bin/mean-time-to-repair.rb
 #
 
 require "date"
