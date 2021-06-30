@@ -32,7 +32,7 @@ Apps are cattle. When a service team hosts its software on Cloud Platform, it ne
 
 Infrastructure is cattle. Cloud Platform team should use a 'delete and replace' process to perform upgrades, fix problems and disaster recovery.
 
-Clusters are cattle. We can't have one cluster, vulnerable to a fault, YOLO changes and upgrades. Clusters need to be disposible. Replacement is automatic and seamless.
+Clusters are cattle. We can't have one cluster, vulnerable to a fault, YOLO changes and upgrades. Clusters need to be disposable. Replacement is automatic and seamless.
 
 ### Constant reinvention
 
