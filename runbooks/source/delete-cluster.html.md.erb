@@ -102,7 +102,7 @@ kops has set your kubectl context to david-test1.cloud-platform.service.justice.
 Then, from the components directory, run these commands to destroy all cluster components, and delete the terraform workspace.
 
 ```
-$ cd terraform/cloud-platform-components
+$ cd terraform/aws-accounts/cloud-platform-aws/vpc/kops/components
 $ terraform init
 $ terraform workspace select <clusterName e.g. cloud-platform-test-3>
 $ terraform destroy -target helm_release.prometheus_operator # delete first, to avoid conflicts later
@@ -122,7 +122,7 @@ $ kops delete cluster --name <clusterName>.cloud-platform.service.justice.gov.uk
 Change directories and perform the following to destroy the cluster essentials, and delete the terraform workspace.
 
 ```
-$ cd ../cloud-platform
+$ cd .. # working dir is now `kops`
 $ terraform init
 $ terraform workspace select <clusterName e.g. cloud-platform-test-3>
 $ terraform destroy
@@ -133,7 +133,7 @@ $ terraform workspace delete <clusterName>
 Change directories and perform the following to destroy the cluster VPC, and delete the terraform workspace.
 
 ```
-$ cd ../cloud-platform-network
+$ cd .. # working dir is now `vpc`
 $ terraform init
 $ terraform workspace select <clusterName e.g. cloud-platform-test-3>
 $ terraform destroy
@@ -153,4 +153,4 @@ The steps can be found here - [Delete an EKS Cluster]
 [bootstrap pipleine]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/bootstrap
 [create-test-destroy]: https://github.com/ministryofjustice/cloud-platform-concourse/blob/main/pipelines/manager/main/create-test-destroy.yaml
 [cluster-name-export]: https://github.com/ministryofjustice/cloud-platform-concourse/blob/main/pipelines/manager/main/create-test-destroy.yaml#L140
-[Delete an EKS Cluster]: eks-tools-cluster.html#4-delete-the-eks-cluster
+[Delete an EKS Cluster]: eks-cluster.html#4-delete-the-eks-cluster
