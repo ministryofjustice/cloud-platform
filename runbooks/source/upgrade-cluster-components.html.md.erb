@@ -1,7 +1,7 @@
 ---
 title: Upgrade cluster components
 weight: 54
-last_reviewed_on: 2021-03-31
+last_reviewed_on: 2021-07-05
 review_in: 3 months
 ---
 
@@ -20,7 +20,7 @@ When you start working on upgrading any cloud-platform-components ticket:
 - Check the release notes of the component for any breaking changes
 - Check and add notes from the upgrading process mentioned in the original github repository related the component (if any)
 - Check and add notes of every CHANGELOG.md of the component between the current chart version installed in your cluster to the chart version you want to upgrade to
-- Review the CHANGELOG notes with another member of the team (check for breaking changes, deprecations, change to values file and suggested plan for upgrading the production clusters `live-1` and `eks-manager`)
+- Review the CHANGELOG notes with another member of the team (check for breaking changes, deprecations, change to values file and suggested plan for upgrading the production clusters `live-1`, `eks-manager` and `live`)
 
 ## Testing the upgrade in a test cluster
 
@@ -130,4 +130,5 @@ rspec --tag ~live-1 --tag ~kops --format progress --format documentation
 [AWS CLI]: https://aws.amazon.com/cli/
 [docker]: https://www.docker.com/
 [tools image]: https://github.com/ministryofjustice/cloud-platform-tools-image
-[things to observe]: http://localhost:4567/upgrade-cluster-components.html#things-to-observe-when-testing-the-upgrade]
+[things to observe]: upgrade-cluster-components.html#things-to-observe-when-testing-the-upgrade
+
