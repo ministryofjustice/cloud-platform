@@ -1,0 +1,40 @@
+name: Auto-approve a pull request
+
+on:
+  pull_request
+
+env:
+  PR_OWNER: ${{ github.event.pull_request.user.login }}
+  GITHUB_OAUTH_TOKEN: ${{ secrets.DOCUMENT_REVIEW_GITHUB }}
+
+jobs:
+  check-diff:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v2
+      - run: |
+          git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
+      - name: owner of PR
+        run: |
+          echo "$PR_OWNER"
+      - name: Run git diff against repository
+        run: |
+          git diff origin/main HEAD > changes
+      - name: Auto-approval check
+        id: approve_pr_check
+        uses: ministryofjustice/github-actions/approve-doc-review@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Approving PR
+        uses: hmarr/auto-approve-action@v2
+
+        if: steps.approve_pr_check.outputs.review_pr == 'true'
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN  }}"
