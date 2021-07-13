@@ -1,7 +1,7 @@
 ---
 title: Recover from an etcd failure
 weight: 225
-last_reviewed_on: 2021-04-08
+last_reviewed_on: 2021-07-12
 review_in: 3 months
 ---
 
@@ -218,6 +218,6 @@ Your cluster <cluster_name>.cloud-platform.service.justice.gov.uk is ready
 
 If the cluster is still in 'not ready' status, restart etcd on all masters. Follow the procedure menctioned in [restart etcd](https://runbooks.cloud-platform.service.justice.gov.uk/disaster-recovery.html#restart-etcd).
 
-[remove-member-first]: https://github.com/etcd-io/etcd/blob/master/Documentation/faq.md#should-i-add-a-member-before-removing-an-unhealthy-member
-[etcdctl-backup]: https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/recovery.md#snapshotting-the-keyspace
+[remove-member-first]: https://github.com/etcd-io/website/blob/138926b5de44b5116fdbe63830eeaf73596e4c2c/content/en/docs/v3.5/faq.md#should-i-add-a-member-before-removing-an-unhealthy-member
+[etcdctl-backup]: https://github.com/etcd-io/website/blob/138926b5de44b5116fdbe63830eeaf73596e4c2c/content/en/docs/v3.5/op-guide/recovery.md#snapshotting-the-keyspace
 [terminate-ec2-instance]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/terminating-instances.html
