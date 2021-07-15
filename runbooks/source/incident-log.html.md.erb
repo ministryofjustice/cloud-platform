@@ -7,11 +7,11 @@ weight: 45
 
 > Use the [mean-time-to-repair.rb] script to view performance metrics
 
-## Q2 2021 (Apr-May)
+## Q3 2021 (July-September)
 
-- **Mean Time to Repair**: 2h 32m
+- **Mean Time to Repair**: 0h 07m
 
-- **Mean Time to Resolve**: 2h 44m
+- **Mean Time to Resolve**: 20h 03m
 
 ### Incident on 2021-07-12 15:24 - All ingress resources using *apps.live-1 domain names stop working
 
@@ -44,6 +44,12 @@ weight: 45
 - **Review actions**:
   - In the [cloud-platform-cli](https://github.com/ministryofjustice/cloud-platform-cli), create an assertion to ensure the cluster name is equal to the terraform workspace name.
   - Before the creation of Terraform resources, add a function in the cli to perform a `kubectl context` switch to the correct cluster.
+
+## Q2 2021 (April-June)
+
+- **Mean Time to Repair**: 2h 32m
+
+- **Mean Time to Resolve**: 2h 44m
 
 ### Incident on 2021-06-09 12:47 - All users are unable to create new ingress rules, following bad ModSec Ingress-controller upgrade
 
