@@ -1,0 +1,32 @@
+---
+title: How to update gem files in technical documentation
+weight: 11
+last_reviewed_on: 2021-07-20
+review_in: 3 months
+---
+
+# <%= current_page.data.title %>
+
+This page describes the task of updating the gem files in the [user-guide](https://github.com/ministryofjustice/cloud-platform-user-guide) and [runbooks](https://github.com/ministryofjustice/cloud-platform) used by the Cloud Platform team.
+
+## When to update
+
+We have [dependabot](https://dependabot.com/) turned on for both the [user-guide](https://github.com/ministryofjustice/cloud-platform-user-guide/security/dependabot) and [runbook](https://github.com/ministryofjustice/cloud-platform/security/dependabot) repositories. This will flag security advisories and out of date gem files via the means of a [pull request](https://github.com/ministryofjustice/cloud-platform-user-guide/pull/728).
+
+## How to update
+
+First review the changes, do we actually need to make the change and is the advisory severe enough to take action?
+
+If so, perform the following:
+
+- Open the [runbooks repository](https://github.com/ministryofjustice/cloud-platform) and approve/merge the dependabot pull request.
+
+- Open the [user-guide repository](https://github.com/ministryofjustice/cloud-platform-user-guide) and approve/merge the dependabot pull request.
+
+- Create a new release in the user-guide repository using one minor bump from the current i.e. `1.5 to 1.6`.
+
+- Watch the GitHub Action to ensure the [build and push to dockerhub](https://github.com/ministryofjustice/cloud-platform-user-guide/blob/main/.github/workflows/docker-hub.yml) job completes successfully.
+
+- Bump the images in the user-guide repository GitHub Actions [publish](https://github.com/ministryofjustice/cloud-platform-user-guide/blob/main/.github/workflows/publish.yml) and [check](https://github.com/ministryofjustice/cloud-platform-user-guide/blob/main/.github/workflows/check.yml) to reflect the new image tag.
+
+- Bump the images in the runbooks repository GitHub Action [publish](https://github.com/ministryofjustice/cloud-platform/blob/main/.github/workflows/publish.yml) to reflect the new image tag.
