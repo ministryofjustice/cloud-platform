@@ -10,7 +10,7 @@ Date: 2021-02-26
 
 ## Context
 
-The key proposition of Cloud Platform is to do the "hosting" of services, and we choose [Kubernetes cor container management](004-use-kubernetes-for-container-management.md).
+The key proposition of Cloud Platform is to do the "hosting" of services, and we choose [Kubernetes for container management](004-use-kubernetes-for-container-management.md).
 
 In agreeing a good interface for service teams, there several concerns:
 
