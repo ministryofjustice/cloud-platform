@@ -47,6 +47,8 @@ weight: 45
   - Monitoring the cert - Kubehealthy monitor key things including cert. Could replace several of the integration tests that take longer. Ticket [#3044](https://github.com/ministryofjustice/cloud-platform/issues/3044)
   - Canary app should have #high-priority-alerts after 2 minutes if it goes down. DONE in [PR #5126](https://github.com/ministryofjustice/cloud-platform-environments/pull/5126)
   - Fix the pipeline: in the [cloud-platform-cli](https://github.com/ministryofjustice/cloud-platform-cli), create an assertion to ensure the cluster name is equal to the terraform workspace name. To prevent the null-resources acting on the wrong cluster. PR exists
+  - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3084) to migrate all terraform null_resources within our modules to [terraform kubectl provider](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs)
+  - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3083) to set terraform kubernetes credentials dynamically (at executing time)  
   - Fix the pipeline: Before the creation of Terraform resources, add a function in the cli to perform a `kubectl context` switch to the correct cluster. PR exists
 
 ## Q2 2021 (April-June)
