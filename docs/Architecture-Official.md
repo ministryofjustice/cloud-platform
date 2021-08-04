@@ -40,19 +40,53 @@ As hosting technology and ideas change and improve, we will relentlessly reinven
 
 MOJ from made the leap from Template Deploy to Cloud Platform, with a lengthy transition, but provided a step change in benefits - see [Comparison with Template Deploy](#comparison-with-template-deploy).
 
-## Comparison with Template Deploy
+## Comparison with Template Deploy and earlier hosting
 
-Template Deploy was MoJ's hosting solution prior to Cloud Platform. It was based on virtual machines (VMs), which was efficient and flexible for its day, but when container technology emerged it showed a lot of advantages.
+### 2012-2015 Embedded ops
 
-Containers allow MoJ to write apps that use a microservice architecture, which can help with staying agile with larger services, according to our [Architecture Principles](https://docs.google.com/document/d/1XBTuCw0y--4fZpHcTLWilSFx_qz3aewTiWYJGTZU4sA/edit#). Development with several containers is much more feasible than running multiple VMs on a local machine. Containers are also quick to start, which supports microservices patterns of auto-scaling quickly and frequently deploys.
+When MOJ Digital was formed, it started developing services on the public cloud. Each service team had an embedded Web Ops engineer, who was encouraged to develop and adopt common standards across teams, and document their ops processes in Confluence, however there was a fair amount of divergence.
 
-Containers are also more efficient. The size of a VM is fixed at the moment you create an image or rent it, whereas containers share a machines' CPU and memory. And of course VMs have the additional overhead of running the kernel per instance, costing machine time while it boots, and the enduring memory footprint.
+### 2015-2018 Template Deploy
 
-For more about the choice of Kubernetes for orchestration see: [ADR004 Use kubernetes for running containerised applications](/architecture-decision-record/004-use-kubernetes-for-container-management.md)
+Template Deploy introduced standardization of infrastructure definitions and scripting, so that infrastructure could be managed and supported uniformly. Also the Web Ops engineers were brought together into a central ops team.
+
+Web Ops provided:
+
+* CloudFormation templates that defined a standard infrastructure for a typical web app - EC2s with containers, running in a VPC with ELB, ASG, with S3 for assets and RDS backing.
+* Fabric scripts that deployed the config+templates
+* A centralized Jenkins instance, for continuous deployment
+
+Service teams:
+
+* recorded config values in a YAML file.
+* deployed either from the command-line or using Jenkins.
+
+Web Ops and Service teams shared access to a team's AWS account, or a central one, to operate the service.
+
+Reflections on Template Deploy:
+
+* Shared ownership of the infrastructure makes it hard - both service teams and web ops team have to understand each others' work and coordinate a lot.
+* Not enough rigour - developers shouldn't be shelling into VMs or making changes on the AWS console - deployment should be only with CI/CD, but still allow service teams to operate e.g. restart containers, snapshot a database etc
+* We rolled our own tool, but now there are established tools
+* Cost inefficient - VMs are fixed size, so not used effectively when traffic is low
+* The architecture of services is not very flexible from the standard template, doesn't allow for different architectures or hosting COTS s/w
+* It's a collection of tools, not a platform - there's no central list or view of deployments, needed to manage them centrally
+
+### 2018-present Cloud Platform
+
+Our vision for cloud native infrastructure was expressed in the [MOJ Hosting Strategy](https://mojdigital.blog.gov.uk/2018/10/15/how-were-making-our-hosting-simpler-more-cost-effective-and-more-modern/): infrastructure that's able to be managed all at once, with clear separation between the applications and the infrastructure (using containers), is resilient to failure, and can easily scale.
+
+**Kubernetes** - commoditizes a lot of the undifferentiated heavy lifting to provide a hosting environment. It is a commodity container platform designed to support multiple services will naturally lead to less time being spent on low-level tasks”. It's also the dominant standard for container orchestration. For more about the choice of Kubernetes for orchestration see: [ADR004 Use kubernetes for running containerised applications](/architecture-decision-record/004-use-kubernetes-for-container-management.md)
+
+**Platform** - hosting services in one place is easier to manage and operate.
+
+**Clear boundary of responsibilities** - The CP team are responsible for running containers with the specified arguments, attached volumes, port bindings and hostnames specified by the service team. They are not responsible for anything inside the container. Services are never so tightly coupled to infrastructure primitives that service teams require web operations assistance to reconfigure things at that level.
+
+See also: [History of Cloud Platform](https://docs.google.com/document/d/1Wvyz7SHipAAfZ2idPArKSs977UtubQz4zzHjByEEOuI/edit#)
 
 ## Pipeline architecture
 
-The 'pipeline' is the key part of Cloud Platform that deploys the Kubernetes and AWS resources, that a service team has defined.
+The 'Apply Pipeline' is the key part of Cloud Platform that deploys the Kubernetes and AWS resources, that a service team has defined in code.
 
 The process starts with the user pushing some code to GitHub. The pipeline automatically detects the new change and then processes it. This ultimately results in a resource change in Kubernetes/AWS. This document focuses on each of these stages in detail and the architecture that enables it.
 
