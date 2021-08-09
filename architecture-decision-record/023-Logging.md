@@ -12,7 +12,7 @@ Cloud Platform's existing strategy for logs has been to **centralize** them in a
 
 Concerns with existing ElasticSearch logging:
 
-* ElasticSearch costs a lot to run - it holds indexes in memory
+* ElasticSearch costs a lot to run - it uses a lot of memory (for lots of things, although it is disk first for the documents and indexes)
 * CP team doesn't need the power of ElasticSearch very often - rather than use Kibana to look at logs, the CP team mostly uses `kubectl logs`
 * Service teams have access to other teams' logs, which is a concern should personal information be inadvertantly logged
 * Fluentd + AWS ElasticSearch combination has no flexibility to parse/define the JSON structure of logs, so all our teams right now have to contend with grabbing the contents of a single log field and parsing it outside ES
