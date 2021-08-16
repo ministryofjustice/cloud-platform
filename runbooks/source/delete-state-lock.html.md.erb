@@ -1,7 +1,7 @@
 ---
 title: Delete terraform state lock
 weight: 199
-last_reviewed_on: 2021-06-14
+last_reviewed_on: 2021-08-16
 review_in: 3 months
 ---
 
@@ -64,6 +64,14 @@ Invoke it like this:
 When you find the relevant lock records, delete them. Terraform will recreate
 any missing records the next time it tries to acquire the lock for that
 terraform state file.
+
+## Terraform command
+
+To force unlock, you can run this terraform command using the `LockID`
+
+```bash
+terraform force-unlock <LockID>
+```
 
 [build pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/build-environments
 [dynamodb]: https://eu-west-1.console.aws.amazon.com/dynamodb/home?region=eu-west-1#tables:
