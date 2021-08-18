@@ -1,18 +1,19 @@
 ---
 title: Upgrade EKS cluster
 weight: 53
-last_reviewed_on: 2021-05-11
+last_reviewed_on: 2021-08-17
 review_in: 3 months
 ---
 
-# Upgrade EKS cluster(s)
+# Upgrade EKS cluster
 
-EKS clusters are created using [terraform-aws-eks](https://github.com/terraform-aws-modules/terraform-aws-eks) module, when new EKS is released it's usually followed by new terraform module version
+Our EKS clusters are created using the official [terraform-aws-eks](https://github.com/terraform-aws-modules/terraform-aws-eks) module. When a new EKS major version is released,  it is usually followed by a new terraform module release.
 
-EKS cluster upgrades consist in two things:
+Our EKS cluster upgrade consists of three parts:
 
+- Upgrade EKS Terraform Module
 - Upgrade Control Plane
-- Upgrade Node Groups
+- Upgrade Node Group(s)
 
 ## Pre-requisites
 
@@ -24,23 +25,47 @@ Before you begin, there are a few pre-requisites:
 
 - You have terraform and docker installed
 
-## Run the upgrade
+- Review the changelog of the [Kubernetes release](https://kubernetes.io/releases/) and the [EKS release](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html) you are planning to upgrade to.
 
-### Upgrade Control Plane
+- Review the official [EKS upgrading a cluster](https://docs.aws.amazon.com/eks/latest/userguide/update-cluster.html) document for any extra steps that are a part of a specific EKS release.
 
-As we mentioned before: almost always new EKS version implies new [terraform-aws-eks module version](https://github.com/terraform-aws-modules/terraform-aws-eks). As an example, the following instructions were applied to upgrade from 1.14 to 1.15:
 
-1) Create a PR in Cloud Platform Infrastructure repo [against EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-eks/cluster.tf) (file encrypted with git-crypt to protect users identity) which upgrade to the desired [terraform-aws-eks version](https://github.com/terraform-aws-modules/terraform-aws-eks) that supports the EKS version you want to upgrade to
+
+## Upgrade Steps
+
+### Upgrade EKS Terraform Module
+
+As mentioned previously; when a new EKS major version is released, it is normally followed by a release of an associated [terraform-aws-eks module](https://github.com/terraform-aws-modules/terraform-aws-eks). 
+
+1) The first step of the EKS upgrade is to identify the corresposding module release in relation to the EKS major version you want to upgrade to. Review the changes in the [changelog](https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/CHANGELOG.md). Plan/make any necessary changes or required updates. 
+
+Create a PR in Cloud Platform Infrastructure repository against the [EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf) making the change to the desired [terraform-aws-eks version](https://github.com/terraform-aws-modules/terraform-aws-eks) 
+
 
 ```
  module "eks" {
    source  = "terraform-aws-modules/eks/aws"
--  version = "v8.1.0"
-+  version = "v10.0.0"
+-  version = "v16.2.0"
++  version = "v17.1.0"
 ```
 
-2) Execute `terraform plan` to check what is going to happen and finally `terraform apply` to execute the change.
-3) Verify using [AWS CLI](https://aws.amazon.com/cli/) or [AWS Console](https://eu-west-2.console.aws.amazon.com/eks/home?region=eu-west-2#/clusters) the Control Plane has the right version.
+2) Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, run `terraform apply` to execute the changes.
+
+### Upgrade Control Plane
+
+3) Create a PR in Cloud Platform Infrastructure repository against the [EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf) making the change to the desired EKS cluster version. 
+
+```
+ module "eks" {
+   source  = "terraform-aws-modules/eks/aws"
+-  cluster_version = "1.14"
++  cluster_version = "1.15"
+
+```
+
+4) Execute `terraform plan` (or the automated plan pipeline) and review changes.If changes are all as expected, run `terraform apply` to execute the changes.
+
+Once applied, verify using the [AWS CLI](https://aws.amazon.com/cli/) or the [AWS Console](https://eu-west-2.console.aws.amazon.com/eks/home?region=eu-west-2#/clusters) to confirm the Control Plane is on the correct version.
 
 ```
 $ aws eks describe-cluster --query 'cluster.version' --name manager
@@ -50,8 +75,6 @@ $
 
 ![AWS Console](../images/aws-eks-upgrade.png)
 
-4) Most of the time new EKS version implies new versions for `kube-proxy`/`kube-dns`/`aws-node daemonset`. The upgrade process can be found directly in the official [AWS Control Plane upgrade documentation](https://docs.aws.amazon.com/eks/latest/userguide/update-cluster.html) and **MUST BE FOLLOWED, PLEASE DON'T SKIP IT**.
+### Upgrade Node Group(s)
 
-### Upgrade Node Groups
-
-The best way to upgrade node groups are through AWS Console. We advise to follow the upgrade instructions from the [official AWS Managed Node Group documentation](https://docs.aws.amazon.com/eks/latest/userguide/update-managed-node-group.html).
+The easiest way to upgrade node groups is through AWS Console. We advise to follow the official AWS EKS upgrade instructions from the [Updating a Managed Node Group](https://docs.aws.amazon.com/eks/latest/userguide/update-managed-node-group.html) documentation.
