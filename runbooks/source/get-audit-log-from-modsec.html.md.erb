@@ -1,0 +1,61 @@
+---
+title: Get an audit log from modsec
+weight: 8600
+last_reviewed_on: 2021-09-06
+review_in: 3 months
+---
+
+# Get an audit log from modsec
+
+On occasion users may need you to provide them with audit log information on an modsec event from our ingress-controllers. This information may be sensitive so it can't be placed in our org-wide Elasticsearch cluster. You'll need to fetch this information from the pod that generated the log.
+
+
+## How do I check the audit log
+
+As mentioned above, the audit log cannot be placed into Elasticsearch so you'll need the following:
+
+- A Kibana event from the user. A request will come into the ask-cloud-platform channel asking something like:
+
+```
+Good afternoon, could I ask for the detailed logs for this block from ModSecurity, please?
+https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/kibana#/doc/fb2e6550-0186-11ec-a2cf-6b21[…]lue:0),time:(from:now-3h,to:now))
+(I need to find out which rules triggered the block, it has 2 critical fails)
+
+example: https://mojdt.slack.com/archives/C57UPMZLY/p1630936971082200
+```
+
+- The Kibana event above should provide you with the following key information
+
+```
+ modsec pod name: This will allow you to hone in on the correct pod.
+ unique-id: This is a hash of the event in question, e.g. 5266c62ecf75109ee3083dcc6e13489u
+```
+
+- Kubectl access to the live cluster and access to the `ingress-controllers` namespace.
+
+## Exec into the pod
+
+From the Kibana event you should now know the modsec pod name, exec into that pod:
+
+```bash
+kubectl -n ingress-controllers exec -it <insert-modsec-podname-here> sh
+```
+
+## Perform a search for the unique-id (obtained from the Kibana entry)
+
+The audit log structure is extrememly convoluted. Use the following commands to identify the log file name:
+
+```bash
+# An example
+export UNIQUEID=5266c62ecf75109ee3083dcc6easda234
+cd /var/log/audit
+find . -name "*" | xargs grep -iEl ${UNIQUEID} | xargs ls -lrt
+```
+
+This should return a filepath leading to the filename containing your event. We can take the output of this command and perform a grep for the log entry.
+
+```bash
+grep ${UNIQUEID} ./20210906-1125/20210906-112550-5266c62ecf75109ee3083dcc6easda234
+```
+
+Which should return the event.
