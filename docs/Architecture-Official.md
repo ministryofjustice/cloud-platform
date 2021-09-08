@@ -97,13 +97,29 @@ Source for this diagram: [Architecture Diagram](https://docs.google.com/drawings
 As seen in the diagram, there are a few different components that the architecture is comprised of.
 This section will break-down these components and detail the context in which they are used.
 
+### Environments repo in GitHub
+
+Each service teams' environment/namespace is defined as a folder in GitHub's 'environments' repo: https://github.com/ministryofjustice/cloud-platform-environments/tree/main/namespaces 
+
+Service team creates two groups of files in their environment/namespace folder:
+
+* Namespace Config YAML - defines their Kubernetes 'namespace', where the team will be able to run their app's pods/containers.
+* Terraform - defines AWS resources
+
+The GitHub process flows as follows:
+
+1. A developer will make a change to file/s in the [environments repo] and then raise a pull request (PR).
+2. A member of the Cloud Platform team will review the PR. The developer is notified of the approval or otherwise.
+3. The developer merges the code change into the 'main' branch.
+4. The code change in 'main' is noticed by Concourse, and the pipeline is triggered - [Apply Pipeline in Concourse](#apply-pipeline-in-concourse)
+
 ### Apply Pipeline in Concourse
 
-The 'Apply Pipeline' is the key part of Cloud Platform that deploys the Kubernetes and AWS resources, that a service team has defined in code.
+The 'Apply Pipeline' is the key part of Cloud Platform that deploys the Kubernetes and AWS resources, that a service team has defined in code in the 'environments' repo: https://github.com/ministryofjustice/cloud-platform-environments/tree/main/namespaces .
 
 These jobs are managed by Concourse, which runs on the Manager cluster.
 
-The process starts with the user pushing some code to GitHub, in the . Once merged to master, the pipeline is triggered and it applies it. This results in resources in Kubernetes and AWS being created or changed.
+The process starts with the user [pushing some code to GitHub and merged to main](#environments-repo-in-github):
 
 ![Pipeline diagram](images/arch-dia-v1.png)
 
@@ -119,23 +135,13 @@ Terraform is our chosen format for defining infrastructure as code (IaC).
 
 AWS resources are defined and maintained in Terraform files, written by developers and approved by the Cloud Platform team.
 
+These generally call [Terraform modules](https://github.com/search?q=org%3Aministryofjustice+cloud-platform-terraform), which are mostly maintained by the Cloud Platform team.
+
 Concourse is able to interpret Terraform files and apply the changes to the relevant AWS resources.
-
-### GitHub
-
-GitHub is where all of our code repositories that are used by pipeline are stored.
-
-Concourse is configured to watch the 'master' branches of our selected application repos.
-
-The GitHub process flows as follows:
-
-1. A developer will make a change to a Terraform file/s in one of our repos and then raise a pull request (PR).
-2. A member of the Cloud Platform team will review the PR. The developer is notified of the approval or otherwise.
-3. The developer merges the code change into the 'master' branch.
-4. The code change in 'main' is noticed by Concourse, and the pipeline is triggered.
 
 ### AWS
 
-AWS is where all of our infrastructure is hosted.
+AWS is where all of our infrastructure is hosted, including:
 
-AWS is the end-point of the pipeline and destination where we expect to see the resources defined in Terraform to match what we intended before it was sent through the pipeline.
+* Service teams' applications and AWS resources
+* the Cloud Platform itself, including the Kubernetes cluster
