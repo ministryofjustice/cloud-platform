@@ -58,7 +58,7 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/default-backend: nginx-errors
     nginx.ingress.kubernetes.io/custom-http-errors: "404,415"
-    external-dns.alpha.kubernetes.io/set-identifier: <ingress-name>-<namespace-name>-<colour>
+    external-dns.alpha.kubernetes.io/set-identifier: <ingress-name>-<environment-name>-<colour>
     external-dns.alpha.kubernetes.io/aws-weight: "100"
 spec:
   tls:
@@ -74,7 +74,7 @@ spec:
           serviceName: rubyapp-service
           servicePort: 4567
 ```
-(Note - Please change the `ingress-name` and `namespace-name` values in the above example. The `colour` should be `blue` for ingress in live-1 and `green` for ingress in EKS `live` cluster)
+(Note - Please change the `ingress-name` and `environment-name` values in the above example, you can get the `environment-name` value from your namespace label "cloud-platform.justice.gov.uk/environment-name". The `colour` should be `blue` for ingress in live-1 and `green` for ingress in EKS `live` cluster)
 
 ### Use platform-level error page
 
@@ -89,7 +89,7 @@ metadata:
   name: helloworld-rubyapp-ingress
   annotations:
     nginx.ingress.kubernetes.io/custom-http-errors: "502,503,504"
-    external-dns.alpha.kubernetes.io/set-identifier: <ingress-name>-<namespace-name>-<colour>
+    external-dns.alpha.kubernetes.io/set-identifier: <ingress-name>-<environment-name>-<colour>
     external-dns.alpha.kubernetes.io/aws-weight: "100"
 spec:
   tls:
@@ -121,7 +121,7 @@ metadata:
   name: helloworld-rubyapp-ingress
   annotations:
     nginx.ingress.kubernetes.io/custom-http-errors: "418"
-    external-dns.alpha.kubernetes.io/set-identifier: <ingress-name>-<namespace-name>-<colour>
+    external-dns.alpha.kubernetes.io/set-identifier: <ingress-name>-<environment-name>-<colour>
     external-dns.alpha.kubernetes.io/aws-weight: "100"
 spec:
   tls:
