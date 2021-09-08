@@ -51,13 +51,15 @@ In the example below, custom error pages from `custom-default-backend: nginx-err
 Example Ingress with default-backend and custom-http-errors annotations:
 
 ```
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: helloworld-rubyapp-ingress
   annotations:
     nginx.ingress.kubernetes.io/default-backend: nginx-errors
     nginx.ingress.kubernetes.io/custom-http-errors: "404,415"
+    external-dns.alpha.kubernetes.io/set-identifier: <ingress-name>-<environment-name>-<colour>
+    external-dns.alpha.kubernetes.io/aws-weight: "100"
 spec:
   tls:
   - hosts:
@@ -72,6 +74,7 @@ spec:
           serviceName: rubyapp-service
           servicePort: 4567
 ```
+(Note - Please change the `ingress-name` and `environment-name` values in the above example, you can get the `environment-name` value from your namespace label "cloud-platform.justice.gov.uk/environment-name". The `colour` should be `blue` for ingress in live-1 and `green` for ingress in EKS `live` cluster)
 
 ### Use platform-level error page
 
@@ -80,12 +83,14 @@ Some teams want application's serve their own error's `example 404's`, but want 
 Example Ingress file to use platform-level error page for custom-http-errors: "502,503,504". All other errors except `502,503,504` will be served from the application error page.
 
 ```
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: helloworld-rubyapp-ingress
   annotations:
     nginx.ingress.kubernetes.io/custom-http-errors: "502,503,504"
+    external-dns.alpha.kubernetes.io/set-identifier: <ingress-name>-<environment-name>-<colour>
+    external-dns.alpha.kubernetes.io/aws-weight: "100"
 spec:
   tls:
   - hosts:
@@ -110,12 +115,14 @@ If you have [custom-default-backend][customized-default-backend] set up in your 
 Example Ingress file to set `custom-http-errors: "418"` as annotation, which is not used at [global-custom-http-errors][cp-config-custom-http-errors]:
 
 ```
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: helloworld-rubyapp-ingress
   annotations:
     nginx.ingress.kubernetes.io/custom-http-errors: "418"
+    external-dns.alpha.kubernetes.io/set-identifier: <ingress-name>-<environment-name>-<colour>
+    external-dns.alpha.kubernetes.io/aws-weight: "100"
 spec:
   tls:
   - hosts:
