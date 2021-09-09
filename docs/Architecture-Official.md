@@ -84,75 +84,64 @@ Our vision for cloud native infrastructure was expressed in the [MOJ Hosting Str
 
 See also: [History of Cloud Platform](https://docs.google.com/document/d/1Wvyz7SHipAAfZ2idPArKSs977UtubQz4zzHjByEEOuI/edit#)
 
-## Pipeline architecture
-
-The 'Apply Pipeline' is the key part of Cloud Platform that deploys the Kubernetes and AWS resources, that a service team has defined in code.
-
-The process starts with the user pushing some code to GitHub. The pipeline automatically detects the new change and then processes it. This ultimately results in a resource change in Kubernetes/AWS. This document focuses on each of these stages in detail and the architecture that enables it.
-
 ## Architecture Diagram
 
 This is a high-level overview of the components and services which comprise the Cloud Platform.
 
 ![Cloud Platform Architecture](images/cloud-platform-architecture-diagram.png)
 
-The source for this diagram is [here][Architecture Diagram]
-
-Below is a diagram that gives an architectural overview of the pipeline process:
-
-![Architecture Diagram](images/arch-dia-v1.png)
+Source for this diagram: [Architecture Diagram](https://docs.google.com/drawings/d/1QQpTN8i2n3QZwIELTTbnxpTNy83eP0T50nVv_2aLx5g/edit?usp=sharing)
 
 ## Components
 
 As seen in the diagram, there are a few different components that the architecture is comprised of.
 This section will break-down these components and detail the context in which they are used.
 
-### Concourse
+### Environments repo in GitHub
 
-Concourse is the core application of the pipeline architecture.
+Each service teams' environment/namespace is defined as a folder in GitHub's 'environments' repo: https://github.com/ministryofjustice/cloud-platform-environments/tree/main/namespaces 
 
-In terms of the architectural overview, concourse handles the following tasks:
+Service team creates two groups of files in their environment/namespace folder:
 
-* Watches Master branches for code changes on GitHub.
-* Pulls a code change into the pipeline from GitHub.
-* Applies the submitted Terraform code and makes the defined AWS resource changes.
-* Notifies Slack channel of successful or failed pipeline triggers.
-
-Concourse is hosted on the 'cloud-platform-live-0' cluster.
-
-### Terraform
-
-Terraform is our chosen format for defining infrastructure as code.
-
-AWS resources are defined and maintained in Terraform files, written by developers and approved by the Cloud Platform team.
-
-Concourse is able to interpret Terraform files and apply the changes to the relevant AWS resources.
-
-### GitHub
-
-GitHub is where all of our code repositories that are used by pipeline are stored.
-
-Concourse is configured to watch the 'master' branches of our selected application repos.
+* Namespace Config YAML - defines their Kubernetes 'namespace', where the team will be able to run their app's pods/containers.
+* Terraform - defines AWS resources
 
 The GitHub process flows as follows:
 
-1. A developer will make a change to a Terraform file/s in one of our repos and then raise a PR.
-2. A member of the Cloud Platform team will review the PR and if successful, the developer is notified.
-3. The developer is now allowed to merge the code change into the 'master' branch.
-4. The code change in 'master' is noticed by Concourse, and the pipeline is triggered.
+1. A developer will make a change to file/s in the [environments repo] and then raise a pull request (PR).
+2. A member of the Cloud Platform team will review the PR. The developer is notified of the approval or otherwise.
+3. The developer merges the code change into the 'main' branch.
+4. The code change in 'main' is noticed by Concourse, and the pipeline is triggered - [Apply Pipeline in Concourse](#apply-pipeline-in-concourse)
+
+### Apply Pipeline in Concourse
+
+The 'Apply Pipeline' is the key part of Cloud Platform that deploys the Kubernetes and AWS resources, that a service team has defined in code in the 'environments' repo: https://github.com/ministryofjustice/cloud-platform-environments/tree/main/namespaces .
+
+These jobs are managed by Concourse, which runs on the Manager cluster.
+
+The process starts with the user [pushing some code to GitHub and merged to main](#environments-repo-in-github):
+
+![Pipeline diagram](images/arch-dia-v1.png)
+
+* Watches the main branch of the [environments repo](https://github.com/ministryofjustice/cloud-platform-environments) for merged changes to tenants' environment folders.
+* Triggers the pipeline in [Concourse](https://concourse.cloud-platform.service.justice.gov.uk/)
+* The Namespace Config YAML gets applied to Kubernetes, typically to create a new namespace.
+* The Terraform files are applied to AWS, which creates or changes AWS resources, e.g. to create an RDS instance.
+* If the pipeline job fails, then Concourse creates a Slack notification in [#lower-priority-alarms](https://mojdt.slack.com/archives/C8QR5FQRX)
+
+### Terraform
+
+Terraform is our chosen format for defining infrastructure as code (IaC).
+
+AWS resources are defined and maintained in Terraform files, written by developers and approved by the Cloud Platform team.
+
+These generally call [Terraform modules](https://github.com/search?q=org%3Aministryofjustice+cloud-platform-terraform), which are mostly maintained by the Cloud Platform team.
+
+Concourse is able to interpret Terraform files and apply the changes to the relevant AWS resources.
 
 ### AWS
 
-AWS is where all of our infrastructure is hosted.
+AWS is where all of our infrastructure is hosted, including:
 
-AWS is the end-point of the pipeline and destination where we expect to see the resources defined in Terraform to match what we intended before it was sent through the pipeline.
-
-### Slack Notifications
-
-During the final stages of the pipeline process, there will come a point where Concourse will decide if the code submitted has been applied successfully, or for whatever reason, has failed.
-
-This outcome will automatically be posted into the '#cp-build-notification' Slack channel.
-
-This is useful information for developers and members of the Cloud Platform team.
-
-[Architecture Diagram]: https://docs.google.com/drawings/d/1QQpTN8i2n3QZwIELTTbnxpTNy83eP0T50nVv_2aLx5g/edit?usp=sharing
+* Service teams' applications and AWS resources
+* the Cloud Platform itself, including the Kubernetes cluster
