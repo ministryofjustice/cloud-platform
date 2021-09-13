@@ -20,7 +20,11 @@ by tag `Cluster` with value `live`.
 ## Pre-requisites
 
 - AWS Console access 
-- [Session Manager plugin](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html) (if using AWS Cli)
+- Session Manager plugin (if using AWS Cli). To install Session Manager plugin on macOS, 
+
+    ```
+    brew install --cask session-manager-plugin
+    ```
 
 ## Steps to get terminal access via Console
 
@@ -38,14 +42,18 @@ by tag `Cluster` with value `live`.
 
 - Get the **Instance ID** of the node you want to login using kubectl
 
-  ```
-  kubectl get nodes # To get the list of nodes and their names
-  kubectl describe node <node name you want to shell into>`
-  ```
+    ```
+    # To get the list of nodes and their names
+    kubectl get nodes 
 
-- Start the session with cli
+    # To get the node ID of the node for given node name
+    kubectl describe node <node name you want to shell into> | grep 'ProviderID' | awk -F '/' '{print $NF}'` 
+  
+    ```
 
-```
-aws ssm start-session --target <Instance ID>
-```
+- Start the session with cli command
+
+    ```
+    aws ssm start-session --target <Instance ID>
+    ```
 
