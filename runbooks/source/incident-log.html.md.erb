@@ -9,9 +9,40 @@ weight: 45
 
 ## Q3 2021 (July-September)
 
-- **Mean Time to Repair**: 2h 41m
+- **Mean Time to Repair**: 3h 28m
 
-- **Mean Time to Resolve**: 12h 45m
+- **Mean Time to Resolve**: 11h 4m
+
+### Incident on 2021-09-30 - SSL Certificate Issue in browsers
+
+- **Key events**
+  - First detected 2021-09-30 15:31
+  - Repaired 2021-10-01 10:29
+  - Incident declared 2021-09-30 17:26
+  - Resolved 2021-10-01 13:09
+
+- **Time to repair**: 5h 3m
+
+- **Time to resolve**: 7h 43m
+
+- **Identified**: User reported that they are getting SSL certificate errors when browsing sites which are hosted on Cloud Platform 
+
+- **Impact**: 
+  -  300 LAA caseworkers and thousands of DOM1 users using CP-based digital services if it was during office hours. They had Firefox as a fallback and no actual reports.
+  - Public users - No reports.
+
+- **Context**:
+  - Timeline: [Timeline](https://docs.google.com/document/d/1KHCVyDuhEeTSKqbJfrnR9nYWBcwiRi4aLIiP0tT_QCA/edit#heading=h.rmnhbxiesd7b) for the incident
+  - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1633019189383100) for the incident.
+
+- **Resolution**:
+  - The new certificate was pushed to DOM1 and Quantum machines by the engineers who have been contracted to manage these devices
+
+- **Review actions**:
+  - How to get latest announcements/ releases of components used in CP stack? Ticket raised (#3262)[https://github.com/ministryofjustice/cloud-platform/issues/3262]
+  - Can we use AWS Certificate Manager instead of Letsencrypt? Ticket raised (#3263)[https://github.com/ministryofjustice/cloud-platform/issues/3263]
+  - How would the team escalate a major incident e.g. CP goes down. Runbook page (here)[https://runbooks.cloud-platform.service.justice.gov.uk/incident-process.html#3-3-communications-lead]
+  - How we can get visibility of ServiceNow service issues for CP-hosted services. Ticket raised (3264)[https://github.com/ministryofjustice/cloud-platform/issues/3264]
 
 ### Incident on 2021-09-04 22:05 - Pingdom check Prometheus Cloud-Platform - Healthcheck is DOWN 
 
