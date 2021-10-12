@@ -4,6 +4,9 @@
 
 This document is to provide an overview and breakdown of the individual components of the Cloud Platform.
 
+Video introduction to Cloud Platform's design (accessibly by MOJ Digital staff only):
+<iframe src="https://drive.google.com/file/d/1Jm9hPX0cjZ8ZxTDGsUiC6cb56LWkw2Qm/preview" width="640" height="480" allow="autoplay"></iframe>
+
 ## Principles
 
 ### Platforms scale, ops teams don't
