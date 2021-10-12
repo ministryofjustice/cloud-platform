@@ -1,7 +1,7 @@
 ---
 title: Make an S3 bucket public
 weight: 150
-last_reviewed_on: 2021-07-08
+last_reviewed_on: 2021-10-12
 review_in: 3 months
 ---
 
@@ -10,5 +10,5 @@ review_in: 3 months
 There is a [lambda function] in place which runs weekly and revokes public access for all our S3 Buckets. If we want grant public access to S3 buckets they must be [added as exceptions within module definion] followed by `terraform apply`. It should also be followed the instructions described within the [S3 module "Usage" section]
 
 [lambda function]: https://github.com/ministryofjustice/cloud-platform-terraform-awsaccounts-baselines/blob/main/modules/lambdas/functions/s3-bucket-block-publicaccess/index.py
-[added as exceptions within module definion]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-account/main.tf#L35-L39
+[added as exceptions within module definion]: https://github.com/ministryofjustice/cloud-platform-terraform-awsaccounts-baselines/blob/main/modules/lambdas/main.tf#L94
 [S3 module "Usage" section]: https://github.com/ministryofjustice/cloud-platform-terraform-s3-bucket#usage
