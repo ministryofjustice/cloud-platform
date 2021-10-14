@@ -4,6 +4,11 @@
 
 This document is to provide an overview and breakdown of the individual components of the Cloud Platform.
 
+Video explanation of Cloud Platform's design (accessibly by MOJ Digital staff only):
+<a href="https://youtu.be/5qzZkoWgK8k" target="_blank"><img src="images/tech_arch_video.png"></img></a>
+<!-- Video source: https://drive.google.com/file/d/1Jm9hPX0cjZ8ZxTDGsUiC6cb56LWkw2Qm/preview -->
+[Slides (MOJ Digital only)](https://docs.google.com/presentation/d/1XVRbgJXb5Ehd8EgJ1e4uUw5wEJQlG54WpRIHaTbZZ8I/edit#slide=id.gea5fbe5450_0_128)
+
 ## Principles
 
 ### Platforms scale, ops teams don't
@@ -91,6 +96,13 @@ This is a high-level overview of the components and services which comprise the 
 ![Cloud Platform Architecture](images/cloud-platform-architecture-diagram.png)
 
 Source for this diagram: [Architecture Diagram](https://docs.google.com/drawings/d/1QQpTN8i2n3QZwIELTTbnxpTNy83eP0T50nVv_2aLx5g/edit?usp=sharing)
+
+Video explanation of the diagram:
+
+<a href="https://youtu.be/B1sFiIrFepM" target="_blank"><img src="images/arch_diagram_video.png"></img></a>
+<!-- Video source: https://drive.google.com/file/d/109QZ6H_Z7a11J8CaKpt2PPgwL2Y_7KWT/view?usp=sharing -->
+<!-- Diagram source: https://docs.google.com/drawings/d/159lsApBOcqfLw46VaZUVYDgjSzOruAgY-MHt-q_uN9I/edit?usp=sharing -->
+
 
 ## Components
 
