@@ -1,13 +1,15 @@
 ---
-title: Delete namespace from `live-1` that is migrated to `live` cluster
-weight: 190
+title: Delete namespace migrated to `live`
+weight: 186
 last_reviewed_on: 2021-10-22
 review_in: 3 months
 ---
 
 # <%= current_page.data.title %>
 
-Check the below items on the namespace in `live-1` before proceeding with the deletion
+This runbook is for namespaces which are migrated to `live` EKS cluster from `live-1` cluster. 
+
+Check the below list before proceeding with the deletion
 
 - namespace folder exists in `live.cloud-platform...` folder in [env][https://github.com/ministryofjustice/cloud-platform-environments/tree/main/namespaces/live.cloud-platform.service.justice.gov.uk] repository
 - `apply-live` pipeline is applying the namespace and no changes needed
@@ -26,3 +28,4 @@ run the command
 kubectl delete ns <namespace>
 ```
 
+For deleting a namespace from a cluster including terraform resources because it is not used anymore, follow [Manually Delete Namespace Resources](./manually-delete-namespace-resources.html) runbook.
