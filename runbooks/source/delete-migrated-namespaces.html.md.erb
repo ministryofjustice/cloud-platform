@@ -1,0 +1,28 @@
+---
+title: Delete namespace from `live-1` that is migrated to `live` cluster
+weight: 190
+last_reviewed_on: 2021-10-22
+review_in: 3 months
+---
+
+# <%= current_page.data.title %>
+
+Check the below items on the namespace in `live-1` before proceeding with the deletion
+
+- namespace folder exists in `live.cloud-platform...` folder in [env][https://github.com/ministryofjustice/cloud-platform-environments/tree/main/namespaces/live.cloud-platform.service.justice.gov.uk] repository
+- `apply-live` pipeline is applying the namespace and no changes needed
+- namespace exists in `live` cluster
+- all ingresses in that namespace in `live` has `aws-weight` annotation with value "100"
+- all ingresses in that namespace  in `live-1` has `aws-weight` annotation with value "0"
+- kibana logs for that namespace doesnot have any traffic flow for `live-1`
+- Check for any cronjobs/tzcronjobs or batch jobs running in `live-1` and compare with the one in `live`.
+  - If any queries, check with the team who owns the namespace.
+
+To delete the namespace, target the `live-1` cluster
+
+run the command
+
+```
+kubectl delete ns <namespace>
+```
+
