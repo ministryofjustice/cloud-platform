@@ -60,6 +60,7 @@ We have a series of repositories for our work that we have listed below. We have
 | Helloworld Ruby App | https://github.com/ministryofjustice/cloud-platform-helloworld-ruby-app | Minimal containerised hello world ruby application, to use as an example in the user docs. |
 | Port-fowarding Image | https://github.com/ministryofjustice/cloud-platform-port-forward-docker-image | Small Docker image to forward network traffic as a non-root user, as described in the [RDS module instructions][rds-port-forward] |
 | CircleCI Stats | https://github.com/ministryofjustice/cloud-platform-circleci-stats | Log CircleCI build and queue times to our Elasticsearch cluster |
+| Environments Checker | https://github.com/ministryofjustice/cloud-platform-environments-checker | Code to find and delete 'orphaned' cluster namespaces, with no source code in the [environments repository], and their AWS resources. |
 | Custom error pages | https://github.com/ministryofjustice/cloud-platform-custom-error-pages | Docker image which serves custom error pages (e.g. for 404 errors) |
 | Namespace usage report | https://github.com/ministryofjustice/cloud-platform-namespace-usage-report | Web application to show cluster namespace usage charts |
 | Helm Chart Repository | https://github.com/ministryofjustice/cloud-platform-helm-charts | Helm Chart repository to store internal helm charts used by the platform  |
