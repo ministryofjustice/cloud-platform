@@ -34,7 +34,7 @@ We use `git-crypt` for securing secrets committed to `git`. It uses a symmetric 
 2. Using KeyID/email trust the key as *"5 = I trust ultimately"*:
 
 ```
-gpg --edit-key "alejandro.garrido@digital.justice.gov.uk" trust quit
+gpg --edit-key "my-name@digital.justice.gov.uk" trust quit
 ```
 
 3. Create a new branch inside the git repository where user is going to be added:
@@ -46,7 +46,7 @@ git checkout -b add-alejandro-gpg
 4. Use git-crypt CLI to add the user:
 
 ```
-git-crypt add-gpg-user alejandro.garrido@digital.justice.gov.uk
+git-crypt add-gpg-user my-name@digital.justice.gov.uk
 ```
 
 5. Push the branch and create a PR:
