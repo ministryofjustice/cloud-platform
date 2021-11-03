@@ -5,7 +5,10 @@ https://127.0.0.1:4001/
 admin@ec2-35-176-xx-xx.eu-west-2.compute.amazonaws.com
 https://prometheus.cloud-platform.service.justice.gov.uk/
 https://alertmanager.cloud-platform.service.justice.gov.uk/
-https://cert-manager-webhook.cert-manager.svc/convert?timeout=30s
+my-name@digital.justice.gov.uk
+https://api.david-test1.cloud-platform.service.justice.gov.uk/
+https://login.apps.david-test1.cloud-platform.service.justice.gov.uk/
+https://cert-manager-webhook.cert-manager.svc
 https://kibana.cloud-platform.service.justice.gov.uk/
 https://hooks.slack.com/services/HGJKHJKSH/DFJKHKIUO/DJFHKDUJFKSUHUGIDHKUDGD
 https://github.com/search?q=org%3Aministryofjustice+cloud-platform-terraform
@@ -13,7 +16,7 @@ https://b04c5fc7828a0515457e141a9610815d.sk1.eu-west-2.eks.amazonaws.com
 https://manage.auth0.com/dashboard/eu/justice-cloud-platform/applications
 https://api.xxxxxxx.cloud-platform.service.justice.gov.uk
 https://offender-categorisation-prod-nx-controller-admission.ingress-controllers.svc/extensions/v1beta1/ingresses?timeout=30s
-https://modsec01-nx-modsec-admission.ingress-controllers.svc/networking/v1beta1/ingresses?timeout=10s
+https://modsec01-nx-modsec-admission.ingress-controllers.svc
 https://aws-login.cloud-platform.service.justice.gov.uk/
 https://etcd-a.internal.test-etcd-1.cloud-platform.service.justice.gov.uk
 https://etcd-b.internal.test-etcd-1.cloud-platform.service.justice.gov.uk
@@ -27,4 +30,3 @@ https://search-cloud-platform-live-dibidbfud3uww3lpxnhj2jdws4.eu-west-2.es.amazo
 https://concourse.apps.david-test1.cloud-platform.service.justice.gov.uk/
 http://localhost:9090
 https://sonarqube.thistheurl.com/
-https://velero.io/docs/v1.5.0/
