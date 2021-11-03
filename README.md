@@ -67,7 +67,7 @@ We have a series of repositories for our work that we have listed below. We have
 
 ## Link checker
 
-This repository has a GitHub Action that checks all links `*.md` files and creates an issue if it returns !200. If you have a link that doesn't resolve, please update the `.ignore-links` file containing the full FQDN.
+This repository has a GitHub Action that checks all links in `*.md` files and creates an issue if the link returns 404 or 5xx or similar. If you have a link that doesn't resolve, please update the `.ignore-links` file containing the full FQDN.
 
 [rds-port-forward]: https://github.com/ministryofjustice/cloud-platform-terraform-rds-instance#access-outside-the-cluster
 [environments repository]: https://github.com/ministryofjustice/cloud-platform-environments
