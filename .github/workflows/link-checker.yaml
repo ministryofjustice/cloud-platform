@@ -15,7 +15,7 @@ jobs:
       - name: Link Checker
         uses: lycheeverse/lychee-action@v1.0.9
         with:
-          args: --verbose --no-progress **/*.md **/*.html **/*.erb --exclude-file .ignore-links --accept 200,429,403,400
+          args: --verbose --no-progress **/*.md **/*.html **/*.erb --exclude-file .ignore-links --accept 200,429,403,400,301,302
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
