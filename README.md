@@ -17,7 +17,7 @@ reduce duplicates and encourage activity on existing conversations.
 
 ## Cloud platform repo list
 
-We have a series of repositories for our work that we have listed below. We have adopted the naming convention of starting each repo with `cloud-platform-`. Where some repos have a similar purpose we try to name them similarly, (e.g. `cloud-platform-terraform-*` for terraform modules). We also try to [name things](https://ministryofjustice.github.io/technical-guidance/standards/naming-things/#naming-things) so that users can infer a basic understanding of what a given thing does from its name.
+We have a series of repositories for our work that we have listed below. We have adopted the naming convention of starting each repo with `cloud-platform-`. Where some repos have a similar purpose we try to name them similarly, (e.g. `cloud-platform-terraform-*` for terraform modules). We also try to [name things](https://technical-guidance.service.justice.gov.uk/documentation/standards/naming-things.html#naming-things) so that users can infer a basic understanding of what a given thing does from its name.
 
 ## Our core repos
 
@@ -55,12 +55,10 @@ We have a series of repositories for our work that we have listed below. We have
 | Name            | Link          | Description         |
 |-----------------|---------------|---------------------|
 | Cloud Platform Multi Container App | https://github.com/ministryofjustice/cloud-platform-multi-container-demo-app | A demo application featuring multiple components, for use in a deployment tutorial
-| Cloud Platform Smoke Tests | https://github.com/ministryofjustice/cloud-platform-smoke-tests | Cluster specific smoke tests to ensure a working environment. |
 | Cloud Platform Tools Image | https://github.com/ministryofjustice/cloud-platform-tools-image | Docker image containing all the tooling used by pipelines. |
-| Django Reference App   | https://github.com/ministryofjustice/cloud-platform-reference-app  | A reference application to follow along with the cloud platform [user guide](https://ministryofjustice.github.io/cloud-platform-user-docs/#cloud-platform-user-guide). |
+| Reference App   | https://github.com/ministryofjustice/cloud-platform-reference-app  | A reference application to follow along with the cloud platform [user guide](https://ministryofjustice.github.io/cloud-platform-user-docs/#cloud-platform-user-guide). |
 | Helloworld Ruby App | https://github.com/ministryofjustice/cloud-platform-helloworld-ruby-app | Minimal containerised hello world ruby application, to use as an example in the user docs. |
 | Port-fowarding Image | https://github.com/ministryofjustice/cloud-platform-port-forward-docker-image | Small Docker image to forward network traffic as a non-root user, as described in the [RDS module instructions][rds-port-forward] |
-| Environments Checker | https://github.com/ministryofjustice/cloud-platform-environments-checker | Code to find and delete 'orphaned' cluster namespaces, with no source code in the [environments repository], and their AWS resources. |
 | CircleCI Stats | https://github.com/ministryofjustice/cloud-platform-circleci-stats | Log CircleCI build and queue times to our Elasticsearch cluster |
 | Custom error pages | https://github.com/ministryofjustice/cloud-platform-custom-error-pages | Docker image which serves custom error pages (e.g. for 404 errors) |
 | Namespace usage report | https://github.com/ministryofjustice/cloud-platform-namespace-usage-report | Web application to show cluster namespace usage charts |
