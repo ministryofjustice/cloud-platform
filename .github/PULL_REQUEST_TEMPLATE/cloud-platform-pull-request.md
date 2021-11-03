@@ -22,5 +22,5 @@ Please see Reference section for more information.
 ## Reference
 
 [How to write good pull requests](https://www.annashipman.co.uk/jfdi/good-pull-requests.html)
-[Waffle - "connects to" usage](https://help.waffle.io/faq/waffle-workflow/use-waffles-connect-keyword-to-connect-prs-to-issues)
+
 [Github - closing issues with keywords](https://help.github.com/articles/closing-issues-using-keywords/)
