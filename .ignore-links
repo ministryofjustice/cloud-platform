@@ -8,7 +8,6 @@ https://hooks.slack.com/services/HGJKHJKSH/DFJKHKIUO/DJFHKDUJFKSUHUGIDHKUDGD
 https://github.com/search?q=org%3Aministryofjustice+cloud-platform-terraform
 https://b04c5fc7828a0515457e141a9610815d.sk1.eu-west-2.eks.amazonaws.com
 https://api.xxxxxxx.cloud-platform.service.justice.gov.uk
-https://offender-categorisation-prod-nx-controller-admission.ingress-controllers.svc/extensions/v1beta1/ingresses?timeout=30s
 https://modsec01-nx-modsec-admission.ingress-controllers.svc
 https://aws-login.cloud-platform.service.justice.gov.uk/
 https://etcd-a.internal.test-etcd-1.cloud-platform.service.justice.gov.uk
