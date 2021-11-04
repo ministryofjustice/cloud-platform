@@ -398,7 +398,7 @@ Lost or corrupt etcd volume results in unhealthy [etcd cluster](https://github.c
 
 ### Possible Cause
 
-- Lost volume: Deleting one of the etcd volume associated with the master node from aws console by accident 
+- Lost volume: Deleting one of the etcd volume associated with the master node from aws console by accident
 - Corrupt volume: Accidentally restoring etcd volume from a wrong snapshot and attach it to the working master node.
 
 We will see warnings like this in this master log file:
@@ -406,7 +406,7 @@ We will see warnings like this in this master log file:
 ```
 kubectl -n kube-system logs etcd-manager-main-ip-xxx-xx-xx-xxx.eu-west-2.compute.internal
 
-etcdserver: failed to reach the peerURL(https://etcd-x.internal.<cluster-name>.cloud-platform.service.justice.gov.uk:2380) of member <member-id> 
+etcdserver: failed to reach the peerURL(https://etcd-x.internal.<cluster-name>.cloud-platform.service.justice.gov.uk:2380) of member <member-id>
 rafthttp: health check for peer <member-id> connect: connection refused (prober "ROUND_TRIPPER_SNAPSHOT")
 rafthttp: health check for peer <member-id> connect: connection refused (prober "ROUND_TRIPPER_RAFT_MESSAGE")
 
@@ -431,8 +431,8 @@ Restoring corrupt or lost etcd involves two steps: remove the unhealthy etcd mem
 
 ### Impact
 
-Certain components that are unique to EKS such as concourse will be introduced to the KOPS cluster. 
-A number of components will have specific annotations applied to them that are only applicable for an EKS cluster. 
+Certain components that are unique to EKS such as concourse will be introduced to the KOPS cluster.
+A number of components will have specific annotations applied to them that are only applicable for an EKS cluster.
 
 ### Possible Cause
 
@@ -447,12 +447,12 @@ Only those resources that are part of the state can be re-applied, however there
 For these resources a Velero restore will have to be executed.
 
 
-### Reproducing Incident Steps 
+### Reproducing Incident Steps
 
 
-To test the recovery of the CRD resources, first ensure that they exist so that when recovering we can verify they are restored by Velero. Below are templates for each of the CRDs used. 
+To test the recovery of the CRD resources, first ensure that they exist so that when recovering we can verify they are restored by Velero. Below are templates for each of the CRDs used.
 
-Service Monitor 
+Service Monitor
 
 ```
 apiVersion: monitoring.coreos.com/v1
@@ -491,11 +491,11 @@ spec:
         severity: cica-dev-dev
       annotations:
         message: Namespace {{ $labels.namespace }} is using {{ printf "%0.0f" $value}}% of its {{ $labels.resource }} quota.
-        runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree
+        runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/
     - alert: cica--KubeJobFailed--dev
       annotations:
         message: Job {{ $labels.namespace }}/{{ $labels.job_name }} failed to complete.
-        runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubejobfailed
+        runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/blob/master/runbook.md#alert-name-kubejobfailed
       expr: kube_job_status_failed{job="kube-state-metrics",namespace="<NAMESPACE>"}  > 0
       for: 1m
       labels:
@@ -509,7 +509,7 @@ spec:
       annotations:
         message: Kubelet {{ $labels.instance }} is running {{ $value }} Pods, close to the
           limit of 1 Test.
-        runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubelettoomanypods
+        runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/blob/master/runbook.md#alert-name-kubelettoomanypods
     - alert: cica-dev-Node-Disk-Space-Low
       annotations:
         message: A node is reporting low disk space below 10%. Action is required on a node.
@@ -521,7 +521,7 @@ spec:
     - alert: cica--KubeDeploymentReplicasMismatch--dev
       annotations:
        message: Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched the expected number of replicas for longer than an hour.
-       runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubedeploymentreplicasmismatch
+       runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/blob/master/runbook.md#alert-name-kubedeploymentreplicasmismatch
       expr: kube_deployment_spec_replicas{job="kube-state-metrics",namespace="<NAMESPACE>"}
         != kube_deployment_status_replicas_available{job="kube-state-metrics",namespace="<NAMESPACE>"}
       for: 1h
@@ -531,11 +531,11 @@ spec:
 ```
 
 Replace the placeholder ```<NAMESPACE>``` with the namespace where this will will created.
- 
+
 Save the above yaml and execute into the desired namespace e.g ```kubectl create -f <FILE_NAME>.yaml -n <NAMESPACE>```
 
 
-Certificate 
+Certificate
 
 ```
 apiVersion: cert-manager.io/v1alpha3
@@ -575,13 +575,13 @@ Before destroying ensure you have taken a backup using velero.
 4) Execute ``` terraform apply ``` (enter 'yes' when prompted to confirm the apply)
 
 
-### Observations of Incident 
+### Observations of Incident
 
 Once the EKS components have been applied to the KOPS cluster, the following changes to the cluster should be observed
 
 
 * Following components are newly created in the kops cluster (unique to EKS)
- 
+
     - concourse
 
 * Following components are modified:
@@ -589,9 +589,9 @@ Once the EKS components have been applied to the KOPS cluster, the following cha
 
 Cert-manager
 
-(1) 
+(1)
 
-The following annotation is applied to the deployment: 
+The following annotation is applied to the deployment:
 
 ```
 iam.amazonaws.com/permitted : aws_iam_role.cert_manager.0.name
@@ -599,7 +599,7 @@ iam.amazonaws.com/permitted : aws_iam_role.cert_manager.0.name
 
 (2)
 
-In ClusterIssuer resource the iam role is applied to the route53 within the solvers block: 
+In ClusterIssuer resource the iam role is applied to the route53 within the solvers block:
 
 
 ```
@@ -615,9 +615,9 @@ In ClusterIssuer resource the iam role is applied to the route53 within the solv
 
 External DNS
 
-(1)  
+(1)
 
-Following annotations are applied to the external dns pods 
+Following annotations are applied to the external dns pods
 
 ```
 podAnnotations:
@@ -628,10 +628,10 @@ The following annotations are added to external dns deployment
 
 ```
   annotations:
-    eks.amazonaws.com/role-arn: "${eks_service_account}"  
+    eks.amazonaws.com/role-arn: "${eks_service_account}"
 ```
 
-### Destroy the EKS components 
+### Destroy the EKS components
 
 The first step for recovery is to destroy what was applied from the same directory.
 
@@ -640,15 +640,15 @@ Ensure you in the ```cloud-platform-infrastructure/terraform/cloud-platform-eks/
 Execute ``` terraform destroy -auto-approve ```
 
 
-### Re-apply the KOPS components 
+### Re-apply the KOPS components
 
-Re-create the components but this time run ``` terraform apply -auto-approve ``` from the ```...terraform/cloud-platform-components``` directory 
+Re-create the components but this time run ``` terraform apply -auto-approve ``` from the ```...terraform/cloud-platform-components``` directory
 
 
 After re-creating the components you may notice that the CRD resources and ingress certificates are still missing. To restore these run ``` velero restore... ``` as follows:
 
 
-``` 
+```
 velero backup get
 
 NAME                                       STATUS      CREATED                         EXPIRES   STORAGE   LOCATION   SELECTOR
@@ -660,7 +660,7 @@ Using the backup name, you can now run a ```velero restore...``` command to rest
 Restore command:
 
 ```
-velero restore create <restore-name> --from-backup <backup-name> 
+velero restore create <restore-name> --from-backup <backup-name>
 ```
 
 Example:
