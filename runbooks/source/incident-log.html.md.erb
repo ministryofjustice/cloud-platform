@@ -317,7 +317,7 @@ weight: 45
   - A new 0.1.0 ingress controller failed to create in the "live-1" cluster due to AWS resource limits.
   - Validation webhook stopped new rules from creating, with the error:
     ```
-    Error from server (InternalError): error when creating "ingress.yaml": Internal error occurred: failed calling webhook "validate.nginx.ingress.kubernetes.io": Post https://offender-categorisation-prod-nx-controller-admission.ingress-controllers.svc:443/extensions/v1beta1/ingresses?timeout=30s: x509: certificate signed by unknown authority
+    Error from server (InternalError): error when creating "ingress.yaml": Internal error occurred: failed calling webhook "validate.nginx.ingress.kubernetes.io": Post offender-categorisation-prod-nx-controller-admission.ingress-controllers.svc:443/extensions/v1beta1/ingresses?timeout=30s: x509: certificate signed by unknown authority
     ```
   - Initial investigation thread: https://mojdt.slack.com/archives/C514ETYJX/p1599478794246900
   - Incident declared: https://mojdt.slack.com/archives/C514ETYJX/p1599479640251900
