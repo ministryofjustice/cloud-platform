@@ -125,8 +125,7 @@ There is a cli command to perform the upgrade. First navigate to the [cloud-plat
 ```bash
 cloud-platform environments bump-module --module <module-name> --module-version <version>
 ```
-
-For example, if you were to upgrade the cert-manager module to 0.5.0, you would run the following command:
+The `module-name` flag must contain a word in the module source. For example, if you were to upgrade the cert-manager module to 0.5.0, you would run the following command:
 
 ```bash
 cloud-platform environments bump-module --module cert-manager --module-version 0.5.0
