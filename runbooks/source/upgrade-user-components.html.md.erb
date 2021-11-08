@@ -1,0 +1,53 @@
+---
+title: Upgrade user components
+weight: 55
+last_reviewed_on: 2021-11-08
+review_in: 3 months
+---
+
+# Upgrade user components
+
+This document intends to guide you through the process of upgrading a user component with Terraform and the Cloud Platform CLI.
+
+There are two types of components in the Cloud Platform: **user components** and **cluster components**. User components are used by tenants to deploy infrastructure for their application i.e. an S3 bucket. Cluster components are used by the Cloud Platform to deploy infrastructure i.e. EKS.
+
+If you wish to upgrade a cluster component, please see [here](upgrade-cluster-components.html).
+
+## Making changes to your module
+
+A list of available modules can be found [here](https://github.com/ministryofjustice/cloud-platform#terraform-modules).
+
+Make your required changes to the module and commit them to your branch. Ensure that any tests complete successfully and have the Cloud Platform team review your changes.
+
+## Semantic Versioning and release
+
+We use [Semantic Versioning](https://semver.org/) to track the version of the module. Bump the tag version when changes are merged to main, using the command:
+
+```bash
+git tag -a 0.1.0 -m "Release version 0.1.0"
+git push --tags
+```
+
+You'll need to manually create a new release on GitHub.
+
+## Upgrading a user component in environments
+
+The [cloud-platform-environments] repository contains the namespaces for all production and non-production environments. All namespaces should contain the latest version of the modules you've changed. This is tricky to do manually, so we recommend using the [cloud-platform-cli] tool.
+
+Clone the [cloud-platform-environments] repository branch off main. Run the following command:
+
+```bash
+cloud-platform environments bump-module --module <module-name> --module-version <version>
+```
+
+The `module-name` flag must contain a word in the module source. For example, if you were to upgrade the serviceaccount module to 0.5.0, you would run the following command:
+
+```bash
+cloud-platform bump-module --module serviceaccount --module-version 0.5.0
+```
+
+The CLI will make changes to the local copy of the repository. It's your responsibility to commit these changes to your branch.
+
+It's recommended that you PR any non-production namespaces before production. A Terraform plan will be generated for each namespace and you can review the impact on non-prod changes before prod. Ideally your change will have very little disruption(i.e. no downtime), but sometimes this is not possible. Any destroys/outages should be communicated to users.
+
+[cloud-platform-environments-repo]: https://github.com/ministryofjustice/cloud-platform-environments
