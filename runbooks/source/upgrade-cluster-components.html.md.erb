@@ -9,7 +9,7 @@ review_in: 3 months
 
 Cluster components are application layer components that are installed in a cluster such as prometheus, external-dns, opa, kiam etc.
 
-Components are configured as terraform modules and are called from [cloud-platform-infrastructure repo] with a release tag. 
+Components are configured as terraform modules and are called from [cloud-platform-infrastructure repo] with a release tag.
 
 ## Planning
 
@@ -84,11 +84,11 @@ For EKS cluster
 rspec --tag ~live-1 --tag ~kops --format progress --format documentation
 ```
 
-### Testing the upgrade 
+### Testing the upgrade
 
   1. Make the changes required to the module. For example, for upgrading the cert-manager, change the [cert-manager terraform module](https://github.com/ministryofjustice/cloud-platform-terraform-certmanager). This might include
       - The helm chart version
-      - changes to the values file (in needed) 
+      - changes to the values file (in needed)
 
   2. Push changes to a branch(upgrade) of the module
 
@@ -101,14 +101,14 @@ rspec --tag ~live-1 --tag ~kops --format progress --format documentation
 
   4. Do a `terraform plan` for the changes, verify whether the changes are correct and do `terraform apply` to apply the changes
 
-  5. Check the [things to observe] section for specific components 
+  5. Check the [things to observe] section for specific components
 
   6. Run the integration tests again
 
-  4. Once the testing is complete and integration tests are passed, create a PR to be reviewed by the team and have the module unit tests passed. 
+  4. Once the testing is complete and integration tests are passed, create a PR to be reviewed by the team and have the module unit tests passed.
      After the PR is approved, merge the changes to the main branch of the module and make a release.
 
-  5. Change the module release tag in the kops/components and eks/components folder of [cloud-platform-infrastructure repo] and raise a PR. 
+  5. Change the module release tag in the kops/components and eks/components folder of [cloud-platform-infrastructure repo] and raise a PR.
      Verify the terraform plan from the [cloud-platform-infrastructure plan pipeline] and get it reviewed by the team.
 
   6. Once approved, merge the PR and monitor the [cloud-platform-infrastructure apply pipeline] when applying the changes.
@@ -116,14 +116,30 @@ rspec --tag ~live-1 --tag ~kops --format progress --format documentation
 ### Things to observe when testing the upgrade
 
   The below are some of the general things to check when during the upgrade and not a complete list.
-    
+
+
+### Performing the upgrade
+
+There is a cli command to perform the upgrade. First navigate to the [cloud-platform-infrastructure repo] and run the following command:
+
+```bash
+cloud-platform environments bump-module --module <module-name> --module-version <version>
+```
+
+For example, if you were to upgrade the cert-manager module to 0.5.0, you would run the following command:
+
+```bash
+cloud-platform environments bump-module --module cert-manager --module-version 0.5.0
+```
+
 #### Cert manager
-      
+
   - The CRDs for cert-manager doesnot get deleted
   - The existing certificates doesnot change in any way. This can be done by checking the timestamps of certificate creation
   - Able to create and validate new certificates
 
 [cloud-platform-infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
+[cloud-platform-environments-repo]: https://github.com/ministryofjustice/cloud-platform-environments
 [cloud-platform-infrastructure plan pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/cloud-platform-infrastructure/jobs/plan-cloud-platform-infrastructure
 [cloud-platform-infrastructure apply pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/cloud-platform-infrastructure/jobs/apply-cloud-platform-infrastructure
 [example.env.create-cluster]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/example.env.create-cluster
