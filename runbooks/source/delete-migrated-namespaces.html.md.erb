@@ -11,6 +11,7 @@ This runbook is for namespaces which are migrated to `live` EKS cluster from `li
 
 Check the below list before proceeding with the deletion
 
+- all dependencies to the namespace are removed. Some namespaces have terraform in one namespace creating k8s resources in another namespace. Raise PR and remove those dependencies in other namespaces
 - namespace folder exists in `live.cloud-platform...` folder in [env][https://github.com/ministryofjustice/cloud-platform-environments/tree/main/namespaces/live.cloud-platform.service.justice.gov.uk] repository
 - `apply-live` pipeline is applying the namespace and no changes needed
 - namespace exists in `live` cluster
