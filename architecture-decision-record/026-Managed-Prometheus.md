@@ -33,7 +33,7 @@ So overall we are happy to stick with Prometheus.
 
 ### How CP uses Prometheus
 
-Prometheus is setup to monitor the whole of Cloud Platform:
+Prometheus is setup to monitor the whole of Cloud Platform, including:
 
 * Tenant containers
 * Tenant AWS resources
@@ -64,7 +64,7 @@ We also need to address:
 
 **Thanos take load off Prometheus**: It's been suggested we could reduce load on Prometheus by it only retaining say 2h of logs, and shift as much as possible of the work to Thanos. However since the latest data is what you want to be running most queries and alert rules on, it is not clear how close to real-time Thanos can be kept. And Thanos rules are [unreliable](https://github.com/thanos-io/thanos/blob/main/docs/components/rule.md#risk)). This would likely reduce the load on Prometheus, but it may only be temporary, and it might simply shift the scalability concerns onto Thanos.
 
-**Sharding**: We could split/shard the Prometheus instance: perhaps dividing into two - tenants and platform. Or if we did multi-cluster we could have one Prometheus instance per cluster. This appears relatively straightforward to do. There would be concern that there would be scaling thresholds where it is necessary to change how to divide it into shards, so a bit of planning would be needed.
+**Sharding**: We could split/shard the Prometheus instance: perhaps dividing into two - tenants and platform. Or if we did multi-cluster we could have one Prometheus instance per cluster. This appears relatively straightforward to do. There would be concern that however we split it, as we scale in the future we'll hit future scaling thresholds, where it will be necessary to change how to divide it into shards, so a bit of planning would be needed.
 
 **High Availability**: The recommended approach would be to run multiple instances of Prometheus configured the same, scraping the same endpoints independently. [Source](https://prometheus-operator.dev/docs/operator/high-availability/#prometheus) There is a `replicas` option to do this. However for HA we would also need to have a load balancer for the PromQL queries to the Prometheus API, to fail-over if the primary is unresponsive. And it's not clear how this works with duplicate alerts being sent to AlertManager. This doesn't feel like a very paved path, with Prometheus Operator [saying](https://prometheus-operator.dev/docs/operator/high-availability/) "We are currently implementing some of the groundwork to make this possible, and figuring out the best approach to do so, but it is definitely on the roadmap!" - Jan 2017, and not updated since.
 
@@ -108,33 +108,74 @@ Prometheus config is held in k8s resources:
 * ServiceMonitor
 * PrometheusRule - alerting
 
-Barriers to adopting AMP:
-
-* AMP is not released in the London region yet (at the time of writing, 3/11/21)
-* alertmanager - it doesn't do our alerts yet (at the time of writing, 3/11/21). but alertmanager is due later in the year
-* storage - you can throw as much data at it. no need for Thanos then.
-* Managed grafana has no terraform support yet so just setup in AWS console.
-* AMP is headless. ie no web interface. TODO is this an issue?
-
 ## How it would work with AMP
+
+We've spiked a terraform module to implement this: https://github.com/ministryofjustice/cloud-platform-terraform-amp
 
 A 'forwarding' Prometheus instance installed in the cluster, which scrapes data, keeps a copy and uses "remote write" to forward all of its data to AMP. This transfer looks pretty robust, using a write ahead log and queue.
 
-The forwarding Prometheus could simply be the existing Prometheus installed by kube-prometheus, but instead of storing it for 24h, just long enough to 'remote write' it AMP.
+The forwarding Prometheus could simply be the standard community Helm chart: https://prometheus-community.github.io/helm-charts which is simple and makes upgrades easy. We don't need kube-prometheus any more. It doesn't need to store much - just enough to forward it to AMP. TODO work out if the link to AMP breaks down for a period.
 
-(Alternatively, if we followed what [what AP do](https://github.com/moj-analytical-services/analytical-platform-flux/blob/main/clusters/development/prometheus/prometheus.yaml)), the staging Prometheus would be installed with the [Prometheus Helm chart](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus). The Prometheus Helm chart configures Prometheus to scrape k8s resources that have [prometheus.io annotations](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus#scraping-pod-metrics-via-annotations). So all the ServiceMonitor configs etc would need to be changed to annotations, which is a big burden for tenants.)
+(This arrangement is the same as [what AP do](https://github.com/moj-analytical-services/analytical-platform-flux/blob/main/clusters/development/prometheus/prometheus.yaml)). The Prometheus Helm chart configures Prometheus to scrape k8s resources that have [prometheus.io annotations](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus#scraping-pod-metrics-via-annotations). However we'll let users define ServiceMonitor configs as before.)
 
+Storage: - you can throw as much data at it. Instead there is a days limit of 150 days. This is plenty long enough for the use cases, so no need for **Thanos**, so this is very useful.
 
-TODO:  prometheus != kube-prometheus (currently in the cluster) - jason
-kube-prometheus compatibility? there are a load of specific things from kube-prometheus that we’ll lose? Prometheus rules for example, there are  currently 3543 defined in live-1. How do end users define a rule in managed prometheus? (as an example) I imagine it would probably be manual in the short term.
+Alertmanager:
 
-AMP supports both recording and alert rules, these are defined in one or more YAML rules files which are the same format as standalone Prometheus, so you you should be able to reuse your existing rules. You can have multiple rules files in an AMP workspace but each must be in a separate namespace. See https://docs.aws.amazon.com/prometheus/latest/userguide/AMP-Ruler.html.
-Once you have defined the rules YAML files, you can base64 the files and upload them via the CLI https://docs.aws.amazon.com/prometheus/latest/userguide/AMP-rules-upload.html
-or API using the create-rule-groups-namespace command: https://docs.aws.amazon.com/prometheus/latest/userguide/AMP-APIReference.html#AMP-APIReference-CreateRuleGroupsNamespace
+* AMP has an Alertmanager-compatible option, which we'd use with the same rules
+* Sending alerts would need to us to configure: create SNS topic that forwards to user Slack channels
 
-AWS Region
-  AMP workspace 
-    AMP namespace - one rule group, one rules YAML file
+Grafana:
 
-TODO: look at scale and costs
+* Amazon Managed Grafana has no terraform support yet so just setup in AWS console. So in the meantime we stick with self-managed Grafana, which works fine.
 
+Prometheus web interface - previously AMP was headless, but now it comes with the web interface
+
+Prometheus Rules and Alerts:
+
+* In our existing cluster:
+   * we get ~3500 Prometheus rules from: https://github.com/kubernetes-monitoring/kubernetes-mixin 
+   * kube-prometheus compiles it to JSON and applies it to the cluster
+* So for our new cluster:
+   * we need to do the same thing for our new cluster. But let's avoid using kube-prometheus. Just copy what it does.
+   * when we upgrade the prometheus version, we'll manually [run the jsonnet config generation](https://github.com/kubernetes-monitoring/kubernetes-mixin#generate-config-files), and paste the resulting rules into our terraform module e.g.: https://github.com/ministryofjustice/cloud-platform-terraform-amp/blob/main/example/rules.tf
+
+### Still to figure out
+
+#### Tenants' rules and alerts
+
+Tenants [create PrometheusRule k8s resources by kubectl apply](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#create-a-prometheusrule) or in environments repo. How are we going to get this config inserted into AMP? Could it just be a cronjob that copies these resources' config into AMP? (We do something similar for Grafana.) And we should check that invalid rules don't get applied and cause problems for other tenants.
+
+#### Costs
+
+Look at scale and costs. Ingestion: $1 for 10m samples
+
+Prices (Ireland):
+
+* EU-AMP:MetricSampleCount - $0.35 per 10M metric samples for the next 250B metric samples
+* EU-AMP:MetricStorageByteHrs - $0.03 per GB-Mo for storage above 10GB
+
+#### Region
+
+AMP is not released in the London region yet (at the time of writing, 3/11/21). However we could run it in another region - data ingestion into the regio is free - we would pay only for the Grafana queries.
+
+#### Other components we use
+
+We should check our usage of these related components, and if we still need them in the new cluster:
+
+* CloudWatch exporter
+* Node exporter
+* ECR exporter
+* Pushgateway
+
+#### Showing alerts
+
+We need to show users their alerts - both the config and their firing. Currently they use alertmanager's web interface - so we'll need an equivalent.
+
+Maybe we could run alertmanager itself, purely for this purpose, but rely on AMP's alertmanager for actually sending them? But they would show up as inactive, and might expose differences in functionality.
+
+Or maybe we can give users read-only access to the console, for their team's SNS.
+
+#### Workspace as a service?
+
+We could offer users a Prometheus workspace to themselves - a full monitoring stack that they fully control. Just a terraform module they can run.  Maybe this is better for everyone, than a centralized one, or just for some specialized users - do some comparison?
