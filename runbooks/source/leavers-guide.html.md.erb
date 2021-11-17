@@ -1,34 +1,41 @@
 ---
 title: Leavers Guide
 weight: 9100
-last_reviewed_on: 2021-11-16
+last_reviewed_on: 2021-11-17
 review_in: 3 months
 ---
 
 # Leavers Guide
 
+When CP team members leave, follow this guide, and log completion in a ticket.
+
 ## Revoking Access
 
 ### Digital Services
 
-The central Digital Services team will be able to remove and revoke access from a number of different accounts outside of the technical team.
+The Service Desk will be able to remove and revoke access from a number of different accounts outside of Cloud Platform.
 
-You will need to raise an Account Deletion request via [MoJ Technology Portal/ServiceNow](https://mojprod.service-now.com/moj_sp). A request also needs to be raised for return of any devices.
+#### 1/ Google account closure, ordered in advance of them leaving, by creating a ServiceNow order [Return device for Digital Mac & WTP users](https://mojprod.service-now.com/moj_sp?id=sc_cat_item&sys_id=a1f163211bb1a8507b10ca286e4bcb7a)
+
+This is not just about returning their Mac - it will do the important step of closing their Google account.
 
 * Note - Include details in the ServiceNow request to transfer the leaver's Google Drive to someone in their team.
 
-* Note - for leavers from the cloud-platforms team - ask the service desk to transfer any slack webhook integrations to someone in the team.<br>
-IT IS MOST IMPORTANT THAT YOU REQUEST THIS BEFORE THE PERSON LEAVES.<br> 
+* Note - for leavers from the cloud-platforms team - ask the service desk to transfer any slack webhook integrations to someone in the team. <br>IT IS MOST IMPORTANT THAT YOU REQUEST THIS BEFORE THE PERSON LEAVES<br>
 This is because if the person has created a slack-webhook for alerting purposes, the loss of that slack-webhook can cause problems - when their profile is deleted (as the webhook link is referenced in [cloud-platform-infrastructure/blob/main/terraform/cloud-platform-components/terraform.tfvars](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-components/terraform.tfvars).
+
+#### 2/ MOJ Digital VPN removal by creating a ServiceNow order: [Digital VPN add/remove](https://mojprod.service-now.com/moj_sp?id=sc_cat_item&sys_id=6860adc01b8b6818f58d206fe54bcbe3)
 
 ### AWS Accounts
 
-#### 1/ Purge them from AWS accounts (as at 04/05/2020 the following):
+#### 1/ Purge them from AWS accounts:
 
 * [moj-cp](https://justice-cloud-platform.eu.auth0.com/samlp/bnqndz9kxf7wDge8ndCWyVwIX1OEElYf)
-* mojdsd
+* [mojdsd](https://moj.awsapps.com/start#/)
+* Cloud Platform Ephemeral Test
+* Cloud Platform Transit Gateways
 
-Use the link above to login to the moj-cp account. For the others, you will need to login via the [AWS console](https://console.aws.amazon.com/)
+To login, use the SSO links above, or use the [AWS console](https://console.aws.amazon.com/)
 
 #### 2/ Remove them from `cloud-platform-terraform-awsaccounts-iam`
 
@@ -38,11 +45,9 @@ Use the link above to login to the moj-cp account. For the others, you will need
 
 * As per [this File](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-eks/cluster.tf)
 
-#### 4/ Request [LastPass](https://docs.google.com/document/d/1Q6bHUyGEuVi81Bmvi7kOa-DvC-y-L-H3BR13DPsYiVs/edit) removal 
+#### 4/ Request Password Management removal - [contact details here](https://docs.google.com/document/d/1Q6bHUyGEuVi81Bmvi7kOa-DvC-y-L-H3BR13DPsYiVs/edit) removal
 
-#### 5/ Request [vpn](https://docs.google.com/document/d/1Q6bHUyGEuVi81Bmvi7kOa-DvC-y-L-H3BR13DPsYiVs/edit) removal
-
-#### 6  / Remove their access to:
+#### 5/ Remove their access to:
 
 * [Auth0 justice-cloud-platform](https://manage.auth0.com/dashboard/eu/justice-cloud-platform/users)
 
@@ -52,24 +57,18 @@ Use the link above to login to the moj-cp account. For the others, you will need
 
 * [Heroku](https://devcenter.heroku.com/articles/org-users-access)
 
-* [MoJ teams on docker hub](https://cloud.docker.com/orgs/ministryofjustice/teams)
+* [DockerHub MoJ teams](https://cloud.docker.com/orgs/ministryofjustice/teams)
 
 * [Pingdom](https://www.pingdom.com)
 
 * [MoJ Github Organisation](https://github.com/ministryofjustice)
 
-* Email the administrator of our password management provider to remove the leaver's login access [contact details here](https://docs.google.com/document/d/1Q6bHUyGEuVi81Bmvi7kOa-DvC-y-L-H3BR13DPsYiVs/edit)
+#### 6/ Remove them from the [PagerDuty support rota](https://moj-digital-tools.pagerduty.com/schedules#PFX6FHX/edit) (if applicable)
 
-* Email the VPN provider requesting removal of their VPN access [contact details here](https://docs.google.com/document/d/1Q6bHUyGEuVi81Bmvi7kOa-DvC-y-L-H3BR13DPsYiVs/edit)
+#### 7/ Remove them from [platforms@digital.justice.gov.uk Google Group](https://groups.google.com/a/digital.justice.gov.uk/g/platforms/members)
 
-#### 6/ Remove them from the support rota (if applicable). [Pagerduty](https://moj-digital-tools.pagerduty.com/schedules#PFX6FHX/edit)
+## Line manager actions
 
-#### 7/ Remove them from platforms@digital.justice.gov.uk google group (if applicable). [Link here](https://groups.google.com/a/digital.justice.gov.uk/forum/#!managemembers/platforms/members/active)
+#### 1/ Fill in the MOJ Digital [Leavers Form](https://leavers.form.service.justice.gov.uk/)
 
-### Line manager
-
-#### 1/ Fill in [leavers form](https://leavers.form.service.justice.gov.uk/)
-
-Reference [platforms@digital.justice.gov.uk](mailto:platforms@digital.justice.gov.uk)
-
-
+#### 2/ Complete the [Leavers Checklist for Managers](https://intranet.justice.gov.uk/documents/2015/04/leavers-checklist-for-managers.docx)
