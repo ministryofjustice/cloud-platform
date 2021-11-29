@@ -59,3 +59,22 @@ grep ${UNIQUEID} ./20210906-1125/20210906-112550-5266c62ecf75109ee3083dcc6easda2
 ```
 
 Which should return the event.
+ 
+If you want to copy the filtered events of a particilar date e.g.24/11/2021 to a folder and download to the local machine to extract the data, use the commands in bash
+ ```bash
+ cd /var/log/audit/20211124
+ find . -name "*" | xargs grep -iEl "String or hostname to search" > list.txt
+ mkdir copy
+ for file in $(<list.txt); do cp "$file" ./copy; done
+ ```
+
+This should copy the filtered folders and files into the `copy` folder
+
+Exit the modsec pod and from your machine, enter the below command
+```bash
+ kubectl -n ingress-controllers cp <modsec-pod-name>:/var/log/audit/20211124/copy .                     
+```
+
+If you want to send the log data to a user, make sure you filter the data specific to that application and encrypt the file.
+From mac, you can use gpgkeychain to encrypt the file using the receiver's public key before sending it to the user.
+ 
