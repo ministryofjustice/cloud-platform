@@ -38,20 +38,20 @@ Users have a number of uses for console access.
 
 Use cases benefiting from **read-only** access to **their AWS resources**:
 
-* The console is much more user-friendly than terraform (or the CLI/API). This is good for understanding what is configured, learning about configuration options, and generally learning AWS/cloud
-* Some services are particularly useful to see in the console - RDS Performance Insights and Step Functions provide information in a very visually intensive way, and it is unreasonable to try and get the same experience via CLI or API
+* **Learning and understanding** - The console is much more user-friendly than terraform (or the CLI/API). This is good for understanding what is configured, learning about configuration options, and generally learning AWS/cloud. The console communicates a lot about how the options fit together, current state and show  guidance and warnings, so are great for building a mental model of a service. Tutorials from AWS, CloudGuru, etc use the console, for even the most advanced services, so using the console to learn is a strong convention.
+* **Visual feedback** - During usage, some services have state that is particularly useful to view in the console - RDS Performance Insights and Step Functions provide information in a very visually intensive way, and it is unreasonable to try and get the same experience via CLI or API.
 
 Use cases that would need **read-only** access to **platform infrastructure**:
 
-* Users benefit from seeing behind the CP interfaces, to see how it works. Reasoning:
+* **CP understanding** - Users benefit from seeing behind the CP interfaces, to see how the platform works. Reasoning:
     * for interests sake and their learning of cloud
     * knowing how something works enables you to use it better
     * so that they can evaluate it better from a security point of view, seeing the config of VPC, security groups, etc, and the console is how they are used to viewing this things
 
 Use cases that would need **write** access to **their AWS resources**:
 
-* Quick iteration, when you're still trying stuff out or getting something to work
-* One-off operations, such as triggering a database snapshot or restore
+* **Quick iteration** when you're still trying stuff out or getting something to work, e.g. changing a port number
+* **One-off operations**, such as upgrading a database version, triggering a database snapshot or restore
 
 These use cases have been collected by chats with users and TA thoughts, and would benefit from proper user research.
 
