@@ -33,3 +33,19 @@ You can run the following command to confirm this and get more information about
 ```
 kubectl describe node <node_name>
 ```
+  
+### Troubleshooting
+  
+If a customer is reporting their dashboards are failing to load, this is usually due to a duplicate entry. You can see errors from the Grafana pod by running:
+  
+```bash
+kubectl logs -n monitoring prometheus-operator-grafana-<pod-id> -f -c grafana
+```
+  
+You'll see an error similar to:
+
+```bash
+t=2021-12-03T13:37:35+0000 lvl=eror msg="failed to load dashboard from " logger=provisioning.dashboard type=file name=sidecarProvider file=/tmp/dashboards/<MY-DASHBOARD>.json error="invalid character 'c' looking for beginning of value"
+```
+  
+Identify that dashboard and fix the error in question.
