@@ -28,7 +28,7 @@ jobs:
           git diff origin/main HEAD > changes
       - name: Auto-approval check
         id: approve_pr_check
-        uses: ministryofjustice/cloud-platform-doc-checker@v0.0.1
+        uses: ministryofjustice/cloud-platform-doc-checker@main
         with:
           team: 'WebOps'
         env:
