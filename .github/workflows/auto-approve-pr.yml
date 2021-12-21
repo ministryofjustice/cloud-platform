@@ -28,7 +28,9 @@ jobs:
           git diff origin/main HEAD > changes
       - name: Auto-approval check
         id: approve_pr_check
-        uses: ministryofjustice/github-actions/approve-doc-review@main
+        uses: ministryofjustice/cloud-platform-doc-checker@v0.0.1
+        with:
+          team: 'WebOps'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
