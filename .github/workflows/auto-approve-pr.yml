@@ -29,8 +29,6 @@ jobs:
       - name: Auto-approval check
         id: approve_pr_check
         uses: ministryofjustice/cloud-platform-doc-checker@main
-        with:
-          team: 'WebOps'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
