@@ -6,6 +6,7 @@ on:
 env:
   PR_OWNER: ${{ github.event.pull_request.user.login }}
   GITHUB_OAUTH_TOKEN: ${{ secrets.DOCUMENT_REVIEW_GITHUB }}
+  TEAM_NAME: "WebOps"
 
 jobs:
   check-diff:
@@ -20,15 +21,12 @@ jobs:
         uses: actions/checkout@v2
       - run: |
           git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
-      - name: owner of PR
-        run: |
-          echo "$PR_OWNER"
       - name: Run git diff against repository
         run: |
           git diff origin/main HEAD > changes
       - name: Auto-approval check
         id: approve_pr_check
-        uses: ministryofjustice/github-actions/approve-doc-review@main
+        uses: ministryofjustice/cloud-platform-doc-checker@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
