@@ -1,7 +1,7 @@
 ---
 title: Adding a route to connect to a TGW
 weight: 9000
-last_reviewed_on: 2021-06-28
+last_reviewed_on: 2021-12-30
 review_in: 6 months
 ---
 
@@ -38,7 +38,7 @@ Everything is managed in the github repository, in the route.tf file of the [clo
 Only an admin of the cloud-platform (`moj-cp`) is able to run that code. 
 
 Here is the snippet to add to the route.tf :
-```ruby
+```
 resource "aws_route" "my-new-route" {
         count = length(local.route_tables)
         route_table_id            = local.route_tables[count.index]
