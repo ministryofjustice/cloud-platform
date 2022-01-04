@@ -1,7 +1,7 @@
 ---
 title: Cloud Platform Disaster Recovery Scenarios
 weight: 91
-last_reviewed_on: 2021-09-23
+last_reviewed_on: 2022-01-04
 review_in: 3 months
 ---
 
@@ -135,7 +135,7 @@ The first sign of this happening is likely to be Pagerduty alarms to the high/lo
 This way of restoring the whole cluster have been tested with below procedure
 
 1. Create cluster using the [script](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/create-cluster.rb)
-2. Deploy [starter pack](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-components/starter-pack.tf) to replicate user namespaces
+2. Deploy [starter pack](https://github.com/ministryofjustice/cloud-platform-terraform-starter-pack) to replicate user namespaces
 3. Take backup of the whole cluster using [velero](velero.html#velero-cluster-backups-and-disaster-recovery)
 4. Destroy the cluster excluding the VPC using the [script](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/destroy-cluster.rb)
 5. Create a cluster with the same name. That way velero can match the backup storage location
@@ -372,8 +372,10 @@ Plan: 7 to add, 0 to change, 0 to destroy.
 
 In this scenario, terraform state can be restored from the remote_state stored in the terraform backend S3 bucket.
 
-For example [cloud-platform-components](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/cloud-platform-components) state is stored in "cloud-platform-terraform-state/cloud-platform-components" s3 bucket as defined [here](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-components/main.tf#L1-L9).
+For example [eks-components](cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components) state is stored in "aws-accounts/cloud-platform-aws/vpc/eks/components" s3 bucket as defined [here-eks](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components/main.tf/#L5-L14).
 
+or [kops-components](cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/kops/components) state is stored in "aws-accounts/cloud-platform-aws/vpc/kops/components" s3 bucket as defined [here-kops](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/kops/components/main.tf/#L1-L11).
+  
 Access the S3 bucket where the effected terraform state is stored. From the list of terraform.tfstate file versions, identify the file before the state got removed and download as terraform.tfstate. Upload the file again, this will set uploaded file as latest version.
 
 Now running terraform plan will show, infrastructure is up-to-date.
