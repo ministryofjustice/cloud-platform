@@ -79,6 +79,11 @@ If we were to create a fresh cluster, and an app is moved onto it, then there ar
 * **Kubecfg** - a fresh cluster will have a fresh kubernetes key, which invalidates everyone's kubecfg. This means that service teams will need to obtain a fresh token and add it to their app's CI/CD config and every dev will need to refresh their command-line kubecfg for running kubectl.
 * **IP Addresses** - unless the load balancer instance and elastic IPs are reused, it'll have fresh IP addresses. This will particularly affect devices on mobile networks that accessing our CP-hosted apps, because they often cache the DNS longer than the TTL. And if CP-hosted apps access third party systems and have arranged for our egress IP to be allow-listed in their firewall, then they will not work until that's updated.
 
+## Steps to achieve it
+
+More ideas for steps towards this are here:
+https://docs.google.com/document/d/1-1dXD0a50MZiQUcm4fIIO1ySVQHA_D2-UMIti-oBVNc/edit#heading=h.4hza65nlnk7p
+
 ## Decision
 
 TBD
