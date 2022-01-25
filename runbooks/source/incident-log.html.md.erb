@@ -7,6 +7,51 @@ weight: 45
 
 > Use the [mean-time-to-repair.rb] script to view performance metrics
 
+## Q1 2022 (January to March)
+
+- **Mean Time to Repair**: 2h 2m
+
+- **Mean Time to Resolve**: 2h 41m
+
+### Incident on 2022-01-22 11:57 - some DNS records got deleted at the weekend
+
+- **Key events**
+  - First detected 2022-01-22 11:57
+  - Incident declared 2022-01-22 14:41
+  - Repaired 2022-01-22 13:59
+  - Resolved 2022-01-22 14:38
+
+- **Time to repair**: 2h 2m
+
+- **Time to resolve**: 2h 41m
+
+- **Identified**: Pingdom alerted an LAA developer to some of their sites becoming unavailable. They reported this to CP team via Slack #ask-cloud-platform, and the messages were spotted by on-call engineers
+
+- **Impact**:
+  - Sites affected:
+    - 2 production sites were unavailable:
+      - laa-fee-calculator-production.apps.live-1.cloud-platform.service.justice.gov.uk
+      - legal-framework-api.apps.live-1.cloud-platform.service.justice.gov.uk
+    - 3 production sites had minor issues - unavailable on domains that only MOJ staff use
+    - 46 non-production sites were unavailable on domains that only MOJ staff use
+  - Impact on users was negligible. The 2 sites that external users would have experienced the unavailability are typically used by office staff, for generally non-urgent work, whereas this incident occurred during the weekend.
+
+- **Context**:
+  - Timeline: [Timeline](https://docs.google.com/document/d/1TXxdb1iOqfW_Vo2HhiGC3LFE-0jEP_hDgQn2nuP1VdM/edit#) for the incident
+  - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C57UPMZLY/p1642855796441900) for the incident.
+
+- **Resolution**:
+  - external-dns was trying to restore the DNS records, but it was receiving errors when writing, due to [missing annotations](external-dns.alpha.kubernetes.io/aws-weight) in an unrelated ingress. Manually adding the annotations restored the DNS.
+
+  [mean-time-to-repair.rb]: https://github.com/ministryofjustice/cloud-platform/blob/main/runbooks/bin/mean-time-to-repair.rb
+
+- **Review actions**:
+  - Create guidance about internal traffic and domain names, and advertise to users in slack [#3497](https://github.com/ministryofjustice/cloud-platform/issues/3497)
+  - Create pingdom alerts for test helloworld apps [#3498](https://github.com/ministryofjustice/cloud-platform/issues/3498)
+  - Investigate if external-dns sync functionality is enough for the DNS cleanup [#3499](https://github.com/ministryofjustice/cloud-platform/issues/3499)
+  - Change the ErrorsInExternalDNS alarm to high priority [#3500](https://github.com/ministryofjustice/cloud-platform/issues/3500)
+  - Create a runbook to handle ErrorsInExternalDNS alarm [#3501](https://github.com/ministryofjustice/cloud-platform/issues/3501)
+  - Assign someone to be the 'hammer' on Fridays
 
 ## Q4 2021 (October to December)
 
@@ -633,6 +678,9 @@ Datestamps: please use `YYYY-MM-DD HH:MM` (almost ISO 8601, but more readable), 
   - Slack thread: [Slack thread](url of primary incident thread) for the incident.
 
 - **Resolution**:
+  -
+
+- **Review actions**:
   -
 
   [mean-time-to-repair.rb]: https://github.com/ministryofjustice/cloud-platform/blob/main/runbooks/bin/mean-time-to-repair.rb
