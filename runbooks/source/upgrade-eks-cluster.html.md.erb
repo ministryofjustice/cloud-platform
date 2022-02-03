@@ -14,12 +14,25 @@ Our EKS cluster upgrade consists of three parts:
 - Upgrade EKS Terraform Module
 - Upgrade Control Plane
 - Upgrade Node Group(s)
+- Upgrade addon(s)
+
+## Run the upgrade, via the tools image
+
+The cloud platform [tools image] has all the software required to run the upgrade.
+
+Start from the root directory of a working copy of the [infrastructure repo].
+
+With your environment variables set, launch a bash shell on the tools image:
+
+```bash
+make tools-shell
+```
 
 ## Pre-requisites
 
 Before you begin, there are a few pre-requisites:
 
-- Your GPG key must be added to the [infrastructure repo](https://github.com/ministryofjustice/cloud-platform-infrastructure) so that you are able to run `git-crypt unlock`.
+- Your GPG key must be added to the [infrastructure repo](https://github.com/ministryofjustice/cloud-platform-infrastructure) so that you can run `git-crypt unlock`.
 
 - You have the [AWS CLI](https://aws.amazon.com/cli/) profile `moj-cp` with suitable credentials.
 
@@ -29,15 +42,13 @@ Before you begin, there are a few pre-requisites:
 
 - Review the official [EKS upgrading a cluster](https://docs.aws.amazon.com/eks/latest/userguide/update-cluster.html) document for any extra steps that are a part of a specific EKS release.
 
-
-
 ## Upgrade Steps
 
 ### Upgrade EKS Terraform Module
 
 As mentioned previously; when a new EKS major version is released, it is normally followed by a release of an associated [terraform-aws-eks module](https://github.com/terraform-aws-modules/terraform-aws-eks). 
 
-1) The first step of the EKS upgrade is to identify the corresposding module release in relation to the EKS major version you want to upgrade to. Review the changes in the [changelog](https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/CHANGELOG.md). Plan/make any necessary changes or required updates. 
+1) The first step of the EKS upgrade is to identify the corresponding module release with the EKS major version you want to upgrade to. Review the changes in the [changelog](https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/CHANGELOG.md). Plan/make any necessary changes or required updates. 
 
 Create a PR in Cloud Platform Infrastructure repository against the [EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf) making the change to the desired [terraform-aws-eks version](https://github.com/terraform-aws-modules/terraform-aws-eks) 
 
@@ -51,6 +62,15 @@ Create a PR in Cloud Platform Infrastructure repository against the [EKS module]
 
 2) Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, run `terraform apply` to execute the changes.
 
+Note: Running `terraform apply` above will only create a new template version, for cluster node groups to use the new template version created, you need to run `terraform apply` again, but that will cause a re-cycle of all the nodes. To avoid the re-cycle of nodes at this stage, we don't run `terraform apply` until we complete the upgrade of node groups along with updating the template version at a later stage.
+
+```
+  # module.eks.module.node_groups.aws_launch_template.workers["monitoring_ng"] will be updated in-place
+  ~ resource "aws_launch_template" "workers" {
+      ~ default_version         = 1 -> (known after apply)
+      ~ latest_version          = 1 -> (known after apply)
+```
+
 ### Upgrade Control Plane
 
 3) Create a PR in Cloud Platform Infrastructure repository against the [EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf) making the change to the desired EKS cluster version. 
@@ -63,9 +83,11 @@ Create a PR in Cloud Platform Infrastructure repository against the [EKS module]
 
 ```
 
-4) Execute `terraform plan` (or the automated plan pipeline) and review changes.If changes are all as expected, run `terraform apply` to execute the changes.
+4) Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, perform the upgrade from the AWS Console EKS Control Plane. 
 
-Once applied, verify using the [AWS CLI](https://aws.amazon.com/cli/) or the [AWS Console](https://eu-west-2.console.aws.amazon.com/eks/home?region=eu-west-2#/clusters) to confirm the Control Plane is on the correct version.
+We don't want to run `terraform apply` to apply the EKS cluster version, as the terraform apply process will take longer and timed out, also to avoid re-cycling of nodes as explained in step 2.
+
+Once the process is completed, [AWS Console](https://eu-west-2.console.aws.amazon.com/eks/home?region=eu-west-2#/clusters) will confirm the Control Plane is on the correct version.
 
 ```
 $ aws eks describe-cluster --query 'cluster.version' --name manager
@@ -78,3 +100,24 @@ $
 ### Upgrade Node Group(s)
 
 The easiest way to upgrade node groups is through AWS Console. We advise to follow the official AWS EKS upgrade instructions from the [Updating a Managed Node Group](https://docs.aws.amazon.com/eks/latest/userguide/update-managed-node-group.html) documentation.
+
+While updating the node group AMI release version, we should also change the launch template version which is created in step 2. To perform both the changes together, select `Update Node Group version` and  `Change launch template version` options as shown below. Select update strategy as `force update`, this does not respect pod disruption budgets and it forces node restarts.
+
+![Update Node Group](../images/update-node-group.png)
+
+### Upgrade addon(s)
+
+We have 3 addons managed through cloud-platform-terraform-eks-add-ons [module](https://github.com/ministryofjustice/cloud-platform-terraform-eks-add-ons).
+
+Refer to the below documents to get the addon version to be used with the EKS major version you want to upgrade to.
+
+[managing-kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
+
+[managing-coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
+
+[managing-vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
+
+Create a PR in Cloud Platform Infrastructure repository against the cloud-platform-terraform-eks-add-ons [module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf#L192) making the changes to the desired addon version’s [here](https://github.com/ministryofjustice/cloud-platform-terraform-eks-add-ons/blob/main/variables.tf#L28-L44). Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, run `terraform apply` to execute the changes.
+
+[tools image]: https://github.com/ministryofjustice/cloud-platform-tools-image
+[infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
