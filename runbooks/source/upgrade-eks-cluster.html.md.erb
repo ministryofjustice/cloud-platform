@@ -62,7 +62,7 @@ Create a PR in Cloud Platform Infrastructure repository against the [EKS module]
 
 2) Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, run `terraform apply` to execute the changes.
 
-Note: Running `terraform apply` above will only create a new template version, for cluster node groups to use the new template version created, you need to run `terraform apply` again, but that will cause a re-cycle of all the nodes. To avoid the re-cycle of nodes at this stage, we don't run `terraform apply` until we complete the upgrade of node groups along with updating the template version at a later stage.
+Note: When you run `terraform plan`, if it is only showing launch_template version change as below, executing `terraform apply` will only create a new template version. For cluster node groups to use the new template version created, you need to run `terraform apply` again, that will trigger a re-cycle of all the nodes. To avoid the re-cycle of nodes at this stage, we don't run `terraform apply` until we complete the upgrade of node groups along with updating the template version at a later stage.
 
 ```
   # module.eks.module.node_groups.aws_launch_template.workers["monitoring_ng"] will be updated in-place
