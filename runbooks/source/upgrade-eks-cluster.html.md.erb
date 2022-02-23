@@ -7,14 +7,15 @@ review_in: 3 months
 
 # Upgrade EKS cluster
 
-Our EKS clusters are created using the official [terraform-aws-eks](https://github.com/terraform-aws-modules/terraform-aws-eks) module. When a new EKS major version is released,  it is usually followed by a new terraform module release.
-
-Our EKS cluster upgrade consists of three parts:
+The Cloud Platform EKS cluster upgrade consists of three distinct parts:
 
 - Upgrade EKS Terraform Module
-- Upgrade Control Plane
-- Upgrade Node Group(s)
+- Upgrade EKS version (Control Plane and Node Groups)
 - Upgrade addon(s)
+
+The Cloud Platform EKS clusters are created using the official [terraform-aws-eks](https://github.com/terraform-aws-modules/terraform-aws-eks) module. The EKS version and addons are currently independent of the version of the terraform-aws-eks module.
+Therefore, it will not always require an upgrade of the terraform-aws-eks module and/or the addons whenever there is an upgrade of the EKS version. Please check the changelogs for the terraform-aws-eks module, the EKS version and the addons when planning an upgrade.
+
 
 ## Run the upgrade, via the tools image
 
