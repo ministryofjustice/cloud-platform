@@ -12,13 +12,13 @@ We want users of the cloud platform to be able to access Kibana so that they can
 
 ## Decision
 
-It has been decided to use a combination of Auth0 and an OIDC proxy app. The application is managed in the [cloud-platform-environments repo][kibana-proxy] and configured ministryofjustice GitHub organization users to access Kibana. Issue related to this task [here][kibana-access-task]
+It has been decided to use a combination of Auth0 and an OIDC proxy app. The application is managed in the [cloud-platform-terraform-monitoring repo][kibana-proxy] and configured ministryofjustice GitHub organization users to access Kibana.
 
 
 ## Consequences
 
 - Kibana can be accessed by any member of the ministryofjustice GitHub organization, which will provide access to logs for all teams. Information written to log files can be of a sensitive nature, so it is important for users to keep sensitive data out of the logs.
 
-[kibana-proxy]: https://github.com/ministryofjustice/cloud-platform-environments/blob/master/namespaces/live-1.cloud-platform.service.justice.gov.uk/monitoring/kibana-oauth2-proxy.yaml
+[kibana-proxy]: https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/blob/main/templates/oauth2-proxy.yaml.tpl
 [kibana-webconsole]: https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana
 [kibana-access-task]: https://github.com/ministryofjustice/cloud-platform/issues/286
