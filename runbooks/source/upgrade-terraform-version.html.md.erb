@@ -1,7 +1,7 @@
 ---
 title: Upgrade Terraform Version
 weight: 54
-last_reviewed_on: 2021-12-30
+last_reviewed_on: 2022-04-05
 review_in: 3 months
 ---
 
@@ -74,7 +74,7 @@ This will result in a Pull Request output similar to the one outlined [here](htt
 
 Once all the Pull Requests have been reviewed, merge them into main and create a new release.
 
-Note: Terraform will release an [upgrade](https://www.terraform.io/docs/cli/commands/0.13upgrade.html) command for each release that contains syntax changes, in the example above 0.13upgrade was used to create a more detailed `versions.tf`.
+Note: Terraform will release an [upgrade](https://www.terraform.io/docs/cli/commands/0.13upgrade) command for each release that contains syntax changes, in the example above 0.13upgrade was used to create a more detailed `versions.tf`.
 
 #### Upgrade a test namespace
 It is difficult to test an upgrade on the Environments state, this is the best way to do so, with examples.
