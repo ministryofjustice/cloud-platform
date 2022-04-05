@@ -167,7 +167,7 @@ kubectl -n concourse-main create job ds-update-orphaned-statefiles --from=cronjo
 ## Hijack a concourse job container
 
 ```
-fly -t manager hijack -j environments-terraform/apply-namespace-changes-live
+fly -t manager hijack -j environments-live/apply-namespace-changes-live
 ```
 
 You'll be presented with a list of containers to choose from.
