@@ -112,7 +112,7 @@ Paste this into the search field on [Prometheus]:
 max by(node) (max by(instance) (kubelet_running_pod_count{job="kubelet",metrics_path="/metrics"}) * on(instance) group_left(node) kubelet_node_name{job="kubelet",metrics_path="/metrics"})
 ```
   
-## Install tmux and docker on the live-1 bastion host
+## Install tmux and docker on the live bastion host
 
 From [here](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-debian-9)
 
@@ -167,7 +167,7 @@ kubectl -n concourse-main create job ds-update-orphaned-statefiles --from=cronjo
 ## Hijack a concourse job container
 
 ```
-fly -t manager hijack -j environments-terraform/apply-namespace-changes-live-1
+fly -t manager hijack -j environments-live/apply-namespace-changes-live
 ```
 
 You'll be presented with a list of containers to choose from.

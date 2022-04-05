@@ -20,7 +20,7 @@ Cloud-Platform team uses [auth0](https://auth0.com) in almost every component re
 Tainting auth0 resource will force new credentials generation. Go to [`cloud-platform-infrastructure/terraform/cloud-platform` directory](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/cloud-platform) and run
 
 ```
-$ terraform workspace select live-1
+$ terraform workspace select live
 $ terraform taint module.auth0.auth0_client.components
 ```
 
