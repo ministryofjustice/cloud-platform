@@ -1,7 +1,7 @@
 ---
 title: Cloud Platform Disaster Recovery Scenarios
 weight: 91
-last_reviewed_on: 2022-01-04
+last_reviewed_on: 2022-04-05
 review_in: 3 months
 ---
 
@@ -332,7 +332,7 @@ Error: namespaces "starter-pack" already exists
 
 ### Restore process
 
-In order to regain control of resource removed from terraform state, we will use the [import command](https://www.terraform.io/docs/import/index.html) to recover the metadata for this resource. Import requires a resource address and the resource ID. The resource address is a combination of the resource type and resource name.
+In order to regain control of resource removed from terraform state, we will use the [import command](https://www.terraform.io/cli/import) to recover the metadata for this resource. Import requires a resource address and the resource ID. The resource address is a combination of the resource type and resource name.
 
 ```
 terraform import module.starter_pack.kubernetes_namespace.starter_pack starter-pack
