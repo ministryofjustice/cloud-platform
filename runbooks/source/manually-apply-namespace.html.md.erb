@@ -30,20 +30,20 @@ export PINGDOM_API_KEY="XXXXXXXXXXXXX"
 ```
 
 
-## Target the live-1 cluster
+## Target the live cluster
 
 ```
 export AWS_PROFILE=moj-cp
 export KOPS_STATE_STORE=s3://cloud-platform-kops-state
-kops export kubecfg live-1.cloud-platform.service.justice.gov.uk
+kops export kubecfg live.cloud-platform.service.justice.gov.uk
 ```
 
 ## Set some environment variables
 
 ```
-export TF_VAR_cluster_name="live-1"
+export TF_VAR_cluster_name="live"
 export TF_VAR_cluster_state_bucket=cloud-platform-terraform-state
-export TF_VAR_cluster_state_key="cloud-platform/live-1/terraform.tfstate"
+export TF_VAR_cluster_state_key="cloud-platform/live/terraform.tfstate"
 #needed by tf k8s provider
 export KUBE_CONFIG_PATH=${HOME}/.kube/config
 ```
@@ -55,7 +55,7 @@ I'm using `offender-events-dev` for this example. Use whatever is relevant for y
 ```
 export NAMESPACE=offender-events-dev
 
-cd namespaces/live-1.cloud-platform.service.justice.gov.uk/${NAMESPACE}/resources
+cd namespaces/live.cloud-platform.service.justice.gov.uk/${NAMESPACE}/resources
 ```
 
 ## Terraform Init
@@ -63,7 +63,7 @@ cd namespaces/live-1.cloud-platform.service.justice.gov.uk/${NAMESPACE}/resource
 ```
 terraform init \
   -backend-config="bucket=cloud-platform-terraform-state" \
-  -backend-config="key=cloud-platform-environments/live-1.cloud-platform.service.justice.gov.uk/${NAMESPACE}/terraform.tfstate" \
+  -backend-config="key=cloud-platform-environments/live.cloud-platform.service.justice.gov.uk/${NAMESPACE}/terraform.tfstate" \
   -backend-config="region=eu-west-1" \
   -backend-config="dynamodb_table=cloud-platform-environments-terraform-lock"
 ```

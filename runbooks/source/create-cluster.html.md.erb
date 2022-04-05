@@ -55,7 +55,7 @@ By default, the script will create a 'small' cluster. This means the master and 
 variable "cluster_node_count_a" {
   description = "The number of worker node in the cluster in Availability Zone eu-west-2a"
   default = {
-    live-1  = "9"
+    live  = "9"
     default = "1"
   }
 }
@@ -63,7 +63,7 @@ variable "cluster_node_count_a" {
 variable "cluster_node_count_b" {
   description = "The number of worker node in the cluster in Availability Zone eu-west-2b"
   default = {
-    live-1  = "9"
+    live  = "9"
     default = "1"
   }
 }
@@ -71,7 +71,7 @@ variable "cluster_node_count_b" {
 variable "cluster_node_count_c" {
   description = "The number of worker node in the cluster in Availability Zone eu-west-2c"
   default = {
-    live-1  = "9"
+    live  = "9"
     default = "1"
   }
 }
@@ -79,7 +79,7 @@ variable "cluster_node_count_c" {
 variable "master_node_machine_type" {
   description = "The AWS EC2 instance types to use for master nodes"
   default = {
-    live-1  = "c5.4xlarge"
+    live  = "c5.4xlarge"
     default = "c5.large"
   }
 }
@@ -87,7 +87,7 @@ variable "master_node_machine_type" {
 variable "worker_node_machine_type" {
   description = "The AWS EC2 instance types to use for worker nodes"
   default = {
-    live-1  = "r5.xlarge"
+    live  = "r5.xlarge"
     default = "r5.large"
   }
 }
@@ -106,7 +106,7 @@ You can see more options to use when creating the cluster by running:
 The script takes around 30 minutes to execute. At the end, you should see output like this:
 
 ```
-Run options: exclude {:cluster=>"live-1"}
+Run options: exclude {:cluster=>"live"}
 ..........................
 
 Finished in 4 minutes 53.4 seconds (files took 4.54 seconds to load)
@@ -170,7 +170,7 @@ KubeDNS is running at https://api.XXXXXXX.cloud-platform.service.justice.gov.uk/
 
 ...where `XXXXXXX` is the name of your test cluster.
 
-If your context is pointing at live-1, switch to your test cluster by running
+If your context is pointing at live, switch to your test cluster by running
 
 ```bash
 kops export kubecfg XXXXXXX.cloud-platform.service.justice.gov.uk
