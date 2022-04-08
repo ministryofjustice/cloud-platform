@@ -39,7 +39,7 @@ example: https://mojdt.slack.com/archives/C57UPMZLY/p1630936971082200
 # assuming the event was today
 $ day=$(date '+%Y%m%d')
 $ event="16494071776.005464"
-$ $ for k in `kubectl -n ingress-controllers get pods | grep modsec01-nx-controller | awk '{print $1}'` ; do echo $k ; kubectl -n ingress-controllers exec -ti $k -- bash -c "cd /var/log/audit/$day/ ; grep -r $event *" ; done
+$ for k in `kubectl -n ingress-controllers get pods | grep modsec01-nx-controller | awk '{print $1}'` ; do echo $k ; kubectl -n ingress-controllers exec -ti $k -- bash -c "cd /var/log/audit/$day/ ; grep -r $event *" ; done
 ```
 
 Which should return the event.
