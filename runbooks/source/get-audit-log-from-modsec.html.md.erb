@@ -27,40 +27,24 @@ example: https://mojdt.slack.com/archives/C57UPMZLY/p1630936971082200
 - The Kibana event above should provide you with the following key information
 
 ```
- modsec pod name: This will allow you to hone in on the correct pod.
- unique-id: This is a hash of the event in question, e.g. 5266c62ecf75109ee3083dcc6e13489u
+ modsec pod name (optional): This will allow you to hone in on the correct pod.
+ unique_id: This is a hash of the event in question, e.g. 16494071776.005464
 ```
 
 - Kubectl access to the live cluster and access to the `ingress-controllers` namespace.
 
-## Exec into the pod
-
-From the Kibana event you should now know the modsec pod name, exec into that pod:
-
-```bash
-kubectl -n ingress-controllers exec -it <insert-modsec-podname-here> sh
-```
-
 ## Perform a search for the unique-id (obtained from the Kibana entry)
 
-The audit log structure is extrememly convoluted. Use the following commands to identify the log file name:
-
-```bash
-# An example
-export UNIQUEID=5266c62ecf75109ee3083dcc6easda234
-cd /var/log/audit
-find . -name "*" | xargs grep -iEl ${UNIQUEID} | xargs ls -lrt
 ```
-
-This should return a filepath leading to the filename containing your event. We can take the output of this command and perform a grep for the log entry.
-
-```bash
-grep ${UNIQUEID} ./20210906-1125/20210906-112550-5266c62ecf75109ee3083dcc6easda234
+# assuming the event was today
+$ day=$(date '+%Y%m%d')
+$ event="16494071776.005464"
+$ for k in `kubectl -n ingress-controllers get pods | grep modsec01-nx-controller | awk '{print $1}'` ; do echo $k ; kubectl -n ingress-controllers exec -ti $k -- bash -c "cd /var/log/audit/$day/ ; grep -r $event *" && break ; done
 ```
 
 Which should return the event.
  
-If you want to copy the filtered events of a particilar date e.g.24/11/2021 to a folder and download to the local machine to extract the data, use the commands in bash
+If you want to copy the filtered events of a particular date e.g. 24/11/2021 to a folder and download to the local machine to extract the data, use the commands in bash
  ```bash
  cd /var/log/audit/20211124
  find . -name "*" | xargs grep -iEl "String or hostname to search" > list.txt
