@@ -1,7 +1,7 @@
 ---
 title: Terminal access to EKS managed nodes
 weight: 8650
-last_reviewed_on: 2022-03-22
+last_reviewed_on: 2022-04-21
 review_in: 3 months
 ---
 
@@ -57,3 +57,18 @@ by tag `Cluster` with value `live`.
     aws ssm start-session --target <Instance ID>
     ```
 
+## Access via SSH /SCP
+
+It can be more convenient to access the nodes using the standard ssh client, esp when copying files.
+
+To set up, add the following in `~/.ssh/config`:
+
+```
+Host i-*
+  User ssm-user
+  ProxyCommand bash -c "aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters 'portNumber=%p'"
+```
+
+Connect and append your `~/.ssh/id_rsa.pub` key to the `/home/ssm-user/.ssh/authorized_keys` file on the node.
+
+Now you can `ssh i-0abcdef` or `scp 1-0abcdef:file`
