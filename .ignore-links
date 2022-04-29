@@ -2,7 +2,7 @@ https://127.0.0.1:4001/
 admin@ec2-35-176-xx-xx.eu-west-2.compute.amazonaws.com
 my-name@digital.justice.gov.uk
 https://api.david-test1.cloud-platform.service.justice.gov.uk/
-https://login.apps.david-test1.cloud-platform.service.justice.gov.uk/
+https://login.david-test1.cloud-platform.service.justice.gov.uk/
 https://cert-manager-webhook.cert-manager.svc
 https://hooks.slack.com/services/HGJKHJKSH/DFJKHKIUO/DJFHKDUJFKSUHUGIDHKUDGD
 https://github.com/search?q=org%3Aministryofjustice+cloud-platform-terraform
