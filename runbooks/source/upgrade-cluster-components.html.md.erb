@@ -1,13 +1,13 @@
 ---
 title: Upgrade cluster components
 weight: 54
-last_reviewed_on: 2022-01-18
+last_reviewed_on: 2022-05-06
 review_in: 3 months
 ---
 
 # Upgrade cluster components
 
-Cluster components are application layer components that are installed in a cluster such as prometheus, external-dns, opa, kiam etc.
+Cluster components are application layer components that are installed in a cluster such as prometheus, external-dns, opa, certmanager etc.
 
 Components are configured as terraform modules and are called from [cloud-platform-infrastructure repo] with a release tag.
 
@@ -50,14 +50,6 @@ make tools-shell
 
 Create the file `~/.kube/config` in your tools-image container by running:
 
-For Kops cluster
-
-```bash
-kops export kubecfg XXXXXXX.cloud-platform.service.justice.gov.uk
-```
-
-For EKS cluster
-
 ```bash
 aws eks --region eu-west-2 update-kubeconfig --name <cluster-name>
 ```
@@ -65,6 +57,8 @@ aws eks --region eu-west-2 update-kubeconfig --name <cluster-name>
 ### Run the integration tests
 
  This is the ensure the test cluster doesnot have any existing issues and ready to use
+ 
+ To test ruby tests:
 
 ```
 cd smoke-tests
@@ -72,18 +66,21 @@ bundle binstubs bundler --force --path /usr/local/bin
 bundle binstubs rspec-core --path /usr/local/bin
 ```
 
-For kops cluster
-
-```bash
-rspec --tag ~live-1 --tag ~eks-manager --format progress --format documentation
-```
-
-For EKS cluster
-
 ```bash
 rspec --tag ~live-1 --tag ~kops --format progress --format documentation
 ```
 
+ To run golang tests:
+ 
+ - Update the golang config to use test cluster name
+ 
+ ```bash
+ export CLUSTER_NAME=<test-cluster-name>
+cat ./tests/config/live.yaml |  sed -e "s/clusterName: 'live.cloud-platform.service.justice.gov.uk'/clusterName: '$CLUSTER_NAME.cloud-platform.service.justice.gov.uk'/g" > /tmp/$CLUSTER_NAME.yaml
+cd ./tests/e2e;
+go test -v -ginkgo.slowSpecThreshold=120 -config /tmp/$CLUSTER_NAME.yaml
+ ```
+ 
 ### Testing the upgrade
 
   1. Make the changes required to the module. For example, for upgrading the cert-manager, change the [cert-manager terraform module](https://github.com/ministryofjustice/cloud-platform-terraform-certmanager). This might include
@@ -128,7 +125,7 @@ cloud-platform environments bump-module --module <module-name> --module-version 
 The `module-name` flag must contain a word in the module source. For example, if you were to upgrade the cert-manager module to 0.5.0, you would run the following command:
 
 ```bash
-cloud-platform environments bump-module --module cert-manager --module-version 0.5.0
+cloud-platform environment bump-module --module certmanager --module-version 0.5.0
 ```
 
 #### Cert manager
