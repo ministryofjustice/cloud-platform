@@ -7,9 +7,7 @@ review_in: 3 months
 
 # Provisioning EKS clusters
 
-For now EKS is only used for the manager cluster, it mainly holds Cloud Platform concourse CI. We are working on migrating our live cluster to EKS. 
-
-**IMPORTANT:** All cluster's names **must be globally unique** (EKS or kOps). Each one creates a unique Route53 hostzone which is unique to the name
+**IMPORTANT:** All cluster's names **must be globally unique**. Each one creates a unique Route53 hostzone which is unique to the name
 
 You can create a new EKS test cluster using the [cluster build pipeline].
 
@@ -31,7 +29,6 @@ Alternatively, if you need more control over the test cluster parameters, or you
 - Set your environment variables (you might also want to include `AWS_*` envs):
 
 ```
-    export KOPS_STATE_STORE=s3://cloud-platform-kops-state
     export AWS_PROFILE=moj-cp
 ```
 
