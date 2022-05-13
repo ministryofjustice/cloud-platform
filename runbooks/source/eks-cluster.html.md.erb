@@ -19,7 +19,41 @@ Execute the script, by giving the `-k eks` or `--kind eks` option and the desire
 ./create-cluster.rb --name mogaal-eks --kind eks
 ```
 
-Check the [create a cluster][create a cluster] runbook for pre-requisites and environment variables to run the script.
+Check the pre-requisites and environment variables section of this document before running this script.
+
+NB: Your cluster name must be **no more than 12 characters**. Any longer, and some of the computed strings which include the cluster name will exceed their maximum allowed values. The error messages you get if this happens are unhelpful. In order to prevent this, the build script will fail immediately if you supply a name which is too long.
+
+See our [cluster naming policy] for information on how to choose a suitable name for your cluster.
+
+By default, the script will create a `small` cluster. This means the master and worker EC2 instances will be less powerful machine types than in our production cluster.
+
+You can see more options to use when creating the cluster by running:
+
+```bash
+./create-cluster.rb --help
+```
+
+The script takes around 30 minutes to execute. At the end, you should see output like this:
+
+```
+Run options: exclude {:cluster=>"live"}
+..........................
+
+Finished in 4 minutes 53.4 seconds (files took 4.54 seconds to load)
+26 examples, 0 failures
+
+2019-10-07 09:07:49 kubectl cluster-info
+Kubernetes master is running at https://api.david-test1.cloud-platform.service.justice.gov.uk
+KubeDNS is running at https://api.david-test1.cloud-platform.service.justice.gov.uk/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+```
+
+The section before `kubectl cluster-info` is the cluster integration tests, which run at the end of the build
+process. The number of tests will change, so the output will vary from what is shown here.
+
+
+
 
 Alternatively, if you need more control over the test cluster parameters, or you just prefer to do it manually, the rest of this document describes the process.
 
@@ -27,10 +61,20 @@ Alternatively, if you need more control over the test cluster parameters, or you
 
 - Make sure you have access to Cloud Platform AWS account
 - Set your environment variables (you might also want to include `AWS_*` envs):
+- You have an [AWS CLI] profile `moj-cp`, with suitable credentials
 
 ```
     export AWS_PROFILE=moj-cp
 ```
+
+- Your GPG key must be added to the [infrastructure repo] so that you are able to run `git-crypt unlock` (the script will run this for you, but you must be *able* to do it)
+- You have [docker] installed
+
+## Environment Variables
+
+See the file [example.env.create-cluster] in the [infrastructure repo]. This shows examples of the environment variables which must be set in order to run the `create-cluster.rb` script to create a new cluster.
+
+You can get the auth0 values from the `terraform-provider-auth0` application on [auth0](https://manage.auth0.com/dashboard/eu/justice-cloud-platform/applications).
 
 ## Provisioning
 
