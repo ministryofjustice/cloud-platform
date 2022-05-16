@@ -1,7 +1,7 @@
 ---
 title: Cloud Platform Disaster Recovery Scenarios
 weight: 91
-last_reviewed_on: 2022-04-05
+last_reviewed_on: 2022-05-16
 review_in: 3 months
 ---
 
@@ -266,48 +266,6 @@ terraform plan -target=module.starter_pack
 
 No changes. Infrastructure is up-to-date.
 ```
-
-## Lost or corrupt etcd volume
-
-Severity : low
-
-Likelihood: medium
-
-### Impact
-
-Kubernetes live-1 cluster deployed with kops stores the etcd state in two different AWS EBS volumes per master node. One volume is used to store the Kubernetes main data, the other one for events. For a cluster with three masters will result in six volumes for etcd data (one in each AZ).
-
-Lost or corrupt etcd volume results in unhealthy [etcd cluster](https://github.com/kubernetes/kops/blob/master/docs/cluster_spec.md#etcdclusters). This means master node associated with the corrupt or Lost etcd volume will become not ready status and fail to join the cluster.
-
-### Possible Cause
-
-- Lost volume: Deleting one of the etcd volume associated with the master node from aws console by accident
-- Corrupt volume: Accidentally restoring etcd volume from a wrong snapshot and attach it to the working master node.
-
-We will see warnings like this in this master log file:
-
-```
-kubectl -n kube-system logs etcd-manager-main-ip-xxx-xx-xx-xxx.eu-west-2.compute.internal
-
-etcdserver: failed to reach the peerURL(https://etcd-x.internal.<cluster-name>.cloud-platform.service.justice.gov.uk:2380) of member <member-id>
-rafthttp: health check for peer <member-id> connect: connection refused (prober "ROUND_TRIPPER_SNAPSHOT")
-rafthttp: health check for peer <member-id> connect: connection refused (prober "ROUND_TRIPPER_RAFT_MESSAGE")
-
-```
-
-```
-kops validate cluster
-
-VALIDATION ERRORS
-KIND	NAME			MESSAGE
-Node	<node-name>	    master "<node-name>" is not ready
-
-Validation Failed
-```
-
-### Restore process
-
-Restoring corrupt or lost etcd involves two steps: remove the unhealthy etcd member and replace the effected master node via kops. Covering both steps, we already have a [runbook](https://runbooks.cloud-platform.service.justice.gov.uk/replacing-failed-master-node.html#replacing-a-failed-master-node), follow it step by step to restore unhealthy etcd.
 
 
 ## Overwriting KOPS cluster's components with EKS components
