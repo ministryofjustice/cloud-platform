@@ -42,7 +42,7 @@ If you are on the existing Ingress-NGINX controller and then upgrade to K8s vers
 
 ### Switch to the new ingress controllers and convert an Ingress to the v1 API
 
-Currently cloud-platform have muliple instances of the Ingress-NGINX controllers running on the cluster, all instances of the controllers must be aware of which Ingress objects they serve. 
+Currently cloud-platform have four instances of the Ingress-NGINX controllers(2 existing instances of ingress controller and 2 new instances of ingress controllers with version >1.0, to support Ingress the v1 API version) running on the cluster, all instances of the controllers must be aware of which Ingress objects they serve. 
 The ingressClassName field of an Ingress is the way to let the controller know about that.
 
 - Switch to the new ingress controller using the .spec.ingressClassName field. Set value to <b>modsec</b> if you use modsec, else set it to <b>default</b>
@@ -82,9 +82,10 @@ spec:
           servicePort: 4567</b>
 </pre>
 
-Switch to the new ingress controller and convert the ingress to use the <b>networking.k8s.io/v1</b> API version. Main changes include
+Switch to the new ingress controller and convert the ingress to use the <b>networking.k8s.io/v1</b> API version.
 
 To Switch to the new ingress controller:
+
  * Add `ingressClassName:` under spec, set to <b>modsec</b> if you use modsec, else set it to <b>default</b>
 
 To Convert the ingress to use the <b>networking.k8s.io/v1</b> API version:
@@ -118,13 +119,13 @@ spec:
         <b>pathType: ImplementationSpecific
         backend:
           service:
-            name: rubyapp-service
+            name: helloworld
             port:
               number: 4567</b>
 </pre>
 
 **NOTE: From version >1.0 of the Ingress-NGINX Controller, an IngressClass object is required.
-If you aleady converted your existing ingress to v1, please add `ingressClassName:` under spec, set to <b>modsec</b> if you use modsec, else set it to <b>default</b>.**
+If you aleady converted your existing ingress to v1, please add `ingressClassName:` under spec, set to "modsec" if you use modsec, else set it to "default", to switch to the new ingress controllers**
 
 To apply your changes:
 
@@ -262,7 +263,7 @@ spec:
 
 #### Step 2 - Add a new ingress resource
 
-Create a new Ingress with a different ingress name to the existing one, following the process here to convert Ingress to the v1 API.
+Create a new Ingress with a different ingress name to the existing one, following the process below to convert Ingress to the v1 API.
 
 Main changes include: 
 
@@ -310,7 +311,7 @@ spec:
         <b>pathType: ImplementationSpecific
         backend:
           service:
-            name: rubyapp-service
+            name: helloworld
             port:
               number: 4567</b>
 </pre>
