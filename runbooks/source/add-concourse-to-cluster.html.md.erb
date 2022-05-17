@@ -1,7 +1,7 @@
 ---
 title: Add Concourse to a test cluster
 weight: 51
-last_reviewed_on: 2022-05-06
+last_reviewed_on: 2022-05-17
 review_in: 3 months
 ---
 
@@ -54,6 +54,6 @@ Repeat this command whenever you make changes to the pipeline yaml file.
 
 If your pipeline requires secrets, such as AWS credentials, you need to define those as kubernetes secrets in the `concourse-main` namespace (or `concourse-<team name>` if you're using a different concourse team, rather than `main`)
 
-[create-test-cluster]: create-cluster.html#create-a-new-cluster
+[create-test-cluster]: eks-cluster.html#provisioning-eks-clusters
 [concourse repo]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse
 [fly]: https://concourse-ci.org/fly.html
