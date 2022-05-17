@@ -1,7 +1,7 @@
 ---
 title: Upgrade cluster components
 weight: 54
-last_reviewed_on: 2022-05-06
+last_reviewed_on: 2022-05-17
 review_in: 3 months
 ---
 
@@ -133,6 +133,13 @@ cloud-platform environment bump-module --module certmanager --module-version 0.5
   - The CRDs for cert-manager doesnot get deleted
   - The existing certificates doesnot change in any way. This can be done by checking the timestamps of certificate creation
   - Able to create and validate new certificates
+
+
+#### Prometheus
+
+  - Ensure correct CRDs versions of prometheus-operator are updated before upgrading prometheus-operator
+  - The existing PrometheusRules and ServiceMonitors doesnot change in any way. This can be done by checking the timestamps of those resourse creation
+  - Able to query prometheus for metrics
 
 [cloud-platform-infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
 [cloud-platform-environments-repo]: https://github.com/ministryofjustice/cloud-platform-environments
