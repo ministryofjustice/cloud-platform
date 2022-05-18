@@ -29,6 +29,7 @@ jobs:
         repository-name: ministryofjustice/cloud-platform-runbooks
         branch: gh-pages # The branch the action should deploy to.
         folder: runbooks/docs # The folder the action should deploy.
+        clean: true
         clean-exclude: |
           CNAME
           License
