@@ -8,7 +8,7 @@ on:
       - "runbooks/**"
 
 jobs:
-  run:
+  build:
     runs-on: ubuntu-latest
     container:
       image: ministryofjustice/cloud-platform-tech-docs-publisher:1.9
@@ -16,13 +16,22 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build
       run: cd runbooks; bundle exec middleman build --build-dir docs
-    - name: Run the script
-      run: cd runbooks; bin/publish.sh
-      env:
-        PUBLISHING_GIT_TOKEN: ${{ secrets.PUBLISHING_GIT_TOKEN }}
-        GITHUB_PAGES_REPO_OWNER: ministryofjustice
-        GITHUB_PAGES_REPO_AUTHOR: cloud-platform-moj
-        GITHUB_PAGES_REPO_AUTHOR_EMAIL: platforms@digital.justice.gov.uk
-        GITHUB_PAGES_REPO_NAME: cloud-platform-runbooks
-        GITHUB_PAGES_RELEASE_BRANCH: gh-pages
-        PROJECT_BUILD_FOLDER: docs
+    - name: Install rsync
+      run: |
+        apk update && apk add rsync
+        which rsync
+    - name: Deploy
+      uses: JamesIves/github-pages-deploy-action@v4.3.3
+      with:
+        token: ${{ secrets.PUBLISHING_GIT_TOKEN }}
+        git-config-name: cloud-platform-moj
+        git-config-email: platforms@digital.justice.gov.uk
+        repository-name: ministryofjustice/cloud-platform-runbooks
+        branch: gh-pages # The branch the action should deploy to.
+        folder: runbooks/docs # The folder the action should deploy.
+        clean: true
+        clean-exclude: |
+          CNAME
+          License
+          README.md
+          .nojekyll
