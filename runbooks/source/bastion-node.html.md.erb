@@ -7,16 +7,16 @@ review_in: 3 months
 
 # Create and access bastion node.
 
-The traditional method of node access would be to SSH in via a bastion. We used this to access kops cluster nodes, this involves a shared ssh key. 
-We no longer have this bastion node, but in-case if cloud-platform team would like to have a bastion node on a VPC, this run book can be used to create and access a bastion inside an existing VPC.
+The traditional method of node access is to SSH in via a bastion. This was used to access kOps cluster nodes, this also involves a shared ssh key.
+A bastion node is no longer a permanent feature/resource. If the cloud-platform team would like to have a bastion node within a VPC, this run book can be used to create one.
 
 ## Create bastion node
 
-To create a bastion node, use the Terraform module to create a bastion inside an existing VPC. Follow the below steps to apply the basion module.
+To create a bastion node, use the Terraform module to create a bastion within an existing VPC. Follow the steps below:
 
 Step 1:
 
-Copy the blow module code in this [eks main.tf][eks-main] file. It depends on the [aws_route53_zone][route-53-zone] of the cluster
+Copy the module code below into the [eks main.tf][eks-main] file. There is a dependency on the [aws_route53_zone][route-53-zone] of the cluster
 
 ```
 module "bastion" {
@@ -34,9 +34,9 @@ module "bastion" {
 
 Step 2:
 
-In the bastion module update the below arguments:
+In the bastion module, update the below arguments:
 
- - vpc_name: Update the name of the VPC, you like to create the bastion module on, normally it would be the terraform workspace name
+ - vpc_name: Update the name to the VPC you like to create the bastion module on. This is normally the terraform workspace name
  - route53_zone: This will be the name of the route53 zone created for the cluster in [here][route-53-zone]
  - cluster_domain_name: This will be the cluster domain name.
 
