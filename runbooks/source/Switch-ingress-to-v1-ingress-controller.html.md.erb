@@ -16,7 +16,7 @@ The upcoming Kubernetes 1.22 upgrade will remove several deprecated APIs that ar
   * the networking.k8s.io/v1beta1 API version of IngressClass
   * all beta versions of Ingress: extensions/v1beta1 and networking.k8s.io/v1beta1
 
-To support Ingress the v1 API version, we have two new instances of the Ingress-NGINX controllers deployed with version >1.0.
+To support the Ingress v1 API version, we have two new instances of the Ingress-NGINX controllers deployed with version >1.0.
 
 Switching to the new NGINX-Ingress controllers is **required** before the Cloud Platform Kubernetes cluster can be upgraded from **1.21** to **1.22**.
 
@@ -42,7 +42,7 @@ If you are on the existing Ingress-NGINX controller and then upgrade to K8s vers
 
 ### Switch to the new ingress controllers and convert an Ingress to the v1 API
 
-Currently cloud-platform have four instances of the Ingress-NGINX controllers(2 existing instances of ingress controller and 2 new instances of ingress controllers with version >1.0, to support Ingress the v1 API version) running on the cluster, all instances of the controllers must be aware of which Ingress objects they serve. 
+Currently cloud-platform have four instances of the Ingress-NGINX controllers(2 existing instances of ingress controller and 2 new instances of ingress controllers with version >1.0, to support the Ingress v1 API version) running on the cluster, all instances of the controllers must be aware of which Ingress objects they serve. 
 The ingressClassName field of an Ingress is the way to let the controller know about that.
 
 - Switch to the new ingress controller using the .spec.ingressClassName field. Set value to <b>modsec</b> if you use modsec, else set it to <b>default</b>

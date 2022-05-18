@@ -1,0 +1,73 @@
+---
+title: Create and access bastion node
+weight: 97
+last_reviewed_on: 2022-18-05
+review_in: 3 months
+---
+
+# Create and access bastion node.
+
+The traditional method of node access is to SSH in via a bastion. This was used to access kOps cluster nodes, this also involves a shared ssh key.
+A bastion node is no longer a permanent feature/resource. If the cloud-platform team would like to have a bastion node within a VPC, this run book can be used to create one.
+
+## Create bastion node
+
+To create a bastion node, use the Terraform module to create a bastion within an existing VPC. Follow the steps below:
+
+Step 1:
+
+Copy the module code below into the [eks main.tf][eks-main] file. There is a dependency on the [aws_route53_zone][route-53-zone] of the cluster
+
+```
+module "bastion" {
+  source = "github.com/ministryofjustice/cloud-platform-terraform-bastion?ref=1.5.0"
+
+  vpc_name            = terraform.workspace
+  route53_zone        = aws_route53_zone.cluster.name
+  cluster_domain_name = "${terraform.workspace}.cloud-platform.service.justice.gov.uk."
+  depends_on = [
+    aws_route53_zone.cluster
+  ]
+}
+
+```
+
+Step 2:
+
+In the bastion module, update the below arguments:
+
+ - vpc_name: Update the name to the VPC you like to create the bastion module on. This is normally the terraform workspace name
+ - route53_zone: This will be the name of the route53 zone created for the cluster in [here][route-53-zone]
+ - cluster_domain_name: This will be the cluster domain name.
+
+Step 3:
+
+Now it's time to apply the module, we change the directory to [terraform/aws-accounts/cloud-platform-aws/vpc/eks](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks) and follow below terraform workflow:
+
+```
+terraform init
+terraform workspace select <WorkspaceName>
+terraform plan
+terraform apply
+```
+
+Once terraform finishes you should be able to view the bastion node in the Amazon EC2 console.
+
+
+## Access bastion node
+
+Make sure your public key is added to this [authorized_keys][auth-keys] file
+
+Once the bastion is created successfully and the key is added to the authorized_keys file, ssh to bastion instance:
+
+In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}`to locate the bastion instance (`bastion.<cluster_name>.cloud-platform.service.justice.gov.uk`). Use Public DNS (IPv4) In the description of the Instance to login into bastion as below:
+
+
+```bash
+ssh -A admin@ec2-xx-xx-xx-xx.eu-west-2.compute.amazonaws.com -p 50422
+```
+
+
+[auth-keys]: https://github.com/ministryofjustice/cloud-platform-terraform-bastion/blob/main/files/authorized_keys.txt
+[eks-main]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/main.tf
+[route-53-zone]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/main.tf#L100
