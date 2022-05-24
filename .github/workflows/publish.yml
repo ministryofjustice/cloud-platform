@@ -11,7 +11,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ministryofjustice/cloud-platform-tech-docs-publisher:1.9
+      image: ministryofjustice/cloud-platform-tech-docs-publisher:1.10
     steps:
     - uses: actions/checkout@v2
     - name: Build
