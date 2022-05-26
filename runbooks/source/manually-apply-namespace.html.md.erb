@@ -41,12 +41,13 @@ aws eks --region eu-west-2 update-kubeconfig --name live
 ## Set some environment variables
 
 ```
-export TF_VAR_cluster_name="live-1" # the variable cluster_name here is used to get VPC info
+export TF_VAR_cluster_name="live-1"
 export TF_VAR_cluster_state_bucket="cloud-platform-terraform-state"
 export TF_VAR_kubernetes_cluster="DF366E49809688A3B16EEC29707D8C09.gr7.eu-west-2.eks.amazonaws.com"
 #needed by tf k8s provider
 export KUBE_CONFIG_PATH=${HOME}/.kube/config
 ```
+Note: The variable cluster_name above is used to get VPC info
 
 ## Set the namespace name
 
@@ -63,11 +64,12 @@ cd namespaces/live.cloud-platform.service.justice.gov.uk/${NAMESPACE}/resources
 ```
 terraform init \
   -backend-config="bucket=cloud-platform-terraform-state" \
-  # live-1 reference in backend-config is s3 repo where namespace terraform state is stored currently.
   -backend-config="key=cloud-platform-environments/live-1.cloud-platform.service.justice.gov.uk/${NAMESPACE}/terraform.tfstate" \
   -backend-config="region=eu-west-1" \
   -backend-config="dynamodb_table=cloud-platform-environments-terraform-lock"
 ```
+Note: live-1 reference in backend-config is s3 repo where namespace terraform state is stored currently.
+
 ## Terraform Plan/Apply
 
 ```
