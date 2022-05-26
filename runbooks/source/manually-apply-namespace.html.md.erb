@@ -1,11 +1,11 @@
 ---
 title: Manually Plan/Apply Namespace Resources
 weight: 180
-last_reviewed_on: 2022-04-20
+last_reviewed_on: 2022-05-26
 review_in: 3 months
 ---
 
-# Manually Plan/Apply Namespace Resources
+# Manually Plan/Apply Namespace Resources in live cluster
 
 These steps are more or less what the [concourse pipeline] does.
 
@@ -20,13 +20,13 @@ git checkout -b [BRANCH-NAME] origin/[BRANCH-NAME]
 
 ##Set pingdom environment variables(Optional) 
 
-If the changes involve applying "pingdom_check", set the environment variables for pingdom.
+If the changes involve applying "pingdom_check" or "github", set the environment variables for pingdom and github.
 The values are stored as secrets in `manager` cluster - `concourse-main` namespace.
 
 ```
-export PINGDOM_USER="XXXXXXXXXXX"
-export PINGDOM_PASSWORD="XXXXXXXXXXXX"
-export PINGDOM_API_KEY="XXXXXXXXXXXXX"
+export PINGDOM_API_TOKEN="XXXXXXXXXXXXX"
+export TF_VAR_github_owner="ministryofjustice"
+export TF_VAR_github_token="XXXXXXXXXXXXX"
 ```
 
 
@@ -41,9 +41,9 @@ aws eks --region eu-west-2 update-kubeconfig --name live
 ## Set some environment variables
 
 ```
-export TF_VAR_cluster_name="live-1"
-export TF_VAR_cluster_state_bucket=cloud-platform-terraform-state
-export TF_VAR_cluster_state_key="cloud-platform/live/terraform.tfstate"
+export TF_VAR_cluster_name="live-1" # the variable cluster_name here is used to get VPC info
+export TF_VAR_cluster_state_bucket="cloud-platform-terraform-state"
+export TF_VAR_kubernetes_cluster="DF366E49809688A3B16EEC29707D8C09.gr7.eu-west-2.eks.amazonaws.com"
 #needed by tf k8s provider
 export KUBE_CONFIG_PATH=${HOME}/.kube/config
 ```
@@ -63,15 +63,16 @@ cd namespaces/live.cloud-platform.service.justice.gov.uk/${NAMESPACE}/resources
 ```
 terraform init \
   -backend-config="bucket=cloud-platform-terraform-state" \
+  # live-1 reference in backend-config is s3 repo where namespace terraform state is stored currently.
   -backend-config="key=cloud-platform-environments/live-1.cloud-platform.service.justice.gov.uk/${NAMESPACE}/terraform.tfstate" \
   -backend-config="region=eu-west-1" \
   -backend-config="dynamodb_table=cloud-platform-environments-terraform-lock"
 ```
-
 ## Terraform Plan/Apply
 
 ```
 terraform plan
+terraform apply
 ```
 
-[concourse pipeline]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/environments-terraform.yaml
+[concourse pipeline]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/environments-live.yaml
