@@ -1,7 +1,7 @@
 ---
 title: Switch ingress to the new nginx-ingress-controller v1.2
 weight: 420
-last_reviewed_on: 2022-03-23
+last_reviewed_on: 2022-05-26
 review_in: 3 months
 ---
 
@@ -14,7 +14,7 @@ An ingress-controller is a specialised load balancer for Kubernetes. The Cloud P
 Currently all service teams are using 1 of 2 ingress-controllers using one of the following annotations:
 
   - `kubernetes.io/ingress.class: nginx`   - This is the default ingress-controller
-  - `kubernetes.io/ingress.class: modsec`  - This ingress-controller has the modsec WAF enabled. 
+  - `kubernetes.io/ingress.class: modsec01`  - This ingress-controller has the modsec WAF enabled. 
 
 These ingress-controllers are running on version **v0.47.0**
 
@@ -48,12 +48,12 @@ There are 2 releases of the new nginx-ingress-controller(v1.2). They can be sele
 To switch to the new nginx-ingress-controller(v1.2):
 
   - Remove the `kubernetes.io/ingress.class` annotation
-  - Add the `ingressClassName` field under `spec` (using the default or modsec value)
+  - Add the `ingressClassName` field under `spec` (using the `default` or `modsec` value)
 
 The changes should look like the below:
 
 <pre>
-apiVersion: <b>networking.k8s.io/v1</b>
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: helloworld
@@ -61,7 +61,7 @@ metadata:
     external-dns.alpha.kubernetes.io/set-identifier: helloworld-mynamespace-green
     external-dns.alpha.kubernetes.io/aws-weight: "100"
 spec:
-  ingressClassName: <b>default</b> OR <b>modsec</b>
+  <b>ingressClassName: default</b> OR <b>modsec</b>
   tls:
   - hosts:
     - helloworld-app.apps.live.cloud-platform.service.justice.gov.uk
@@ -70,18 +70,18 @@ spec:
     http:
       paths:
       - path: /
-        <b>pathType: ImplementationSpecific
+        pathType: ImplementationSpecific
         backend:
           service:
             name: helloworld
             port:
-              number: 4567</b>
+              number: 4567
 </pre>
 
 
 ### Switch to the new ingress controller with zero downtime
 
-The following steps describe how to switch ingress controllers without downtime. We strongly recommend teams test these steps on their non-production environments before attempting on production.
+The following steps describe how to switch ingress controllers without downtime. We <b>strongly</b> recommend teams test these steps on their non-production environments before attempting on production.
 
 #### Step 1 - Changes to your current ingress resource
 
@@ -94,7 +94,7 @@ metadata:
   name: helloworld
   annotations:
     kubernetes.io/ingress.class: nginx
-    external-dns.alpha.kubernetes.io/set-identifier: helloworld-new-mynamespace-green
+    external-dns.alpha.kubernetes.io/set-identifier: helloworld-mynamespace-green
     <b>external-dns.alpha.kubernetes.io/aws-weight: "0"</b>
 spec:
   tls:
@@ -117,23 +117,23 @@ spec:
 
 Create a new Ingress with a different ingress name to the existing one with the following changes:
 
-1.Create a new ingress name different to the existing one:
+1. Create a new ingress name different to the existing one:
   
-    name: helloworld-new
+    `name: helloworld-new`
 
-2.Update set-identifier annotation to match with the new ingress name:
-  
-    external-dns.alpha.kubernetes.io/set-identifier: helloworld-new-mynamespace-green
+2. Update set-identifier annotation to match with the new ingress name (`-green` remains the same):
 
-3.Update aws-weight annotation to "100":
+    `external-dns.alpha.kubernetes.io/set-identifier: helloworld-new-mynamespace-green`
 
-    external-dns.alpha.kubernetes.io/aws-weight: "100"
+3. Update aws-weight annotation to "100":
 
-4.Remove the `kubernetes.io/ingress.class` annotation.
+    `external-dns.alpha.kubernetes.io/aws-weight: "100"`
 
-5.Use the new ingress controller:
+4. Remove the `kubernetes.io/ingress.class` annotation.
 
-    Add ingressClassName under spec, using the value of default or modsec
+5. Use the new ingress controller:
+
+    Add `ingressClassName` under `spec`, using the value of `default` or `modsec`
 
 The new manifest after changes will look like:
 
@@ -143,10 +143,10 @@ kind: Ingress
 metadata:
   <b>name: helloworld-new</b>
   annotations:
-    external-dns.alpha.kubernetes.io/set-identifier: helloworld-new-mynamespace-green
+    <b>external-dns.alpha.kubernetes.io/set-identifier: helloworld-new-mynamespace-green</b>
     <b>external-dns.alpha.kubernetes.io/aws-weight: "100"</b>
 spec:
-  ingressClassName: <b>default</b> OR <b>modsec</b>
+  <b>ingressClassName: default</b> OR <b>modsec</b>
   tls:
   - hosts:
     - helloworld-app.apps.live.cloud-platform.service.justice.gov.uk
@@ -176,7 +176,7 @@ After you have applied new ingress with `external-dns.alpha.kubernetes.io/aws-we
 Get the "hostname" used in your ingress for your namespace
 
 ```bash
-  kubectl get ingress <ingress-name> -n <namespace-name> -o json | jq -r '.items[] | .spec.rules[].host'
+  kubectl get ingress <ingress-name> -n <namespace-name> -o json | jq -r '.spec.rules[].host'
 ```
 
 Using the "hostname" from the above command, make a cURL call every 5 seconds to send traffic to your service
