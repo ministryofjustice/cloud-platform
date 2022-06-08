@@ -21,5 +21,6 @@ labels: 'Firebreak'
 - [ ] Firebreak finding documented appropriately
 - [ ] Demo completed
 - [ ] Decision made on whether to progress Firebreak work
+- [ ] Doe next steps require user research?
 - [ ] Firebreak next step Issues created
 - [ ] New Issues referenced in this story before closure
