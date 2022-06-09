@@ -145,7 +145,7 @@ First, run `make tools-shell`
 Then invoke the script like this:
 
 ```
-./destroy-cluster.rb --name [short cluster name] --kind eks --yes
+./destroy-cluster.rb --name [short cluster name] --yes
 ```
 
 Run without `--yes` to do a dry run, and see what commands would be executed.
@@ -180,7 +180,7 @@ Commenting out this will not set the `CLUSTER_NAME` provided by the create-clust
 Update the `$CLUSTER_NAME` to `<cluster-name-to-be-deleted` in the below line 
 
 ```
-./destroy-cluster.rb --name $CLUSTER_NAME --kind eks --yes
+./destroy-cluster.rb --name $CLUSTER_NAME --yes
 ```
 
 Run the below commands updating the `<cluster-name-to-be-deleted>`. 
