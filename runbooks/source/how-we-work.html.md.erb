@@ -17,11 +17,40 @@ If you need help at any point, don't hesitate to ask the team. Among other thing
 * Post in #cloud-platform to ask for someone to pair-program with you
 * Mention the issue during the daily standup
 
+## Sprints and ceremonies
+
+We work in two-week sprints - these are usually product led. 
+Our team ceremonies include: daily stand up at 10:30am on zoom, planning every forth-night on Wednesday and our sprint demo followed by retro on Friday.
+
+### Firebreak
+For 1 week every 2 months, we have a Firebreak sprint. Firebreaks are team led and provides team members the opportunity to work on tickets that’s of interest to them and of value to the organisation such as: 
+1. Address tech debt
+2. Prototyping innovative new features
+3. Try out new technologies
+
+As with our usual sprint, at the end of the firebreak sprint, we showcase and demo our progress and learning to the team and other interested parties.
+[find out mroe about firebreaks on GOV.UK](https://insidegovuk.blog.gov.uk/2018/05/03/firebreaks-on-gov-uk/)
+
+## Story
+Stories/Tickets are an item of work and should have enough information that all team members know what is required. When creating a new ticket, please use the apporiate template for a [support request](https://github.com/ministryofjustice/cloud-platform/blob/main/.github/ISSUE_TEMPLATE/cloud-platform-support-request.md) [story](https://github.com/ministryofjustice/cloud-platform/blob/main/.github/ISSUE_TEMPLATE/cloud-platform-story-template.md) or [firebreak story](https://github.com/ministryofjustice/cloud-platform/blob/main/.github/ISSUE_TEMPLATE/cloud-platform-firebreak-template.md).
+
+Stories are estimated with story points based on **complexity** during planning using the fibonacci sequence. Voting is done in the open by show of fingers.
+
+### Story points
+
+| Story Points | Complexity |
+|:-------------|:-----------|
+|1 |This is straight forward and simple. I know exactly the code I would write if I went back to my desk right now.|
+|2 |This is quite easy. I know roughly what I'd have to do. I might have to look one or two things up.|
+|3 |This is a bit complex. I might have to refresh my memory on a few things and there are a couple of unknowns.|
+|5 |This is big. I have only a rough idea of how I'd do this.|
+|8+ |This is too big, it will have to be broken down.|
+
 ## The Board / Tickets
 
 We use a kanban process to manage our backlog of work on this [zenhub board], which aggregates GitHub Issues from the various CP team repositories.
 
-We work in two-week sprints, and the process of getting work done should look like this:
+During the sprint, the process of getting work done should look like this:
 
 * Assign the topmost ticket (i.e. github issue) of the "This Sprint" column to yourself, and move it to the "In Progress" column
 * Let the team know what you're working on by posting in the `#cloud-platform` slack channel
@@ -33,6 +62,12 @@ We work in two-week sprints, and the process of getting work done should look li
 ### Adding tickets
 
 Anyone in the team is encouraged to add new tickets at any time. So if you think of something we ought to do, please [raise a ticket](https://github.com/ministryofjustice/cloud-platform/issues/new/choose) for it.
+
+#### Support tickets
+
+If the time spent working on a non-ticketed issue or request *such as from the '#ask-cloud-platform' channel*, is more than 15 minutes:
+* The team member working on the issue will create a ticket and estimate the ticket based on complexity, using the agreed criteria for story points. 
+* Where appropriate, ask user who raised the issue to create a ticket.
 
 ### Making changes to code
 
