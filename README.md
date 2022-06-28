@@ -39,7 +39,7 @@ We have a series of repositories for our work that we have listed below. We have
 | DynamoDB cluster | https://github.com/ministryofjustice/cloud-platform-terraform-dynamodb-cluster | A Terraform module to create a DynamoDB instance and IAM credentials, with optional autoscaling. |
 | ECR credentials  | https://github.com/ministryofjustice/cloud-platform-terraform-ecr-credentials | Terraform module which creates ECR credentials and repository on AWS. |
 | Elasticsearch cluster | https://github.com/ministryofjustice/cloud-platform-terraform-elasticsearch | A Terraform module to create a VPC based Elasticsearch cluster and Kibana dashboard along with a HTTP Proxy to access it. |
-| Elaticache cluster | https://github.com/ministryofjustice/cloud-platform-terraform-elasticache-cluster | A Terraform module that users can create an ElastiCache cluster |
+| Elasticache cluster | https://github.com/ministryofjustice/cloud-platform-terraform-elasticache-cluster | A Terraform module that users can create an ElastiCache cluster |
 | Ingress controller | https://github.com/ministryofjustice/cloud-platform-terraform-ingress-controller | A Terraform module  that deploys cloud-platform ingress controllers among another resources (like certificates) |
 | Logging | https://github.com/ministryofjustice/cloud-platform-terraform-logging | Terraform module that deploys cloud-platform logging solution. It includes components like: fluentd, eventrouter, circle-ci-stats |
 | Monitoring | https://github.com/ministryofjustice/cloud-platform-terraform-monitoring | Terraform module that deploys cloud-platform monitoring solution. It has support for components like: proxy, thanos, cloudwatch datasource for grafana, side-car, ecr-exporter |
