@@ -8,20 +8,22 @@ Date: 04/07/2022
 
 ## Context
 
-The current Cloud Platform Ingress Controllers support deprecated versions of TLS (1.0 and 1.1). This is due to end users of services being hosted on the platform having to rely on unsupported browser versions. We have had to retain for older TLS versions to support this ongoing dependancy.
+The current Cloud Platform Ingress Controllers support TLS 1.0, 1.1, and 1.2. This is due to end users of services being hosted on the platform having to rely on unsupported browser versions. We have had to retain for older TLS versions to support this ongoing dependancy.
 
 Since the original decision to support older TLS versions a number of things have happended:
 
-1. New versions of TLS need to be supported
+1. TLS version 1.3 needs to be supported
 2. The user estate has undergone a number of end user device refreshes which have introduced modern browsers
 3. There is a recurring issue of legacy TLS versions being identified in Service Team ITHCs
 4. [NCSC Guidance on legacy TLS versions](https://www.ncsc.gov.uk/guidance/using-tls-to-protect-data#section_5)
 
-We are now offering users new Ingress Controllers and we need to plan how we will manage the older versions of TLS.
+We are now offering users new Ingress Controllers that offer support for 1.2 and 1.3, and we need to plan how we will manage the older versions of TLS.
 
 ## Decision
 
 Remove support for TLS versions 1.0 and 1.1 on the new Ingress Controller.
+
+Add support for TLS version 1.3
 
 ## Consequences
 
