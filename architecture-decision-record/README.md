@@ -42,6 +42,7 @@ see [ADR-000](000-Record-Architecture-Decisions.md)
 * 🤔  [31. Image vulnerability scanning](031-Image-vulnerability-scanning.md)
 * ✅  [33. Manager cluster](033-Manager-cluster.md)
 * 🤔  [34. EKS Fargate](034-EKS-Fargate.md)
+* ✅  [35. Deprecated TLS Versions](035-deprecated-tls-versions.md)
 
 
 ### Statuses:
