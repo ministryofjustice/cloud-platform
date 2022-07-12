@@ -1,6 +1,6 @@
 ---
 title: Custom default-backend
-last_reviewed_on: 2022-03-11
+last_reviewed_on: 2022-07-12
 weight: 9000
 review_in: 3 months
 ---
@@ -51,7 +51,7 @@ In the example below, custom error pages from `custom-default-backend: nginx-err
 Example Ingress with default-backend and custom-http-errors annotations:
 
 ```
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: helloworld-rubyapp-ingress
@@ -61,6 +61,7 @@ metadata:
     external-dns.alpha.kubernetes.io/set-identifier: <ingress-name>-<environment-name>-<colour>
     external-dns.alpha.kubernetes.io/aws-weight: "100"
 spec:
+  ingressClassName: default
   tls:
   - hosts:
     - helloworld.rubyapp.cloud-platform.service.justice.gov.uk
@@ -70,9 +71,12 @@ spec:
     http:
       paths:
       - path: /
+        pathType: ImplementationSpecific
         backend:
-          serviceName: rubyapp-service
-          servicePort: 4567
+          service
+            name: rubyapp-service
+            port: 
+              number: 4567
 ```
 (Note - Please change the `ingress-name` and `environment-name` values in the above example, you can get the `environment-name` value from your namespace label "cloud-platform.justice.gov.uk/environment-name". The `colour` should be `green` for ingress in EKS `live` cluster)
 
@@ -115,7 +119,7 @@ If you have [custom-default-backend][customized-default-backend] set up in your 
 Example Ingress file to set `custom-http-errors: "418"` as annotation, which is not used at [global-custom-http-errors][cp-config-custom-http-errors]:
 
 ```
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: helloworld-rubyapp-ingress
@@ -124,6 +128,7 @@ metadata:
     external-dns.alpha.kubernetes.io/set-identifier: <ingress-name>-<environment-name>-<colour>
     external-dns.alpha.kubernetes.io/aws-weight: "100"
 spec:
+  ingressClassName: default
   tls:
   - hosts:
     - helloworld.rubyapp.cloud-platform.service.justice.gov.uk
@@ -133,9 +138,12 @@ spec:
     http:
       paths:
       - path: /
+        pathType: ImplementationSpecific
         backend:
-          serviceName: rubyapp-service
-          servicePort: 4567
+          service
+            name: rubyapp-service
+            port: 
+              number: 4567
 ```
 
 [cloud-platform-custom-error-pages]: https://github.com/ministryofjustice/cloud-platform-custom-error-pages
