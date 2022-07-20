@@ -1,7 +1,7 @@
 ---
 title: EKS Cluster
 weight: 350
-last_reviewed_on: 2022-04-08
+last_reviewed_on: 2022-07-20
 review_in: 3 months
 ---
 
@@ -168,7 +168,7 @@ In case you prefer concourse pipeline to destroy the cluster, these are the step
 
 First, `cd`` to the working copy of the concourse [pipelines repo][pipelines repo]. Make below two changes to the [eks-create-test-destroy.yaml][create-test-destroy] file.
 
-In the eks-create-test-destroy pipeline definition, comment out the below line in destroy-cluster job. 
+In the eks-create-test-destroy pipeline definition, comment out the below line in destroy-cluster job.
 
   ```
   args:
@@ -177,13 +177,13 @@ In the eks-create-test-destroy pipeline definition, comment out the below line i
 
 Commenting out this will not set the `CLUSTER_NAME` provided by the create-cluster-run-tests job.
 
-Update the `$CLUSTER_NAME` to `<cluster-name-to-be-deleted` in the below line 
+Update the `$CLUSTER_NAME` to `<cluster-name-to-be-deleted` in the below line
 
 ```
 ./destroy-cluster.rb --name $CLUSTER_NAME --yes
 ```
 
-Run the below commands updating the `<cluster-name-to-be-deleted>`. 
+Run the below commands updating the `<cluster-name-to-be-deleted>`.
 
 The first fly command will apply the changes made for the [eks-create-test-destroy.yaml][create-test-destroy] file with the hardcoded `CLUSTER_NAME` in the destroy-cluster job
 
@@ -218,7 +218,7 @@ Added new context arn:aws:eks:eu-west-2:754256621582:cluster/<cluster-name> to .
 
 ```
 
-Then, from the root of a checkout of the `cloud-platform-infrastructure` repository, run 
+Then, from the root of a checkout of the `cloud-platform-infrastructure` repository, run
 these commands to destroy all cluster components, and delete the terraform workspace:
 
 ```
@@ -231,7 +231,7 @@ $ terraform destroy
 > ```
 > kubectl -n monitoring delete job prometheus-operator-operator-cleanup
 > ```
-    
+
 ```
 $ terraform workspace select default
 $ terraform workspace delete ${cluster}
