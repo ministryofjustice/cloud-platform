@@ -25,33 +25,6 @@ verify return:0
 DONE
 notAfter=Oct 21 18:23:00 2019 GMT
 ```
-
-## Run `etcdctl` on a master node
-
-While SSHed onto a master:
-
-```bash
-$ sudo docker ps | grep etcd.manager
-```
-
-Pick the kopeio/etcd-manager container you're interested in ('main' or 'events') and then docker exec onto it
-
-```bash
-$ sudo docker exec -it [container id] bash
-```
-
-Now you can run etcdctl like this:
-
-```bash
-cd /opt/etcd-v3.4.3-linux-amd64
-
-ETCDCTL_API=3 \
-  ./etcdctl --key /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.key \
-  --cert  /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-client.crt \
-  --cacert /rootfs/etc/kubernetes/pki/kube-apiserver/etcd-ca.crt  \
-  --endpoints "https://etcd-a.internal.live-1.cloud-platform.service.justice.gov.uk:4001,https://etcd-b.internal.live-1.cloud-platform.service.justice.gov.uk:4001,https://etcd-c.internal.live-1.cloud-platform.service.justice.gov.uk:4001" endpoint health
-```
-
 ## Delete a "stuck" resource
 
 kubectl can freeze with resources in status "Terminating", these workarounds can force a cleanup:
@@ -107,27 +80,10 @@ kubectl get pods --all-namespaces -o wide --field-selector spec.nodeName=ip-172-
 ## Count pods running on all nodes
 
 Paste this into the search field on [Prometheus]:
-  
+
 ```
 max by(node) (max by(instance) (kubelet_running_pod_count{job="kubelet",metrics_path="/metrics"}) * on(instance) group_left(node) kubelet_node_name{job="kubelet",metrics_path="/metrics"})
 ```
-  
-## Install tmux and docker on the live bastion host
-
-From [here](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-debian-9)
-
-```bash
-sudo apt update
-sudo apt install tmux
-sudo apt install apt-transport-https ca-certificates curl gnupg2 software-properties-common
-curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
-sudo apt update
-apt-cache policy docker-ce
-sudo apt install docker-ce
-sudo systemctl status docker
-```
-
 ## Output all records from Route53 as a CSV file
 
 Use [this script](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/bin/route53-to-csv.rb)
@@ -143,19 +99,19 @@ To validate your feed url, test using the [w3c validator](https://validator.w3.o
 To get the RSS feed url for github projects, use `<github repo url>/releases.atom`
 
 To add your first feed to a new slack channel, follow steps provided by [slack](https://slack.com/intl/en-gb/help/articles/218688467-Add-RSS-feeds-to-Slac://slack.com/intl/en-gb/help/articles/218688467-Add-RSS-feeds-to-Slack)
-  
+
 ## Find files which *don't* contain a particular string
-  
+
 ```
 for file in $(find * -name '*.erb'); do grep -q last_reviewed_on $file || echo $file; done
 ```
-  
+
 ## Get AWS EC2 instance information for a node
-  
+
 ```
 aws ec2 describe-instances --filters 'Name=private-dns-name,Values=ip-172-20-127-140.eu-west-2.compute.internal'
 ```
-  
+
 ## Create a one-off job to repeat a cronjob
 
 ```
@@ -171,7 +127,7 @@ fly -t manager hijack -j environments-live/apply-namespace-changes-live
 ```
 
 You'll be presented with a list of containers to choose from.
-  
+
 ## Help when manually deleting AWS resources
 
 Occasionally you'll need to manually delete AWS components. A neat trick is to use the [AWS Tag Editor](https://docs.aws.amazon.com/ARG/latest/userguide/tag-editor.html).
@@ -182,14 +138,14 @@ Occasionally you'll need to manually delete AWS components. A neat trick is to u
 - Use the filter to search for a tag, for example a cluster name: `cp-0909-1202`.
 
 You'll be presented with all resources with your tag associated, click the link to navigate to each resource and delete as appropriate.
-  
+
 ## Find out why your namespace isn't deleting
- 
+
 ```
 kubectl api-resources --verbs=list --namespaced -o name \
 | xargs -n 1 kubectl get --show-kind --ignore-not-found -n <namespace-name>
 ```
-  
+
 It should show you the reason the API doesn't want to delete. For example:
 
 ```
@@ -197,4 +153,4 @@ Error from server: conversion webhook for acme.cert-manager.io/v1alpha2, Kind=Or
 Error from server: conversion webhook for cert-manager.io/v1alpha2, Kind=CertificateRequest failed: Post https://cert-manager-webhook.cert-manager.svc:443/convert?timeout=30s: service "cert-manager-webhook" not found
 Error from server: conversion webhook for cert-manager.io/v1alpha2, Kind=Certificate failed: Post https://cert-manager-webhook.cert-manager.svc:443/convert?timeout=30s: service "cert-manager-webhook" not found
 ```
- 
+
