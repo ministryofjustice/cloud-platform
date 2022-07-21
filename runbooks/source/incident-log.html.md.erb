@@ -39,7 +39,7 @@ weight: 45
 - **Resolution**:
   - AWS internal components have been restarted. AWS say, "The root cause was a latent software race condition that was triggered when some of the health checking instances were restarted. Since the health checking subsystem was unaware of the targets, it did not return a health check status for a specific Availability Zone (AZ) of the NLB...
 
-  We restarted the health checking subsystem, which caused it to refresh the list of targets, after this the NLB was recovered in the impacted AZ."
+  - They (AWS) go onto say, "We restarted the health checking subsystem, which caused it to refresh the list of targets, after this the NLB was recovered in the impacted AZ."
 
 - **Review actions**:
   - Mitigaton tickets raised following a post-incident review: https://github.com/ministryofjustice/cloud-platform/issues?q=is%3Aissue+is%3Aopen+post-aws-incident
