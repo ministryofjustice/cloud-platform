@@ -7,6 +7,43 @@ weight: 45
 
 > Use the [mean-time-to-repair.rb] script to view performance metrics
 
+## Q3 2022 (July-September)
+
+- **Mean Time to Repair**: 6h 27m
+
+- **Mean Time to Resolve**: 6h 27m
+
+### Incident on 2022-07-11 09:33 - Slow performance for 25% of ingress traffic
+
+- **Key events**
+  - First detected 2022-07-11 09:33
+  - Incident declared 2022-07-11 10:11
+  - Repaired 2022-07-11 16:07
+  - Resolved 2022-07-11 16:07
+
+- **Time to repair**: 6h 27m
+
+- **Time to resolve**: 6h 27m
+
+- **Identified**: Users reported in #ask-cloud-platform they're experiencing slow performance of their applications some of the time.
+
+- **Impact**: Slow performance of 25% of ingress traffic
+
+- **Context**:
+  - Following an AWS incident the day before, one of three network interfaces on the 'default' ingress controllers were experiencing slow performance.
+  - AWS claim, "the health checking subsystem did not correctly detect some of your targets as unhealthy, which resulted in clients timing out when they attempted to connect to one of your Network Load Balancer (NLB) Elastic IP's (EIPs)."
+  - AWS go onto say, "The Networkd Load Balancer (NLB) has a health checking subsystem that checks the health of each target, and if a target is detected as unhealthy it is removed from service. During this issue, the health checking subsystem was unaware of the health status of your the targets in one of the Availability Zones (AZ)."
+  - Timeline: [timeline](https://docs.google.com/document/d/1QR31_9Ga_LdXSzgoFjiemE-jxq5sf59rKj5gAoNTU9E/edit?usp=sharing) for the incident
+  - Slack thread: [#cloud-platform-update](https://mojdt.slack.com/archives/CH6D099DF/p1657531797170269) for the incident
+
+- **Resolution**:
+  - AWS internal components have been restarted. AWS say, "The root cause was a latent software race condition that was triggered when some of the health checking instances were restarted. Since the health checking subsystem was unaware of the targets, it did not return a health check status for a specific Availability Zone (AZ) of the NLB...
+
+  We restarted the health checking subsystem, which caused it to refresh the list of targets, after this the NLB was recovered in the impacted AZ."
+
+- **Review actions**:
+  - Mitigaton tickets raised following a post-incident review: https://github.com/ministryofjustice/cloud-platform/issues?q=is%3Aissue+is%3Aopen+post-aws-incident
+
 ## Q1 2022 (January to March)
 
 - **Mean Time to Repair**: 1h 39m
@@ -100,9 +137,9 @@ weight: 45
 
 - **Time to resolve**: 1h 17m
 
-- **Identified**: Low priority alarms 
+- **Identified**: Low priority alarms
 
-- **Impact**: 
+- **Impact**:
   -  No users reported issues. Impacted only one pod.
 
 - **Context**:
@@ -132,9 +169,9 @@ weight: 45
 
 - **Time to resolve**: 7h 43m
 
-- **Identified**: User reported that they are getting SSL certificate errors when browsing sites which are hosted on Cloud Platform 
+- **Identified**: User reported that they are getting SSL certificate errors when browsing sites which are hosted on Cloud Platform
 
-- **Impact**: 
+- **Impact**:
   -  300 LAA caseworkers and thousands of DOM1 users using CP-based digital services if it was during office hours. They had Firefox as a fallback and no actual reports.
   - Public users - No reports.
 
@@ -151,7 +188,7 @@ weight: 45
   - How would the team escalate a major incident e.g. CP goes down. Runbook page [here](https://runbooks.cloud-platform.service.justice.gov.uk/incident-process.html#3-3-communications-lead)
   - How we can get visibility of ServiceNow service issues for CP-hosted services. Ticket raised [3264](https://github.com/ministryofjustice/cloud-platform/issues/3264)
 
-### Incident on 2021-09-04 22:05 - Pingdom check Prometheus Cloud-Platform - Healthcheck is DOWN 
+### Incident on 2021-09-04 22:05 - Pingdom check Prometheus Cloud-Platform - Healthcheck is DOWN
 
 - **Key events**
   - First detected 2021-09-04 22:05
@@ -165,7 +202,7 @@ weight: 45
 
 - **Identified**: Prometheus Pod restarted several times with error `OOMKilled` causing Prometheus Healthcheck to go down
 
-- **Impact**: 
+- **Impact**:
   - The monitoring system of the cluster was not available
   - All application metrics were lost during that time period
 
@@ -180,7 +217,7 @@ weight: 45
   - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3185) to configure Thanos querier to query data for longer period
   - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3186) to add an alert to check when prometheus container hit 90% resource limit set
   - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3189) to create a grafana dashboard to display queries that take more than 1 minute to complete
-  - Increase the memory limit for Prometheus container to 60Gi[PR #105](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/pull/105) 
+  - Increase the memory limit for Prometheus container to 60Gi[PR #105](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/pull/105)
   - Test Pagerduty settings for weekends of the Cloud Platform on-call person to receive alarm immediately on the phone when a high priority alert is triggered
 
 ### Incident on 2021-07-12 15:24 - All ingress resources using *apps.live-1 domain names stop working
@@ -218,7 +255,7 @@ weight: 45
   - Canary app should have #high-priority-alerts after 2 minutes if it goes down. DONE in [PR #5126](https://github.com/ministryofjustice/cloud-platform-environments/pull/5126)
   - Fix the pipeline: in the [cloud-platform-cli](https://github.com/ministryofjustice/cloud-platform-cli), create an assertion to ensure the cluster name is equal to the terraform workspace name. To prevent the null-resources acting on the wrong cluster. PR exists
   - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3084) to migrate all terraform null_resources within our modules to [terraform kubectl provider](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs)
-  - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3083) to set terraform kubernetes credentials dynamically (at executing time)  
+  - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3083) to set terraform kubernetes credentials dynamically (at executing time)
   - Fix the pipeline: Before the creation of Terraform resources, add a function in the cli to perform a `kubectl context` switch to the correct cluster. PR exists
 
 ## Q2 2021 (April-June)
