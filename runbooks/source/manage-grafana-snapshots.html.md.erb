@@ -30,7 +30,6 @@ Example:
 
 ```
 curl 'https://abc123:abc123@grafana.live.cloud-platform.service.justice.gov.uk/api/dashboard/snapshots'
-
 ```
 
 The output should look something like the below:
@@ -38,7 +37,6 @@ The output should look something like the below:
 ```
 [{"id":1,"name":"my_dashboard","key":"abcdefg123456","orgId":123,"userId":123,"external":false,"externalUrl":"","expires":"2072-07-08T15:19:01Z","created":"2022-07-21T15:19:01Z","updated":"2022-07-21T15:19:01Z"}]
 [{"id":2,"name":"your_dashboard","key":"98765qwerty","orgId":123,"userId":123,"external":false,"externalUrl":"","expires":"2072-07-08T15:19:01Z","created":"2022-07-21T15:19:01Z","updated":"2022-07-21T15:19:01Z"}]
-
 ```
 
 3) Retrieve the `"key":` value of the dashboard you would like to remove.
@@ -47,7 +45,6 @@ The output should look something like the below:
 
 ```
 curl -X DELETE 'https://<admin-id>:<admin_pass>@grafana.live.cloud-platform.service.justice.gov.uk/api/snapshots/<snapshot_key>'
-
 ```
 Example:
 
@@ -59,6 +56,4 @@ The output should look something like the below:
 
 ```
 {"id":1,"message":"Snapshot deleted. It might take an hour before it's cleared from any CDN caches."}
-
 ```
-
