@@ -23,7 +23,7 @@ cloud-platform decode-secret -n monitoring -s prometheus-operator-grafana
 2) Using the admin credentials and the Grafana API, run the following `curl` command to get a list of all the published snapshots:
 
 ```
-curl 'https://<admin-id>:<admin_pass>@grafana.live.cloud-platform.service.justice.gov.uk/api/dashboard/snapshots'
+curl 'https://<admin_id>:<admin_pass>@grafana.live.cloud-platform.service.justice.gov.uk/api/dashboard/snapshots'
 ```
 
 Example:
@@ -44,7 +44,7 @@ The output should look something like the below:
 4) Run the following `curl` command to delete the snapshot:
 
 ```
-curl -X DELETE 'https://<admin-id>:<admin_pass>@grafana.live.cloud-platform.service.justice.gov.uk/api/snapshots/<snapshot_key>'
+curl -X DELETE 'https://<admin_id>:<admin_pass>@grafana.live.cloud-platform.service.justice.gov.uk/api/snapshots/<snapshot_key>'
 ```
 Example:
 
