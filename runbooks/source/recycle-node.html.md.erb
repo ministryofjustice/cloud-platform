@@ -7,7 +7,7 @@ review_in: 3 months
 
 # Recycle-node
 
-The [recycle-node pipeline][recyclenode-pipeline-definition] runs every weekday between 8am and 10am, it executes the [cloud-platform cli][recycle-node-cli] command to replace the oldest worker node by:
+The [recycle-node pipeline][recyclenode-pipeline-definition] runs every day on the `live` and `manager` clusters, it executes the [cloud-platform cli][recycle-node-cli] command to replace the oldest worker node by:
 
 * Cordoning the oldest node
 * Draining the node
@@ -24,14 +24,35 @@ To recycle a given node on the cluster in your current context
 
     cloud-platform cluster recycle-node --name ip-XXX.XX.XX.XX.eu-west-2.compute.internal
 
-The other optional flags are 
+To recycle a node previously cordoned but not drained (this is usually the result of an interruption of failure)
 
-`--kubecfg <string>`: to specify the path of kubeconfig file (default "~/.kube/config")
+example error:
 
-`--debug` : enable debug logging
+```bash
+FATA[0000] node ip-172-20-53-167.eu-west-2.compute.internal is already cordoned, abort  subcommand=recycle-node
+```
+
+    cloud-platform cluster recycle-node --ignore-label
+
+The other optional flags are
+
+```bash
+      --aws-access-key string   aws access key to use
+      --aws-profile string      aws profile to use
+      --aws-region string       aws region to use (default "eu-west-2")
+      --aws-secret-key string   aws secret to use
+      --debug                   enable debug logging
+  -f, --force                   force the pods to drain (default true)
+  -h, --help                    help for recycle-node
+  -i, --ignore-label            whether to ignore the labels on the resource
+      --kubecfg string          path to kubeconfig file (default "/Users/jasonbirchall/.kube/config")
+  -n, --name string             name of the resource to recycle
+      --oldest                  whether to recycle the oldest node
+  -t, --timeout int             amount of time to wait for the drain command to complete (default 360)
+```
 
 For other flags, refer the help with `--help` flag.
 
 
 [recycle-node-cli]: https://github.com/ministryofjustice/cloud-platform-cli/blob/main/pkg/commands/cluster.go
-[recyclenode-pipeline-definition]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/maintenance.yaml#L61
+[recyclenode-pipeline-definition]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/maintenance.yaml#L44
