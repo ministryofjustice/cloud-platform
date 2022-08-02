@@ -1,0 +1,80 @@
+---
+title: Change load balancer alias to the interface IP's in Route53.
+weight: 358
+last_reviewed_on: 2022-08-02
+review_in: 3 months
+---
+
+# <%= current_page.data.title %>
+
+This run book is a recovery action to mitigate slow performance of ingress traffic [incident][performance incident] when an interface fails in an availability zone (AZ), clients time out when they attempt to connect to one of unhealthy NLB EIPs
+
+## Request AWS to restart the health check
+
+AWS confirmed the root cause of the [incident][performance incident] as, “the health checking subsystem did not correctly detect some of your targets as unhealthy, which resulted in clients timing out when they attempted to connect to one of your NLB EIPs". 
+
+AWS mitigated the impact by restarting the health checking service, which caused the target health to be updated appropriately. Cloud-platform team don't have access to restart the health check service, request AWS to restart it for us.
+
+If restarting still has not resolved the issue, look at changing the load balancer alias.
+
+## Change load balancer alias
+
+Steps to change the alias to healthy EIPs
+
+1. Find the NLB EIPs of the ingress host which have a performance issue
+
+For this example, we will use "login.yy-0208-0000.cloud-platform.service.justice.gov.uk"
+
+Get the external load balancer used by the ingress
+
+```bash
+kubectl -n kuberos get ingress kuberos -o=jsonpath="{.items[*]['status.loadBalancer']}" | jq .
+```
+
+Get the EIPs of the external load balancer
+
+```
+host a76b4f2b1811e4f7589eaca69c4a46c5-b700f2aa70780ce3.elb.eu-west-2.amazonaws.com
+
+```
+The output shows the EIPs of the NLB
+
+```
+a76b4f2b1811e4f7589eaca69c4a46c5-b700f2aa70780ce3.elb.eu-west-2.amazonaws.com has address 35.179.65.116
+a76b4f2b1811e4f7589eaca69c4a46c5-b700f2aa70780ce3.elb.eu-west-2.amazonaws.com has address 18.135.71.213
+a76b4f2b1811e4f7589eaca69c4a46c5-b700f2aa70780ce3.elb.eu-west-2.amazonaws.com has address 13.41.209.82
+
+```
+
+2. Find the unhealthy NLB EIP
+
+Now we have all of the information we need to make a cURL call over to the external load balancer EIPs.
+
+Run this on 3 EIPs of the NLB. If everything is working correctly it would return OK. If it return "Timeout", then it is most likely an unhealthy external load balancer EIP.
+
+```
+while :; do (curl -o/dev/null -m1 -k -H 'Host: login.yy-0208-0000.cloud-platform.service.justice.gov.uk' https://35.179.65.116 2>/dev/null && echo "OK") || echo "Timeout" ; sleep 1 ; done
+```
+
+3. Change the load balancer alias to the healthy interface IPs in Route53.
+ 
+In the Route53 section of the AWS console, Find the "A" and "TXT" records of the ingress host in the hosted zone.
+
+```
+login.yy-0208-0000.cloud-platform.service.justice.gov.uk	A	Weighted	100	
+a76b4f2b1811e4f7589eaca69c4a46c5-b700f2aa70780ce3.elb.eu-west-2.amazonaws.com.
+
+_external_dns.login.yy-0208-0000.cloud-platform.service.justice.gov.uk	TXT	Weighted	100	
+"heritage=external-dns,external-dns/owner=yy-0208-0000,external-dns/resource=ingress/kuberos/kuberos"
+```
+
+Edit the route53 TXT record and update the owner, set the incorrect owner field, so external-dns couldn't revert the information in the A record.
+```
+"heritage=external-dns,external-dns/owner=yy-CCCC-BBBB,external-dns/resource=ingress/kuberos/kuberos"
+```
+
+Edit the "A" record and uncheck the alias option, add 2 healthy IP's in the value filed and save the record. Repeat this on all the hosts using the affected NLB.
+
+
+[performance incident]: https://runbooks.cloud-platform.service.justice.gov.uk/incident-log.html#q3-2022-july-september
+
