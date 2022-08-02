@@ -21,7 +21,7 @@ If restarting still has not resolved the issue, look at changing the load balanc
 
 Steps to change the alias to healthy EIPs
 
-1. Find the NLB EIPs of the ingress host which have a performance issue
+1) Find the NLB EIPs of the ingress host which have a performance issue
 
 For this example, we will use "login.yy-0208-0000.cloud-platform.service.justice.gov.uk"
 
@@ -35,18 +35,17 @@ Get the EIPs of the external load balancer
 
 ```
 host a76b4f2b1811e4f7589eaca69c4a46c5-b700f2aa70780ce3.elb.eu-west-2.amazonaws.com
-
 ```
+
 The output shows the EIPs of the NLB
 
 ```
 a76b4f2b1811e4f7589eaca69c4a46c5-b700f2aa70780ce3.elb.eu-west-2.amazonaws.com has address 35.179.65.116
 a76b4f2b1811e4f7589eaca69c4a46c5-b700f2aa70780ce3.elb.eu-west-2.amazonaws.com has address 18.135.71.213
 a76b4f2b1811e4f7589eaca69c4a46c5-b700f2aa70780ce3.elb.eu-west-2.amazonaws.com has address 13.41.209.82
-
 ```
 
-2. Find the unhealthy NLB EIP
+2) Find the unhealthy NLB EIP
 
 Now we have all of the information we need to make a cURL call over to the external load balancer EIPs.
 
@@ -56,7 +55,7 @@ Run this on 3 EIPs of the NLB. If everything is working correctly it would retur
 while :; do (curl -o/dev/null -m1 -k -H 'Host: login.yy-0208-0000.cloud-platform.service.justice.gov.uk' https://35.179.65.116 2>/dev/null && echo "OK") || echo "Timeout" ; sleep 1 ; done
 ```
 
-3. Change the load balancer alias to the healthy interface IPs in Route53.
+3) Change the load balancer alias to the healthy interface IPs in Route53.
  
 In the Route53 section of the AWS console, Find the "A" and "TXT" records of the ingress host in the hosted zone.
 
