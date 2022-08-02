@@ -1,76 +1,88 @@
-# Ministry of Justice Cloud Platform Master Repo
+# Ministry of Justice Cloud Platform
 
-## About this Repository
-This is the MoJ Cloud Platform team's repository for public facing
-documentation, feature work, enhancements, and issues. ZenHub users can add issues
-through GitHub Issues or directly on our [ZenHub
-board](https://app.zenhub.com/workspaces/cloud-platform-team-5ccb0b8a81f66118c983c189/board)
+## About this repository
 
-It's best to search our board before adding new Issues in an effort to
-reduce duplicates and encourage activity on existing conversations.
+This is the Ministry of Justice (MOJ) Cloud Platform team's repository for public facing documentation, feature work, enhancements, and issues.
 
-## Links
+The Cloud Platform team utilises [GitHub issues](https://github.com/ministryofjustice/cloud-platform/issues) to manage their work, and a team [ZenHub board](https://app.zenhub.com/workspaces/cloud-platform-team-5ccb0b8a81f66118c983c189/board) to surface GitHub issues into a product management board.
 
- * [Architecture Decision Records](architecture-decision-record)
- * [Runbooks]
- * [User Guide]
+It's best to search our [GitHub issues](https://github.com/ministryofjustice/cloud-platform/issues) before adding new issues in an effort to reduce duplicates and encourage activity through existing conversations.
 
-## Cloud platform repo list
+### Link checker
 
-We have a series of repositories for our work that we have listed below. We have adopted the naming convention of starting each repo with `cloud-platform-`. Where some repos have a similar purpose we try to name them similarly, (e.g. `cloud-platform-terraform-*` for terraform modules). We also try to [name things](https://technical-guidance.service.justice.gov.uk/documentation/standards/naming-things.html#naming-things) so that users can infer a basic understanding of what a given thing does from its name.
+This repository has a GitHub action that checks all links in `*.md` files and creates a GitHub issue if the link returns a non-200 status code. If you have a link that doesn't resolve through the public internet (e.g. `127.0.0.1`, `localhost`, or other internal links), please update the `.ignore-links` file including the fully-qualified domain name (FQDN).
 
-## Our core repos
+## Other Cloud Platform repositories
 
-| Name            | Link          | Description         |
-|-----------------|---------------|---------------------|
-| Cloud Platform   | https://github.com/ministryofjustice/cloud-platform  | MoJ Cloud Platform team's repository for public facing documentation, feature work, enhancements, and issues.  |
-| Cloud Platform Concourse  | https://github.com/ministryofjustice/cloud-platform-concourse  | Concourse CI for cloud platform Kubernetes clusters.  |
-| Cloud Platform Environments  | https://github.com/ministryofjustice/cloud-platform-environments  | Create environments in the Cloud Platform by adding your environment definition to this repo.  |
-| Cloud Platform Infrastructure   | https://github.com/ministryofjustice/cloud-platform-infrastructure  | Contains all infrastructure as code to create a Cloud Platform cluster. |
-| Cloud Platform User Guide | https://github.com/ministryofjustice/cloud-platform-user-guide  | The [documentation](https://user-guide.cloud-platform.service.justice.gov.uk) for users of the Ministry of Justice Cloud Platform. It explains how to deploy and run applications on the Cloud Platform.  |
+We have a series of repositories for our work. We have adopted the naming convention of naming each repository starting with `cloud-platform-*`. Where some repositories have similar purposes, we try to follow a common prefix (e.g. `cloud-platform-terraform-*` for Terraform modules). We also [name things](https://technical-guidance.service.justice.gov.uk/documentation/standards/naming-things.html#naming-things) so that users can understand what a repository does through its name.
 
-## Terraform modules
+### Core
 
-| Name            | Link          | Description         |
-|-----------------|---------------|---------------------|
-| Amazon MQ broker | https://github.com/ministryofjustice/cloud-platform-terraform-amq-broker | AWS MQ broker instance and credentials for the Cloud Platform |
-| Bastion | https://github.com/ministryofjustice/cloud-platform-terraform-bastion | A Terraform module to create a bastion inside an existing VPC |
-| CertManager | https://github.com/ministryofjustice/cloud-platform-terraform-certmanager | Terraform module that deploys cloud-platform certmanager among another resources (like Ingress) |
-| DynamoDB cluster | https://github.com/ministryofjustice/cloud-platform-terraform-dynamodb-cluster | A Terraform module to create a DynamoDB instance and IAM credentials, with optional autoscaling. |
-| ECR credentials  | https://github.com/ministryofjustice/cloud-platform-terraform-ecr-credentials | Terraform module which creates ECR credentials and repository on AWS. |
-| Elasticsearch cluster | https://github.com/ministryofjustice/cloud-platform-terraform-elasticsearch | A Terraform module to create a VPC based Elasticsearch cluster and Kibana dashboard along with a HTTP Proxy to access it. |
-| Elaticache cluster | https://github.com/ministryofjustice/cloud-platform-terraform-elasticache-cluster | A Terraform module that users can create an ElastiCache cluster |
-| Ingress controller | https://github.com/ministryofjustice/cloud-platform-terraform-ingress-controller | A Terraform module  that deploys cloud-platform ingress controllers among another resources (like certificates) |
-| Logging | https://github.com/ministryofjustice/cloud-platform-terraform-logging | Terraform module that deploys cloud-platform logging solution. It includes components like: fluentd, eventrouter, circle-ci-stats |
-| Monitoring | https://github.com/ministryofjustice/cloud-platform-terraform-monitoring | Terraform module that deploys cloud-platform monitoring solution. It has support for components like: proxy, thanos, cloudwatch datasource for grafana, side-car, ecr-exporter |
-| RDS Aurora Cluster | https://github.com/ministryofjustice/cloud-platform-terraform-rds-aurora | Terraform module that will create an RDS Aurora Cluster, Primary DB Instance, KMS key, Database Subnet Group and credentials in AWS. |
-| RDS instance | https://github.com/ministryofjustice/cloud-platform-terraform-rds-instance | Terraform module that will create an RDS instance, KMS key, Database Subnet Group and credentials in AWS. |
-| S3 bucket |  https://github.com/ministryofjustice/cloud-platform-terraform-s3-bucket | Terraform module that will create an S3 bucket and credentials in AWS. |
-| SNS topic |  https://github.com/ministryofjustice/cloud-platform-terraform-sns-topic | A Terraform module to create an SNS Topic in AWS, along with an IAM User to access it. |
-| SQS resource |  https://github.com/ministryofjustice/cloud-platform-terraform-sqs | A Terraform module to provision SQS resources to the Cloud Platform. |
-| ServiceAccount | https://github.com/ministryofjustice/cloud-platform-terraform-serviceaccount | Create a serviceaccount in a Cloud Platform namespace. |
+| Name | Description |
+|-|-|
+| [Cloud Platform (this repository)](https://github.com/ministryofjustice/cloud-platform) | Public facing documentation, feature work, enhancements, and issues |
+| [Cloud Platform environments](https://github.com/ministryofjustice/cloud-platform-environments) | User-created environments that are hosted on the Cloud Platform |
+| [Cloud Platform infrastructure](https://github.com/ministryofjustice/cloud-platform-infrastructure) | Core infrastructure for the Cloud Platform |
+| [Cloud Platform user guide](https://github.com/ministryofjustice/cloud-platform-user-guide) | User-focussed documentation for how to get started and use the Cloud Platform |
 
-## Other repos
+### Terraform modules
 
-| Name            | Link          | Description         |
-|-----------------|---------------|---------------------|
-| Cloud Platform Multi Container App | https://github.com/ministryofjustice/cloud-platform-multi-container-demo-app | A demo application featuring multiple components, for use in a deployment tutorial
-| Cloud Platform Tools Image | https://github.com/ministryofjustice/cloud-platform-tools-image | Docker image containing all the tooling used by pipelines. |
-| Reference App   | https://github.com/ministryofjustice/cloud-platform-reference-app  | A reference application to follow along with the cloud platform [user guide](https://ministryofjustice.github.io/cloud-platform-user-docs/#cloud-platform-user-guide). |
-| Helloworld Ruby App | https://github.com/ministryofjustice/cloud-platform-helloworld-ruby-app | Minimal containerised hello world ruby application, to use as an example in the user docs. |
-| Port-fowarding Image | https://github.com/ministryofjustice/cloud-platform-port-forward-docker-image | Small Docker image to forward network traffic as a non-root user, as described in the [RDS module instructions][rds-port-forward] |
-| CircleCI Stats | https://github.com/ministryofjustice/cloud-platform-circleci-stats | Log CircleCI build and queue times to our Elasticsearch cluster |
-| Environments Checker | https://github.com/ministryofjustice/cloud-platform-environments-checker | Code to find and delete 'orphaned' cluster namespaces, with no source code in the [environments repository], and their AWS resources. |
-| Custom error pages | https://github.com/ministryofjustice/cloud-platform-custom-error-pages | Docker image which serves custom error pages (e.g. for 404 errors) |
-| Namespace usage report | https://github.com/ministryofjustice/cloud-platform-namespace-usage-report | Web application to show cluster namespace usage charts |
-| Helm Chart Repository | https://github.com/ministryofjustice/cloud-platform-helm-charts | Helm Chart repository to store internal helm charts used by the platform  |
-| Kuberos | https://github.com/ministryofjustice/cloud-platform-kuberos | Kuberos fork that Cloud Platform team maintain |
+#### User-facing
 
-## Link checker
+| Name | Description |
+|-|-|
+| [Amazon MQ broker](https://github.com/ministryofjustice/cloud-platform-terraform-amq-broker) | Creates an Amazon MQ broker |
+| [Database Migration Service (DMS)](https://github.com/ministryofjustice/cloud-platform-terraform-dms) | Creates a DMS replication instance to move data from another database to one inside Cloud Platform |
+| [DynamoDB cluster](https://github.com/ministryofjustice/cloud-platform-terraform-dynamodb-cluster) | Creates a simple (i.e. non-global) DynamoDB cluster |
+| [ECR credentials](https://github.com/ministryofjustice/cloud-platform-terraform-ecr-credentials) | Creates an ECR repository and associated IAM credentials |
+| [ElastiCache cluster](https://github.com/ministryofjustice/cloud-platform-terraform-elasticache-cluster) | Creates an ElastiCache cluster |
+| [ElasticSearch cluster](https://github.com/ministryofjustice/cloud-platform-terraform-elasticsearch) | Creates an ElasticSearch cluster |
+| [GOV.UK Prototype](https://github.com/ministryofjustice/cloud-platform-terraform-github-prototype) | Creates the associated infrastructure to host a [GOV.UK Prototype](https://govuk-prototype-kit.herokuapp.com/docs) on Cloud Platform |
+| [Kubernetes: IAM roles for service accounts (IRSA)](https://github.com/ministryofjustice/cloud-platform-terraform-irsa) | Creates an IAM role for a Kubernetes service account |
+| [Kubernetes: service account](https://github.com/ministryofjustice/cloud-platform-terraform-serviceaccount) | Creates a Kubernetes service account, role, and rolebinding within a namespace|
+| [Prometheus Pushgateway](https://github.com/ministryofjustice/cloud-platform-terraform-pushgateway) | Creates a [Prometheus Pushgateway](https://prometheus.io/docs/instrumenting/pushing/) |
+| [RDS Aurora cluster](https://github.com/ministryofjustice/cloud-platform-terraform-rds-aurora) | Creates an RDS Aurora cluster |
+| [RDS instance](https://github.com/ministryofjustice/cloud-platform-terraform-rds-instance) | Creates an RDS instance |
+| [S3 bucket](https://github.com/ministryofjustice/cloud-platform-terraform-s3-bucket) | Creates an S3 bucket |
+| [SNS topic](https://github.com/ministryofjustice/cloud-platform-terraform-sns-topic) | Creates an SNS topic |
+| [SQS queue](https://github.com/ministryofjustice/cloud-platform-terraform-sqs) | Creates an SQS queue |
 
-This repository has a GitHub Action that checks all links in `*.md` files and creates an issue if the link returns 404 or 5xx or similar. If you have a link that doesn't resolve, please update the `.ignore-links` file containing the full FQDN.
+#### Team-facing
 
-[rds-port-forward]: https://github.com/ministryofjustice/cloud-platform-terraform-rds-instance#access-outside-the-cluster
-[environments repository]: https://github.com/ministryofjustice/cloud-platform-environments
-[Runbooks]: https://runbooks.cloud-platform.service.justice.gov.uk
-[User Guide]: https://user-guide.cloud-platform.service.justice.gov.uk
+| Name | Description |
+|-|-|
+| [Bastion](https://github.com/ministryofjustice/cloud-platform-terraform-bastion) | Deploys a bastion instance |
+| [CertManager](https://github.com/ministryofjustice/cloud-platform-terraform-certmanager) | Deploys [certmanager](https://cert-manager.io/v0.12-docs/installation/kubernetes/) for automated TLS certificates |
+| [Concourse](https://github.com/ministryofjustice/cloud-platform-terraform-concourse) | Deploys [ConcourseCI](https://concourse-ci.org/) within a Kubernetes cluster |
+| [Ingress controller](https://github.com/ministryofjustice/cloud-platform-terraform-ingress-controller) | Deploys an [NGINX ingress controller](https://github.com/kubernetes/ingress-nginx) |
+| [Logging](https://github.com/ministryofjustice/cloud-platform-terraform-logging) | Deploys standard logging tools such as [fluentbit](https://fluentbit.io/), etc. |
+| [Monitoring](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring) | Deploys standard monitoring tools such as [AlertManager](https://prometheus.io/docs/alerting/latest/alertmanager/), exporters, etc. |
+
+### Other
+
+#### Demonstration and reference applications
+
+| Name | Description |
+|-|-|
+| [Multi-container app](https://github.com/ministryofjustice/cloud-platform-multi-container-demo-app) | Reference application for multi-container services |
+| [Go app](https://github.com/ministryofjustice/cloud-platform-reference-app) | Reference application written in Go |
+| [Ruby app](https://github.com/ministryofjustice/cloud-platform-helloworld-ruby-app) | Reference application written in Ruby |
+
+#### Miscelleanous
+
+| Name | Description |
+|-|-|
+| [Custom error pages](https://github.com/ministryofjustice/cloud-platform-custom-error-pages) | Customised error pages for uncaught routes |
+| [Environments checker](https://github.com/ministryofjustice/cloud-platform-environments-checker) | Detects orphaned namespaces and AWS resources |
+| [Helm charts](https://github.com/ministryofjustice/cloud-platform-helm-charts) | Custom Cloud Platform helm charts |
+| [Kuberos](https://github.com/ministryofjustice/cloud-platform-kuberos) | A fork of [original Kuberos](https://github.com/negz/kuberos), managed by Cloud Platform |
+| [Tools image](https://github.com/ministryofjustice/cloud-platform-tools-image) | Docker image containing tools used by pipelines |
+
+
+## Useful links
+
+It may be useful to look at:
+
+- [Architecture Decision Records (ADRs) for the Cloud Platform](architecture-decision-record)
+- [Cloud Platform internal runbooks](https://runbooks.cloud-platform.service.justice.gov.uk)
+- [Cloud Platform user guide](https://user-guide.cloud-platform.service.justice.gov.uk)
