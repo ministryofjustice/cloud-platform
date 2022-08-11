@@ -1,17 +1,17 @@
 ---
 title: Export data from AWS Elasticsearch into a CSV file
 weight: 190
-last_reviewed_on: 2022-08-10
+last_reviewed_on: 2022-08-11
 review_in: 3 months
 ---
 
 # Export data from Elasticsearch into a CSV file
 
-This runbook aims to guide you through exporting data from Elasticsearch into a CSV file. 
+This runbook aims to guide you through exporting data from Elasticsearch into a CSV file.
 
 The CSV Export feature in Kibana is a proprietary feature of Elasticsearch that requires X-Pack to be configured and installed in our Elasticsearch cluster which is not provided and supported in the Elasticsearch that is offered by AWS.
 
-##  Workaround 
+##  Workaround
 
 The workaround, is using [es2csv](https://github.com/gboddin/es2csv), which is a third party tool that saves the search result to a CSV file. Please refer this [blog page](https://www.skedler.com/blog/the-best-tools-for-exporting-elasticsearch-data-to-csv/) for more information.
 
