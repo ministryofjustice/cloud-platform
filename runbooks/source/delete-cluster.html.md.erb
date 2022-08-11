@@ -1,7 +1,7 @@
 ---
 title: Delete a cluster
 weight: 55
-last_reviewed_on: 2022-05-06
+last_reviewed_on: 2022-08-11
 review_in: 3 months
 ---
 
@@ -11,7 +11,6 @@ To delete a cluster you must first export the following:
 
 ```
 $ export AWS_PROFILE=moj-cp
-$ export KOPS_STATE_STORE=s3://cloud-platform-kops-state
 ```
 
 Start from the root directory of a working copy of the [infrastructure repo].
@@ -56,8 +55,8 @@ First, cd to the working copy of the concourse [pipelines repo][pipelines repo].
 
 * In the create-test-destroy pipeline definition, literally add CLUSTER_NAME [var][concourse-vars], under params as below:
   ```
-  params: 
-      CLUSTER_NAME: ((CLUSTER_NAME)) 
+  params:
+      CLUSTER_NAME: ((CLUSTER_NAME))
   ```
   We will specify the CLUSTER_NAME value using --var NAME=VALUE in the later step, when we run the fly command to set_pipeline.
 
@@ -82,66 +81,7 @@ Note: After the destroy-cluster job completed sucessfully, run the [bootstrap pi
 ```
 fly -t manager trigger-job -j bootstrap/bootstrap-pipelines
 ```
-
-## Delete the cluster manually
-
-In case you prefer not to use the [destroy-cluster.rb] script, these are the individual steps to follow, to delete the cluster "by hand"
-
-First, set the kubectl context for the cluster you are deleting. The easiest way to do this is with kops. e.g:
-
-```
-$ kops export kubecfg david-test1.cloud-platform.service.justice.gov.uk
-```
-
-You should see this output:
-
-```
-kops has set your kubectl context to david-test1.cloud-platform.service.justice.gov.uk
-```
-
-Then, from the components directory, run these commands to destroy all cluster components, and delete the terraform workspace.
-
-```
-$ cd terraform/aws-accounts/cloud-platform-aws/vpc/kops/components
-$ terraform init
-$ terraform workspace select <clusterName e.g. cloud-platform-test-3>
-$ terraform destroy -target helm_release.prometheus_operator # delete first, to avoid conflicts later
-$ terraform destroy
-$ terraform workspace select default
-$ terraform workspace delete <clusterName>
-```
-
-Then run the following `kops` command (this will not delete the cluster).
-
-Append it with `--yes` to confirm deletion.
-
-```
-$ kops delete cluster --name <clusterName>.cloud-platform.service.justice.gov.uk
-```
-
-Change directories and perform the following to destroy the cluster essentials, and delete the terraform workspace.
-
-```
-$ cd .. # working dir is now `kops`
-$ terraform init
-$ terraform workspace select <clusterName e.g. cloud-platform-test-3>
-$ terraform destroy
-$ terraform workspace select default
-$ terraform workspace delete <clusterName>
-```
-
-Change directories and perform the following to destroy the cluster VPC, and delete the terraform workspace.
-
-```
-$ cd .. # working dir is now `vpc`
-$ terraform init
-$ terraform workspace select <clusterName e.g. cloud-platform-test-3>
-$ terraform destroy
-$ terraform workspace select default
-$ terraform workspace delete <clusterName>
-```
-
-## Delete an EKS cluster
+## Delete an EKS cluster manually
 
 The steps can be found here - [Delete an EKS Cluster]
 
