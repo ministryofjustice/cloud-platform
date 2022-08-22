@@ -32,9 +32,9 @@ You'll need to manually create a new release on GitHub.
 
 ## Upgrading a user component in environments
 
-The [cloud-platform-environments] repository contains the namespaces for all production and non-production environments. All namespaces should contain the latest version of the modules you've changed. This is tricky to do manually, so we recommend using the [cloud-platform-cli] tool.
+The [cloud-platform-environments-repo] repository contains the namespaces for all production and non-production environments. All namespaces should contain the latest version of the modules you've changed. This is tricky to do manually, so we recommend using the [cloud-platform-cli] tool.
 
-Clone the [cloud-platform-environments] repository branch off main. Run the following command:
+Clone the repository and branch off main. Run the following command:
 
 ```bash
 cloud-platform environments bump-module --module <module-name> --module-version <version>
@@ -48,6 +48,7 @@ cloud-platform bump-module --module serviceaccount --module-version 0.5.0
 
 The CLI will make changes to the local copy of the repository. It's your responsibility to commit these changes to your branch.
 
-It's recommended that you PR any non-production namespaces before production. A Terraform plan will be generated for each namespace and you can review the impact on non-prod changes before prod. Ideally your change will have very little disruption(i.e. no downtime), but sometimes this is not possible. Any destroys/outages should be communicated to users.
+It's recommended that you PR any non-production namespaces before production. A terraform plan will be generated for each namespace and you can review the impact on non-prod changes before prod. Ideally your change will have very little disruption(i.e. no downtime), but sometimes this is not possible. Any destroys/outages should be communicated to users.
 
 [cloud-platform-environments-repo]: https://github.com/ministryofjustice/cloud-platform-environments
+[cloud-platform-cli]: https://github.com/ministryofjustice/cloud-platform-cli
