@@ -22,12 +22,10 @@ import (
 
 func main() {
 	var (
-		dir  string
-		repo string
-		fix  bool
+		dir string
+		fix bool
 	)
 	flag.StringVar(&dir, "dir", ".", "The directory to search for documents")
-	flag.StringVar(&repo, "repo", "cloud-platform", "The root repository to search for documents")
 	flag.BoolVar(&fix, "fix", false, "Set the out of date documents to todays date")
 	flag.Parse()
 
@@ -58,8 +56,6 @@ func main() {
 }
 
 func setLastReviewedOn(filePath string) error {
-	// Set the last_reviewed_on date to today.
-	// read the whole file at once
 	b, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return err
@@ -88,8 +84,6 @@ func parseTime(timeString string) (time.Time, error) {
 }
 
 func needsReview(filePath, threeMonthsAgo string) (bool, error) {
-	// Date three months ago.
-	// Grab the last_reviewed_on date from the document.
 	lastReviewedOn, err := lastReviewedOn(filePath)
 	if err != nil {
 		return false, errors.Wrap(err, "unable to get last_reviewed_on")
@@ -141,7 +135,6 @@ func contains(slice []string, item string) bool {
 }
 
 func allDocuments(dir string) ([]string, error) {
-	// documents is a map of document names and dates to review them by.
 	ignored := []string{
 		"incident-log.html.md.erb",
 		"index.html.md.erb",
