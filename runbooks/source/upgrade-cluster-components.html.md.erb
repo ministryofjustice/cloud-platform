@@ -1,7 +1,7 @@
 ---
 title: Upgrade cluster components
 weight: 54
-last_reviewed_on: 2022-05-17
+last_reviewed_on: 2022-09-02
 review_in: 3 months
 ---
 
@@ -56,31 +56,14 @@ aws eks --region eu-west-2 update-kubeconfig --name <cluster-name>
 
 ### Run the integration tests
 
- This is the ensure the test cluster doesnot have any existing issues and ready to use
- 
- To run ruby tests:
+This will ensure the test cluster does not have any existing issues and is ready to use.
 
-```
-cd smoke-tests
-bundle binstubs bundler --force --path /usr/local/bin
-bundle binstubs rspec-core --path /usr/local/bin
-```
+ To run Go tests:
 
 ```bash
-rspec --tag ~live-1 --tag ~kops --format progress --format documentation
+make run-tests
 ```
 
- To run golang tests:
- 
- - Update the golang config to use test cluster name
- 
- ```bash
- export CLUSTER_NAME=<test-cluster-name>
-cat ./tests/config/live.yaml |  sed -e "s/clusterName: 'live.cloud-platform.service.justice.gov.uk'/clusterName: '$CLUSTER_NAME.cloud-platform.service.justice.gov.uk'/g" > /tmp/$CLUSTER_NAME.yaml
-cd ./tests/e2e;
-go test -v -ginkgo.slowSpecThreshold=120 -config /tmp/$CLUSTER_NAME.yaml
- ```
- 
 ### Testing the upgrade
 
   1. Make the changes required to the module. For example, for upgrading the cert-manager, change the [cert-manager terraform module](https://github.com/ministryofjustice/cloud-platform-terraform-certmanager). This might include
