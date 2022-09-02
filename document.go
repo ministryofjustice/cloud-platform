@@ -76,7 +76,7 @@ func setLastReviewedOn(filePath string) error {
 	todaysDate := " " + time.Now().Format("2006-01-02")
 
 	o := bytes.Replace(b, []byte(lastReviewedOn), []byte(todaysDate), 1)
-	err = ioutil.WriteFile(filePath, o, 0644)
+	err = ioutil.WriteFile(filePath, o, 0o644)
 	if err != nil {
 		return errors.Wrap(err, "unable to write file")
 	}
@@ -162,29 +162,9 @@ func allDocuments(dir string) ([]string, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
 
 	return documents, nil
-}
-
-func findTopLevelGitDir(workingDir string) (string, error) {
-	dir, err := filepath.Abs(workingDir)
-	if err != nil {
-		return "", errors.Wrap(err, "invalid working dir")
-	}
-
-	for {
-		if _, err := os.Stat(filepath.Join(dir, ".git")); err == nil {
-			return dir, nil
-		}
-
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			return "", errors.New("no git repository found")
-		}
-		dir = parent
-	}
 }
