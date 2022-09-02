@@ -1,3 +1,9 @@
+// A quick and easy way to review the documentation in the cloud-platform repository.
+// You can execute this using the Go binary, like so:
+// go run document.go --dir sources/docs
+
+// To correct the dates simply add a --fix to the end, like so:
+// go run document.go --dir sources/docs --fix
 package main
 
 import (
@@ -16,20 +22,16 @@ import (
 
 func main() {
 	var (
-		dir string
-		fix bool
+		dir  string
+		repo string
+		fix  bool
 	)
-	flag.StringVar(&dir, "dir", "runbooks/source", "The directory to search for documents")
+	flag.StringVar(&dir, "dir", ".", "The directory to search for documents")
+	flag.StringVar(&repo, "repo", "cloud-platform", "The root repository to search for documents")
 	flag.BoolVar(&fix, "fix", false, "Set the out of date documents to todays date")
 	flag.Parse()
 
 	threeMonthsAgo := time.Now().AddDate(0, -3, 0).Format("2006-01-02")
-
-	err := checkWorkingDir(dir)
-	if err != nil {
-		// Hard error if the user executes from the wrong directory.
-		log.Fatalln(err)
-	}
 
 	// Grab all documents needed to review.
 	docs, err := allDocuments(dir)
@@ -70,26 +72,15 @@ func setLastReviewedOn(filePath string) error {
 		return errors.Wrap(err, "unable to get last_reviewed_on")
 	}
 
-	o := bytes.Replace(b, []byte(lastReviewedOn), []byte(time.Now().Format("2006-01-02")), 1)
+	// We have to crowbar a space to make the date valid.
+	todaysDate := " " + time.Now().Format("2006-01-02")
+
+	o := bytes.Replace(b, []byte(lastReviewedOn), []byte(todaysDate), 1)
 	err = ioutil.WriteFile(filePath, o, 0644)
 	if err != nil {
 		return errors.Wrap(err, "unable to write file")
 	}
 
-	return nil
-}
-
-func checkWorkingDir(workingDir string) error {
-	// Am I in the `cloud-platform` directory?
-	const expectedDir = "cloud-platform"
-	repo, err := findTopLevelGitDir("./")
-	if err != nil {
-		return fmt.Errorf("unable to get the repository name, %e", err)
-	}
-
-	if !strings.Contains(repo, expectedDir) {
-		return fmt.Errorf("you must execute in the %s repoa, %e", expectedDir, err)
-	}
 	return nil
 }
 
