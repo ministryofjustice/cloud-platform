@@ -39,22 +39,20 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	if fix {
-		for _, doc := range docs {
-			err := setLastReviewedOn(doc)
-			if err != nil {
-				log.Fatalln(err)
-			}
+	for _, doc := range docs {
+		needsReview, err := needsReview(doc, threeMonthsAgo)
+		if err != nil {
+			log.Printf("Unable to check if document: %s needs review %s\n", doc, err)
 		}
-	} else {
-		for _, doc := range docs {
-			needsReview, err := needsReview(doc, threeMonthsAgo)
-			if err != nil {
-				log.Printf("Unable to check if document: %s needs review %s\n", doc, err)
+		if needsReview {
+			if fix {
+				err := setLastReviewedOn(doc)
+				if err != nil {
+					log.Println(err)
+				}
+				continue
 			}
-			if needsReview {
-				fmt.Println(doc)
-			}
+			fmt.Println(doc)
 		}
 	}
 }
