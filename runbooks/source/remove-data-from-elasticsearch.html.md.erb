@@ -1,7 +1,7 @@
 ---
 title: Remove data from Elasticsearch
 weight: 190
-last_reviewed_on: 2022-06-17
+last_reviewed_on: 2022-09-06
 review_in: 3 months
 ---
 
@@ -29,6 +29,27 @@ If you want your query to cover all log data stored in the Elasticsearch cluster
 Although it is possible to delete a whole index with a curator job, this guide will only cover the deletion of specific documents.
 
 > Running `curl` queries has to be done from within the live-1 VPC
+
+## Get yourself access
+
+Since https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/1852, `delete` operations are blocked, to enable temporarily for this operation, add your IP to the "Security configuration" policy, eg
+```
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "es:*",
+      "Resource": "arn:aws:es:eu-west-2:123456789012:domain/cloud-platform-live/*",
+      "Condition": {
+        "IpAddress": {
+          "aws:SourceIp": "1.2.3.4"
+        }
+      }
+    }
+```
+then, access Kibana from the direct link not via the OIDC proxy.
 
 ## Build your query
 
