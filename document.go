@@ -16,8 +16,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 func main() {
@@ -63,7 +61,7 @@ func setLastReviewedOn(filePath string) error {
 
 	lastReviewedOn, err := lastReviewedOn(filePath)
 	if err != nil {
-		return errors.Wrap(err, "unable to get last_reviewed_on")
+		return fmt.Errorf("unable to get last_reviewed_on: %w", err)
 	}
 
 	// We have to crowbar a space to make the date valid.
@@ -72,7 +70,7 @@ func setLastReviewedOn(filePath string) error {
 	o := bytes.Replace(b, []byte(lastReviewedOn), []byte(todaysDate), 1)
 	err = ioutil.WriteFile(filePath, o, 0o644)
 	if err != nil {
-		return errors.Wrap(err, "unable to write file")
+		return fmt.Errorf("unable to write file: %w", err)
 	}
 
 	return nil
@@ -86,7 +84,7 @@ func parseTime(timeString string) (time.Time, error) {
 func needsReview(filePath, threeMonthsAgo string) (bool, error) {
 	lastReviewedOn, err := lastReviewedOn(filePath)
 	if err != nil {
-		return false, errors.Wrap(err, "unable to get last_reviewed_on")
+		return false, fmt.Errorf("unable to get last_reviewed_on: %w", err)
 	}
 	// Compare the last_reviewed_on date to the threeMonthsAgo date.
 	lastReviewedOnTime, err := parseTime(lastReviewedOn)
@@ -108,9 +106,9 @@ func needsReview(filePath, threeMonthsAgo string) (bool, error) {
 func lastReviewedOn(filePath string) (string, error) {
 	// Grab the last_reviewed_on date from the document.
 	// read the whole file at once
-	b, err := ioutil.ReadFile(filePath)
+	b, err := os.ReadFile(filePath)
 	if err != nil {
-		return "", errors.Wrap(err, "unable to read file")
+		return "", fmt.Errorf("unable to read file: %w", err)
 	}
 
 	lines := strings.Split(string(b), "\n")
@@ -120,7 +118,7 @@ func lastReviewedOn(filePath string) (string, error) {
 		}
 	}
 	// find the last_reviewed_on date
-	return "", errors.New("unable to find last_reviewed_on")
+	return "", fmt.Errorf("unable to find last_reviewed_on in file: %s", filePath)
 }
 
 func contains(slice []string, item string) bool {
