@@ -154,3 +154,24 @@ Error from server: conversion webhook for cert-manager.io/v1alpha2, Kind=Certifi
 Error from server: conversion webhook for cert-manager.io/v1alpha2, Kind=Certificate failed: Post https://cert-manager-webhook.cert-manager.svc:443/convert?timeout=30s: service "cert-manager-webhook" not found
 ```
 
+##  Modsec false positives
+
+When a genuine transaction causes a rule from the Core Rule Set to match in error it is described as a false positive. The [OWASP](https://coreruleset.org/faq/) rules are enabled on the ingress-controller level on the dedicated ModSec ingress-controller.
+The common problem with standard OWASP (CRS) is that it gives some [false positive][false-positive] results. The SQL Injection rules in particular are very prone to over alerting, open (issue)[https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/794] related to sql injection.
+
+Every rule which is defined in the Core Rule Set (CRS) is identified by the ID. False positive rule ID's can be disabled using the example below.
+
+```
+  annotations:
+    nginx.ingress.kubernetes.io/enable-modsecurity: "true"
+    nginx.ingress.kubernetes.io/modsecurity-snippet: |
+      SecRuleEngine On
+      SecRuleRemoveById 111111
+```
+
+Some of the common issues and rules are given [here][common-rule-issue]
+
+Note: Turning off these rules completely will reduce the effectiveness of ModSecurity, so users should not use same SecRuleRemoveById's across applications, and before turning off any rules, users should make sure the exceptions apply to their particular use case.
+
+[false-positive]: https://coreruleset.org/docs/concepts/false_positives_tuning/
+[common-rule-issue]: https://stackoverflow.com/questions/33989273/modsecurity-excessive-false-positives/34027786#34027786
