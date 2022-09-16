@@ -4,7 +4,7 @@ Date: 2021-05-11
 
 ## Status
 
-🤔 Proposed
+⌛️ Superseded by [036. Multi-cluster](036-multi-cluster.md)
 
 ## What’s proposed
 
