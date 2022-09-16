@@ -22,7 +22,7 @@ However, outside of service teams applications; the Cloud Platform does already 
 
 The Cloud Platform team's use of EKS has matured and usage of the EKS-based cluster has grown since April from 409 namespaces, to 457 at the time of writing and will continue to grow in the future. Due to this, we believe now is a good time to start separating out workloads into a multi-cluster environment, as the nuances and costs of EKS are more widely understood.
 
-It is worth noting that the current cluster (at the time of writing) is not considered a "large cluster" by Kubernetes, which stipulates these considerations for a "large cluster":
+It is worth noting that the current cluster (at the time of writing) is not considered a ["large cluster" by Kubernetes](https://kubernetes.io/docs/setup/best-practices/cluster-large/), which stipulates these considerations for a "large cluster":
 
 - No more than 110 pods per node
 - No more than 5000 nodes
