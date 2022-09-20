@@ -29,7 +29,7 @@ see [ADR-000](000-Record-Architecture-Decisions.md)
 * ❌  [18. Dedicated ingress controllers](018-Dedicated-Ingress-Controllers.md)
 * 🤔  [19. Shared ingress controllers](019-Shared-Ingress-Controllers.md)
 * 🤔  [20. Environments and Pipeline](020-Environments-and-Pipeline.md)
-* 🤔  [21. Multi-cluster](021-Multi-cluster.md)
+* ⌛️  [21. Multi-cluster](021-Multi-cluster.md)
 * ✅  [22. EKS](022-EKS.md)
 * ✅  [23. Logging](023-Logging.md)
 * 🤔  [24. Use SSO for CP Team to access AWS Console](024-SSO-for-CP-Team-to-access-AWS.md)
@@ -43,6 +43,7 @@ see [ADR-000](000-Record-Architecture-Decisions.md)
 * ✅  [33. Manager cluster](033-Manager-cluster.md)
 * 🤔  [34. EKS Fargate](034-EKS-Fargate.md)
 * ✅  [35. Deprecated TLS Versions](035-deprecated-tls-versions.md)
+* ✅  [36. Multi-cluster](036-multi-cluster.md)
 
 ### Statuses:
 
