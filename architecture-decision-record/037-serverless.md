@@ -78,9 +78,15 @@ Based on the above points, we have ❌ rejected the introduction of AWS Lambda/F
 5. As there is appetite in the wider MOJ to explore the use of Functions-as-a-Service, Cloud Platform will periodically review Kubernetes integrations with both AWS Lambda (e.g via [AWS Controllers for Kubernetes](https://aws-controllers-k8s.github.io/community/docs/community/overview/)) and more generic Functions-as-a-Service offerings, such as [OpenFaaS](https://docs.openfaas.com/) and [Knative](https://knative.dev/docs/).
 6. By introducing Functions-as-a-Service (or AWS Lambda) to Cloud Platform, we need to be cognisant and understand how we can treat the underlying infrastructure for it as standard and replaceable; not unique and hand-built.
 
+Further, in March 2022, we conducted user research around the use of serverless and more explicitly, what needs teams across the MOJ are trying to solve with serverless. This research revealed two important points:
+
+- _some_ aspects of serverless are already provided by the team; and adopting a serverless approach won't (by itself) resolve outstanding needs for users, which are already being considered with non-serverless infrastructure
+- further research needs to be taken but in-line with more general approaches rather than focussing on serverless as a solution
+
 ## Consequences
 
 By rejecting introducing AWS Lambda/Functions-as-a-Service to the Cloud Platform, we (the Cloud Platform team):
 
 - are asking teams to continue using more "traditional" methods for building their services, such as containerised, stateless, and meeting the [12 Factor app methodology](https://12factor.net/)
 - will periodicially review Functions-as-a-Service on Kubernetes to see what's happening in the market
+- will carry out further research to meet needs using the best technology to meet user needs, rather than focussing on serverless as a solution
