@@ -44,6 +44,7 @@ see [ADR-000](000-Record-Architecture-Decisions.md)
 * 🤔  [34. EKS Fargate](034-EKS-Fargate.md)
 * ✅  [35. Deprecated TLS Versions](035-deprecated-tls-versions.md)
 * ✅  [36. Multi-cluster](036-multi-cluster.md)
+* ❌  [37. Serverless (Lambda/Functions-as-a-Service)](036-serverless.md)
 
 ### Statuses:
 
