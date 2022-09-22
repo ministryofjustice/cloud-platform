@@ -44,22 +44,28 @@ The widely accepted answer for "what is serverless" is that teams _don't need to
 When people raise serverless usage with the Cloud Platform team, they usually have different reasons for doing so, so it is impossible to list and answer each question separately, so this is limited to the _common_ thoughts on using AWS Lambda/Functions-as-a-Service in the context of Cloud Platform:
 
 1. Cloud Platform is already serverless
-  The Cloud Platform itself is already serverless for users, they don't need to manage the underlying infrastructure or common network configuration between their service and elsewhere.
+
+    The Cloud Platform itself is already serverless for users, they don't need to manage the underlying infrastructure or common network configuration between their service and elsewhere.
 
 2. We can't (currently) provide a good developer experience when using AWS Lambda
-  Cloud Platform provides read-only access to _users_ of the Cloud Platform, to encourage infrastructure-as-code and standardise infrastructure deployment across the MOJ. AWS Lambda functions need to be uploaded often (when changed, for e.g.), and our current pipeline for _infrastructure_ deployment utilises the [cloud-platform-environments](https://github.com/ministryofjustice/cloud-platform-environments) repository, which requires one of the Cloud Platform team to approve for deployment. This can become frustrating for debugging Lambda or initially configuring it.
+
+    Cloud Platform provides read-only access to _users_ of the Cloud Platform, to encourage infrastructure-as-code and standardise infrastructure deployment across the MOJ. AWS Lambda functions need to be uploaded often (when changed, for e.g.), and our current pipeline for _infrastructure_ deployment utilises the [cloud-platform-environments](https://github.com/ministryofjustice/cloud-platform-environments) repository, which requires one of the Cloud Platform team to approve for deployment. This can become frustrating for debugging Lambda or initially configuring it.
 
 3. There is little monetary benefit for using serverless in the context of what Cloud Platform currently hosts
-  Small services running on the Cloud Platform, even if idle, are very cheap to run anyway in the wider context of the Cloud Platform. This cost is also (as with all services running on Cloud Platform) absorbed by the Cloud Platform team.
+
+    Small services running on the Cloud Platform, even if idle, are very cheap to run anyway in the wider context of the Cloud Platform. This cost is also (as with all services running on Cloud Platform) absorbed by the Cloud Platform team.
 
 4. We don't currently have safeguards or common, reusable functionality in place for using Functions-as-a-Service
-  The Cloud Platform currently has out-of-the-box functionality for basic alerting, monitoring, and logging that has been standardised for use across every service that runs on Cloud Platform. However, we would need to start from scratch to implement feature parity for the use of AWS Lambda (and Functions-as-a-Service generally), which can create a derivation in standardisation. This derivation is linked to the risk appetite across several teams, including the service team, Cloud Platform team, and other stakeholders.
+
+    The Cloud Platform currently has out-of-the-box functionality for basic alerting, monitoring, and logging that has been standardised for use across every service that runs on Cloud Platform. However, we would need to start from scratch to implement feature parity for the use of AWS Lambda (and Functions-as-a-Service generally), which can create a derivation in standardisation. This derivation is linked to the risk appetite across several teams, including the service team, Cloud Platform team, and other stakeholders.
 
 5. There is appetite across MOJ teams to explore the use of Functions-as-a-Service
-  It's worth noting that there _is_ growing appetite for teams to start exploring the use of Functions-as-a-Service, and we typically revisit FaaS offerings that can be run on Kubernetes, such as [Kubeless (now archived)](https://github.com/vmware-archive/kubeless), [OpenFaaS](https://docs.openfaas.com/) and [Knative](https://knative.dev/docs/).
+
+    It's worth noting that there _is_ growing appetite for teams to start exploring the use of Functions-as-a-Service, and we typically revisit FaaS offerings that can be run on Kubernetes, such as [Kubeless (now archived)](https://github.com/vmware-archive/kubeless), [OpenFaaS](https://docs.openfaas.com/) and [Knative](https://knative.dev/docs/).
 
 6. We treat all infrastructure _and_ services as standard, not unique
-  Cloud Platform currently treats _all_ provisioned infrastructure for the underlying platforms as standard and replaceable. A typical requirement for a service to run on Cloud Platform is, for example, it to be stateless as per [12FA](https://12factor.net/): so even the _service_ is treated as standard and replaceable. By introducing AWS Lambda (specifically), we start to treat specific services as unique until we hit a tipping point for standardisation of cloud infrastructure and creates divergence both locally (in specific areas of the MOJ) and more generally (across the whole of the MOJ).
+
+    Cloud Platform currently treats _all_ provisioned infrastructure for the underlying platforms as standard and replaceable. A typical requirement for a service to run on Cloud Platform is, for example, it to be stateless as per [12FA](https://12factor.net/): so even the _service_ is treated as standard and replaceable. By introducing AWS Lambda (specifically), we start to treat specific services as unique until we hit a tipping point for standardisation of cloud infrastructure and creates divergence both locally (in specific areas of the MOJ) and more generally (across the whole of the MOJ).
 
 ## Decision
 
