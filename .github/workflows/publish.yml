@@ -40,15 +40,15 @@ jobs:
   deploy:
     needs: build
     uses: JamesIves/github-pages-deploy-action@v4.3.3
-      with:
-        token: ${{ secrets.PUBLISHING_GIT_TOKEN }}
-        git-config-name: cloud-platform-moj
-        git-config-email: platforms@digital.justice.gov.uk
-        repository-name: ministryofjustice/cloud-platform-runbooks
-        branch: gh-pages # The branch the action should deploy to.
-        folder: runbooks/docs # The folder the action should deploy.
-        clean: true
-        clean-exclude: |
-          CNAME
-          License
-          README.md
+    with:
+      token: ${{ secrets.PUBLISHING_GIT_TOKEN }}
+      git-config-name: cloud-platform-moj
+      git-config-email: platforms@digital.justice.gov.uk
+      repository-name: ministryofjustice/cloud-platform-runbooks
+      branch: gh-pages # The branch the action should deploy to.
+      folder: runbooks/docs # The folder the action should deploy.
+      clean: true
+      clean-exclude: |
+        CNAME
+        License
+        README.md
