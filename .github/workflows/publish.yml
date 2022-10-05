@@ -1,27 +1,45 @@
-name: Publish runbooks
+name: Publish gh-pages
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "main"
-    paths:
-      - "runbooks/**"
+    paths-ignore:
+      - "docs/**"
+
+# GITHUB_TOKEN permissions to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ministryofjustice/cloud-platform-tech-docs-publisher:1.11
+      image: ministryofjustice/tech-docs-github-pages-publisher:v2
     steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      run: cd runbooks; bundle exec middleman build --build-dir docs
-    - name: Install rsync
-      run: |
-        apk update && apk add rsync
-        which rsync
-    - name: Deploy
-      uses: JamesIves/github-pages-deploy-action@v4.3.3
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Compile Markdown to HTML and create artifact
+        run: |
+          cd runbooks; /scripts/compile-and-create-artifact.sh
+      - name: Upload artifact to be published
+        uses: actions/upload-artifact@main
+        with:
+          name: github-pages
+          path: artifact.tar
+          retention-days: 1
+
+  deploy:
+    needs: build
+    uses: JamesIves/github-pages-deploy-action@v4.3.3
       with:
         token: ${{ secrets.PUBLISHING_GIT_TOKEN }}
         git-config-name: cloud-platform-moj
@@ -34,4 +52,3 @@ jobs:
           CNAME
           License
           README.md
-          .nojekyll
