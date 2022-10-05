@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - "test-branch"
+      - "test-branch-01"
     paths-ignore:
       - "docs/**"
 
