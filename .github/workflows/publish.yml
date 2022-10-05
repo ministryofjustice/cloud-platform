@@ -1,6 +1,5 @@
 name: Publish runbooks
 on:
-  workflow_dispatch:
   push:
     branches:
       - "test-branch-02"
