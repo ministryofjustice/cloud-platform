@@ -2,9 +2,8 @@ name: Publish runbooks
 on:
   push:
     branches:
-      - "test-branch-02"
-    paths-ignore:
-      - "docs/**"
+      - "main"
+
 
 jobs:
   build:
@@ -17,17 +16,10 @@ jobs:
       - name: Compile Markdown to HTML and create artifact
         run: |
           cd runbooks; /scripts/compile-and-create-artifact.sh
-      - name: Upload artifact to be published
-        uses: actions/upload-artifact@main
-        with:
-          name: github-pages
-          path: artifact.tar
-          retention-days: 1
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
+      - name: Install rsync
+        run: |
+          apk update && apk add rsync
+          which rsync
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4.3.3
         with:
