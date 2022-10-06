@@ -1,37 +1,37 @@
 name: Publish runbooks
-
 on:
+  workflow_dispatch:
   push:
     branches:
       - "main"
-    paths:
-      - "runbooks/**"
+
 
 jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ministryofjustice/cloud-platform-tech-docs-publisher:1.11
+      image: ministryofjustice/tech-docs-github-pages-publisher:v2
     steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      run: cd runbooks; bundle exec middleman build --build-dir docs
-    - name: Install rsync
-      run: |
-        apk update && apk add rsync
-        which rsync
-    - name: Deploy
-      uses: JamesIves/github-pages-deploy-action@v4.3.3
-      with:
-        token: ${{ secrets.PUBLISHING_GIT_TOKEN }}
-        git-config-name: cloud-platform-moj
-        git-config-email: platforms@digital.justice.gov.uk
-        repository-name: ministryofjustice/cloud-platform-runbooks
-        branch: gh-pages # The branch the action should deploy to.
-        folder: runbooks/docs # The folder the action should deploy.
-        clean: true
-        clean-exclude: |
-          CNAME
-          License
-          README.md
-          .nojekyll
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Compile Markdown to HTML and create artifact
+        run: |
+          cd runbooks; /scripts/compile-and-create-artifact.sh
+      - name: Install rsync
+        run: |
+          apk update && apk add rsync
+          which rsync
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4.3.3
+        with:
+          token: ${{ secrets.PUBLISHING_GIT_TOKEN }}
+          git-config-name: cloud-platform-moj
+          git-config-email: platforms@digital.justice.gov.uk
+          repository-name: ministryofjustice/cloud-platform-runbooks
+          branch: gh-pages # The branch the action should deploy to.
+          folder: runbooks/docs # The folder the action should deploy.
+          clean: true
+          clean-exclude: |
+            CNAME
+            License
+            README.md
