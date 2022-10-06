@@ -46,8 +46,9 @@ Cloud Platform supports for the configuration of custom domains - see guidance: 
 
 ### Cluster-specific domains
 
-**Decision:**   live:   *.prod.cloud-platform.service.justice.gov.uk
-                live-2: *.non-prod.cloud-platform.service.justice.gov.uk
+**Decision:**  
+* live:   *.prod.cloud-platform.service.justice.gov.uk
+* live-2: *.non-prod.cloud-platform.service.justice.gov.uk
 
 ### Reasoning
 
