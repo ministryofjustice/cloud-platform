@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - "source/**"
+      - "runbooks/source/**"
 
 jobs:
   check_links:
@@ -14,4 +14,4 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: htmlproofer
-      run: /publishing-scripts/publish.sh no-repository-changes
+      run: cd runbooks; /publishing-scripts/publish.sh no-repository-changes
