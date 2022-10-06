@@ -38,6 +38,22 @@ A custom domain is encouraged for prod environments, rather than the wildcard, b
 
 Cloud Platform supports for the configuration of custom domains - see guidance: [Using a custom domain](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/custom-domain-cert.html#using-a-custom-domain)
 
+## Cloud Platform owned app domains e.g. cloud-platform-reports
+
+### Non-cluster specific domains
+
+**Existing decision**: reports.cloud-platform.service.justice.gov.uk
+
+### Cluster-specific domains
+
+**Decision:**   live:   *.prod.cloud-platform.service.justice.gov.uk
+                live-2: *.non-prod.cloud-platform.service.justice.gov.uk
+
+### Reasoning
+
+Removal of `.live` - there is an issue with using a specific cluster name such as `live`. The cluster name is irrelevant and confusing in this name. Changes to these domains due to a change in the name of a cluster creates confusion and unnecessarily changes for users. With an alias (instead if cluster name), Cloud-Platform applications can move clusters without requiring a domain name change. 
+So we deprecate it and remove the `.live` from their domain names. 
+
 ## Cluster-specific domains during migration
 
 **Decision**: *.apps.live.cloud-platform.services.justice.gov.uk for use around migrations
