@@ -1,7 +1,7 @@
 ---
 title: Upgrade EKS cluster
 weight: 53
-last_reviewed_on: 2022-06-29
+last_reviewed_on: 2022-10-10
 review_in: 3 months
 ---
 
@@ -15,7 +15,6 @@ The Cloud Platform EKS cluster upgrade consists of three distinct parts:
 
 The Cloud Platform EKS clusters are created using the official [terraform-aws-eks](https://github.com/terraform-aws-modules/terraform-aws-eks) module. The EKS version and addons are currently independent of the version of the terraform-aws-eks module.
 Therefore, it will not always require an upgrade of the terraform-aws-eks module and/or the addons whenever there is an upgrade of the EKS version. Please check the changelogs for the terraform-aws-eks module, the EKS version and the addons when planning an upgrade.
-
 
 ## Run the upgrade, via the tools image
 
@@ -49,12 +48,11 @@ Before you begin, there are a few pre-requisites:
 
 ### Upgrade EKS Terraform Module
 
-As mentioned previously; when a new EKS major version is released, it is normally followed by a release of an associated [terraform-aws-eks module](https://github.com/terraform-aws-modules/terraform-aws-eks). 
+As mentioned previously; when a new EKS major version is released, it is normally followed by a release of an associated [terraform-aws-eks module](https://github.com/terraform-aws-modules/terraform-aws-eks).
 
-1) The first step of the EKS upgrade is to identify the corresponding module release with the EKS major version you want to upgrade to. Review the changes in the [changelog](https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/CHANGELOG.md). Plan/make any necessary changes or required updates. 
+1) The first step of the EKS upgrade is to identify the corresponding module release with the EKS major version you want to upgrade to. Review the changes in the [changelog](https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/CHANGELOG.md). Plan/make any necessary changes or required updates.
 
-Create a PR in Cloud Platform Infrastructure repository against the [EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf) making the change to the desired [terraform-aws-eks version](https://github.com/terraform-aws-modules/terraform-aws-eks) 
-
+Create a PR in Cloud Platform Infrastructure repository against the [EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf) making the change to the desired [terraform-aws-eks version](https://github.com/terraform-aws-modules/terraform-aws-eks)
 
 ```
  module "eks" {
@@ -76,7 +74,7 @@ Note: When you run `terraform plan`, if it is only showing launch_template versi
 
 ### Upgrade Control Plane
 
-3) Create a PR in Cloud Platform Infrastructure repository against the [EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf) making the change to the desired EKS cluster version. 
+3) Create a PR in Cloud Platform Infrastructure repository against the [EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf) making the change to the desired EKS cluster version.
 
 ```
  module "eks" {
@@ -86,7 +84,7 @@ Note: When you run `terraform plan`, if it is only showing launch_template versi
 
 ```
 
-4) Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, perform the upgrade from the AWS Console EKS Control Plane. 
+4) Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, perform the upgrade from the AWS Console EKS Control Plane.
 
 We don't want to run `terraform apply` to apply the EKS cluster version, as the terraform apply process will take longer and timed out, also to avoid re-cycling of nodes as explained in step 2.
 
@@ -124,7 +122,7 @@ Create a PR in Cloud Platform Infrastructure repository against the cloud-platfo
 
 ### Troubleshooting
 
-When we update node group version or change launch template version, we had error "Reached max retries while trying to evict pods from nodes in node group live-default_ng_xxxx", even using force which does not respect pod disruption budgets and it forces node restarts. The force drain mode can fail to evict pods when there are pods in CrashLoopBack state and PDB is in effect, related to this [issue](https://github.com/kubernetes/kubernetes/issues/72320) 
+When we update node group version or change launch template version, we had error "Reached max retries while trying to evict pods from nodes in node group live-default_ng_xxxx", even using force which does not respect pod disruption budgets and it forces node restarts. The force drain mode can fail to evict pods when there are pods in CrashLoopBack state and PDB is in effect, related to this [issue](https://github.com/kubernetes/kubernetes/issues/72320)
 
 We can use cloudwatch logs insights with following filter to understand for which all pods the eviction was a failure.
 
