@@ -1,7 +1,7 @@
 ---
 title: Delete a cluster
 weight: 55
-last_reviewed_on: 2022-08-11
+last_reviewed_on: 2022-10-10
 review_in: 3 months
 ---
 
@@ -51,14 +51,15 @@ If any steps fail:
 
 In case you prefer concourse pipeline to destroy the cluster, these are the steps to follow, to delete the cluster using "concourse fly commands"
 
-First, cd to the working copy of the concourse [pipelines repo][pipelines repo]. Make below two changes to the [create-test-destroy.yaml][create-test-destroy] file.
+First, cd to the working copy of the concourse [pipelines repo][pipelines repo]. Make the below two changes to the [eks-create-test-destroy.yaml][eks-create-test-destroy] file.
 
 * In the create-test-destroy pipeline definition, literally add CLUSTER_NAME [var][concourse-vars], under params as below:
+
   ```
   params:
       CLUSTER_NAME: ((CLUSTER_NAME))
   ```
-  We will specify the CLUSTER_NAME value using --var NAME=VALUE in the later step, when we run the fly command to set_pipeline.
+  We will specify the CLUSTER_NAME value using `-v NAME=VALUE` in the later step, when we run the fly command to set_pipeline.
 
 * Comment out this line [here][cluster-name-export] in destroy-cluster job.
 
@@ -69,14 +70,13 @@ First, cd to the working copy of the concourse [pipelines repo][pipelines repo].
 
   commenting out this will not set the CLUSTER_NAME provided by the create-cluster-run-tests job.
 
-
-Run the below commands updating the `<cluster-name-to-be-deleted>`. The first fly command will apply the changes made for the [create-test-destroy.yaml][create-test-destroy] file and set the CLUSTER_NAME [static var][concourse-static-vars], the second command will trigger the destroy-cluster job using the CLUSTER_NAME provided.
+Run the below commands updating the `<cluster-name-to-be-deleted>`. The first fly command will apply the changes made for the [eks-create-test-destroy.yaml][eks-create-test-destroy] file and set the CLUSTER_NAME [static var][concourse-static-vars], the second command will trigger the destroy-cluster job using the CLUSTER_NAME provided.
 
 ```
-fly -t manager sp -p create-test-destroy -c create-test-destroy.yaml -v CLUSTER_NAME=<cluster-name-to-be-deleted>
-fly -t manager trigger-job -j create-test-destroy/destroy-cluster
+fly -t manager sp -p eks-create-test-destroy -c eks-create-test-destroy.yaml -v CLUSTER_NAME=<cluster-name-to-be-deleted>
+fly -t manager trigger-job -j eks-create-test-destroy/destroy-cluster
 ```
-Note: After the destroy-cluster job completed sucessfully, run the [bootstrap pipleine][bootstrap pipleine] to discard the changes made to [create-test-destroy.yaml][create-test-destroy] file.
+Note: After the destroy-cluster job has completed sucessfully, run the [bootstrap pipeline][bootstrap pipeline] to discard the changes made to [eks-create-test-destroy.yaml][eks-create-test-destroy] file.
 
 ```
 fly -t manager trigger-job -j bootstrap/bootstrap-pipelines
@@ -87,10 +87,10 @@ The steps can be found here - [Delete an EKS Cluster]
 
 [infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
 [destroy-cluster.rb]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/destroy-cluster.rb
-[pipelines repo]: https://github.com/ministryofjustice/cloud-platform-concourse/tree/main/pipelines/manager/main
+[pipelines repo]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/tree/main/pipelines/manager/main
 [concourse-vars]: https://concourse-ci.org/vars.html#var-syntax
 [concourse-static-vars]: https://concourse-ci.org/vars.html#static-vars
-[bootstrap pipleine]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/bootstrap
-[create-test-destroy]: https://github.com/ministryofjustice/cloud-platform-concourse/blob/main/pipelines/manager/main/create-test-destroy.yaml
-[cluster-name-export]: https://github.com/ministryofjustice/cloud-platform-concourse/blob/main/pipelines/manager/main/create-test-destroy.yaml#L140
+[bootstrap pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/bootstrap
+[eks-create-test-destroy]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/eks-create-test-destroy.yaml
+[cluster-name-export]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/9d161e0cfd578c643a490f468f1287b5b657afd4/pipelines/manager/main/eks-create-test-destroy.yaml#L195
 [Delete an EKS Cluster]: eks-cluster.html#4-delete-the-eks-cluster
