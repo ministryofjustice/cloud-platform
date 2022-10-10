@@ -1,6 +1,6 @@
 ---
 title: Custom default-backend
-last_reviewed_on: 2022-07-12
+last_reviewed_on: 2022-10-10
 weight: 9000
 review_in: 3 months
 ---
@@ -75,14 +75,14 @@ spec:
         backend:
           service
             name: rubyapp-service
-            port: 
+            port:
               number: 4567
 ```
 (Note - Please change the `ingress-name` and `environment-name` values in the above example, you can get the `environment-name` value from your namespace label "cloud-platform.justice.gov.uk/environment-name". The `colour` should be `green` for ingress in EKS `live` cluster)
 
 ### Use platform-level error page
 
-Some teams want application's serve their own error's `example 404's`, but want to serve cloud platforms custom error page from ingress controller default backend for other error codes like 502,503 and 504, this can be done by using [custom-http-errors][custom-http-error-annotation] annotation in your ingress for error codes teams want to serve the cloud platforms custom error page. 
+Some teams want application's serve their own error's `example 404's`, but want to serve cloud platforms custom error page from ingress controller default backend for other error codes like 502,503 and 504, this can be done by using [custom-http-errors][custom-http-error-annotation] annotation in your ingress for error codes teams want to serve the cloud platforms custom error page.
 
 Example Ingress file to use platform-level error page for custom-http-errors: "502,503,504". All other errors except `502,503,504` will be served from the application error page.
 
@@ -142,7 +142,7 @@ spec:
         backend:
           service
             name: rubyapp-service
-            port: 
+            port:
               number: 4567
 ```
 
