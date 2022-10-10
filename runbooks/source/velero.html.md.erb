@@ -1,7 +1,7 @@
 ---
 title: Velero - Cluster backups and disaster recovery
 weight: 601
-last_reviewed_on: 2022-07-06
+last_reviewed_on: 2022-10-10
 review_in: 3 months
 ---
 
@@ -22,7 +22,6 @@ brew install velero
 Velero is installed on all clusters as part of the cloud-platform-components install. The module is installed by [this section](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/058f7a0808f856413397f8752bc6297b8ad588b1/terraform/cloud-platform-components/components.tf#L144) of the code.
 
 Velero is installed in `namespace:velero` using helm. The chart used can be found [here](https://github.com/helm/charts/tree/master/stable/velero)
-
 
 You can verify the Velero server pod is installed and running using the kubectl get pods command:
 
