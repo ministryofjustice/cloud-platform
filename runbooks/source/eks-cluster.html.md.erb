@@ -122,7 +122,7 @@ The script is entirely non-interactive, and will not prompt you to confirm anyth
 
 First, run `make tools-shell`
 
-> The deleted cluster script must *always* be run in a container. This ensures that the environment of the script is fully controlled, and you don't run into problems such as the kubernetes context being changed in another window, or extra environment variables causing unwanted effects.
+> The "delete cluster" script must *always* be run in a container. This ensures that the environment of the script is fully controlled, and you don't run into problems such as the kubernetes context being changed in another window, or extra environment variables causing unwanted effects.
 
 Then invoke the script like this:
 
@@ -148,7 +148,7 @@ If any steps fail:
 
 In case you prefer concourse pipeline to destroy the cluster, these are the steps to follow, to delete the cluster using "concourse fly commands"
 
-First, `cd`` to the working copy of the concourse [pipelines repo][pipelines repo]. Make below two changes to the [eks-create-test-destroy.yaml][create-test-destroy] file.
+First, `cd` to the working copy of the concourse [pipelines repo][pipelines repo]. Make below two changes to the [eks-create-test-destroy.yaml][create-test-destroy] file.
 
 In the eks-create-test-destroy pipeline definition, comment out the below line in destroy-cluster job.
 
@@ -159,9 +159,9 @@ In the eks-create-test-destroy pipeline definition, comment out the below line i
 
 Commenting out this will not set the `CLUSTER_NAME` provided by the create-cluster-run-tests job.
 
-Update the `$CLUSTER_NAME` to `<cluster-name-to-be-deleted` in the below line
+Update the `$CLUSTER_NAME` to `<cluster-name-to-be-deleted` in the below line:
 
-```
+```bash
 ./destroy-cluster.rb --name $CLUSTER_NAME --yes
 ```
 
