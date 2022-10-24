@@ -1,7 +1,7 @@
 ---
 title: EKS Cluster
 weight: 350
-last_reviewed_on: 2022-07-20
+last_reviewed_on: 2022-10-24
 review_in: 3 months
 ---
 
@@ -11,43 +11,25 @@ review_in: 3 months
 
 You can create a new EKS test cluster using the [cluster build pipeline].
 
-Alternatively, using the `create-cluster` script.
-
-Execute the script, by giving the `-k eks` or `--kind eks` option and the desired name of your new cluster. e.g.:
+Alternatively, using the [cloud-platform-cli], you can create a new EKS cluster by running the following command:
 
 ```bash
-./create-cluster.rb --name mogaal-eks --kind eks
+cloud-platform cluster create
 ```
 
 Check the pre-requisites and environment variables section of this document before running this script.
 
-NB: Your cluster name must be **no more than 12 characters**. Any longer, and some of the computed strings which include the cluster name will exceed their maximum allowed values. The error messages you get if this happens are unhelpful. In order to prevent this, the build script will fail immediately if you supply a name which is too long.
+NB: Your cluster name must be **no more than 12 characters**. Any longer and some of the computed strings which include the cluster name will exceed their maximum allowed values. The error messages you get if this happens are unhelpful. In order to prevent this, the build script will fail immediately if you supply a name which is too long.
 
 See our [cluster naming policy] for information on how to choose a suitable name for your cluster.
 
-By default, the script will create a `small` cluster. This means the master and worker EC2 instances will be less powerful machine types than in our production cluster.
+By default, the script will create a `small` cluster. This means the master and worker EC2 instances will be less powerful machine types than in our production cluster. You can also pass the `--fast` flag to create a cluster without auth0 authentication. This saves you about 30 minutes (at the time of writing).
 
 You can see more options to use when creating the cluster by running:
 
 ```bash
-./create-cluster.rb --help
+cloud-platform cluster create --help
 ```
-
-The script takes around 30 minutes to execute. At the end, you should see output like this:
-
-```
-2022-05-04 12:10:27 kubectl cluster-info
-Kubernetes control plane is running at https://B04C5FC7828A0515457E141A9610815D.sk1.eu-west-2.eks.amazonaws.com
-CoreDNS is running at https://B04C5FC7828A0515457E141A9610815D.sk1.eu-west-2.eks.amazonaws.com
-
-To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
-```
-
-The section before `kubectl cluster-info` is the cluster integration tests, which run at the end of the build
-process. The number of tests will change, so the output will vary from what is shown here.
-
-
-
 
 Alternatively, if you need more control over the test cluster parameters, or you just prefer to do it manually, the rest of this document describes the process.
 
@@ -66,7 +48,7 @@ Alternatively, if you need more control over the test cluster parameters, or you
 
 ## Environment Variables
 
-See the file [example.env.create-cluster] in the [infrastructure repo]. This shows examples of the environment variables which must be set in order to run the `create-cluster.rb` script to create a new cluster.
+See the file [example.env.create-cluster] in the [infrastructure repo]. This shows examples of the environment variables which must be set in order to run the `cloud-platform cluster create` command to create a new cluster.
 
 You can get the auth0 values from the `terraform-provider-auth0` application on [auth0](https://manage.auth0.com/dashboard/eu/justice-cloud-platform/applications).
 
@@ -140,7 +122,7 @@ The script is entirely non-interactive, and will not prompt you to confirm anyth
 
 First, run `make tools-shell`
 
-> The delete cluster script must *always* be run in a container. This ensures that the environment of the script is fully controlled, and you don't run into problems such as the kubernetes context being changed in another window, or extra environment variables causing unwanted effects.
+> The deleted cluster script must *always* be run in a container. This ensures that the environment of the script is fully controlled, and you don't run into problems such as the kubernetes context being changed in another window, or extra environment variables causing unwanted effects.
 
 Then invoke the script like this:
 
@@ -260,6 +242,7 @@ $ terraform workspace delete ${cluster}
 ```
 
 [create a cluster]: https://runbooks.cloud-platform.service.justice.gov.uk/eks-cluster.html#provisioning-eks-clusters
-[cluster build pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/build-test-cluster/
+[cloud-platform-cli]: https://user-guide.cloud-platform.service.justice.gov.uk/documentation/getting-started/cloud-platform-cli.html
+[cluster build pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/create-cluster
 [destroy-cluster.rb]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/destroy-cluster.rb
 [create-test-destroy]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/eks-create-test-destroy.yaml
