@@ -1,0 +1,32 @@
+---
+title: Calico checklist before an upgrade
+weight: 100
+last_reviewed_on: 2022-10-26
+review_in: 3 months
+---
+
+# Calico checklist before an upgrade
+
+EKS supports multiple types of networking, with no clear best option and changing documentation; this pages intends to describe its current status and possible caveats as we go through Kubernetes version upghrades.
+
+## Current status
+
+ - Networking option selected is "Calico + Amazon VPC networking", as described in https://projectcalico.docs.tigera.io/getting-started/kubernetes/managed-public-cloud/eks
+ - Underlying connectivity and routing is managed by the VPC CNI add-on (docs at https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html). The add-on is not manageable or even visible to our users.
+ - Calico is deployed using the AWS vendored chart from https://github.com/aws/eks-charts/tree/master/stable/aws-calico. This chart has been marked as deprecated and must be considered for replacement before March 2023.
+ - Current chart as it is deployed from https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components/networking.tf should be fine to use for EKS 1.22; further investigation most likely needed before 1.23 upgrade. New chart uses the Tigera Operator (https://artifacthub.io/packages/helm/projectcalico/tigera-operator) and looks quite different from the current one, not a drop-in replacement.
+ - Users have visibility of `NetworkPolicies` implemented by Calico and it is a very important safeguard to isolate services from other namespaces. Disabling them for a replacement even temporarily might not be acceptable.
+
+## Options available
+
+ - Calico uses iptables on the nodes to implement NetworkPolicies. If the chart is uninstalled, all rules remain in place as iptables rules, they just aren't editable anymore. This can create a path to a replacement upgrade, as long as the new release (or different product) can read correctly the existing rules so connectivity is not affected.
+ - Tigera Operator should be a supported upgrade path, needs testing.
+ - EKS networking can change significantly, we need to re-check https://docs.aws.amazon.com/eks/latest/userguide/eks-networking.html before making any decision.
+ - AWS has a "Calico add-on" in the works (https://github.com/aws/containers-roadmap/projects/1?card_filter_query=network+policy), but with no release date promised. If it works it would replace Calico entirely. Our TA might be able to get a release date estimate.
+ - Opposite of the above option, Calico can manage all the networking of the cluster (the way we were using it in kOps), this removes the VPC CNI add-on entirely. With this option, we lose some performance, support for Fargate, we might confuse AWS tech support but we gain more platform independence.
+ - More far-fetched: other solutions take over completely the management of networking, including across clusters or clouds (think [Anthos](https://cloud.google.com/anthos/clusters/docs/attached/how-to/attach-kubernetes-clusters) or [Rancher](https://www.suse.com/c/intro-rancher-2-6-features/)).
+
+## Making sure it works
+ - CRDs are tested in https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/test/config/config.go#L91; this list will need to be updated as there's a dozen more in newer releases
+ - NetworkPolicies (blocking access across namespaces) are not tested, needs adding.
+ - The GlobalNetworkPolicy that blocks access to the AWS API (https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components/resources/calico-global-policies.yaml) is not tested, needs adding.
