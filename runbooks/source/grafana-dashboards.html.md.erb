@@ -1,24 +1,23 @@
 ---
 title: Grafana Dashboards
 weight: 9106
-last_reviewed_on: 2022-07-29
+last_reviewed_on: 2022-11-09
 review_in: 3 months
 ---
 
 # Grafana Dashboards
 
-## Kubernetes Number of Pods per Node  
+## Kubernetes Number of Pods per Node
 
-This [dashboard](https://grafana.cloud-platform.service.justice.gov.uk/d/anzGBBJHiz/kubernetes-number-of-pods-per-node?orgId=1) was created to show the current number of pods per node in the cluster. 
+This [dashboard](https://grafana.cloud-platform.service.justice.gov.uk/d/anzGBBJHiz/kubernetes-number-of-pods-per-node?orgId=1) was created to show the current number of pods per node in the cluster.
 
-
-### Dashboard Layout 
+### Dashboard Layout
 
 Each box on the dashboard has the name of the node and the number of pods on the node  - This number includes pods with a statuses such as "DeadlineExceeded" and completed".
 
-The exception is the `Max Pods per Node` box. This is a constant number set on creation for the maximum allowed pods per node. 
+The exception is the `Max Pods per Node` box. This is a constant number set on creation for the maximum allowed pods per node.
 
-The current architecture does not allow instance group id to be viewed on the dashboard: 
+The current architecture does not allow instance group id to be viewed on the dashboard:
 
 We currently have 5 instance groups:
 
@@ -33,19 +32,19 @@ You can run the following command to confirm this and get more information about
 ```
 kubectl describe node <node_name>
 ```
-  
+
 ### Troubleshooting
-  
+
 If a customer is reporting their dashboards are failing to load, this is usually due to a duplicate entry. You can see errors from the Grafana pod by running:
-  
+
 ```bash
 kubectl logs -n monitoring prometheus-operator-grafana-<pod-id> -f -c grafana
 ```
-  
+
 You'll see an error similar to:
 
 ```bash
 t=2021-12-03T13:37:35+0000 lvl=eror msg="failed to load dashboard from " logger=provisioning.dashboard type=file name=sidecarProvider file=/tmp/dashboards/<MY-DASHBOARD>.json error="invalid character 'c' looking for beginning of value"
 ```
-  
+
 Identify that dashboard and fix the error in question.
