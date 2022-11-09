@@ -1,14 +1,13 @@
 ---
 title: Access EKS Cluster
 weight: 8600
-last_reviewed_on: 2022-07-29
+last_reviewed_on: 2022-11-09
 review_in: 3 months
 ---
 
-
 # Access EKS cluster
 
-In order for kubectl to find and access an EKS cluster, it needs a kubeconfig file. 
+In order for kubectl to find and access an EKS cluster, it needs a kubeconfig file.
 
 When you create a new EKS cluster, the kubeconfig file is created locally within the [cloud-platform-eks/files/][files-folder], named: `files/kubeconfig_${WorkspaceName}` This file is only available for the user who created the cluster.
 
@@ -58,11 +57,10 @@ You should now be able to run kubectl commands, such as `kubectl get namespaces`
 ### Create kubeconfig manually using a template
 
 You can create a kubeconfig file manually, using the template below.
-    
-Login to the AWS console. In the EKS service, select the cluster you need to access. You will see all the information related to the EKS cluster.
-    
-Copy the values for `API server endpoint`, `Certificate authority` and `Cluster name` into this template:
 
+Login to the AWS console. In the EKS service, select the cluster you need to access. You will see all the information related to the EKS cluster.
+
+Copy the values for `API server endpoint`, `Certificate authority` and `Cluster name` into this template:
 
 ```
 apiVersion: v1
