@@ -1,7 +1,7 @@
 ---
 title: Terminal access to EKS managed nodes
 weight: 8650
-last_reviewed_on: 2022-07-29
+last_reviewed_on: 2022-11-09
 review_in: 3 months
 ---
 
@@ -9,18 +9,18 @@ review_in: 3 months
 
 ## Overview
 
-AWS System Session Manager is used to configure and manage a terminal access to EKS worker nodes. 
+AWS System Session Manager is used to configure and manage a terminal access to EKS worker nodes.
 
 All EKS clusters are created with needed permissions for
 AWS System Session Manager to start sessions to the worker nodes.
 
-On the AWS Console, **Services -> AWS System Manager -> Quick Setup for Host Management** is configured to detect the `live` EKS cluster worker nodes(default & monitoring) 
-by tag `Cluster` with value `live`. 
+On the AWS Console, **Services -> AWS System Manager -> Quick Setup for Host Management** is configured to detect the `live` EKS cluster worker nodes(default & monitoring)
+by tag `Cluster` with value `live`.
 
 ## Pre-requisites
 
-- AWS Console access 
-- Session Manager plugin (if using AWS Cli). To install Session Manager plugin on macOS, 
+- AWS Console access
+- Session Manager plugin (if using AWS Cli). To install Session Manager plugin on macOS,
 
     ```
     brew install --cask session-manager-plugin
@@ -44,11 +44,11 @@ by tag `Cluster` with value `live`.
 
     ```
     # To get the list of nodes and their names
-    kubectl get nodes 
+    kubectl get nodes
 
     # To get the node ID of the node for given node name
-    kubectl describe node <node name you want to shell into> | grep 'ProviderID' | awk -F '/' '{print $NF}'` 
-  
+    kubectl describe node <node name you want to shell into> | grep 'ProviderID' | awk -F '/' '{print $NF}'`
+
     ```
 
 - Start the session with cli command
