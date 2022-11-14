@@ -1,13 +1,13 @@
 ---
 title: Add a new Alertmanager receiver and a slack webhook
 weight: 85
-last_reviewed_on: 2022-07-29
+last_reviewed_on: 2022-11-14
 review_in: 3 months
 ---
 
 # Add a new Alertmanager receiver and a slack webhook
 
-When Development Teams require to send custom alarms to their own channels the Alertmanager receiver has to be added to the alertmanager.
+This guide shows how to add a new Alertmanager receiver, allowing Developers to send alerts to a slack channel.
 
 ## Pre-requisites
 
@@ -23,8 +23,8 @@ You must have the below details from the development team.
 ## Creating a new receiver set
 
 1. Fill in the template with the details provided from development team and add the array to [`terraform.tfvars`](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-components/terraform.tfvars) file.
-The `terraform.tfvars` file is encrypted so you have to `git-crypt unlock` to view the contents of the file.
-Check [git-crypt documentation in user guide](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/git-crypt-setup.html#git-crypt) for more information on how to setup git-crypt.
+The `terraform.tfvars` file is encrypted, so first you must perform the command `git-crypt unlock` to view the contents of the file.
+Check [git-crypt documentation in user guide](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/git-crypt-setup.html#git-crypt) for more information on how to configure git-crypt.
 
     ```
     {
@@ -35,13 +35,13 @@ Check [git-crypt documentation in user guide](https://user-guide.cloud-platform.
 
     ```
 
-2. Create a PR and merge the changes to master
+2. Create a pull-request and merge the changes to main.
 
-3. Apply the terraform code changes to the live
+3. Once the changes are merged, the pipeline will automatically apply the changes to the cluster.
 
-Once the changes are applied, provide the `severity` to the development team requested. Development team have to use the value as severity label when creating all custom application alerts.
+4. Provide the `severity` name to the development team so that they can add the severity label to their custom alerts.
 
-An example receiver set and a prometheus rule will look as below
+An example receiver appears as follows:
 
 ```
 {
@@ -50,6 +50,8 @@ An example receiver set and a prometheus rule will look as below
     channel  = "#cloud-platform-alerts"
 }
 ```
+
+An example PrometheusRule appears as follows:
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
