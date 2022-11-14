@@ -40,7 +40,7 @@ Alternatively, if you need more control over the test cluster parameters, or you
 - You have an [AWS CLI] profile `moj-cp`, with suitable credentials
 
 ```
-    export AWS_PROFILE=moj-cp
+export AWS_PROFILE=moj-cp
 ```
 
 - Your GPG key must be added to the [infrastructure repo] so that you are able to run `git-crypt unlock` (the script will run this for you, but you must be *able* to do it)
@@ -97,7 +97,6 @@ Kubernetes master is running at https://B04C5FC7828A0515457E141A9610815D.sk1.eu-
 CoreDNS is running at https://B04C5FC7828A0515457E141A9610815D.sk1.eu-west-2.eks.amazonaws.com/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
-
 ```
 
 ### 3. Deploy components
@@ -152,10 +151,10 @@ First, `cd`` to the working copy of the concourse [pipelines repo][pipelines rep
 
 In the eks-create-test-destroy pipeline definition, comment out the below line in destroy-cluster job.
 
-  ```
-  args:
-    # export $(cat keyval/keyval.properties | grep CLUSTER_NAME )
-  ```
+```
+args:
+  # export $(cat keyval/keyval.properties | grep CLUSTER_NAME )
+```
 
 Commenting out this will not set the `CLUSTER_NAME` provided by the create-cluster-run-tests job.
 
@@ -175,6 +174,7 @@ The second command will trigger the destroy-cluster job for the CLUSTER_NAME upd
 fly -t manager sp -p create-test-destroy -c create-test-destroy.yaml
 fly -t manager trigger-job -j create-test-destroy/destroy-cluster
 ```
+
 Note: After the destroy-cluster job completed sucessfully, run the [bootstrap pipleine][bootstrap pipleine] to discard the changes made to [eks-create-test-destroy.yaml][create-test-destroy] file.
 
 ```
@@ -197,7 +197,6 @@ You should see this output:
 
 ```
 Added new context arn:aws:eks:eu-west-2:754256621582:cluster/<cluster-name> to .kube/config
-
 ```
 
 Then, from the root of a checkout of the `cloud-platform-infrastructure` repository, run
@@ -209,6 +208,7 @@ $ terraform init
 $ terraform workspace select ${cluster}
 $ terraform destroy
 ```
+
 > The destroy process often gets stuck on prometheus operator. If that happens, running this in a separate window usually works:
 > ```
 > kubectl -n monitoring delete job prometheus-operator-operator-cleanup
