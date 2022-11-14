@@ -1,7 +1,7 @@
 ---
 title: EKS Cluster
 weight: 350
-last_reviewed_on: 2022-10-24
+last_reviewed_on: 2022-07-20
 review_in: 3 months
 ---
 
@@ -11,25 +11,43 @@ review_in: 3 months
 
 You can create a new EKS test cluster using the [cluster build pipeline].
 
-Alternatively, using the [cloud-platform-cli], you can create a new EKS cluster by running the following command:
+Alternatively, using the `create-cluster` script.
+
+Execute the script, by giving the `-k eks` or `--kind eks` option and the desired name of your new cluster. e.g.:
 
 ```bash
-cloud-platform cluster create
+./create-cluster.rb --name mogaal-eks --kind eks
 ```
 
 Check the pre-requisites and environment variables section of this document before running this script.
 
-NB: Your cluster name must be **no more than 12 characters**. Any longer and some of the computed strings which include the cluster name will exceed their maximum allowed values. The error messages you get if this happens are unhelpful. In order to prevent this, the build script will fail immediately if you supply a name which is too long.
+NB: Your cluster name must be **no more than 12 characters**. Any longer, and some of the computed strings which include the cluster name will exceed their maximum allowed values. The error messages you get if this happens are unhelpful. In order to prevent this, the build script will fail immediately if you supply a name which is too long.
 
 See our [cluster naming policy] for information on how to choose a suitable name for your cluster.
 
-By default, the script will create a `small` cluster. This means the master and worker EC2 instances will be less powerful machine types than in our production cluster. You can also pass the `--fast` flag to create a cluster without auth0 authentication. This saves you about 30 minutes (at the time of writing).
+By default, the script will create a `small` cluster. This means the master and worker EC2 instances will be less powerful machine types than in our production cluster.
 
 You can see more options to use when creating the cluster by running:
 
 ```bash
-cloud-platform cluster create --help
+./create-cluster.rb --help
 ```
+
+The script takes around 30 minutes to execute. At the end, you should see output like this:
+
+```
+2022-05-04 12:10:27 kubectl cluster-info
+Kubernetes control plane is running at https://B04C5FC7828A0515457E141A9610815D.sk1.eu-west-2.eks.amazonaws.com
+CoreDNS is running at https://B04C5FC7828A0515457E141A9610815D.sk1.eu-west-2.eks.amazonaws.com
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+```
+
+The section before `kubectl cluster-info` is the cluster integration tests, which run at the end of the build
+process. The number of tests will change, so the output will vary from what is shown here.
+
+
+
 
 Alternatively, if you need more control over the test cluster parameters, or you just prefer to do it manually, the rest of this document describes the process.
 
@@ -40,7 +58,7 @@ Alternatively, if you need more control over the test cluster parameters, or you
 - You have an [AWS CLI] profile `moj-cp`, with suitable credentials
 
 ```
-export AWS_PROFILE=moj-cp
+    export AWS_PROFILE=moj-cp
 ```
 
 - Your GPG key must be added to the [infrastructure repo] so that you are able to run `git-crypt unlock` (the script will run this for you, but you must be *able* to do it)
@@ -48,7 +66,7 @@ export AWS_PROFILE=moj-cp
 
 ## Environment Variables
 
-See the file [example.env.create-cluster] in the [infrastructure repo]. This shows examples of the environment variables which must be set in order to run the `cloud-platform cluster create` command to create a new cluster.
+See the file [example.env.create-cluster] in the [infrastructure repo]. This shows examples of the environment variables which must be set in order to run the `create-cluster.rb` script to create a new cluster.
 
 You can get the auth0 values from the `terraform-provider-auth0` application on [auth0](https://manage.auth0.com/dashboard/eu/justice-cloud-platform/applications).
 
@@ -97,6 +115,7 @@ Kubernetes master is running at https://B04C5FC7828A0515457E141A9610815D.sk1.eu-
 CoreDNS is running at https://B04C5FC7828A0515457E141A9610815D.sk1.eu-west-2.eks.amazonaws.com/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+
 ```
 
 ### 3. Deploy components
@@ -121,7 +140,7 @@ The script is entirely non-interactive, and will not prompt you to confirm anyth
 
 First, run `make tools-shell`
 
-> The deleted cluster script must *always* be run in a container. This ensures that the environment of the script is fully controlled, and you don't run into problems such as the kubernetes context being changed in another window, or extra environment variables causing unwanted effects.
+> The delete cluster script must *always* be run in a container. This ensures that the environment of the script is fully controlled, and you don't run into problems such as the kubernetes context being changed in another window, or extra environment variables causing unwanted effects.
 
 Then invoke the script like this:
 
@@ -147,14 +166,14 @@ If any steps fail:
 
 In case you prefer concourse pipeline to destroy the cluster, these are the steps to follow, to delete the cluster using "concourse fly commands"
 
-First, `cd` to the working copy of the concourse [pipelines repo][pipelines repo]. Make below two changes to the [eks-create-test-destroy.yaml][create-test-destroy] file.
+First, `cd`` to the working copy of the concourse [pipelines repo][pipelines repo]. Make below two changes to the [eks-create-test-destroy.yaml][create-test-destroy] file.
 
 In the eks-create-test-destroy pipeline definition, comment out the below line in destroy-cluster job.
 
-```
-args:
-  # export $(cat keyval/keyval.properties | grep CLUSTER_NAME )
-```
+  ```
+  args:
+    # export $(cat keyval/keyval.properties | grep CLUSTER_NAME )
+  ```
 
 Commenting out this will not set the `CLUSTER_NAME` provided by the create-cluster-run-tests job.
 
@@ -174,7 +193,6 @@ The second command will trigger the destroy-cluster job for the CLUSTER_NAME upd
 fly -t manager sp -p create-test-destroy -c create-test-destroy.yaml
 fly -t manager trigger-job -j create-test-destroy/destroy-cluster
 ```
-
 Note: After the destroy-cluster job completed sucessfully, run the [bootstrap pipleine][bootstrap pipleine] to discard the changes made to [eks-create-test-destroy.yaml][create-test-destroy] file.
 
 ```
@@ -197,6 +215,7 @@ You should see this output:
 
 ```
 Added new context arn:aws:eks:eu-west-2:754256621582:cluster/<cluster-name> to .kube/config
+
 ```
 
 Then, from the root of a checkout of the `cloud-platform-infrastructure` repository, run
@@ -208,7 +227,6 @@ $ terraform init
 $ terraform workspace select ${cluster}
 $ terraform destroy
 ```
-
 > The destroy process often gets stuck on prometheus operator. If that happens, running this in a separate window usually works:
 > ```
 > kubectl -n monitoring delete job prometheus-operator-operator-cleanup
@@ -242,7 +260,6 @@ $ terraform workspace delete ${cluster}
 ```
 
 [create a cluster]: https://runbooks.cloud-platform.service.justice.gov.uk/eks-cluster.html#provisioning-eks-clusters
-[cloud-platform-cli]: https://user-guide.cloud-platform.service.justice.gov.uk/documentation/getting-started/cloud-platform-cli.html
-[cluster build pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/create-cluster
+[cluster build pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/build-test-cluster/
 [destroy-cluster.rb]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/destroy-cluster.rb
 [create-test-destroy]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/eks-create-test-destroy.yaml
