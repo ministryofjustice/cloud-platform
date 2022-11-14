@@ -28,8 +28,8 @@ Check [git-crypt documentation in user guide](https://user-guide.cloud-platform.
 
     ```
     {
-        severity = "<unique name based on team info provided">
-        webhook  = "<slack webhook url>"
+        severity = "<unique name based on team info provided ">
+        webhook  = " webhook url>"
         channel  = "<slack channel>"
     }
 
@@ -76,7 +76,6 @@ spec:
         runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md###alert-name-kubequotaexceeded
 ```
 
-
 ## Information Alerts
 
 AlertManager receivers for slack integration are configured for 2 type of alerts.
@@ -86,7 +85,6 @@ AlertManager receivers for slack integration are configured for 2 type of alerts
 
 All alerts are routed using the severity label set from the prometheus rule. If the severity label matches the keyword `info-`<severity> then it is routed to information type receivers.
 Hence, to receive information alert, prepend `info-` when setting the `severity` label of the prometheus rule.
-
 
 An example receiver set and a prometheus rule will look as below
 
