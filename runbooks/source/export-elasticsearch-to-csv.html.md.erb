@@ -1,7 +1,7 @@
 ---
 title: Export data from AWS Elasticsearch into a CSV file
 weight: 190
-last_reviewed_on: 2022-08-11
+last_reviewed_on: 2022-11-15
 review_in: 3 months
 ---
 
@@ -40,16 +40,14 @@ You can view the installation instructions [here](https://github.com/gboddin/es2
 ```
 es2csv -q 'kubernetes.namespace_name:starter-pack' -u https://<ES_endpoint>:443   -i logstash-* -f kubernetes_cluster -o kibanatest.csv --verify-certs
 
-	Here, the parameters are :
-		-q Query
-		-u URL
-		-i Indices
-		-f Fields to be preserved
-		-o Output file name
+  Here, the parameters are :
+    -q Query
+    -u URL
+    -i Indices
+    -f Fields to be preserved
+    -o Output file name
 ```
 
 For more usage examples please refer [this](https://github.com/taraslayshchuk/es2csv/blob/master/docs/EXAMPLES.rst)
 
 Note: Once the export is completed, delete the fluentd pod you installed es2csv
-
-
