@@ -1,10 +1,9 @@
 ---
 title: Destroy Concourse Build Data
 weight: 9000
-last_reviewed_on: 2022-08-10
+last_reviewed_on: 2022-11-15
 review_in: 3 months
 ---
-
 
 # Destroy Concourse Build Data
 
@@ -28,7 +27,7 @@ cd cloud-platform-infrastructure/terraform/aws-accounts/cloud-platform-aws/vpc/e
 terraform destroy -target=module.concourse.helm_release.concourse
 ```
 
-- Identify the persistent volume (PV) in question: 
+- Identify the persistent volume (PV) in question:
 
 ```bash
 kubectl get pv
@@ -73,5 +72,5 @@ This shouldn't get stuck and will be removed instantly.
 ```bash
 terraform apply -target=module.concourse.helm_release.concourse
 ```
- 
+
 You should start to see pods returning and the creation of a new PV.
