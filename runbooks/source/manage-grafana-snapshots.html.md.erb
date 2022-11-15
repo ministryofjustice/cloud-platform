@@ -1,19 +1,19 @@
 ---
 title: Manage Published Grafana Dashboard Snapshots
 weight: 190
-last_reviewed_on: 2022-07-25
+last_reviewed_on: 2022-11-15
 review_in: 3 months
 ---
 
 # Manage Published Grafana Dashboard Snapshots
 
-Users are able to Publish Grafana Dashboard Snapshots which are available publicly. There are various Expire options available including `Never` expire. 
+Users are able to Publish Grafana Dashboard Snapshots which are available publicly. There are various Expire options available including `Never` expire.
 If a user chooses this option, but later requires to remove the snapshot from public view, the Cloud Platform team are required to remove this. This is due to all users having read access only to Grafana.
 
 ## Steps to remove Snapshot
 
 1) Retrieve the admin username and password for Grafana. This is stored in the `prometheus-operator-grafana` secret within the `Monitoring` namespace.
-    
+
 You can use the cloud-platform-cli to retrieve this:
 
 ```
