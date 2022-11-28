@@ -53,7 +53,6 @@ terraform apply
 
 Once terraform finishes you should be able to view the bastion node in the Amazon EC2 console.
 
-
 ## Access bastion node
 
 Make sure your public key is added to this [authorized_keys][auth-keys] file
@@ -62,11 +61,9 @@ Once the bastion is created successfully and the key is added to the authorized_
 
 In the Amazon EC2 console, on the Instances page, search using `${CLUSTER_NAME}`to locate the bastion instance (`bastion.<cluster_name>.cloud-platform.service.justice.gov.uk`). Use Public DNS (IPv4) In the description of the Instance to login into bastion as below:
 
-
 ```bash
 ssh -A admin@ec2-xx-xx-xx-xx.eu-west-2.compute.amazonaws.com -p 50422
 ```
-
 
 [auth-keys]: https://github.com/ministryofjustice/cloud-platform-terraform-bastion/blob/main/files/authorized_keys.txt
 [eks-main]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/main.tf
