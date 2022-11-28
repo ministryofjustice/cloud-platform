@@ -18,7 +18,7 @@ git pull
 git checkout -b [BRANCH-NAME] origin/[BRANCH-NAME]
 ```
 
-##Set pingdom environment variables(Optional) 
+##Set pingdom environment variables(Optional)
 
 If the changes involve applying "pingdom_check" or "github", set the environment variables for pingdom and github.
 The values are stored as secrets in `manager` cluster - `concourse-main` namespace.
@@ -28,7 +28,6 @@ export PINGDOM_API_TOKEN="XXXXXXXXXXXXX"
 export TF_VAR_github_owner="ministryofjustice"
 export TF_VAR_github_token="XXXXXXXXXXXXX"
 ```
-
 
 ## Target the live cluster
 
