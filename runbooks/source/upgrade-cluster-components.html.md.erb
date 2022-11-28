@@ -1,7 +1,7 @@
 ---
 title: Upgrade cluster components
 weight: 54
-last_reviewed_on: 2022-09-02
+last_reviewed_on: 2022-11-28
 review_in: 3 months
 ---
 
@@ -97,7 +97,6 @@ make run-tests
 
   The below are some of the general things to check when during the upgrade and not a complete list.
 
-
 ### Performing the upgrade
 
 There is a cli command to perform the upgrade. First navigate to the [cloud-platform-infrastructure repo] and run the following command:
@@ -117,7 +116,6 @@ cloud-platform environment bump-module --module certmanager --module-version 0.5
   - The existing certificates doesnot change in any way. This can be done by checking the timestamps of certificate creation
   - Able to create and validate new certificates
 
-
 #### Prometheus
 
   - Ensure correct CRDs versions of prometheus-operator are updated before upgrading prometheus-operator
@@ -133,4 +131,3 @@ cloud-platform environment bump-module --module certmanager --module-version 0.5
 [docker]: https://www.docker.com/
 [tools image]: https://github.com/ministryofjustice/cloud-platform-tools-image
 [things to observe]: upgrade-cluster-components.html#things-to-observe-when-testing-the-upgrade
-
