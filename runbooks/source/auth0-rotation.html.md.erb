@@ -1,7 +1,7 @@
 ---
 title: Credentials rotation for auth0 apps
 weight: 68
-last_reviewed_on: 2022-08-26
+last_reviewed_on: 2022-11-28
 review_in: 3 months
 ---
 
@@ -24,7 +24,7 @@ $ terraform workspace select live
 $ terraform taint module.auth0.auth0_client.components
 ```
 
-Make sure with `terraform plan` that auth0 resource is going to be recreated (it's going to be needed in the next step). 
+Make sure with `terraform plan` that auth0 resource is going to be recreated (it's going to be needed in the next step).
 
 Apply changes if you are happy with them:
 
@@ -34,7 +34,7 @@ $ terraform apply
 
 ## 2) Apply changes within components (terraform)
 
-Execute `terraform plan` inside [`cloud-platform-infrastructure/terraform/aws-accounts/cloud-platform-aws/vpc/eks` directory](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components) 
+Execute `terraform plan` inside [`cloud-platform-infrastructure/terraform/aws-accounts/cloud-platform-aws/vpc/eks` directory](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components)
 to ensure changes match resources below, if they do, apply them:
 
 ```
@@ -62,10 +62,10 @@ In order to verify that the changes were successfully applied, follow the checkl
 
 ## 4) Update Manager cluster within components (terraform)
 
-Our pipelines read auth0 credentials from a K8S secret inside the manager cluster. This secret is updated through concourse's TF module variable called `tf_provider_auth0_client_secret` and `tf_provider_auth0_client_id` in 
+Our pipelines read auth0 credentials from a K8S secret inside the manager cluster. This secret is updated through concourse's TF module variable called `tf_provider_auth0_client_secret` and `tf_provider_auth0_client_id` in
 [cloud-platform-infrastructure/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components/terraform.tfvars](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components/terraform.tfvars)
 
-Switch to manager cluster and Execute `terraform plan` inside [`cloud-platform-infrastructure/terraform/aws-accounts/cloud-platform-aws/vpc/eks` directory](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components) 
+Switch to manager cluster and Execute `terraform plan` inside [`cloud-platform-infrastructure/terraform/aws-accounts/cloud-platform-aws/vpc/eks` directory](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components)
 to ensure changes match resources below, if they do, apply them:
 
 ```
