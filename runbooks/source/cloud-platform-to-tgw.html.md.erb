@@ -29,7 +29,7 @@ The Cloud Platform VPC (live-1) is attached to PTTP TGW (`tgw-026162f1ba39ce704`
 
 The vpc_attachement is done by applying the resource `aws_ec2_transit_gateway_vpc_attachment` providing the transit_gateway_id (the one that is shared),
 vpc_id and the private subnet_ids of `live-1` VPC. The NVVS DevOps team then approves the vpc attachement and adds the attachment from their side.
-In order to allow the traffic to flow, a new route need to be added to VPC's route-table for each target VPC. 
+In order to allow the traffic to flow, a new route need to be added to VPC's route-table for each target VPC.
 
 Example: The Analytical Platform(AP) wants to access the Cloud Platform (CP) VPC.
 
