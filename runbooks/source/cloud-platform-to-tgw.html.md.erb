@@ -1,7 +1,7 @@
 ---
 title: Adding a route to connect to a TGW
 weight: 9000
-last_reviewed_on: 2022-10-10
+last_reviewed_on: 2022-12-14
 review_in: 6 months
 ---
 
@@ -11,7 +11,7 @@ This document is a description of the current Cloud Platform & TGW setup.
 It also explain how to modify the relevant route table
 
 *The scope of this guide is limited on purpose, it only covers the Cloud Platform responsibilities.
-The techops/cloud-ops team is able to share the Transit Gateways with other AWS accounts.*
+The NVVS DevOps team is able to share the Transit Gateways with other AWS accounts.*
 
 ## Quick introduction
 
@@ -25,32 +25,41 @@ The MoJ current Transit Gateway infrastructure is managed here : [github reposit
 
 ## Transit Gateway
 
-The Cloud Platform VPC is attached to the eu-west-2 TGW located in the `moj-transit-gateway` account.
-However, the attachment alone doesn't allow traffic to flow: A new route need to be added to VPC's route-table for each target VPC.
+The Cloud Platform VPC (live-1) is attached to PTTP TGW (`tgw-026162f1ba39ce704`) which is shared from a different AWS account using (RAM - Resource Access Manager).
+
+The vpc_attachement is done by applying the resource `aws_ec2_transit_gateway_vpc_attachment` providing the transit_gateway_id (the one that is shared),
+vpc_id and the private subnet_ids of `live-1` VPC. The NVVS DevOps team then approves the vpc attachement and adds the attachment from their side.
+In order to allow the traffic to flow, a new route need to be added to VPC's route-table for each target VPC.
 
 Example: The Analytical Platform(AP) wants to access the Cloud Platform (CP) VPC.
+
  - Both are attached the the TGW
- - The CP route-table should contain a route with the CP VPC's CIDR block as a destination, but with the TGW ID as a target.
+ - The CP route-table should contain a route with the AP VPC's CIDR block as a destination, but with the TGW ID as a target.
  - The same needs to be done on the AP VPC, to route back to CP.
 
 ## Making the change
 
-Everything is managed in the github repository, in the route.tf file of the [cloud-platform folder]
+All existing routes that are added to live-1 VPC are managed in the github repository, in the `route.tf` file of the [cloud-platform folder].
 Only an admin of the cloud-platform (`moj-cp`) is able to run that code.
 
-Here is the snippet to add to the route.tf :
-```
-resource "aws_route" "my-new-route" {
-        count = length(local.route_tables)
-        route_table_id            = local.route_tables[count.index]
-        destination_cidr_block    = "100.X.X.X/22"
-        transit_gateway_id        = "my-eu-west-2-TGW"
-}
-```
+Here is the snippet to add the VPC CIDR block to the route.tf :
 
-The TGW gateway ID can be found in the Readme of the repo.
-
+```
+pttp_tgw_destination_cidr_blocks = [
+        "10.161.XX.X/22", # Example VPC
+        ...
+        ...
+        ...
+      ]
+```
 Note: Something similar need to be done on the 'other side', terraform or not.
 
-[github repository]: https://github.com/ministryofjustice/transit-gateways
+## Adding live-2 VPC to the TGW
+To add live-2 VPC to Transit gateway, a new vpc_attachement needs to be done with live-2 vpc id.
+A draft branch adding the changes are in https://github.com/ministryofjustice/transit-gateways/tree/add-live-2-cluster-tgw
+- Apply the change in `vpc-attachment.tf` from Cloud-Platform account to attach the live-2 VPC to the Transit Gateway
+- Contact the NVVS DevOps team to add a attachment from their side and activate it
+- Add the required routes table changes to add target VPC CIDRs to live-2 VPC Routes mentioned in `main.tf` and `routes.tf`
+
+[github repository]: https://github.com/ministryofjustice/deployment-tgw
 [cloud-platform folder]: https://github.com/ministryofjustice/transit-gateways/tree/master/terraform/cloud-platform
