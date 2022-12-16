@@ -29,7 +29,7 @@ The Cloud Platform VPC (live-1) is attached to PTTP TGW (`tgw-026162f1ba39ce704`
 
 The vpc_attachement is done by creating the resource `aws_ec2_transit_gateway_vpc_attachment` in Cloud Platform account providing the transit_gateway_id (the one that is shared),
 vpc_id and the private subnet_ids of `live-1` VPC. The NVVS DevOps team then approves the vpc attachement and adds the attachment from their side.
-In order to allow the traffic to flow, a new route need to be added to VPC's route-table for each target VPC. 
+In order to allow the traffic to flow, a new route need to be added to VPC's route-table for each target VPC.
 
 Example: The Analytical Platform(AP) wants to access the Cloud Platform (CP) VPC.
 
@@ -59,7 +59,7 @@ To add live-2 VPC to Transit gateway, below steps needs to be done:
 - Create the resource `aws_ec2_transit_gateway_vpc_attachment` from Cloud-Platform account to attach the live-2 VPC to the Transit Gateway - Done
 - Contact the NVVS DevOps team to add a attachment from their side and activate it - Done
 - Add target VPC CIDRs to live-2 VPC Routes mentioned in the branch https://github.com/ministryofjustice/transit-gateways/tree/add-live-2-routes
-- Seperate CIDR blocks list is needed for live-1 and live-2 so services in `live-1` VPC can access services in `live-2` 
+- Seperate CIDR blocks list is needed for live-1 and live-2 so services in `live-1` VPC can access services in `live-2`
 
 ## Moving away from  Cloud Platform Transit Gateway account
 With the current setup, the PTTP TGW is shared with Cloud Platform account. Cloud Platform Transit Gateway account only holds the terraform state in s3 bucket for eu-west-2 region.
