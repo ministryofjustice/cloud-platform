@@ -1,7 +1,7 @@
 ---
 title: Adding a route to connect to a TGW
 weight: 9000
-last_reviewed_on: 2022-12-14
+last_reviewed_on: 2022-12-15
 review_in: 6 months
 ---
 
@@ -27,9 +27,9 @@ The MoJ current Transit Gateway infrastructure is managed here : [github reposit
 
 The Cloud Platform VPC (live-1) is attached to PTTP TGW (`tgw-026162f1ba39ce704`) which is shared from a different AWS account using (RAM - Resource Access Manager).
 
-The vpc_attachement is done by applying the resource `aws_ec2_transit_gateway_vpc_attachment` providing the transit_gateway_id (the one that is shared),
+The vpc_attachement is done by creating the resource `aws_ec2_transit_gateway_vpc_attachment` in Cloud Platform account providing the transit_gateway_id (the one that is shared),
 vpc_id and the private subnet_ids of `live-1` VPC. The NVVS DevOps team then approves the vpc attachement and adds the attachment from their side.
-In order to allow the traffic to flow, a new route need to be added to VPC's route-table for each target VPC.
+In order to allow the traffic to flow, a new route need to be added to VPC's route-table for each target VPC. 
 
 Example: The Analytical Platform(AP) wants to access the Cloud Platform (CP) VPC.
 
@@ -39,7 +39,7 @@ Example: The Analytical Platform(AP) wants to access the Cloud Platform (CP) VPC
 
 ## Making the change
 
-All existing routes that are added to live-1 VPC are managed in the github repository, in the `route.tf` file of the [cloud-platform folder].
+All existing routes that are added to live-1 VPC are managed in the github repository, in the `route.tf` file of the [transit-gateway-cloud-platform folder].
 Only an admin of the cloud-platform (`moj-cp`) is able to run that code.
 
 Here is the snippet to add the VPC CIDR block to the route.tf :
@@ -54,12 +54,21 @@ pttp_tgw_destination_cidr_blocks = [
 ```
 Note: Something similar need to be done on the 'other side', terraform or not.
 
-## Adding live-2 VPC to the TGW
-To add live-2 VPC to Transit gateway, a new vpc_attachement needs to be done with live-2 vpc id.
-A draft branch adding the changes are in https://github.com/ministryofjustice/transit-gateways/tree/add-live-2-cluster-tgw
-- Apply the change in `vpc-attachment.tf` from Cloud-Platform account to attach the live-2 VPC to the Transit Gateway
-- Contact the NVVS DevOps team to add a attachment from their side and activate it
-- Add the required routes table changes to add target VPC CIDRs to live-2 VPC Routes mentioned in `main.tf` and `routes.tf`
+## Adding live-2 VPC to PTTP TGW
+To add live-2 VPC to Transit gateway, below steps needs to be done:
+- Create the resource `aws_ec2_transit_gateway_vpc_attachment` from Cloud-Platform account to attach the live-2 VPC to the Transit Gateway - Done
+- Contact the NVVS DevOps team to add a attachment from their side and activate it - Done
+- Add target VPC CIDRs to live-2 VPC Routes mentioned in the branch https://github.com/ministryofjustice/transit-gateways/tree/add-live-2-routes
+- Seperate CIDR blocks list is needed for live-1 and live-2 so services in `live-1` VPC can access services in `live-2` 
 
+## Moving away from  Cloud Platform Transit Gateway account
+With the current setup, the PTTP TGW is shared with Cloud Platform account. Cloud Platform Transit Gateway account only holds the terraform state in s3 bucket for eu-west-2 region.
+
+- Create s3 bucket in CP account, move the state file from transit-gateway account and link the new s3 bucket in the repository
+- Move the code from [transit-gateway-cloud-platform folder] repo to [cloud-platform-infrastructure] or similar where CP can have manage with only CP account permissions
+- Create a concourse pipeline to apply the transit-gateway code changes to CP account
+- Find a way to test the connection when a new route is added to any of the VPC
+
+[cloud-platform-infrastructure]: https://github.com/ministryofjustice/cloud-platform-infrastructure
 [github repository]: https://github.com/ministryofjustice/deployment-tgw
-[cloud-platform folder]: https://github.com/ministryofjustice/transit-gateways/tree/master/terraform/cloud-platform
+[transit-gateway-cloud-platform folder]: https://github.com/ministryofjustice/transit-gateways/tree/master/terraform/cloud-platform
