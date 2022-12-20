@@ -23,3 +23,7 @@ https://app.zenhub.com/workspaces/cloud-platform-team-5ccb0b8a81f66118c983c189/b
 https://abc123:abc123@grafana.live.cloud-platform.service.justice.gov.uk/api/dashboard/snapshots
 https://abc123:abc123@grafana.live.cloud-platform.service.justice.gov.uk/api/snapshots/abcdefg123456
 https://35.179.65.116
+https://github.com/organizations/ministryofjustice/settings/applications
+https://github.com/moj-analytical-services/analytical-platform-flux/blob/main/clusters/development/prometheus/prometheus.yaml
+https://github.com/ministryofjustice/transit-gateways/tree/master/terraform/cloud-platform
+https://github.com/ministryofjustice/transit-gateways
