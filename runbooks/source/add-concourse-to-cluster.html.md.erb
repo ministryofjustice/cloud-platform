@@ -1,7 +1,7 @@
 ---
 title: Add Concourse to a test cluster
 weight: 51
-last_reviewed_on: 2022-11-28
+last_reviewed_on: 2022-12-28
 review_in: 3 months
 ---
 
@@ -15,8 +15,40 @@ review_in: 3 months
 
 ## Process
 
-- Amend the following file and remove the count line from the [concourse module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components/components.tf#L2).
-- Apply the new terraorm to your test cluster
+- Go to [`cloud-platform-infrastructure/terraform/aws-accounts/cloud-platform-aws/vpc/eks` directory](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks)
+and update `node_groups_count` and `node_size` as below to match the Manager cluster configuration, as this will support the cpu and memory demands of concourse module.
+
+```
+node_groups_count = {
+    live    = "54"
+    manager = "4"
+    default = "3" > "4"
+  }
+  node_size = {
+    live    = ["r5.xlarge", "r5.2xlarge", "r5a.xlarge"]
+    manager = ["m5.xlarge", "m5.2xlarge", "m5a.xlarge"]
+    default = ["m5.large", "m5.xlarge", "m5a.large"] > ["m5.xlarge", "m5.2xlarge", "m5a.xlarge"]
+  }
+```
+- Apply the changes using below terraform workflow:
+
+```
+terraform init
+terraform workspace select <WorkspaceName>
+terraform plan
+terraform apply
+```
+
+- Go to [`cloud-platform-infrastructure/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components` directory](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components).
+ Amend the following file and remove the count line from the [concourse module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components/components.tf#L2).
+- Apply the terraform module to your test cluster
+
+```
+terraform init
+terraform workspace select <WorkspaceName>
+terraform plan
+terraform apply -target=module.concourse
+```
 - Clone the concourse [repository](https://github.com/ministryofjustice/cloud-platform-terraform-concourse).
 
 - Login via `fly`
