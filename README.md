@@ -52,7 +52,7 @@ We have a series of repositories for our work. We have adopted the naming conven
 | Name | Description |
 |-|-|
 | [Bastion](https://github.com/ministryofjustice/cloud-platform-terraform-bastion) | Deploys a bastion instance |
-| [CertManager](https://github.com/ministryofjustice/cloud-platform-terraform-certmanager) | Deploys [certmanager](https://cert-manager.io/v0.12-docs/installation/kubernetes/) for automated TLS certificates |
+| [CertManager](https://github.com/ministryofjustice/cloud-platform-terraform-certmanager) | Deploys [certmanager](https://cert-manager.io/docs/installation/) for automated TLS certificates |
 | [Concourse](https://github.com/ministryofjustice/cloud-platform-terraform-concourse) | Deploys [ConcourseCI](https://concourse-ci.org/) within a Kubernetes cluster |
 | [Ingress controller](https://github.com/ministryofjustice/cloud-platform-terraform-ingress-controller) | Deploys an [NGINX ingress controller](https://github.com/kubernetes/ingress-nginx) |
 | [Logging](https://github.com/ministryofjustice/cloud-platform-terraform-logging) | Deploys standard logging tools such as [fluentbit](https://fluentbit.io/), etc. |
