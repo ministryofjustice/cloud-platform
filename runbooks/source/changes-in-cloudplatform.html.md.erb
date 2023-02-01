@@ -1,42 +1,40 @@
 ---
 title: Change Process in Cloud Platform
 weight: 51
-last_reviewed_on: 2022-11-15
+last_reviewed_on: 2023-02-01
 review_in: 3 months
 ---
 
 # <%= current_page.data.title %>
 
-Cloud Platform team implements and encourage Infrastructure as a Code methodology to manage the platform. It means every single change is done through code (if you spot something different raise it with us please
-)
+The Cloud Platform team implements and encourage an Infrastructure as Code (IaC) methodology to manage the platform. It means every single change is done through code (if you spot something different raise it with us please).
 
-[cloud-platform-infrastructure repository](https://github.com/ministryofjustice/cloud-platform-infrastructure) is our main repository where infrastructure gets created and all components fits together. From this repository everything gets linked
+[cloud-platform-infrastructure repository](https://github.com/ministryofjustice/cloud-platform-infrastructure) is our main repository where infrastructure gets created and all components fit together. From this repository everything gets linked.
 
-Mostly all components are terraform modules and they are managed in their own git repository, you can list all modules [here](https://github.com/ministryofjustice?q=cloud-platform-terraform&type=&language=)
-.
+Mostly all components are Terraform [modules](https://developer.hashicorp.com/terraform/language/modules), and they are managed in their own git repository; you can list all modules [here](https://github.com/ministryofjustice?q=cloud-platform-terraform&type=&language=).
 
 ## Making Changes to cloud-plarform-infrastructure
 
-1. Create a PR which includes the change you want to make. Make sure the [plan pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-plan/) is happy with the change.
-2. Chase the team to get your PR approved, if it involves downtime ensure you have communications in place.
+1. Create a PR which includes the change you want to make. Make sure the [plan pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-plan-live/) is happy with the change.
+2. Chase the team to get your PR approved, and if it involves downtime ensure you have communications in place.
 3. Merge and wait until the [apply pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-apply/) applies your change.
 
-## Marking Changes to terraform modules
+## Making Changes to Terraform modules
 
 Updating a module is very simple and consist in the following steps:
 
-1. Create PR and ask a team member for approval.
+1. Create a PR and ask a team member for approval.
 2. Merge PR
 3. Create a release following [semantic version spec.](https://semver.org/)
-4. In order to keep our definitions/instances [up to date](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/015-Keeping-Terraform-modules-up-to-date.md): update all existing instances in [environments repo](https://github.com/ministryofjustice/cloud-platform-environments) and [cloud-platform-infrastructure repo](https://github.com/ministryofjustice/cloud-platform-infrastructure). If this step affects team's environments it will need planning and communication.
+4. In order to keep our definitions/instances [up to date](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/015-Keeping-Terraform-modules-up-to-date.md), update all existing instances in [environments repo](https://github.com/ministryofjustice/cloud-platform-environments) and [cloud-platform-infrastructure repo](https://github.com/ministryofjustice/cloud-platform-infrastructure). If this step affects team's environments it will need planning and communication.
 
-Step 2 and 3 can be done at any time and they don't affect the running infrastructure because all terraform modules calls have pinned release version. None terraform module should point to master branches or latest releases automatically.
+Steps 2 and 3 can be done at any time and they don't affect the running infrastructure, since all Terraform modules calls have a pinned release version. No Terraform module should point to master branches or latest releases automatically.
 
-Finally create the PR which update the definition where your module is called and get ready to apply it following the guidelines above.
+Finally, create the PR which updates the definition where your module is called and get ready to apply it following the guidelines above.
 
 ## Making Changes to Helm Charts
 
-Cloud Platform's helm charts are hosted in [cloud-platform-helm-charts](https://github.com/ministryofjustice/cloud-platform-helm-charts) repository using [Github Pages](https://helm.sh/docs/topics/chart_repository/#github-pages-example). Changes in Helm Charts should include:
+Cloud Platform's Helm Charts are hosted in [cloud-platform-helm-charts](https://github.com/ministryofjustice/cloud-platform-helm-charts) repository using [Github Pages](https://helm.sh/docs/topics/chart_repository/#github-pages-example). Changes in Helm Charts should include:
 
 - Bump chart version everytime you make a change
 - Regenerate the `index.yml` following [this](https://github.com/ministryofjustice/cloud-platform-helm-charts/tree/gh-pages#regenerating-the-indexyaml) instructions
@@ -44,17 +42,15 @@ Cloud Platform's helm charts are hosted in [cloud-platform-helm-charts](https://
 
 ## Making changes to environments (Service Teams)
 
-Cloud Platform source of truth for team's environments (kubernetes namespaces) is [cloud-platform-environments](https://github.com/ministryofjustice/cloud-platform-environments), changes under this repository fol
-low similar process:
+The Cloud Platform source of truth for team's environments (Kubernetes namespaces) is [cloud-platform-environments](https://github.com/ministryofjustice/cloud-platform-environments). Changes under this repository follow a similar process:
 
-1. Create PR and verify for the changes in the [plan pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/environments-live), if you are happy with them ask a team member fo
-r approval.
+1. Create a PR and verify the planned changes in the [plan pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/environments-live). If you are happy with them, ask a team member for approval.
 2. Merge PR
 
-Within environment repository we have end to end process fully automated with pipelines. Once the change is merged it is going to be automatically applied the apply pipeline ([apply-live](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/environments-live/jobs/apply-live/builds/1) and [apply-namespace-changes-live](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/environments-live/jobs/apply-namespace-changes-live/builds/1) and if the change is destroying a namespace it will be detected by [detect-deleted-namespace](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/environments-live/jobs/detect-deleted-namespaces/builds/1) pipeline
+Within the environments repository, we have an end to end process fully automated with pipelines. Once the change is merged, it is going to be automatically applied by the apply pipeline ([apply-live](https://concourse.cloud-platiform.service.justice.gov.uk/teams/main/pipelines/environments-live/jobs/apply-live/builds/1) and [apply-namespace-changes-live](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/environments-live/jobs/apply-namespace-changes-live/builds/1) and if the change is destroying a namespace it will be detected by [detect-deleted-namespace](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/environments-live/jobs/detect-deleted-namespaces/builds/1) pipeline.
 
 ## Communications
 
-If changes involve downtime we must inform teams about it via slack (#cloud-platform-update). It is important to include **which services** are going to be down and **for how long**.
+If any changes involve downtime we must inform teams about it via Slack (#cloud-platform-update). It is important to include **which services** are going to be down and **for how long**.
 
-Sometimes teams misunderstand downtimes of Cloud Platform services also involve downtime of **their services**, so it is very handy being  precise about the change.
+Sometimes teams misinterpret downtimes of Cloud Platform services to involve downtime of **their services**, so it is very important to be precise about the change and it's potential impact.
