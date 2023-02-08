@@ -51,12 +51,31 @@ We have a series of repositories for our work. We have adopted the naming conven
 
 | Name                                                                                                   | Description                                                                                                                         |
 | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| [Auth0](https://github.com/ministryofjustice/cloud-platform-terraform-auth0)                          | Creates the auth0 clients for the Kubernetes server and its components    |
+| [AWS Read-Only - SSO](https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso)                          | Allow web console logins using Github credentials via SAML |
+| [AWS Account Baselines](https://github.com/ministryofjustice/cloud-platform-terraform-awsaccounts-baselines)  | Holds security and operational baselines implemented in Cloud Platform AWS accounts   |
 | [Bastion](https://github.com/ministryofjustice/cloud-platform-terraform-bastion)                       | Deploys a bastion instance                                                                                                          |
 | [CertManager](https://github.com/ministryofjustice/cloud-platform-terraform-certmanager)               | Deploys [certmanager](https://cert-manager.io/docs/installation/) for automated TLS certificates                                    |
-| [Concourse](https://github.com/ministryofjustice/cloud-platform-terraform-concourse)                   | Deploys [ConcourseCI](https://concourse-ci.org/) within a Kubernetes cluster                                                        |
+| [Cluster Autoscaler](https://github.com/ministryofjustice/cloud-platform-terraform-cluster-autoscaler)    | Deploys [Cluster Autoscaler](https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler)     |
+| [Concourse](https://github.com/ministryofjustice/cloud-platform-terraform-concourse)                   | Deploys [ConcourseCI](https://concourse-ci.org/) within a Kubernetes cluster                                                        |    
+| [Descheduler](https://github.com/ministryofjustice/cloud-platform-terraform-descheduler)  | Deploys [Descheduler](https://github.com/kubernetes-sigs/descheduler#descheduler-for-kubernetes)  |
+| [EKS Addons](https://github.com/ministryofjustice/cloud-platform-terraform-eks-add-ons)   | Deploys Cloud Platform EKS Add ons    |
+| [EFS CSI](https://github.com/ministryofjustice/cloud-platform-terraform-efs-csi)  | Enables AWS EFS (NFS compatible) storage backend for Kubernetes   |
+| [EKS CSI Storage](https://github.com/ministryofjustice/cloud-platform-terraform-eks-csi)  |   Enables EKS CSI storage backend for Kubernetes (EBS volumes)    |
+| [External DNS](https://github.com/ministryofjustice/cloud-platform-terraform-external-dns)    | Deploys external-dns to control DNS records dynamically |
+| [Global Auth0](https://github.com/ministryofjustice/cloud-platform-terraform-global-resources-auth0)                | Deploys Auth0 actions globally for auth0 tenant  |
+| [IAM COnfiguration](https://github.com/ministryofjustice/cloud-platform-terraform-awsaccounts-iam)    | Holds Cloud Platform team IAM configuration for AWS Accounts  |
 | [Ingress controller](https://github.com/ministryofjustice/cloud-platform-terraform-ingress-controller) | Deploys an [NGINX ingress controller](https://github.com/kubernetes/ingress-nginx)                                                  |
+| [Kuberhealthy](https://github.com/ministryofjustice/cloud-platform-terraform-kuberhealthy)    | Deploys [Kuberhealthy Operator](https://github.com/kuberhealthy/kuberhealthy) and custom checks   |
+| [Kuberos](https://github.com/ministryofjustice/cloud-platform-terraform-kuberos)  | Deploys kuberos which enables users to authenticate to the cluster    |
 | [Logging](https://github.com/ministryofjustice/cloud-platform-terraform-logging)                       | Deploys standard logging tools such as [fluentbit](https://fluentbit.io/), etc.                                                     |
 | [Monitoring](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring)                 | Deploys standard monitoring tools such as [AlertManager](https://prometheus.io/docs/alerting/latest/alertmanager/), exporters, etc. |
+| [OPA](https://github.com/ministryofjustice/cloud-platform-terraform-opa)  Deploys OPA and required policies   |
+| [Starter Pack](https://github.com/ministryofjustice/cloud-platform-terraform-starter-pack) | Deploys Helloworld and multicontainer app    |
+| [Trivy Operator](https://github.com/ministryofjustice/cloud-platform-terraform-trivy-operator)        | Deploys [Trivy Operator](https://aquasecurity.github.io/trivy-operator/v0.1.5/operator/installation/helm/)  |
+| [Velero](https://github.com/ministryofjustice/cloud-platform-terraform-velero)    Deploys velero to manage backup and restore |
+| [VPC Flow logs](https://github.com/ministryofjustice/cloud-platform-terraform-flow-logs)  | Enables AWS Flow logs to capture information about the IP traffic going to and from network interfaces in VPC.    |
+
 
 ### Other
 
@@ -72,6 +91,7 @@ We have a series of repositories for our work. We have adopted the naming conven
 
 | Name                                                                                             | Description                                                                              |
 | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| [Canary](https://github.com/ministryofjustice/cloud-platform-terraform-canary)    | Deploys AWS Synthetics Canary resource    |
 | [Custom error pages](https://github.com/ministryofjustice/cloud-platform-custom-error-pages)     | Customised error pages for uncaught routes                                               |
 | [Environments checker](https://github.com/ministryofjustice/cloud-platform-environments-checker) | Detects orphaned namespaces and AWS resources                                            |
 | [Helm charts](https://github.com/ministryofjustice/cloud-platform-helm-charts)                   | Custom Cloud Platform helm charts                                                        |
