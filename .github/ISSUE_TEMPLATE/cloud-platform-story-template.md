@@ -20,6 +20,15 @@ about: Create new Cloud Platform story
 
 <!-- Describe which parts of the user docs might need updates or changes as part of this work -->
 
+## Communicate changes
+
+<!-- Describe any communications to users or wider stakeholders that may be required in support of this change -->
+
+- [ ] post for #cloud-platform-update
+- [ ] Weeknotes item
+- [ ] Show the Thing/P&A All Hands/User CoP
+- [ ] Announcements channel
+
 ## Questions / Assumptions
 
 <!-- Additional information to explain approach taken -->
@@ -32,6 +41,7 @@ about: Create new Cloud Platform story
 - [ ] user docs have been updated
 - [ ] another team member has reviewed
 - [ ] smoke tests are green
+- [ ] prepare demo for the team
 
 ## Reference
 
