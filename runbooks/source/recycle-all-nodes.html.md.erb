@@ -58,7 +58,7 @@ To resolve the issue we must help kubernetes evict the offending pod by manually
 
 1. Use Cloudwatch Logs > Logs Insights to identify the offending pod
 1. Select the relevant cluster from the `log group` drop down
-1. Paste the following query (this will identify which pods have failed to be deleted and how many times a has been retried) into the box: 
+1. Paste the following query (this will identify which pods have failed to be deleted and how many times a has been retried) into the box:
     - `fields @timestamp, @message | filter @logStream like "kube-apiserver-audit" | filter ispresent(requestURI) | filter objectRef.subresource = "eviction" | filter responseObject.status = "Failure" | display @logStream, requestURI, responseObject.message | stats count(*) as retry by requestURI, requestObject.message`
 1. If there are results they will have a pattern like this:
     - `/api/v1/namespaces/$NAMESPACE/pods/$POD_NAME-$POD_ID/eviction?timeout=19s`
@@ -105,4 +105,3 @@ exit 0
 ```
 
 ["Pod Disruption Budget"]: https://kubernetes.io/docs/concepts/workloads/pods/disruptions/#pod-disruption-budgets
-
