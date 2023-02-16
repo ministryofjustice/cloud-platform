@@ -66,5 +66,43 @@ To resolve the issue we must help kubernetes evict the offending pod by manually
   - `kubectl delete pod -n $NAMESPACE $POD_NAME-$POD_ID`
 1. Nodes should continue to recycle and after a few moments there should be one less node with the status "Ready,SchedulingDisabled"
 
+or you can run the following script with: `watch -n 300 ./delete-pods-in-namespace.sh > deleted_pods.log` and `tail -f delete_pods.log` in another terminal.
+
+```
+#!/bin/bash
+
+delete_pods() {
+  NAMESPACE=$(echo "$1" | sed -E 's/\/api\/v1\/namespaces\/(.*)\/pods\/.*/\1/')
+  POD=$(echo "$1" | sed -E 's/.*\/pods\/(.*)\/eviction\?timeout=*./\1/')
+
+  echo $NAMESPACE
+
+  echo $POD
+
+  kubectl delete pod -n $NAMESPACE $POD
+}
+
+export -f delete_pods
+
+TIME_NOW_EPOCH=$(date +%s)
+
+START_TIME=$(($TIME_NOW_EPOCH - 300))
+
+QUERY_ID=$(aws logs start-query \
+  --start-time $START_TIME \
+  --end-time $TIME_NOW_EPOCH \
+  --log-group-name $CLUTER_LOG_GROUP \
+  --query-string 'fields @timestamp, @message | filter @logStream like "kube-apiserver-audit" | filter ispresent(requestURI) | filter objectRef.subresource = "eviction" | filter responseObject.status = "Failure" | display @logStream, requestURI, responseObject.message | stats count(*) as retry by requestURI, requestObject.message' \
+  | jq -r '.queryId' )
+
+sleep 2
+
+RESULTS=$(aws logs get-query-results --query-id $QUERY_ID)
+
+echo -n $RESULTS | jq '.results[]' | grep '/api/v1' | awk '{ print $2 }' | xargs -I {} bash -c 'delete_pods {}'
+
+exit 0
+```
+
 ["Pod Disruption Budget"]: https://kubernetes.io/docs/concepts/workloads/pods/disruptions/#pod-disruption-budgets
 
