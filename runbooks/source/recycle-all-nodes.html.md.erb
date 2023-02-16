@@ -66,7 +66,7 @@ To resolve the issue we must help kubernetes evict the offending pod by manually
   - `kubectl delete pod -n $NAMESPACE $POD_NAME-$POD_ID`
 1. Nodes should continue to recycle and after a few moments there should be one less node with the status "Ready,SchedulingDisabled"
 
-or you can run the following script with: `watch -n 300 ./delete-pods-in-namespace.sh > deleted_pods.log` and `tail -f delete_pods.log` in another terminal.
+or you can run the following script with: `watch -n 180 ./delete-pods-in-namespace.sh > deleted_pods.log` and `tail -f delete_pods.log` in another terminal.
 
 ```
 #!/bin/bash
@@ -86,7 +86,7 @@ export -f delete_pods
 
 TIME_NOW_EPOCH=$(date +%s)
 
-START_TIME=$(($TIME_NOW_EPOCH - 300))
+START_TIME=$(($TIME_NOW_EPOCH - 180))
 
 QUERY_ID=$(aws logs start-query \
   --start-time $START_TIME \
