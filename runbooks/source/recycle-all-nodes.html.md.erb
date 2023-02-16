@@ -73,7 +73,7 @@ or you can run the following script with: `watch -n 180 ./delete-pods-in-namespa
 
 delete_pods() {
   NAMESPACE=$(echo "$1" | sed -E 's/\/api\/v1\/namespaces\/(.*)\/pods\/.*/\1/')
-  POD=$(echo "$1" | sed -E 's/.*\/pods\/(.*)\/eviction\?timeout=*./\1/')
+  POD=$(echo "$1" | sed -E 's/.*\/pods\/(.*)\/eviction\?timeout=.*/\1/')
 
   echo $NAMESPACE
 
