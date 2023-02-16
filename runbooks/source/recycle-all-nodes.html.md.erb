@@ -1,0 +1,70 @@
+---
+title: Recycling all the nodes in a cluster
+weight: 255
+last_reviewed_on: 2023-02-16
+review_in: 3 months
+---
+
+# Recycle-all-nodes
+
+When a launch template is updated, this will cause all of the nodes to recycle. Reasons to update the launch configuration are most likely to revolve around editing the `User data` script, which is ran when a node is booted. Reasons to edit User data include:
+
+- Changes to docker auth credentials
+- Changes to `eks-bootstrap-env.sh`
+- Changes to kubelet environment variables
+
+## Recycling process
+
+AWS will handle the process of killing the nodes with the old launch configurations and launching new nodes with the latest launch configuration. AWS will initially spin up some extra nodes (for around a 60 node cluster it will spin up 8 extra) to provide spaces for pods as old nodes are cordoned, drained and deleted.
+
+It's very useful to use this command to monitor how the update is going, it's suggested to keep this command running in a terminal:
+
+- `watch kubectl get nodes --sort-by=.metadata.creationTimestamp`
+
+The above command will output all of the nodes like this:
+
+```
+NAME                                           STATUS   ROLES    AGE     VERSION
+ip-172-20-93-79.eu-west-2.compute.internal     Ready,SchedulingDisabled      <none>   2d      v1.22.15-eks-fb459a0
+ip-172-20-73-19.eu-west-2.compute.internal     Ready,SchedulingDisabled      <none>   2d      v1.22.15-eks-fb459a0
+ip-172-20-124-118.eu-west-2.compute.internal   Ready,SchedulingDisabled      <none>   47h     v1.22.15-eks-fb459a0
+ip-172-20-101-81.eu-west-2.compute.internal    Ready,SchedulingDisabled      <none>   47h     v1.22.15-eks-fb459a0
+ip-172-20-119-182.eu-west-2.compute.internal   Ready    <none>   47h     v1.22.15-eks-fb459a0
+ip-172-20-106-20.eu-west-2.compute.internal    Ready    <none>   47h     v1.22.15-eks-fb459a0
+ip-172-20-127-1.eu-west-2.compute.internal     Ready    <none>   47h     v1.22.15-eks-fb459a0
+ip-172-20-122-165.eu-west-2.compute.internal   Ready    <none>   47h     v1.22.15-eks-fb459a0
+ip-172-20-108-196.eu-west-2.compute.internal   Ready    <none>   47h     v1.22.15-eks-fb459a0
+ip-172-20-127-54.eu-west-2.compute.internal    Ready    <none>   47h     v1.22.15-eks-fb459a0
+ip-172-20-97-12.eu-west-2.compute.internal     Ready    <none>   47h     v1.22.15-eks-fb459a0
+ip-172-20-116-68.eu-west-2.compute.internal    Ready    <none>   46h     v1.22.15-eks-fb459a0
+ip-172-20-106-76.eu-west-2.compute.internal    Ready    <none>   46h     v1.22.15-eks-fb459a0
+```
+
+Where nodes have the Status "Ready,SchedulingDisabled" this indicates the nodes which have the old update templates, these are the ones that are cordoned off, whereas those which are "Ready" are the new nodes with the new update template.
+
+When all nodes have been recycled they will all have a status of "Ready".
+
+This process can take 3 to 4 hours on a cluster of ~60 nodes, depending on how quickly you resolve the gotchas below.
+
+### Gotchas
+
+As AWS is draining and shutting down old nodes, occasionally the old nodes will get stuck and will not shut down. In this case kubernetes can't evict a specific pod usually because of poorly configured ["Pod Disruption Budget"].
+
+Without manual intervention this will indefinitely stall the update and the nodes will **not** continue to recycle. This will eventually cause the update to stop, wait and then exit, leaving the remaining nodes with the old update template and others with the new update template.
+
+AWS EKS in some circumstances has even reverted the update and started to drain the new nodes and replace them with the old update template again. So it's important to monitor how the update is going and act when nodes get stuck.
+
+To resolve the issue we must help kubernetes evict the offending pod by manually deleting the pod with the following steps:
+
+1. Use Cloudwatch Logs > Logs Insights to identify the offending pod
+1. Select the relevant cluster from the `log group` drop down
+1. Paste the following query (this will identify which pods have failed to be deleted and how many times a has been retried) into the box: 
+    - `fields @timestamp, @message | filter @logStream like "kube-apiserver-audit" | filter ispresent(requestURI) | filter objectRef.subresource = "eviction" | filter responseObject.status = "Failure" | display @logStream, requestURI, responseObject.message | stats count(*) as retry by requestURI, requestObject.message`
+1. If there are results they will have a pattern like this:
+    - `/api/v1/namespaces/$NAMESPACE/pods/$POD_NAME-$POD_ID/eviction?timeout=19s`
+1. You can then run the following command to manually delete the pod
+  - `kubectl delete pod -n $NAMESPACE $POD_NAME-$POD_ID`
+1. Nodes should continue to recycle and after a few moments there should be one less node with the status "Ready,SchedulingDisabled"
+
+["Pod Disruption Budget"]: https://kubernetes.io/docs/concepts/workloads/pods/disruptions/#pod-disruption-budgets
+
