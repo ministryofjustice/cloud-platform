@@ -1,7 +1,7 @@
 ---
 title: AWS Console Access
 weight: 115
-last_reviewed_on: 2023-03-01
+last_reviewed_on: 2023-03-06
 review_in: 3 months
 ---
 
@@ -11,7 +11,7 @@ New joiners for Cloud platform team will need AWS Console access for most things
 
 Related repositories:
 
- - [cloud-platform-infrastructure (/terraform/cloud-platform-account)](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/cloud-platform-account)
+ - [cloud-platform-infrastructure (/terraform/cloud-platform-account)](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/account)
 
  - [cloud-platform-terraform-awsaccounts-iam][awsaccounts-iam]
 
@@ -29,7 +29,7 @@ Related repositories:
 
 5) [Create a release](https://github.com/ministryofjustice/cloud-platform-terraform-awsaccounts-iam/releases).
 
-6) In the infrastructure repo, edit [the terraform config that calls that module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/cloud-platform-account/main.tf), to use the new release - see [example](https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/938/files)
+6) In the infrastructure repo, edit [the terraform config that calls that module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/account/main.tf#L44), to use the new release - see [example](https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/938/files)
 
 7) Create the PR, ask the team to review it, and merge it.
 
@@ -41,6 +41,6 @@ Related repositories:
 
 ## Activating MFA for new users
 
-Unfortunataly terraform can't activate MFA for users, this process must be done done manually either [thorugh AWS Console (UI)](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html) or [through the AWS CLI](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_cliapi.html).
+Unfortunataly terraform can't activate MFA for users, this process must be done done manually either [through AWS Console (UI)](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html) or [through the AWS CLI](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_cliapi.html).
 
 [awsaccounts-iam]: https://github.com/ministryofjustice/cloud-platform-terraform-awsaccounts-iam/blob/main/main.tf
