@@ -7,6 +7,60 @@ weight: 45
 
 > Use the [mean-time-to-repair.rb] script to view performance metrics
 
+## Q1 2023 (January-March)
+
+- **Mean Time to Repair**: 673h 34m
+
+- **Mean Time to Resolve**: 673h 34m
+
+### Incident on 2023-01-05 08:56 - CircleCI Security Incident
+
+- **Key events**
+  - First detected 2023-01-04 (Time TBC)
+  - Incident declared: 2022-01-05 08:56
+  - Repaired 2023-02-01 10:30
+  - Resolved 2022-02-01 10:30
+
+- **Time to repair**: 673h 34m
+
+- **Time to resolve**: 673h 34m
+
+- **Identified**: CircleCI announced a [security alert on 4th January 2023](https://circleci.com/blog/january-4-2023-security-alert/). Their advice was for any and all secrets stored in CircleCI to be rotated immediately as a cautionary measure.
+
+- **Impact**: Exposure of secrets stored within CircleCI for running various services associated with applications running on the Cloud Platform.
+
+- **Context**: Users of the Cloud Platform use CircleCI for CI/CD including deployments into the Cloud Platform. Access for CircleCI into the Cloud Platform is granted by generating a namespace enclosed service-account with required permission set by individual teams/users.
+As all service-account access/permissions were set based on user need, some service-accounts had access to all stored secrets within the namespace it was created in.
+As part of our preliminary investigation, it was also discovered service-accounts were shared between namespaces which exposed this incident wider than first anticipated.
+We made the decision that we need to rotate any and all secrets used within the cluster.
+
+- **Resolution**: Due to the unknown nature opf some of the secrets that may have been exposed a prioritised phased approach was created:
+  - Phase 1
+    Rotate the secret access key all service-accounts named “circle-*”
+    Rotate the secret access key for all other service-accounts
+    Rotate all IRSA service-accounts
+
+  - Phase 2
+    Rotate all AWS keys within namespaces which had a CircleCI service-account
+
+  - Phase 3
+    Rotate all AWS keys within all other namespaces not in Phase 2
+
+  - Phase 4
+    Create and publish guidance for users to rotate all other secrets within namespaces and AWS keys generated via a Cloud Platform Module
+
+  - Phase 5
+    Clean up any other IAM/Access keys not managed via code within the AWS account.
+
+Full detailed breakdown of events can be found in the [postmortem notes](https://docs.google.com/document/d/1HQXzLtiXorRIcyt8YdBu24ZSZqNAFrXVhSSIAy3242A/edit?usp=sharing).
+
+- **Review actions**:
+  - Implement Trivy scanning for container vulnerability (Done)
+  - Implement Secrets Manager
+  - Propose more code to be managed in cloud-platform-environments repository
+  - Look into a Terraform resource for CircleCI
+  - Use IRSA instead of AWS Keys
+
 ## Q4 2022 (October-December)
 
 - **Mean Time to Repair**: 27m
@@ -343,7 +397,6 @@ weight: 45
   - Add helloworld app that uses modsec controller, for the smoke tests to check traffic works. Ticket [#2974](https://github.com/ministryofjustice/cloud-platform/issues/2974)
   - Modsec module, new version, needs to be working on EKS for live-1 and live (neither old or new version work on live). Ticket [#2975](https://github.com/ministryofjustice/cloud-platform/issues/2975)
 
-
 ### Incident on 2021-05-10 12:15 - Apply Pipeline downtime due to accidental destroy of Manager cluster
 
 - **Key events**
@@ -375,7 +428,6 @@ weight: 45
   - Try ‘Prevent destroy’ setting on R53 zone - Ticket [#2899](https://github.com/ministryofjustice/cloud-platform/issues/2899)
   - Disband the cloud-platform-concourse repository. This includes Service accounts, and pipelines. We should split this repository up and move it to the infra/terraform-concourse repos. Ticket [#3017](https://github.com/ministryofjustice/cloud-platform/issues/3017)
   - Manager needs to use our PSPs instead of eks-privilege - this has already been done.
-
 
 ## Q1 2021 (January - March)
 
@@ -451,7 +503,6 @@ weight: 45
 
 - **Resolution**:
   - This is resolved by cordoning and draining nodes one by one before deleting the instance group.
-
 
 ### Incident on 2020-09-21 18:27 - Some cloud-platform components destroyed.
 
@@ -658,14 +709,13 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
 
 - **Context**:
   - After an upgrade of the Nginx Helm chart v1.24.0 to v1.35
-  - The current version of Nginx has deprecated support for TLS < 1.3
+  - The current version of Nginx has deprecated support for TLS <1.3
   - The issue was spotted on IE11 browsers.
   - Timeline : [https://docs.google.com/document/d/1SCf1WT82IlBYWozWN_FXZqL5h0KUcul_QAkxE84YDw0/edit?usp=sharing](https://docs.google.com/document/d/1SCf1WT82IlBYWozWN_FXZqL5h0KUcul_QAkxE84YDw0/edit?usp=sharing)
   - Slack thread: [https://mojdt.slack.com/archives/C57UPMZLY/p1586954463298700](https://mojdt.slack.com/archives/C57UPMZLY/p1586954463298700)
 
 - **Resolution**:
     The Nginx configuration was modified to enable TLSv1, TLSv1.1 and TLSv1.2
-
 
 ## Q1 2020 (January - March)
 
@@ -726,7 +776,6 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
 
 - **Resolution**:
     We suspect an intermittent & external networking issue to be the cause of this outage.
-
 
 ### Incident on 2020-02-12 11:45 UTC
 
