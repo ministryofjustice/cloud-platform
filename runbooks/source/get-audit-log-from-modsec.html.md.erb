@@ -1,14 +1,13 @@
 ---
 title: Get an audit log from modsec
 weight: 8600
-last_reviewed_on: 2023-01-17
+last_reviewed_on: 2023-03-16
 review_in: 3 months
 ---
 
 # Get an audit log from modsec
 
 On occasion users may need you to provide them with audit log information on an modsec event from our ingress-controllers. This information may be sensitive so it can't be placed in our org-wide Elasticsearch cluster. You'll need to fetch this information from the pod that generated the log.
-
 
 ## How do I check the audit log
 
@@ -36,29 +35,29 @@ example: https://mojdt.slack.com/archives/C57UPMZLY/p1630936971082200
 ## Perform a search for the unique-id (obtained from the Kibana entry)
 
 ```
-# assuming the event was today
-$ day=$(date '+%Y%m%d')
+# assuming the event id is 16494071776.005464
 $ event="16494071776.005464"
-$ for k in `kubectl -n ingress-controllers get pods | grep modsec01-nx-controller | awk '{print $1}'` ; do echo $k ; kubectl -n ingress-controllers exec -ti $k -- bash -c "cd /var/log/audit/$day/ ; grep -r $event *" && break ; done
+$ for k in `kubectl -n ingress-controllers get pods | grep modsec01-nx-controller | awk '{print $1}'` ; do echo $k ; kubectl -n ingress-controllers exec -ti $k -- bash -c "cat /var/log/modsec_audit.log ; grep -r $event *" && break ; done
 ```
 
 Which should return the event.
- 
-If you want to copy the filtered events of a particular date e.g. 24/11/2021 to a folder and download to the local machine to extract the data, use the commands in bash
- ```bash
- cd /var/log/audit/20211124
- find . -name "*" | xargs grep -iEl "String or hostname to search" > list.txt
+
+If you want to copy the filtered events of a particular search pattern to a folder and download to the local machine to extract the data, use the commands in bash
+
+```bash
+ cd /var/log/
+ cat modsec_audit.log | grep -r "String or hostname to search" > list.txt
  mkdir copy
- for file in $(<list.txt); do cp "$file" ./copy; done
+ cp list.txt ./copy
  ```
 
 This should copy the filtered folders and files into the `copy` folder
 
 Exit the modsec pod and from your machine, enter the below command
+
 ```bash
- kubectl -n ingress-controllers cp <modsec-pod-name>:/var/log/audit/20211124/copy .                     
+ kubectl -n ingress-controllers cp <modsec-pod-name>:/var/log/copy .
 ```
 
 If you want to send the log data to a user, make sure you filter the data specific to that application and encrypt the file.
 From mac, you can use gpgkeychain to encrypt the file using the receiver's public key before sending it to the user.
- 
