@@ -9,7 +9,6 @@ review_in: 3 months
 
 On occasion users may need you to provide them with audit log information on an modsec event from our ingress-controllers. This information may be sensitive so it can't be placed in our org-wide Elasticsearch cluster. You'll need to fetch this information from the pod that generated the log.
 
-
 ## How do I check the audit log
 
 As mentioned above, the audit log cannot be placed into Elasticsearch so you'll need the following:
@@ -42,11 +41,11 @@ $ for k in `kubectl -n ingress-controllers get pods | grep modsec01-nx-controlle
 ```
 
 Which should return the event.
- 
+
 If you want to copy the filtered events of a particular search pattern to a folder and download to the local machine to extract the data, use the commands in bash
- 
+
 ```bash
- cd /var/log/ 
+ cd /var/log/
  cat modsec_audit.log | grep -r "String or hostname to search" > list.txt
  mkdir copy
  cp list.txt ./copy
@@ -57,9 +56,8 @@ This should copy the filtered folders and files into the `copy` folder
 Exit the modsec pod and from your machine, enter the below command
 
 ```bash
- kubectl -n ingress-controllers cp <modsec-pod-name>:/var/log/copy .                     
+ kubectl -n ingress-controllers cp <modsec-pod-name>:/var/log/copy .
 ```
 
 If you want to send the log data to a user, make sure you filter the data specific to that application and encrypt the file.
 From mac, you can use gpgkeychain to encrypt the file using the receiver's public key before sending it to the user.
- 
