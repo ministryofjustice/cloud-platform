@@ -1,7 +1,7 @@
 ---
 title: Add Concourse to a test cluster
 weight: 51
-last_reviewed_on: 2022-12-28
+last_reviewed_on: 2023-03-16
 review_in: 3 months
 ---
 
@@ -35,8 +35,8 @@ node_groups_count = {
 ```
 terraform init
 terraform workspace select <WorkspaceName>
-terraform plan
-terraform apply
+terraform plan -var "enable_oidc_associate=false"
+terraform apply -var "enable_oidc_associate=false"
 ```
 
 - Go to [`cloud-platform-infrastructure/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components` directory](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components).
