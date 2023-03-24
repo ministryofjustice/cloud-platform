@@ -51,13 +51,28 @@ terraform apply -target=module.concourse
 ```
 - Clone the concourse [repository](https://github.com/ministryofjustice/cloud-platform-terraform-concourse).
 
-- Login via `fly`
+- Login to Concourse
+
+For this step you will need to authenticate to Concourse using your instance's local username and password. These are stored in the kubernete secret `concourse-web` in
+the `concourse` namespace, and can be obtained using the `cloud-platform` cli tool:
+
+```
+cloud-platform decode-secret -n concourse -s concourse-web
+```
+Username and password are stored in the `local-users` key-value pair:
+
+```
+"local-users": "[local-username]/[local-password]"
+```
+
+- Once you have these values to hand, login to Concourse with `fly`
 
 ```
 fly --target david-test1 login \
     --team-name main \
     --concourse-url https://concourse.apps.david-test1.cloud-platform.service.justice.gov.uk
 ```
+Follow the URL this command outputs, choose to login with Username/Password, and enter your local username credentials.
 
 - Apply your pipeline
 
