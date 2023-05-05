@@ -1,7 +1,7 @@
 ---
 title: Upgrade EKS cluster
 weight: 53
-last_reviewed_on: 2023-01-17
+last_reviewed_on: 2023-05-06
 review_in: 3 months
 ---
 
@@ -106,6 +106,14 @@ While updating the node group AMI release version, we should also change the lau
 
 ![Update Node Group](../images/update-node-group.png)
 
+
+### Recycle all nodes
+
+When a node group version this will cause all of the nodes to recycle. When AWS recycle the nodes, it will not evict pods if it will break the PDB.
+This will cause the node to stall the update and the nodes will **not** continue to recycle.
+
+To rectify this, run the script mentioned in [Recycle-all-nodes- Gotchas](/recycle-all-nodes.html#gotchas) section.  
+
 ### Upgrade addon(s)
 
 We have 3 addons managed through cloud-platform-terraform-eks-add-ons [module](https://github.com/ministryofjustice/cloud-platform-terraform-eks-add-ons).
@@ -120,29 +128,3 @@ Refer to the below documents to get the addon version to be used with the EKS ma
 
 Create a PR in Cloud Platform Infrastructure repository against the cloud-platform-terraform-eks-add-ons [module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf#L192) making the changes to the desired addon version’s [here](https://github.com/ministryofjustice/cloud-platform-terraform-eks-add-ons/blob/main/variables.tf#L28-L44). Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, run `terraform apply` to execute the changes.
 
-### Troubleshooting
-
-When we update node group version or change launch template version, we had error "Reached max retries while trying to evict pods from nodes in node group live-default_ng_xxxx", even using force which does not respect pod disruption budgets and it forces node restarts. The force drain mode can fail to evict pods when there are pods in CrashLoopBack state and PDB is in effect, related to this [issue](https://github.com/kubernetes/kubernetes/issues/72320)
-
-We can use cloudwatch logs insights with following filter to understand for which all pods the eviction was a failure.
-
-  1) Go to cloudwatch logs console, then click on insights.
-  2) Now in the current window, select log groups which corresponds to Cluster Control Plane logs. For live cluster it is: "/aws/eks/live/cluster"
-  3) Use the below filter to check on all eviction failures that happened to the EKS cluster
-
-  ```
-  fields @timestamp, @message | filter @logStream like "kube-apiserver-audit" | filter ispresent(requestURI) | filter objectRef.subresource = "eviction" | filter responseObject.status = "Failure"
-  ```
-
-  4) After running the query with above filter, you could see all the eviction failures which includes repeated retries performed by the client.
-  5) The "requestURI" present inside the message in the results of above query will point you on which pods triggered eviction failure.
-  6) Further to filter out all such duplicate eviction retries you could use the following query.
-
-  ```
-  fields @timestamp, @message | filter @logStream like "kube-apiserver-audit" | filter ispresent(requestURI) | filter objectRef.subresource = "eviction" | filter responseObject.status = "Failure" | display @logStream, requestURI, responseObject.message | stats count(*) as retry by requestURI, requestObject.message
-  ```
-
-Delete the eviction failure pods manually to avoid the error "Reached max retries while trying to evict pods from nodes in node group live-default_ng_xxxx"
-
-[tools image]: https://github.com/ministryofjustice/cloud-platform-tools-image
-[infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
