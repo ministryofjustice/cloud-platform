@@ -46,7 +46,7 @@ This will eventually cause the update to stop, wait and then exit, leaving the r
 
 AWS EKS in some circumstances has even reverted the update and started to drain the new nodes and replace them with the old update template again. So it's important to monitor how the update is going and act when nodes get stuck.
 
-To resolve the issue, evict the offending pod by with the below script:
+To resolve the issue, evict the offending pod by running the below script:
 
 ```watch -n 300 ./delete-pods-in-namespace.sh '/aws/eks/<cluster-name>/cluster' > deleted_pods.log```
 
@@ -101,7 +101,7 @@ If you want to find the offending pod manually, follow these steps:
 
 1. Use Cloudwatch Logs > Logs Insights to identify the offending pod
 2. Select the relevant cluster from the `log group` drop down
-3. Paste the following query (this will identify which pods have failed to be deleted and how many times a has been retried) into the box:
+3. Paste the following query (this will identify which pods have failed to be deleted and how many times deletion has been retried) into the box:
 
     ```
     fields @timestamp, @message | filter @logStream like "kube-apiserver-audit" | filter ispresent(requestURI) | filter objectRef.subresource = "eviction" | filter responseObject.status = "Failure" | display @logStream, requestURI, responseObject.message | stats count(*) as retry by requestURI, requestObject.message

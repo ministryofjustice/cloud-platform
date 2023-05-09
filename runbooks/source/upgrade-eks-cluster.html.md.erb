@@ -108,7 +108,7 @@ While updating the node group AMI release version, we should also change the lau
 
 ### Recycle all nodes
 
-When a node group version this will cause all of the nodes to recycle. When AWS recycle the nodes, it will not evict pods if it will break the PDB.
+When a node group version changes, this will cause all of the nodes to recycle. When AWS recycles the nodes, it will not evict pods if it will break the PDB.
 This will cause the node to stall the update and the nodes will **not** continue to recycle.
 
 To rectify this, run the script mentioned in [Recycle-all-nodes- Gotchas](/recycle-all-nodes.html#gotchas) section.
