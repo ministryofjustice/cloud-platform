@@ -46,7 +46,11 @@ This will eventually cause the update to stop, wait and then exit, leaving the r
 
 AWS EKS in some circumstances has even reverted the update and started to drain the new nodes and replace them with the old update template again. So it's important to monitor how the update is going and act when nodes get stuck.
 
-To resolve the issue, evict the offending pod by deleting the pod with the below script:
+To resolve the issue, evict the offending pod by with the below script:
+
+```watch -n 300 ./delete-pods-in-namespace.sh '/aws/eks/<cluster-name>/cluster' > deleted_pods.log```
+
+and `tail -f delete_pods.log` in another terminal. The `<cluster-name>` is the short name of the cluster e.g. `cp-2901-1531`
 
 ```
 #!/bin/bash
@@ -81,7 +85,7 @@ sleep 2
 
 RESULTS=$(aws logs get-query-results --query-id $QUERY_ID)
 
-echo -n $RESULTS | jq '.results[]' | grep '/api/v1' | awk '{ print $2 }' | xargs -I {}  bash -c 'delete_pods {}'
+echo -n $RESULTS | jq '.results[]' | grep '/api/v1' | awk '{ print $2 }' | xargs -I {} bash -c 'delete_pods {}'
 
 exit 0
 
