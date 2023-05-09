@@ -106,13 +106,12 @@ While updating the node group AMI release version, we should also change the lau
 
 ![Update Node Group](../images/update-node-group.png)
 
-
 ### Recycle all nodes
 
 When a node group version this will cause all of the nodes to recycle. When AWS recycle the nodes, it will not evict pods if it will break the PDB.
 This will cause the node to stall the update and the nodes will **not** continue to recycle.
 
-To rectify this, run the script mentioned in [Recycle-all-nodes- Gotchas](/recycle-all-nodes.html#gotchas) section.  
+To rectify this, run the script mentioned in [Recycle-all-nodes- Gotchas](/recycle-all-nodes.html#gotchas) section.
 
 ### Upgrade addon(s)
 
@@ -127,4 +126,3 @@ Refer to the below documents to get the addon version to be used with the EKS ma
 [managing-vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
 
 Create a PR in Cloud Platform Infrastructure repository against the cloud-platform-terraform-eks-add-ons [module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf#L192) making the changes to the desired addon version’s [here](https://github.com/ministryofjustice/cloud-platform-terraform-eks-add-ons/blob/main/variables.tf#L28-L44). Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, run `terraform apply` to execute the changes.
-
