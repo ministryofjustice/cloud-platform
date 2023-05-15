@@ -1,7 +1,7 @@
 ---
 title: Upgrade cluster components
 weight: 54
-last_reviewed_on: 2022-11-28
+last_reviewed_on: 2023-05-15
 review_in: 3 months
 ---
 
@@ -23,8 +23,6 @@ When you start working on upgrading any cloud-platform-components ticket:
 - Review the CHANGELOG notes with another member of the team (check for breaking changes, deprecations, change to values file and suggested plan for upgrading the production clusters `live-1`, `eks-manager` and `live`)
 
 ## Testing the upgrade in a test cluster
-
-It is important to test the upgrade of the component in both kops and EKS cluster.
 
 - Your GPG key must be added to the [cloud-platform-infrastructure repo] so that you are able to run `git-crypt unlock`
 
@@ -88,7 +86,7 @@ make run-tests
   4. Once the testing is complete and integration tests are passed, create a PR to be reviewed by the team and have the module unit tests passed.
      After the PR is approved, merge the changes to the main branch of the module and make a release.
 
-  5. Change the module release tag in the kops/components and eks/components folder of [cloud-platform-infrastructure repo] and raise a PR.
+  5. Change the module release tag in the eks/components folder of [cloud-platform-infrastructure repo] and raise a PR.
      Verify the terraform plan from the [cloud-platform-infrastructure plan pipeline] and get it reviewed by the team.
 
   6. Once approved, merge the PR and monitor the [cloud-platform-infrastructure apply pipeline] when applying the changes.
@@ -112,20 +110,20 @@ cloud-platform environment bump-module --module certmanager --module-version 0.5
 
 #### Cert manager
 
-  - The CRDs for cert-manager doesnot get deleted
-  - The existing certificates doesnot change in any way. This can be done by checking the timestamps of certificate creation
+  - The CRDs for cert-manager do not get deleted
+  - The existing certificates do not change in any way. This can be done by checking the timestamps of certificate creation
   - Able to create and validate new certificates
 
 #### Prometheus
 
   - Ensure correct CRDs versions of prometheus-operator are updated before upgrading prometheus-operator
-  - The existing PrometheusRules and ServiceMonitors doesnot change in any way. This can be done by checking the timestamps of those resourse creation
+  - The existing PrometheusRules and ServiceMonitors do not change in any way. This can be done by checking the timestamps of those resourse creation
   - Able to query prometheus for metrics
 
 [cloud-platform-infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
 [cloud-platform-environments-repo]: https://github.com/ministryofjustice/cloud-platform-environments
-[cloud-platform-infrastructure plan pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/cloud-platform-infrastructure/jobs/plan-cloud-platform-infrastructure
-[cloud-platform-infrastructure apply pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/cloud-platform-infrastructure/jobs/apply-cloud-platform-infrastructure
+[cloud-platform-infrastructure plan pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-plan-infra-live/
+[cloud-platform-infrastructure apply pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-apply-infra-live
 [example.env.create-cluster]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/example.env.create-cluster
 [AWS CLI]: https://aws.amazon.com/cli/
 [docker]: https://www.docker.com/
