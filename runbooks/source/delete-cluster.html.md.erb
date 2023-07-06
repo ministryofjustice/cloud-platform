@@ -1,7 +1,7 @@
 ---
 title: Delete a cluster
 weight: 55
-last_reviewed_on: 2023-05-22
+last_reviewed_on: 2023-07-06
 review_in: 3 months
 ---
 
@@ -53,7 +53,7 @@ In case you prefer concourse pipeline to destroy the cluster, these are the step
 
 First, cd to the working copy of the concourse [pipelines repo][pipelines repo]. Make the below two changes to the [eks-create-test-destroy.yaml][eks-create-test-destroy] file.
 
-* In the create-test-destroy pipeline definition, literally add CLUSTER_NAME [var][concourse-vars], under params as below:
+* In the `destroy-cluster` pipeline job definition, literally add CLUSTER_NAME [var][concourse-vars], under `params` as below:
 
   ```
   params:
@@ -61,14 +61,14 @@ First, cd to the working copy of the concourse [pipelines repo][pipelines repo].
   ```
   We will specify the CLUSTER_NAME value using `-v NAME=VALUE` in the later step, when we run the fly command to set_pipeline.
 
-* Comment out this line [here][cluster-name-export] in destroy-cluster job.
+* Next, comment out this line [here][cluster-name-export] in `destroy-cluster` job.
 
   ```
   args:
     # export $(cat keyval/keyval.properties | grep CLUSTER_NAME )
   ```
 
-  commenting out this will not set the CLUSTER_NAME provided by the create-cluster-run-tests job.
+  Commenting out this will prevent the CLUSTER_NAME value from being provided by the `create-cluster-run-tests` job.
 
 Run the below commands updating the `<cluster-name-to-be-deleted>`. The first fly command will apply the changes made for the [eks-create-test-destroy.yaml][eks-create-test-destroy] file and set the CLUSTER_NAME [static var][concourse-static-vars], the second command will trigger the destroy-cluster job using the CLUSTER_NAME provided.
 
