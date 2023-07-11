@@ -9,7 +9,7 @@ review_in: 6 months
 
 This topic describes how to manually delete namespace resources, deleting namespace resources is now done via the `cloud-plaform` CLI.
 
-## Prerequisites 
+## Prerequisites
 
 - You have the `cloud-platform` CLI installed
 - You have the `kubectl` CLI installed
@@ -18,22 +18,22 @@ This topic describes how to manually delete namespace resources, deleting namesp
 ## environment variables
 
 Perform a kubectl destroy and a terraform delete for a given namespace using either -namespace flag or the
-	the namespace in the given PR Id/Number
+  the namespace in the given PR Id/Number
 
   Along with the mandatory input flag, the below environments variables needs to be set
-	- TF_VAR_cluster_name - e.g. "cp-1902-02" to get the vpc details for some modules like rds, es
-	- TF_VAR_cluster_state_bucket - State where the cluster state is stored
-	- TF_VAR_cluster_state_key - folder name/state key inside the state bucket where cluster state is stored
-	- TF_VAR_github_owner - Github owner: ministryofjustice
-	- TF_VAR_github_token - Personal access token with repo scope to push github action secrets
-	- TF_VAR_kubernetes_cluster - Full name of the Cluster e.g. XXXXXX.gr7.eu-west2.eks.amazonaws.com
-	- PINGDOM_API_TOKEN - API Token to access pingdom
-	- PIPELINE_TERRAFORM_STATE_LOCK_TABLE - DynamoDB table where the state lock is stored
-	- PIPELINE_STATE_BUCKET - State bucket where the environments state is stored e.g cloud-platform-terraform-state
-	- PIPELINE_STATE_KEY_PREFIX - State key/ folder where the environments terraform state is stored e.g cloud-platform-environments
-	- PIPELINE_STATE_REGION - State region of the bucket e.g. eu-west-1
-	- PIPELINE_CLUSTER - Cluster name/folder inside namespaces/ in cloud-platform-environments
-	- PIPELINE_CLUSTER_STATE - Cluster name/folder inside the state bucket where the environments terraform state is stored
+  - TF_VAR_cluster_name - e.g. "cp-1902-02" to get the vpc details for some modules like rds, es
+  - TF_VAR_cluster_state_bucket - State where the cluster state is stored
+  - TF_VAR_cluster_state_key - folder name/state key inside the state bucket where cluster state is stored
+  - TF_VAR_github_owner - Github owner: ministryofjustice
+  - TF_VAR_github_token - Personal access token with repo scope to push github action secrets
+  - TF_VAR_kubernetes_cluster - Full name of the Cluster e.g. XXXXXX.gr7.eu-west2.eks.amazonaws.com
+  - PINGDOM_API_TOKEN - API Token to access pingdom
+  - PIPELINE_TERRAFORM_STATE_LOCK_TABLE - DynamoDB table where the state lock is stored
+  - PIPELINE_STATE_BUCKET - State bucket where the environments state is stored e.g cloud-platform-terraform-state
+  - PIPELINE_STATE_KEY_PREFIX - State key/ folder where the environments terraform state is stored e.g cloud-platform-environments
+  - PIPELINE_STATE_REGION - State region of the bucket e.g. eu-west-1
+  - PIPELINE_CLUSTER - Cluster name/folder inside namespaces/ in cloud-platform-environments
+  - PIPELINE_CLUSTER_STATE - Cluster name/folder inside the state bucket where the environments terraform state is stored
 
 ## Usage
 
@@ -42,7 +42,6 @@ cloud-platform environment destroy [flags]
 
 Examples:
 $ cloud-platform environment destroy -n <namespace>
-
 
 Flags:
       --cluster string        folder name under namespaces/ inside cloud-platform-environments repo refering to full cluster name
@@ -56,4 +55,3 @@ Flags:
 Global Flags:
       --skip-version-check   don't check for updates
 ```
-
