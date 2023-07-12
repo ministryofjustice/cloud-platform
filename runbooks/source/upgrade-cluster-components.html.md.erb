@@ -114,11 +114,10 @@ project. The github page provides a helpful [Supported Versions table](https://g
 each `ingress-nginx` release as well as the associated Helm, controller and nginx versions.
 
 Be sure to thoroughly check all changelogs for each version of these components that fall within the upgrade path. Of special importance is checking for any changes that may have been made
-to ModSecurity and CoreRuleSet versions. These changes should be visible within `ingress-controller` changelogs and you should be able to dig down to any source changes for [ModSecurity](https://github.com/SpiderLabs/ModSecurity) and/or 
+to ModSecurity and CoreRuleSet versions. These changes should be visible within `ingress-controller` changelogs and you should be able to dig down to any source changes for [ModSecurity](https://github.com/SpiderLabs/ModSecurity) and/or
 [CoreRuleSet](https://github.com/coreruleset/coreruleset) by inspecting the associated PR for a given change.
 
 If the upgrade in question does contain changes of any kind to ModSecurity or CoreRuleSet, ensure that links to these changes are included within upgrade announcement communications.
-
 
 #### Cert manager
 
