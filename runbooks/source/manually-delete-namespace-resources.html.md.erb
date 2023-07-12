@@ -1,45 +1,57 @@
 ---
 title: Manually Delete Namespace Resources
 weight: 185
-last_reviewed_on: 2022-11-28
-review_in: 3 months
+last_reviewed_on: 2023-07-11
+review_in: 6 months
 ---
 
 # Manually Delete Namespace Resources
 
-We have a [script][deleter script] which will delete all of the AWS resources belonging to a given namespace, by running `terraform apply` with an empty `main.tf` file, and then running `kubectl delete namespace`.
+This topic describes how to manually delete namespace resources, deleting namespace resources is now done via the `cloud-plaform` CLI.
 
-> The script will not do anything if:
->
-> a) the namespace folder exists in your local working copy of the [environments repository], or
->
-> b) the namespace has `is-production: "true"`
+## Prerequisites
 
-NB: You need `ruby` installed, in order to use this tool.
+- You have the `cloud-platform` CLI installed
+- You have the `kubectl` CLI installed
+- You have the `terraform` CLI installed
 
-To run the script:
+## environment variables
 
-1. populate the environment variables listed in the comment at the top of the script
+Perform a kubectl destroy and a terraform delete for a given namespace using either -namespace flag or the
+  the namespace in the given PR Id/Number
 
-1. cd to the root of a working copy of the [environments repository]
+  Along with the mandatory input flag, the below environments variables needs to be set
+  - TF_VAR_cluster_name - e.g. "cp-1902-02" to get the vpc details for some modules like rds, es
+  - TF_VAR_cluster_state_bucket - State where the cluster state is stored
+  - TF_VAR_cluster_state_key - folder name/state key inside the state bucket where cluster state is stored
+  - TF_VAR_github_owner - Github owner: ministryofjustice
+  - TF_VAR_github_token - Personal access token with repo scope to push github action secrets
+  - TF_VAR_kubernetes_cluster - Full name of the Cluster e.g. XXXXXX.gr7.eu-west2.eks.amazonaws.com
+  - PINGDOM_API_TOKEN - API Token to access pingdom
+  - PIPELINE_TERRAFORM_STATE_LOCK_TABLE - DynamoDB table where the state lock is stored
+  - PIPELINE_STATE_BUCKET - State bucket where the environments state is stored e.g cloud-platform-terraform-state
+  - PIPELINE_STATE_KEY_PREFIX - State key/ folder where the environments terraform state is stored e.g cloud-platform-environments
+  - PIPELINE_STATE_REGION - State region of the bucket e.g. eu-west-1
+  - PIPELINE_CLUSTER - Cluster name/folder inside namespaces/ in cloud-platform-environments
+  - PIPELINE_CLUSTER_STATE - Cluster name/folder inside the state bucket where the environments terraform state is stored
 
-1. Run `bundle install`
+## Usage
 
-1. Run the script, supplying the namespace name as the only argument, e.g.
+```bash
+cloud-platform environment destroy [flags]
 
+Examples:
+$ cloud-platform environment destroy -n <namespace>
+
+Flags:
+      --cluster string        folder name under namespaces/ inside cloud-platform-environments repo refering to full cluster name
+      --github-token string   Personal access Token from Github
+  -h, --help                  help for destroy
+      --kubecfg string        path to kubeconfig file (default "<user home directory>/.kube/config")
+  -n, --namespace string      Namespace which you want to perform the destroy
+      --prNumber int          Pull request ID or number to which you want to perform the destroy
+      --redact                Redact the terraform output before printing (default true)
+
+Global Flags:
+      --skip-version-check   don't check for updates
 ```
-./bin/delete-namespace.rb mynamespace
-```
-
-If you need to delete a production namespace, you will have to comment out the code which prevents that from happening.
-
-That's the code block [here](https://github.com/ministryofjustice/cloud-platform-environments/blob/dd2e0049b5eb17d2925a55b22f4102896909a96b/lib/cp_env/namespace_deleter.rb#L71)
-
-> If the script fails partway through, it may leave a new folder in your local working copy:
->
-> `namespaces/live.cloud-platform.service.justice.gov.uk/[namespace name]`
->
-> If this happens, just delete the whole `namespaces/live.cloud-platform.service.justice.gov.uk/[namespace name]` folder and re-run the script.
-
-[deleter script]: https://github.com/ministryofjustice/cloud-platform-environments/blob/main/bin/delete-namespace.rb
-[environments repository]: https://github.com/ministryofjustice/cloud-platform-environments
