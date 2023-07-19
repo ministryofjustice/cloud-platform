@@ -1,8 +1,8 @@
 ---
 title: Add Concourse to a test cluster
 weight: 51
-last_reviewed_on: 2023-03-16
-review_in: 3 months
+last_reviewed_on: 2023-07-19
+review_in: 6 months
 ---
 
 # Add Concourse to a test cluster
@@ -10,7 +10,6 @@ review_in: 3 months
 ## Pre-requisites
 
 - A [test cluster][create-test-cluster]. For this guide, we'll assume it's called `david-test1`
-- You must install concourse
 - You must have [fly] installed
 
 ## Process
@@ -27,7 +26,7 @@ node_groups_count = {
   node_size = {
     live    = ["r5.xlarge", "r5.2xlarge", "r5a.xlarge"]
     manager = ["m5.xlarge", "m5.2xlarge", "m5a.xlarge"]
-    default = ["m5.large", "m5.xlarge", "m5a.large"] > ["m5.xlarge", "m5.2xlarge", "m5a.xlarge"]
+    default = ["m6.large", "m6.xlarge", "m6i.large"] > ["m6.xlarge", "m6.2xlarge", "m6i.xlarge"]
   }
 ```
 - Apply the changes using below terraform workflow:
@@ -62,7 +61,7 @@ cloud-platform decode-secret -n concourse -s concourse-web
 Username and password are stored in the `local-users` key-value pair:
 
 ```
-"local-users": "[local-username]/[local-password]"
+"local-users": "[local-username]:[local-password]"
 ```
 
 - Once you have these values to hand, login to Concourse with `fly`
