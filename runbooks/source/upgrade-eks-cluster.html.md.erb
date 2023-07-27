@@ -1,7 +1,7 @@
 ---
 title: Upgrade EKS cluster
 weight: 53
-last_reviewed_on: 2023-05-06
+last_reviewed_on: 2023-07-27
 review_in: 3 months
 ---
 
@@ -18,9 +18,9 @@ Therefore, it will not always require an upgrade of the terraform-aws-eks module
 
 ## Run the upgrade, via the tools image
 
-The cloud platform [tools image] has all the software required to run the upgrade.
+The cloud platform [tools image](https://github.com/ministryofjustice/cloud-platform-tools-image.git) has all the software required to run the upgrade.
 
-Start from the root directory of a working copy of the [infrastructure repo].
+Start from the root directory of a working copy of the [infrastructure repo](https://github.com/ministryofjustice/cloud-platform-infrastructure.git).
 
 With your environment variables set, launch a bash shell on the tools image:
 
@@ -112,6 +112,11 @@ When a node group version changes, this will cause all of the nodes to recycle. 
 This will cause the node to stall the update and the nodes will **not** continue to recycle.
 
 To rectify this, run the script mentioned in [Recycle-all-nodes- Gotchas](/recycle-all-nodes.html#gotchas) section.
+
+### Update kubectl version in tools image
+
+kubectl is supported within one minor version (older or newer) of the cluster version. Update the kubectl version in the cloud platform
+[tools image](https://github.com/ministryofjustice/cloud-platform-tools-image.git) to match the current cluster version.
 
 ### Upgrade addon(s)
 
