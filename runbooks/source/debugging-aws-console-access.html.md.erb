@@ -22,7 +22,7 @@ length of the Principal Tag exceeding the 256 character limit, as documented [he
 
 In order to confirm whether this is the cause, request the user to grab a SAML response from their browser session by following the steps provided in [this link](https://docs.aws.amazon.com/IAM/latest/UserGuide/troubleshoot_saml_view-saml-response.html)
 
-Ask the user to provide you with their base64 decoded SAML response, and check the character count for the contents of the `PrincipalTag:GithubTeam` tag. 
+Ask the user to provide you with their base64 decoded SAML response, and check the character count for the contents of the `PrincipalTag:GithubTeam` tag.
 
 ```
 <saml:Attribute Name="https://aws.amazon.com/SAML/Attributes/PrincipalTag:GithubTeam" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml:AttributeValue xsi:type="xs:string">:github-teams:</saml:AttributeValue>
