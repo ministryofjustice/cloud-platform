@@ -1,0 +1,39 @@
+---
+title: Debugging AWS Console read-only access issues
+weight: 8605
+last_reviewed_on: 2023-08-02
+review_in: 3 months
+---
+
+# <%= current_page.data.title %>
+
+This page exists to collect and provide guidance on how to debug issues with AWS Console read-only access.
+
+## GitHub teams Principal Tag character limit exceeded
+
+You may see users encountering the following error when attempting to SSO into the AWS Console:
+
+```
+Unable to validate tags (Service: AWSSecurityToken; Status Code: 400; Error Code: ValidationError; Request ID: abcd-1234; Proxy: null). Please try again.
+```
+
+The cause of this issue has frequently been identified as a result of a user belonging to enough GitHub teams (or those with especially long names) that result in the total
+length of the Principal Tag exceeding the 256 character limit, as documented [here](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_session-tags.html)
+
+In order to confirm whether this is the cause, request the user to grab a SAML response from their browser session by following the steps provided in [this link](https://docs.aws.amazon.com/IAM/latest/UserGuide/troubleshoot_saml_view-saml-response.html)
+
+Ask the user to provide you with their base64 decoded SAML response, and check the character count for the contents of the `PrincipalTag:GithubTeam` tag. 
+
+```
+<saml:Attribute Name="https://aws.amazon.com/SAML/Attributes/PrincipalTag:GithubTeam" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml:AttributeValue xsi:type="xs:string">:github-teams:</saml:AttributeValue>
+```
+
+You can easily get a character count by running the following command:
+
+```
+$ printf ":github-team-1:github-team-2:" | wc -c
+```
+
+If the character count exceeds 256, you will need to ask the user to review their GitHub team membership, and remove themselves from any teams that are no longer required.
+
+At this time, there is no other workaround for this issue.
