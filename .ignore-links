@@ -32,3 +32,4 @@ https://github.com/ministryofjustice/transit-gateways/tree/add-live-2-cluster-tg
 https://github.com/ministryofjustice/transit-gateways/tree/master/terraform/cloud-platform
 https://registry-1.docker.io/v2/ministryofjustice/cloud-platform-tools/manifests/2.1
 https://hooks.slack.com/services/xxxxxx/xxxxxx/xxxxx
+https://aws.amazon.com/SAML/Attributes/PrincipalTag:GithubTeam
