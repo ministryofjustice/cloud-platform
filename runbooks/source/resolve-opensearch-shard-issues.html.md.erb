@@ -22,7 +22,6 @@ Optimum shard distribution means shards spread evenly across nodes, if you can a
 
 To help achieve this your total shard count per index should be a multiple of the number of data nodes eg. if you have 12 shards for an index then you should have 2, 3, 4, 6, or 12 data nodes. Also note that the total num of shards per node is recommended to be 25 shards per 1 b of JVM heap memory on the node, with a hard limit of 1,000 shards on a node.
 
-
 Your shards should be sized between 10gb - 30 gb (for search heavy workloads) or 30gb - 50gb (for log write heavy workloads)
 
 Use the follow command to check shard allocation:
@@ -31,10 +30,9 @@ Use the follow command to check shard allocation:
 curl https://<search-domain-endpoint>.com/_cat/allocation?v
 ```
 
-
 ## FreeStorageSpaceTooLow alerts
 
-This alert refers to the ebs volume attached to the hot nodes. An initial response may be to increase the storage size but be careful as this may trigger a blue/ green cluster deploy which can take a long time to fully deploy. If you do opt for this method be sure to also adjust iops and throughput accordingly to avoid throttling notifications. 
+This alert refers to the ebs volume attached to the hot nodes. An initial response may be to increase the storage size but be careful as this may trigger a blue/ green cluster deploy which can take a long time to fully deploy. If you do opt for this method be sure to also adjust iops and throughput accordingly to avoid throttling notifications.
 
 More effective methods are:
 
@@ -90,4 +88,3 @@ and get the migration status with:
 ```
 curl https://<search-domain-endpoint>.com/_ultrawarm/migration/_status?v
 ```
-
