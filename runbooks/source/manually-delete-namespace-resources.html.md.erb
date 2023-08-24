@@ -1,57 +1,63 @@
 ---
 title: Manually Delete Namespace Resources
 weight: 185
-last_reviewed_on: 2023-07-11
+last_reviewed_on: 2023-08-24
 review_in: 6 months
 ---
 
 # Manually Delete Namespace Resources
 
-This topic describes how to manually delete namespace resources, deleting namespace resources is now done via the `cloud-plaform` CLI.
+In the event that you need to manually delete a cloud-platform-environments namespace, for example production namespaces which our 
+namespace-deleter pipeline is configured to skip, you can do so by following the steps below.
+
 
 ## Prerequisites
 
-- You have the `cloud-platform` CLI installed
-- You have the `kubectl` CLI installed
-- You have the `terraform` CLI installed
+Ensure you have the following installed on your machine:
 
-## environment variables
+- cloud-platform CLI
+- kubectl
+- terraform CLI
 
-Perform a kubectl destroy and a terraform delete for a given namespace using either -namespace flag or the
-  the namespace in the given PR Id/Number
+## Environment Variables
 
-  Along with the mandatory input flag, the below environments variables needs to be set
-  - TF_VAR_cluster_name - e.g. "cp-1902-02" to get the vpc details for some modules like rds, es
-  - TF_VAR_cluster_state_bucket - State where the cluster state is stored
-  - TF_VAR_cluster_state_key - folder name/state key inside the state bucket where cluster state is stored
-  - TF_VAR_github_owner - Github owner: ministryofjustice
-  - TF_VAR_github_token - Personal access token with repo scope to push github action secrets
-  - TF_VAR_kubernetes_cluster - Full name of the Cluster e.g. XXXXXX.gr7.eu-west2.eks.amazonaws.com
-  - PINGDOM_API_TOKEN - API Token to access pingdom
-  - PIPELINE_TERRAFORM_STATE_LOCK_TABLE - DynamoDB table where the state lock is stored
-  - PIPELINE_STATE_BUCKET - State bucket where the environments state is stored e.g cloud-platform-terraform-state
-  - PIPELINE_STATE_KEY_PREFIX - State key/ folder where the environments terraform state is stored e.g cloud-platform-environments
-  - PIPELINE_STATE_REGION - State region of the bucket e.g. eu-west-1
-  - PIPELINE_CLUSTER - Cluster name/folder inside namespaces/ in cloud-platform-environments
-  - PIPELINE_CLUSTER_STATE - Cluster name/folder inside the state bucket where the environments terraform state is stored
-
-## Usage
+In addition to having your AWS profile configured, the following environment variables must be set before executing a 
+namespace deletion:
 
 ```bash
-cloud-platform environment destroy [flags]
-
-Examples:
-$ cloud-platform environment destroy -n <namespace>
-
-Flags:
-      --cluster string        folder name under namespaces/ inside cloud-platform-environments repo refering to full cluster name
-      --github-token string   Personal access Token from Github
-  -h, --help                  help for destroy
-      --kubecfg string        path to kubeconfig file (default "<user home directory>/.kube/config")
-  -n, --namespace string      Namespace which you want to perform the destroy
-      --prNumber int          Pull request ID or number to which you want to perform the destroy
-      --redact                Redact the terraform output before printing (default true)
-
-Global Flags:
-      --skip-version-check   don't check for updates
+TF_VAR_cluster_name           # e.g. "cp-1902-02" to get the vpc details for some modules like rds, es
+TF_VAR_cluster_state_bucket   # State where the cluster state is stored
+TF_VAR_cluster_state_key      # folder name/state key inside the state bucket where cluster state is stored
+TF_VAR_github_owner           # Github owner: ministryofjustice
+TF_VAR_github_token           # Personal access token with repo scope to push github action secrets
+TF_VAR_kubernetes_cluster     # Full name of the Cluster e.g. XXXXXX.gr7.eu-west2.eks.amazonaws.com
+PINGDOM_API_TOKEN             # API Token to access pingdom
+PIPELINE_TERRAFORM_STATE_LOCK_TABLE # DynamoDB table where the state lock is stored
+PIPELINE_STATE_BUCKET         # State bucket where the environments state is stored e.g cloud-platform-terraform-state
+PIPELINE_STATE_KEY_PREFIX     # State key/ folder where the environments terraform state is stored e.g cloud-platform-environments
+PIPELINE_STATE_REGION         # State region of the bucket e.g. eu-west-1
+PIPELINE_CLUSTER              # Cluster name/folder inside namespaces/ in cloud-platform-environments
+PIPELINE_CLUSTER_STATE        # Cluster name/folder inside the state bucket where the environments terraform state is stored
 ```
+
+For specific values, you can refer to the [Concourse environments-live pipeline](https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/environments-live.yaml)
+and its associated secrets.
+
+## Deleting a namespace
+
+The `cloud-platform` CLI namespace delete command must be executed from the root of the `cloud-platform-environments` repository. If the
+namespace folder still exists in the environments repository (ie no namespace removal PR has been merged), then the command will abort. Therefore
+ensure that your environments repository is up to date with the latest changes.
+
+Locate the PR number for the namespace deletion PR, and execute the following command:
+
+```bash
+cloud-platform environment destroy \
+    --prNumber [namespace-deletion-PR] \
+    --cluster arn:aws:eks:eu-west-2:754256621582:cluster/live \
+    --kubecfg ~/.kube/config \
+    --clusterdir live.cloud-platform.service.justice.gov.uk \
+    --skip-prod-destroy=true  # Set this flag to false to destroy namespace marked :is-production
+```
+The command will then destroy all terraform and kubernetes resources associated with the namespace, and finally will delete
+the namespace itself.
