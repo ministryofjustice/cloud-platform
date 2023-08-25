@@ -13,7 +13,7 @@ It is recommended to pass responsibility for deleting a test cluster off to conc
 
 In case you prefer concourse pipeline to destroy the cluster, these are the steps to follow, to delete the cluster using "concourse fly commands"
 
-Run the below commands updating the `<cluster-name-to-be-deleted>`. The second fly command will set the CLUSTER_NAME [static var][concourse-static-vars], the third command will trigger the delete-cluster job using the CLUSTER_NAME provided.
+Run the below commands updating the `<cluster-name-to-be-deleted>`. The second fly command will set the `cluster_name` [static var][concourse-static-vars], the third command will trigger the delete-cluster job using the `cluster_name` provided.
 
 from the root dir of `cloud-platform-terraform-concourse`:
 
