@@ -7,9 +7,8 @@ review_in: 6 months
 
 # Manually Delete Namespace Resources
 
-In the event that you need to manually delete a cloud-platform-environments namespace, for example production namespaces which our 
+In the event that you need to manually delete a cloud-platform-environments namespace, for example production namespaces which our
 namespace-deleter pipeline is configured to skip, you can do so by following the steps below.
-
 
 ## Prerequisites
 
@@ -21,13 +20,12 @@ Ensure you have the following installed on your machine:
 
 ## Environment Variables
 
-In addition to having your AWS profile configured, the following environment variables must be set before executing a 
+In addition to having your AWS profile configured, the following environment variables must be set before executing a
 namespace deletion:
 
 ```bash
 TF_VAR_cluster_name           # e.g. "cp-1902-02" to get the vpc details for some modules like rds, es
 TF_VAR_cluster_state_bucket   # State where the cluster state is stored
-TF_VAR_cluster_state_key      # folder name/state key inside the state bucket where cluster state is stored
 TF_VAR_github_owner           # Github owner: ministryofjustice
 TF_VAR_github_token           # Personal access token with repo scope to push github action secrets
 TF_VAR_kubernetes_cluster     # Full name of the Cluster e.g. XXXXXX.gr7.eu-west2.eks.amazonaws.com
