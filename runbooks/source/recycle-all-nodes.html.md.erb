@@ -1,7 +1,7 @@
 ---
 title: Recycling all the nodes in a cluster
 weight: 255
-last_reviewed_on: 2023-08-18
+last_reviewed_on: 2023-10-06
 review_in: 3 months
 ---
 
@@ -57,7 +57,7 @@ and `tail -f delete_pods.log` in another terminal. The `<cluster-name>` is the s
 
 delete_pods() {
   NAMESPACE=$(echo "$1" | sed -E 's/\/api\/v1\/namespaces\/(.*)\/pods\/.*/\1/')
-  POD=$(echo "$1" | sed -E 's/.*\/pods\/(.*)\/eviction\?timeout=.*/\1/')
+  POD=$(echo "$1" | sed -E 's/.*\/pods\/(.*)\/eviction/\1/')
 
   echo $NAMESPACE
 
