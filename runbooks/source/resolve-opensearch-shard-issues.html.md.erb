@@ -1,22 +1,22 @@
 ---
-title: Resolving Open Search shard problems
+title: Resolving OpenSearch shard problems
 weight: 190
-last_reviewed_on: 2023-08-17
+last_reviewed_on: 2023-09-22
 review_in: 6 months
 ---
 
 # Open search best practices
 
-It's important to follow aws best practices around shard sizing for open search or elastic search, these links are helpful:
+It's important to follow aws best practices around shard sizing for OpenSearch or elastic search, these links are helpful:
 
-* https://docs.aws.amazon.com/opensearch-service/latest/developerguide/bp.html
-* https://repost.aws/knowledge-center/opensearch-rebalance-uneven-shards
-* https://docs.aws.amazon.com/opensearch-service/latest/developerguide/sizing-domains.html#bp-sharding
-* https://aws.amazon.com/blogs/opensource/open-distro-elasticsearch-shard-allocation/
+* [https://docs.aws.amazon.com/opensearch-service/latest/developerguide/bp.html](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/bp.html)
+* [https://repost.aws/knowledge-center/opensearch-rebalance-uneven-shards](https://repost.aws/knowledge-center/opensearch-rebalance-uneven-shards])
+* [https://docs.aws.amazon.com/opensearch-service/latest/developerguide/sizing-domains.html#bp-sharding](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/sizing-domains.html#bp-sharding)
+* [https://aws.amazon.com/blogs/opensource/open-distro-elasticsearch-shard-allocation](https://aws.amazon.com/blogs/opensource/open-distro-elasticsearch-shard-allocation)
 
 ## Some general info about shards
 
-Sharding distributes workload cross the cluster nodes. When you push data into the search engine, that data is partitioned into shards and split into primary and replica shards. By default Open Search has 5 primary (independent partitions of a full dataset) and 1 replica shard (a full set copy of the primaries so takes up the same amount of disk space). Replicas provide redundancy and read capacity, it is recommended you have at least 1. Each shard resides on different nodes.
+Sharding distributes workload cross the cluster nodes. When you push data into the search engine, that data is partitioned into shards and split into primary and replica shards. By default OpenSearch has 5 primary (independent partitions of a full dataset) and 1 replica shard (a full set copy of the primaries so takes up the same amount of disk space). Replicas provide redundancy and read capacity, it is recommended you have at least 1. Each shard resides on different nodes.
 
 Optimum shard distribution means shards spread evenly across nodes, if you can achieve this then resource usage across the nodes will also be equal.
 
@@ -50,11 +50,11 @@ run the following to create a shell that you can run commands from:
 kubectl run curl-pod -n <your-namespace> --image="alpine/curl" --restart=Never --rm -it -- /bin/sh
 ```
 
-## Connecting to the Open search api
+## Connecting to the OpenSearch api
 
-Because we have fine-grained access enabled on open search connection isn't based on ip. It's based on SAML. To link your cli with opensearch there is a manual step of adding your aws user arn to the `all_access` opensearh role.
+Because we have fine-grained access enabled on OpenSearch connection isn't based on ip. It's based on SAML. To link your cli with OpenSearch there is a manual step of adding your aws user arn to the `all_access` OpenSearh role.
 
-1. login to the opensearch dashboard using github via saml
+1. login to the OpenSearch dashboard using github via saml
 1. as a webops team member you have permissions to edit roles so head to Security -> Roles -> `all_access` (see screenshot below)
 
 ![opensearch add user screenshot from dashboard](./images/add-user-to-opensearch.png)

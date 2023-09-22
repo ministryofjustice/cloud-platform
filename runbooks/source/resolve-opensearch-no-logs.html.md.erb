@@ -1,0 +1,24 @@
+---
+title: Resolving no logs in modsec OpenSearch
+weight: 190
+last_reviewed_on: 2023-09-22
+review_in: 6 months
+---
+
+# Modsec logging architecture
+
+[Please read up on the architecture first](https://github.com/ministryofjustice/cloud-platform-terraform-ingress-controller/#cloud-platform-terraform-ingress-controller)
+
+## Deebugging
+
+The first place to look is in the fluent bit side car logs
+
+```
+stern modsec --container flb-modsec-audit-logs -n ingress-controllers
+```
+
+This should give you a clue to the issue. Once you resolve this issue. Logs may not immediately come back, this might be because logs are stuck retrying, if this is the case then restart the deployment
+
+```bash
+kubectl rollout restart deployment/nginx-ingress-modsec-controller -n ingress-controllers
+```
