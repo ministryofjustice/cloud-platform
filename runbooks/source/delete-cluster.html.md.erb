@@ -1,30 +1,55 @@
 ---
 title: Delete a cluster
 weight: 55
-last_reviewed_on: 2023-08-25
+last_reviewed_on: 2023-09-27
 review_in: 6 months
 ---
 
 # Delete a cluster
 
-It is recommended to pass responsibility for deleting a test cluster off to concourse. It's easy to make a mistake locally and end up deleting something you shouldn't e.g. switching context to live whilst running a delete cluster in another terminal
+This page covers the various available methods for deleting a cloud platform test cluster.
 
-## Delete the cluster using concourse fly commands
+In most cases, it is recommended to pass responsibility for deleting a test cluster off to Concourse. It's easy to make a mistake locally and end up deleting something you shouldn't e.g. switching context to live whilst running a delete cluster in another terminal
 
-In case you prefer concourse pipeline to destroy the cluster, these are the steps to follow, to delete the cluster using "concourse fly commands"
+## Delete the cluster with Concourse `delete-cluster` pipeline
 
-Run the below commands updating the `<cluster-name-to-be-deleted>`. The second fly command will set the `cluster_name` [static var][concourse-static-vars], the third command will trigger the delete-cluster job using the `cluster_name` provided.
+We have a [dedicated pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/delete-cluster) for deleting test clusters. You can configure and trigger this pipeline
+against your test cluster for removal by utilising the associated cloud-platform cli `pipeline delete-cluster` [command](https://github.com/ministryofjustice/cloud-platform-cli/blob/19d33d6618013f0f4047a545b5f0d184d3d2fdfb/pkg/commands/pipeline.go).
 
-from the root dir of `cloud-platform-terraform-concourse`:
+In order to use this command, ensure you have the following installed:
+
+- Concourse [fly cli](https://concourse-ci.org/fly.html)
+- `wget`
+
+Execute the following command, providing the name of the cluster you wish to delete:
 
 ```
-fly --target manager login --team-name main --concourse-url https://concourse.cloud-platform.service.justice.gov.uk/
-fly -t manager set-pipeline -p delete-cluster -c pipelines/manager/main/delete-cluster.yaml -v cluster_name=<cluster-name-to-be-deleted>
-# -w flag is optional and allows user to watch the output from the concourse job
-fly -t manager trigger-job -j delete-cluster/delete -w
+cloud-platform pipeline delete-cluster --cluster-name <cluster-name>
 ```
 
-## Delete the cluster locally, using the cli command
+You'll be prompted to authenticate to Concourse:
+
+```
+logging in to team 'main'
+navigate to the following URL in your browser:
+https://concourse.cloud-platform.service.justice.gov.uk/login?fly_port=12345
+```
+
+Once you click the link, `fly` will render the `delete-cluster` pipeline with your cluster name:
+
+```
+-       CLUSTER_NAME: ((cluster_name))
++       CLUSTER_NAME: <cluster-name>
+```
+
+And will then trigger the job:
+
+```
+configuration updated
+started delete-cluster/delete #123
+```
+
+## Delete the cluster locally, using the cli `cluster delete` command
 
 To delete a cluster:
 
@@ -66,7 +91,7 @@ If any steps fail:
 The steps can be found here - [Delete an EKS Cluster]
 
 [infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
-[delete-cluster command]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/destroy-cluster.rb
+[delete-cluster command]: https://github.com/ministryofjustice/cloud-platform-cli/blob/19d33d6618013f0f4047a545b5f0d184d3d2fdfb/pkg/cluster/delete.go
 [pipelines repo]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/tree/main/pipelines/manager/main
 [concourse-vars]: https://concourse-ci.org/vars.html#var-syntax
 [concourse-static-vars]: https://concourse-ci.org/vars.html#static-vars
