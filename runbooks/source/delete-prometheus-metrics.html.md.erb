@@ -1,8 +1,8 @@
 ---
 title: Delete Prometheus Metrics
 weight: 170
-last_reviewed_on: 2023-05-15
-review_in: 3 months
+last_reviewed_on: 2023-09-27
+review_in: 6 months
 ---
 
 # <%= current_page.data.title %>
@@ -19,8 +19,8 @@ More information in [this article](https://www.shellhacks.com/prometheus-delete-
 
 * Filter the list and convert it to plain text
 
-```
-cat metrics-select-box.html | sed $'s/></>\\\n</g' | grep jenkins_node_ | sed 's/<.option>//' | sed 's/.*>//' > metrics
+```shell
+cat metrics-select-box.html | sed $'s/></>\n </g' | grep jenkins_node_ | sed 's/<.option>//' | sed 's/.*>//' > metrics
 ```
 
 This example captures all metrics whose names include the string `jenkins_node_`

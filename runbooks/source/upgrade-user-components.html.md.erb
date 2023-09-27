@@ -1,8 +1,8 @@
 ---
 title: Upgrade user components
 weight: 55
-last_reviewed_on: 2023-06-12
-review_in: 3 months
+last_reviewed_on: 2023-09-26
+review_in: 6 months
 ---
 
 # Upgrade user components
@@ -37,13 +37,13 @@ The [cloud-platform-environments-repo] repository contains the namespaces for al
 Clone the repository and branch off main. Run the following command:
 
 ```bash
-cloud-platform environments bump-module --module <module-name> --module-version <version>
+cloud-platform environment bump-module --module <module-name> --module-version <version>
 ```
 
 The `module-name` flag must contain a word in the module source. For example, if you were to upgrade the serviceaccount module to 0.5.0, you would run the following command:
 
 ```bash
-cloud-platform bump-module --module serviceaccount --module-version 0.5.0
+cloud-platform environment bump-module --module serviceaccount --module-version 0.5.0
 ```
 
 The CLI will make changes to the local copy of the repository. It's your responsibility to commit these changes to your branch.
