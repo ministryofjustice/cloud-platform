@@ -9,15 +9,202 @@ weight: 45
 
 ## Q3 2023 (July-September)
 
-- **Mean Time to Repair**: 0h 0m
+- **Mean Time to Repair**: 10h 55m
 
-- **Mean Time to Resolve**: 0h 0m
+- **Mean Time to Resolve**: 19h 21m
+
+### Incident on 2023-09-18 15:12 - Lack of Disk space on nodes
+
+- **Key events**
+  - First detected: 2023-09-18 13:42
+  - Incident declared: 2023-09-18 15:12
+  - Repaired: 2023-09-18 17:54
+  - Resolved 2023-09-20 19:18
+
+- **Time to repair**: 4h 12m
+
+- **Time to resolve**: 35h 36m
+
+- **Identified**: User reported that they are seeing [ImagePull errors](https://mojdt.slack.com/archives/C57UPMZLY/p1695042194935169) no space left on device error
+
+- **Impact**: Several nodes are experiencing a lack of disk space within the cluster. The deployments might not be scheduled consistently and may fail.
+
+- **Context**:
+  - 2023-09-18 13:42 Team noticed [RootVolUtilisation-Critical](https://moj-digital-tools.pagerduty.com/incidents/Q0RP1GPOECB97R?utm_campaign=channel&utm_source=slack) in High-priority-alert channel
+  - 2023-09-18 14:03 User reported that they are seeing [ImagePull errors](https://mojdt.slack.com/archives/C57UPMZLY/p1695042194935169) no space left on device error
+  - 2023-09-18 14:27 Team were doing the EKS Module upgrade to 18 and draining the nodes. They were seeing numerous pods in Evicted and ContainerStateUnKnown state
+  - 2023-09-18 15:12 Incident declared. https://mojdt.slack.com/archives/C514ETYJX/p1695046332665969
+  - 2023-09-18 15.26 Compared the disk size allocated in old node and new node and identified that the new node was allocated only 20Gb of disk space
+  - 2023-09-18 15:34 Old default node group uncordoned
+  - 2023-09-18 15:35 New nodes drain started to shift workload back to old nodegroup
+  - 2023-09-18 17:54 Incident repaired
+  - 2023-09-19 10:30 Team started validating the fix and understanding the launch_template changes
+  - 2023-09-20 10:00 Team updated the fix on manager and later on live cluster
+  - 2023-09-20 12:30 Started draining the old node group
+  - 2023-09-20 15:04 There was some increased pod state of “ContainerCreating”
+  - 2023-09-20 15:25 There was increased number of `"failed to assign an IP address to container" eni error`. Checked the CNI logs `Unable to get IP address from CIDR: no free IP available in the prefix` Understood that this might be because of IP Prefix starving and some are freed when draining old nodes. 
+  - 2023-09-20 19:18 All nodes drained and No pods are in errored state. The initial issue of disk space issue is resolved
+
+- **Resolution**:
+  - Team identified that the disk space was reduced from 100Gb to 20Gb as part of EKS Module version 18 change
+  - Identified the code changes to launch template and applied the fix 
+
+- **Review actions**:
+  - Update runbook to compare launch template changes during EKS module upgrade
+  - Create Test setup to pull images similar to live with different sizes
+  - Update RootVolUtilisation alert runbook to check disk space config
+  - Scale coreDNS dynamically based on the number of nodes
+  - Investigate if we can use ipv6 to solve the IP Prefix starvation problem
+  - Add drift testing to identify when a terraform plan shows a change to the launch template
+  - Setup logging to view cni and ipamd logs and setup alerts to notify when there are errors related to IP Prefix starvation
+
+### Incident on 2023-08-04 10:09 - Dropped logging in kibana
+
+- **Key events**
+  - First detected: 2023-08-04 09:14
+  - Incident declared: 2023-08-04 10:09
+  - Repaired: 2023-08-10 12:28
+  - Resolved 2023-08-10 14:47
+
+- **Time to repair**: 33h 14m
+
+- **Time to resolve**: 35h 33m
+
+- **Identified**: Users reported in #ask-cloud-platform that they are seeing long periods of missing logs in Kibana.
+
+- **Impact**: The Cloud Platform lose the application logs for a period of time.
+
+- **Context**:
+  - 2023-08-04 09:14: Users reported in #ask-cloud-platform that they are seeing long periods of missing logs in Kibana.
+  - 2023-08-04 10:03: Cloud Platform team started investigating the issue and restarted the fluebt-bit pods
+  - 2023-08-04 10:09: Incident declared. https://mojdt.slack.com/archives/C514ETYJX/p1691140153374179
+  - 2023-08-04 12:03: Identified that the newer version fluent-bit has changes to the chunk drop strategy
+  - 2023-08-04 16:00: Team bumped the fluent-bit version to see any improvements
+  - 2023-08-07 10:30: Team regrouped and discuss troubleshooting steps
+  - 2023-08-07 12:05: Increased the fluent-bit memory buffer
+  - 2023-08-08 16:10: Implemented a fix to handle memory buffer overflow
+  - 2023-08-09 09:00: Merged the fix and deployed in Live
+  - 2023-08-10 11:42: Implemented to handle flush logs into smaller chunks
+  - 2023-08-10 12:28: Incident repaired
+  - 2023-08-10 14:47: Incident resolved
+
+- **Resolution**:
+  - Team identified that the latest version of fluent-bit has changes to the chunk drop strategy
+  - Implemented a fix to handle memory buffer overflow by writing to the file system and handling flush logs into smaller chunks 
+
+- **Review actions**:
+  - Push notifications from logging clusters to #lower-priority-alerts [#4704](https://github.com/ministryofjustice/cloud-platform/issues/4704)
+  - Add integration test to check that logs are being sent to the logging cluster 
+
+### Incident on 2023-07-25 15:21 - Prometheus on live cluster DOWN 
+
+- **Key events**
+  - First detected: 2023-07-25 14:05
+  - Incident declared: 2023-07-25 15:21
+  - Repaired: 2023-07-25 15:55
+  - Resolved 2023-09-25 15:55
+
+- **Time to repair**: 1h 50m
+
+- **Time to resolve**: 1h 50m
+
+- **Identified**: [PagerDuty High Priority alert from Pingdom that Prometheus - live healthcheck is DOWN](https://mojdt.slack.com/archives/C8PF51AT0/p1690290348206639)
+
+- **Impact**: Prometheus is not Available. The Cloud Platform lose the monitoring for a period of time.
+
+- **Context**:
+  - 2023-07-25 14:05 - PagerDuty High Priority alert from Pingdom that Prometheus - live healthcheck is DOWN. Team acknowledged and checked the state of the Prometheus server. Prometheus errored for Rule evaluation and Exit code 137
+  - 2023-07-25 14:09: Prometheus pod is in terminating state 
+  - 2023-07-25 14:17: The node where prometheus is running went to Not Ready state
+  - 2023-07-25 14:22: Drain the monitoring node which moved the prometheus to the another monitoring node
+  - 2023-07-25 14:56: After moving to new node the prometheus restarted just after coming back and put the node to Node Ready State
+  - 2023-07-25 15:11: Comms went to cloud-platform-update on Prometheus was DOWN
+  - 2023-07-25 15:20: Team found that the node memory is spiking to 89% and decided to go for a bigger instance size
+  - 2023-07-25 15:21: Incident declared. https://mojdt.slack.com/archives/C514ETYJX/p1690294889724869
+  - 2023-07-25 15:31: Changed the instance size to `r6i.4xlarge`
+  - 2023-07-25 15:50: Still the Prometheus restarted after running. Team found the recent prometheus pod was terminated with OOMKilled. Increased the memory limits 100Gi
+  - 2023-07-25 16:18: Updated the prometheus container limits:CPU - 12 core and 110 Gi Memory to accommodate the resource need for prometheus 
+  - 2023-07-25 16:18: Incident repaired
+  - 2023-07-05 16:18: Incident resolved
+  
+- **Resolution**:
+  - Due to increase number of namespaces and prometheus rules, the prometheus server needed more memory. The instance size was not enough to keep the prometheus running.
+  - Updating the node type to double the cpu and memory and increasing the container resource limit of prometheus server resolved the issue
+
+- **Review actions**:
+  - Add alert to monitor the node memory usage and if a pod is using up most of the node memory [#4538](https://github.com/ministryofjustice/cloud-platform/issues/4538)
+
+### Incident on 2023-07-21 09:31 - VPC CNI not allocating IP addresses
+
+- **Key events**
+  - First detected: 2023-07-21 08:15
+  - Incident declared: 2023-07-21 09:31
+  - Repaired: 2023-07-21 12:42
+  - Resolved 2023-07-21 12:42
+
+- **Time to repair**: 4h 27m
+
+- **Time to resolve**: 4h 27m
+
+- **Identified**: User reported of seeing issues with new deployments in #ask-cloud-platform
+
+- **Impact**: The service availability for CP applications may be degraded/at increased risk of failure.
+
+- **Context**:
+  - 2023-07-21 08:15 - User reported of seeing issues with new deployments (stuck with ContainerCreating) 
+  - 2023-07-21 09:00 - Team started to put together the list of all effected namespaces
+  - 2023-07-21 09:31 - Incident declared
+  - 2023-07-21 09:45 - Team identified that the issue was affected 6 nodes and added new nodes and and began to cordon/drain affected nodes
+  - 2023-07-21 12:35 - Compared cni settings on a 1.23 test cluster with live and found a setting was different 
+  - 2023-07-21 12:42 - Set the command to enable Prefix Delegation on the live cluster
+  - 2023-07-21 12:42 - Incident repaired
+  - 2023-07-21 12:42 - Incident resolved
+
+- **Resolution**:
+  - The issue was caused by a missing setting on the live cluster. The team added the setting to the live cluster and the issue was resolved
+
+- **Review actions**:
+  - Add a test/check to ensure the IP address allocation is working as expected [#4669](https://github.com/ministryofjustice/cloud-platform/issues/4669)
 
 ## Q2 2023 (April-June)
 
-- **Mean Time to Repair**: 0h 0m
+- **Mean Time to Repair**: 0h 55m
 
-- **Mean Time to Resolve**: 0h 0m
+- **Mean Time to Resolve**: 0h 55m
+
+### Incident on 2023-06-06 11:00 - User services down 
+
+- **Key events**
+  - First detected: 2023-06-06 10:26
+  - Incident declared: 2023-06-06 11:00
+  - Repaired: 2023-06-06 11:21
+  - Resolved 2023-06-06 11:21
+
+- **Time to repair**: 0h 55m
+
+- **Time to resolve**: 0h 55m
+
+- **Identified**: Several Users reported issues that the production pods are deleted all at once, and receiving pingdom alerts that their application is down for few minutes
+
+- **Impact**: User services were down for few minutes
+
+- **Context**:
+  - 2023-06-06 10:23 - User reported that their production pods are deleted all at once
+  - 2023-06-06 10:30 - Users reported that their services were back up and running.
+  - 2023-06-06 10:30 - Team found that the nodes are being recycled all at a time during the node instance type change
+  - 2023-06-06 10:50 - User reported that the DPS service is down because they couldnot authenticate into the service
+  - 2023-06-06 11:00 - Incident declared
+  - 2023-06-06 11:21 - User reported that the DPS service is back up and running
+  - 2023-06-06 11:21 - Incident repaired
+  - 2023-06-06 13:11 - Incident resolved
+
+- **Resolution**:
+  - When the node instance type is changed, the nodes are recycled all at a time. This caused the pods to be deleted all at once. 
+  - Raised a ticket with AWS asking the steps to update the node instance type without causing outage to the services. 
+  - The instance type update is performed through terraform, hence the team will have to comeup with a plan and update runbook to perform these changes without downtime.
+
+- **Review actions**:
+  - Add a runbook for the steps to perform when changing the node instance type 
 
 ## Q1 2023 (January-March)
 
