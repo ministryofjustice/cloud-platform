@@ -1,15 +1,15 @@
 ---
 title: How to Investigate External-Dns Errors
 weight: 217
-last_reviewed_on: 2023-10-03
-review_in: 3 months
+last_reviewed_on: 2024-04-18
+review_in: 6 months
 ---
 
 # <%= current_page.data.title %>
 
 When there are errors in external-dns logs, "ErrorsInExternalDNS" alert sent to the low priority slack channel.
 
-### Troubleshooting
+## Troubleshooting
 
 If we see an ErrorsInExternalDNS alert in low-priority-alerts, this is usually due to a external-dns have an issue to write records to Route-53 for a particual hosted zones.
 You can see errors from the external-dns pod by running:
@@ -18,7 +18,7 @@ You can see errors from the external-dns pod by running:
 kubectl logs -n kube-system external-dns-<pod-id> -f
 ```
 
-You'll see errors similar to:
+### Invalid Change Batch
 
 ```bash
 level=error msg="InvalidChangeBatch: [RDATA character limit of 32000 exceeded.]"
@@ -46,3 +46,12 @@ level=info msg="Applying provider record filter for domains: [dev.example. .dev.
 level=info msg="Desired change: CREATE cluster-a-new.dev.example TXT [Id: /hostedzone/ZZZ]"
 level=info msg="All records are already up to date"
 ```
+
+### Rate Limited / Throttled
+
+```bash
+level=error msg="records retrieval failed: failed to list hosted zones: Throttling: Rate exceeded\n\tstatus code: 400, request id: 9df2a-7blah"
+level=error msg="failed to list resource records sets for zone /hostedzone/BLAH_MOX: Throttling: Rate exceeded\n\tstatus code: 400, request id: 0-9216-435fblah"
+```
+
+There isn't much we can do about being rate limited, acknowledge the alert.
