@@ -1,7 +1,7 @@
 ---
 title: Change Process in Cloud Platform
 weight: 51
-last_reviewed_on: 2023-08-18
+last_reviewed_on: 2023-10-18
 review_in: 3 months
 ---
 
@@ -15,9 +15,9 @@ Mostly all components are Terraform [modules](https://developer.hashicorp.com/te
 
 ## Making Changes to cloud-plarform-infrastructure
 
-1. Create a PR which includes the change you want to make. Make sure the [plan pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-plan-live/) is happy with the change.
+1. Create a PR which includes the change you want to make. Make sure the [plan pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-plan-infra-live/) is happy with the change.
 2. Chase the team to get your PR approved, and if it involves downtime ensure you have communications in place.
-3. Merge and wait until the [apply pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-apply/) applies your change.
+3. Merge and wait until the [apply pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-apply-infra-live/) applies your change.
 
 ## Making Changes to Terraform modules
 
