@@ -1,7 +1,7 @@
 ---
 title: Add Concourse to a test cluster
 weight: 51
-last_reviewed_on: 2023-07-19
+last_reviewed_on: 2023-10-18
 review_in: 6 months
 ---
 
@@ -18,15 +18,17 @@ review_in: 6 months
 and update `node_groups_count` and `node_size` as below to match the Manager cluster configuration, as this will support the cpu and memory demands of concourse module.
 
 ```
-node_groups_count = {
-    live    = "54"
+  node_groups_count = {
+    live    = "64"
+    live-2  = "7"
     manager = "4"
     default = "3" > "4"
   }
   node_size = {
-    live    = ["r5.xlarge", "r5.2xlarge", "r5a.xlarge"]
-    manager = ["m5.xlarge", "m5.2xlarge", "m5a.xlarge"]
-    default = ["m6.large", "m6.xlarge", "m6i.large"] > ["m6.xlarge", "m6.2xlarge", "m6i.xlarge"]
+    live    = ["r6i.2xlarge", "r6i.xlarge", "r5.2xlarge"]
+    live-2  = ["r6i.2xlarge", "r6i.xlarge", "r5.2xlarge"]
+    manager = ["m6a.xlarge", "m6a.2xlarge", "m6i.xlarge"]
+    default = ["m6a.large", "m6a.xlarge", "m6i.large"] > ["m6a.xlarge", "m6a.2xlarge", "m6i.xlarge"]
   }
 ```
 - Apply the changes using below terraform workflow:
