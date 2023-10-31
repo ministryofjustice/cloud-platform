@@ -26,6 +26,8 @@ namespace deletion:
 
 ```bash
 TF_VAR_cluster_name           # e.g. "cp-1902-02" to get the vpc details for some modules like rds, es
+TF_VAR_vpc_name               # e.g. "live-1"
+TF_VAR_eks_cluster_name       # e.g. "live"
 TF_VAR_cluster_state_bucket   # State where the cluster state is stored
 TF_VAR_github_owner           # Github owner: ministryofjustice
 TF_VAR_github_token           # Personal access token with repo scope to push github action secrets
@@ -37,6 +39,7 @@ PIPELINE_STATE_KEY_PREFIX     # State key/ folder where the environments terrafo
 PIPELINE_STATE_REGION         # State region of the bucket e.g. eu-west-1
 PIPELINE_CLUSTER              # Cluster name/folder inside namespaces/ in cloud-platform-environments
 PIPELINE_CLUSTER_STATE        # Cluster name/folder inside the state bucket where the environments terraform state is stored
+PIPELINE_CLUSTER_DIR          # e.g. "live.cloud-platform.service.justice.gov.uk"
 ```
 
 For specific values, you can refer to the [Concourse environments-live pipeline](https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/environments-live.yaml)
