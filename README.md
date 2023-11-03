@@ -29,21 +29,24 @@ We have a series of repositories for our work. We have adopted the naming conven
 
 #### User-facing
 
-| Name                                                                                                                    | Description                                                                                        |
-| ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| [Database Migration Service (DMS)](https://github.com/ministryofjustice/cloud-platform-terraform-dms)                   | Creates a DMS replication instance to move data from another database to one inside Cloud Platform |
-| [DynamoDB cluster](https://github.com/ministryofjustice/cloud-platform-terraform-dynamodb-cluster)                      | Creates a simple (i.e. non-global) DynamoDB cluster                                                |
-| [ECR credentials](https://github.com/ministryofjustice/cloud-platform-terraform-ecr-credentials)                        | Creates an ECR repository and associated IAM credentials                                           |
-| [ElastiCache cluster](https://github.com/ministryofjustice/cloud-platform-terraform-elasticache-cluster)                | Creates an ElastiCache cluster                                                                     |
-| [Kubernetes: IAM roles for service accounts (IRSA)](https://github.com/ministryofjustice/cloud-platform-terraform-irsa) | Creates an IAM role for a Kubernetes service account                                               |
-| [Kubernetes: service account](https://github.com/ministryofjustice/cloud-platform-terraform-serviceaccount)             | Creates a Kubernetes service account, role, and rolebinding within a namespace                     |
-| [OpenSearch domain](https://github.com/ministryofjustice/cloud-platform-terraform-opensearch)                           | Creates an OpenSearch domain                                                                       |
-| [Prometheus Pushgateway](https://github.com/ministryofjustice/cloud-platform-terraform-pushgateway)                     | Creates a [Prometheus Pushgateway](https://prometheus.io/docs/instrumenting/pushing/)              |
-| [RDS Aurora cluster](https://github.com/ministryofjustice/cloud-platform-terraform-rds-aurora)                          | Creates an RDS Aurora cluster                                                                      |
-| [RDS instance](https://github.com/ministryofjustice/cloud-platform-terraform-rds-instance)                              | Creates an RDS instance                                                                            |
-| [S3 bucket](https://github.com/ministryofjustice/cloud-platform-terraform-s3-bucket)                                    | Creates an S3 bucket                                                                               |
-| [SNS topic](https://github.com/ministryofjustice/cloud-platform-terraform-sns-topic)                                    | Creates an SNS topic                                                                               |
-| [SQS queue](https://github.com/ministryofjustice/cloud-platform-terraform-sqs)                                          | Creates an SQS queue                                                                               |
+| Name                                                                                                                   | Description                                                                                        |
+| ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| [CloudFront](https://github.com/ministryofjustice/cloud-platform-terraform-cloudfront)                                 | Creates a CloudFront distribution to serve objects from S3                                         |
+| [Database Migration Service (DMS)](https://github.com/ministryofjustice/cloud-platform-terraform-dms)                  | Creates a DMS replication instance to move data from another database to one inside Cloud Platform |
+| [DynamoDB cluster](https://github.com/ministryofjustice/cloud-platform-terraform-dynamodb-cluster)                     | Creates a non-global DynamoDB cluster                                                              |
+| [Elastic Container repository](https://github.com/ministryofjustice/cloud-platform-terraform-ecr-credentials)          | Creates a container image repository                                                               |
+| [ElastiCache for Redis cluster](https://github.com/ministryofjustice/cloud-platform-terraform-elasticache-cluster)     | Creates a Redis cluster                                                                            |
+| [Kubernetes: IAM role for service accounts (IRSA)](https://github.com/ministryofjustice/cloud-platform-terraform-irsa) | Creates an IAM role for a Kubernetes service account                                               |
+| [Kubernetes: service account](https://github.com/ministryofjustice/cloud-platform-terraform-serviceaccount)            | Creates a Kubernetes service account, role, and rolebinding within a namespace                     |
+| [Kubernetes: service pod](https://github.com/ministryofjustice/cloud-platform-terraform-service-pod)                   | Creates a pod in a namespace to access AWS services using the AWS CLI                              |
+| [OpenSearch](https://github.com/ministryofjustice/cloud-platform-terraform-opensearch)                                 | Creates an OpenSearch domain                                                                       |
+| [Pushgateway](https://github.com/ministryofjustice/cloud-platform-terraform-pushgateway)                               | Creates a [Prometheus Pushgateway](https://prometheus.io/docs/instrumenting/pushing/)              |
+| [RDS Aurora cluster](https://github.com/ministryofjustice/cloud-platform-terraform-rds-aurora)                         | Creates an RDS Aurora cluster                                                                      |
+| [RDS database instance](https://github.com/ministryofjustice/cloud-platform-terraform-rds-instance)                    | Creates an RDS instance (Postgres, MySQL, MariaDB, MSSQL)                                          |
+| [S3 bucket](https://github.com/ministryofjustice/cloud-platform-terraform-s3-bucket)                                   | Creates an S3 bucket                                                                               |
+| [Secrets Manager](https://github.com/ministryofjustice/cloud-platform-terraform-secrets-manager)                       | Creates and manages a secret in Secrets Manager                                                    |
+| [SNS topic](https://github.com/ministryofjustice/cloud-platform-terraform-sns-topic)                                   | Creates an SNS topic                                                                               |
+| [SQS queue](https://github.com/ministryofjustice/cloud-platform-terraform-sqs)                                         | Creates an SQS queue                                                                               |
 
 #### Team-facing
 
