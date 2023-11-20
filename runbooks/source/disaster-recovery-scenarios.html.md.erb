@@ -1,8 +1,8 @@
 ---
 title: Cloud Platform Disaster Recovery Scenarios
 weight: 91
-last_reviewed_on: 2023-11-20
-review_in: 3 months
+last_reviewed_on: 2024-05-20
+review_in: 6 months
 ---
 
 # Cloud Platform Disaster Recovery Scenarios
@@ -265,4 +265,26 @@ Now running terraform plan will show, infrastructure is up-to-date.
 terraform plan -target=module.starter_pack
 
 No changes. Infrastructure is up-to-date.
+```
+
+### Resolving a PartiallyFailed backup alert
+
+A backup may fail and trigger an alert in `lower-priority-alerts`. inspect the backup job:
+
+```
+kubectl get backup -n velero | grep -C 30 YYYYMMDD
+```
+
+You identify the failed backup `phase: PartiallyFailed` and there will also by an `errors` field with a count.
+
+To understand the cause of the alert pull out the error messages from the velero pod from kibana:
+
+```
+kubernetes.pod_name: velero-<container-id> and log: "level=error"
+```
+
+Sometimes the cause of the alert can be genuine, for instance a volume may have been removed (pod restart during a backup):
+
+```
+level=error msg="Error backing up item" backup=velero/velero-allnamespacebackup-20231120090023 error="error getting volume info: rpc error: code = Unknown desc = InvalidVolume.NotFound: The volume 'vol-08d317558ab5bd46b' does not exist.\n\tstatus code: 400
 ```
