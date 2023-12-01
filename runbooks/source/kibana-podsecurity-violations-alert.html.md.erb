@@ -1,0 +1,39 @@
+---
+title: Kibana PodSecurity Violations Alert
+weight: 191
+last_reviewed_on: 2023-11-30
+review_in: 3 months
+---
+
+# Kibana PodSecurity Violations Alert
+This runbook will document the Kibana PodSecurity (PSA) violations monitor and how to debug the offending namespace and resources.
+
+## Kibana Alert/Monitor
+
+[This Kibana monitor](https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/opendistro-alerting#/monitors/jR-J3YsBP8PE0GofcRIF) has been created that will alert if any PSA violations are detected.
+
+You can see when previous alerts have been triggered under the `Alerts` section on the monitor.
+
+## Checking logs for PSA violations in Kibana
+
+To diagnose which namespace(s) are violating and to see the reason in the logs, either go to the [discover section on Kibana](https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/discover#/) and search for the following query:
+
+```
+"violates PodSecurity" AND NOT "smoketest-restricted" AND NOT "smoketest-privileged"
+```
+
+Or follow [this link](https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/discover#/?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-5h,to:now))&_a=(columns:!(_source),filters:!(),index:'167701b0-f8c0-11ec-b95c-1d65c3682287',interval:auto,query:(language:kuery,query:'%22violates%20PodSecurity%22%20AND%20NOT%20%22smoketest-restricted%22%20AND%20NOT%20%22smoketest-privileged%22'),sort:!())) to get the same search.
+
+This will show any logs of PSA violations (excluding smoketests). If no logs appear then increase the time frame to match when the alert was triggered, you can check this on the monitor under the `Alerts` heading.
+
+In the logs, it will provide information such as the offending namespace and the reason it has been triggered.
+
+## Fixing PSA Violations
+
+To fix a PSA violation and stop the monitor from triggering, gather the namespace and violation reason from the logs and then contact a member of the team that owns the violating namespace with details of what is causing the issue, the user then should resolve this issue.
+
+## Slack Alert
+
+Kibana will put a message into the `#low-priority-alarms` slack channel whenever the [PodSecurity Violations monitor](https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/opendistro-alerting#/monitors/jR-J3YsBP8PE0GofcRIF) first goes into the `Triggered` status.
+
+The monitor is throttled to only send 1 message every 24 hours per trigger, this means if a namespace is already triggering the monitor then when another violation occurs then it will not send another message. The best way to check what is triggering the monitor is to use the steps mentioned above under [Checking logs for PSA violation in Kibana](#checking-logs-for-psa-violations-in-kibana).
