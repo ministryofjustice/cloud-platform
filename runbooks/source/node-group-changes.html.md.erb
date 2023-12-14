@@ -13,22 +13,26 @@ You may need to make a change to an EKS [cluster node group] or [instance type c
 
 ## How?
 
-The method to avoid bringing down all the nodes at once is to follow these steps:
+To avoid bringing down all the nodes at once is to follow these steps:
 
 1. add a new node group with your [updated changes]
 1. lookup the old node group name (you can find this in the aws gui)
 1. once merged in you can drain the old node group using the command below:
 1. raise a new [pr deleting] the old node group
 
-> ```cloud-platform pipeline cordon-and-drain --cluster-name <cluster_name> --node-group <old_node_group_name>```
+> cloud-platform pipeline cordon-and-drain --cluster-name <cluster_name> --node-group <old_node_group_name>
 
-notes:
+[script source] because this command runs remotely in concourse you can't use this command to drain default ng on the manager cluster.
+
+### Notes:
 
 - When making changes to the default node group in live, it's handy to pause the pipelines for each of our environments for the duration of the change.
-- the `cloud-platform pipeline` command [cordons-and-drains-nodes] in a given node group waiting 2mins between each drained node. This command runs remotely in concourse.
+- The `cloud-platform pipeline` command [cordons-and-drains-nodes] in a given node group waiting 5mins between each drained node.
+- If you can avoid it try not to fiddle around with the target node group in the aws console for example reducing the desired nodes, aws deletes nodes in an unpredictable way which might cause the pipeline command to fail. Although it is possible if you need to.
 
 [cluster node group]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/97768bfd8b4e25df6f415035acac60cf531d88c1/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf#L60
 [instance type config]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/97768bfd8b4e25df6f415035acac60cf531d88c1/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf#L43
 [pr deleting]: https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/2663
 [updated changes]: https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/2657
 [cordons and drains nodes]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/cordon-and-drain-nodes.yaml
+[script source]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/7851f741e6c180ed868a97d51cec0cf1e109de8d/pipelines/manager/main/cordon-and-drain-nodes.yaml#L50
