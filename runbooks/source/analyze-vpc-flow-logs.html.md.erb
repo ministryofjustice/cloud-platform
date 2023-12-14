@@ -5,9 +5,9 @@ last_reviewed_on: 2023-12-14
 review_in: 6 months
 ---
 
-# <%= current_page.data.title %> 
+# <%= current_page.data.title %>
 
-Cloud Platform `live-1` VPC is connected to various other MoJ AWS accounts VPC using Transit Gateway. In order to debug network connectivity issues 
+Cloud Platform `live-1` VPC is connected to various other MoJ AWS accounts VPC using Transit Gateway. In order to debug network connectivity issues
 that are coming to/from Cloud Platform VPC, the VPC flow logs are enabled. These logs are stored in an S3 bucket and can be analyzed using Athena when needed.
 
 The steps involve a pointy-clicky exercise to generate Athena integration by creating a CloudFormation stack using a template and use that as a datasource in Athena
@@ -18,5 +18,3 @@ Things to note:
 - Provide Partition start date and end date closer when the issue was observed. The duration is limited to 20 days
 - Create two s3 buckets one for CloudFormation template and and another one to store the Athena query results which you will provide when creating the CloudFormation stack.
 - When the flow logs are downloaded and the user has investigated the issue, delete the created s3 buckets for CloudFormation template and Athena query results and the CloudFormation stack.
-
-
