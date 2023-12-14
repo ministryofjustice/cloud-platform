@@ -27,7 +27,7 @@ To avoid bringing down all the nodes at once is to follow these steps:
 ### Notes:
 
 - When making changes to the default node group in live, it's handy to pause the pipelines for each of our environments for the duration of the change.
-- The `cloud-platform pipeline` command [cordons-and-drains-nodes] in a given node group waiting 4mins between each drained node.
+- The `cloud-platform pipeline` command [cordons-and-drains-nodes] in a given node group waiting 5mins between each drained node.
 - If you can avoid it try not to fiddle around with the target node group in the aws console for example reducing the desired nodes, aws deletes nodes in an unpredictable way which might cause the pipeline command to fail. Although it is possible if you need to.
 
 [cluster node group]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/97768bfd8b4e25df6f415035acac60cf531d88c1/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf#L60
