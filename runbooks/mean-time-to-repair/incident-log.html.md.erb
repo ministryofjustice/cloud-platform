@@ -1,0 +1,950 @@
+---
+title: Incident Log
+weight: 45
+---
+
+# Incident Log
+
+> Use the [mean-time-to-repair.rb] script to view performance metrics
+
+## Q2 2023 (January-March)
+
+- **Mean Time to Repair**: 225h 11m
+
+- **Mean Time to Resolve**: 225h 28m
+
+### Incident on 2023-02-02 10:21 - CJS Dashboard Performance
+
+- **Key events**
+  - First detected: 2023-02-02 10:14
+  - Incident declared: 2023-02-02 10:20
+  - Repaired: 2023-02-02 10:20
+  - Resolved 2023-02-02 11:36
+
+- **Time to repair**: 0h 30m
+
+- **Time to resolve**: 1h 22m
+
+- **Identified**: [CPU-Critical alert](https://moj-digital-tools.pagerduty.com/incidents/Q01V8OZ44WU4EX?utm_campaign=channel&utm_source=slack)
+
+- **Impact**: Cluster is reaching max capacity. Multiple services might be affected.
+
+- **Context**:
+  - 2023-02-02 10:14: [CPU-Critical alert](https://moj-digital-tools.pagerduty.com/incidents/Q01V8OZ44WU4EX?utm_campaign=channel&utm_source=slack)
+  - 2023-02-02 10:21: Cloudp Platform Team supporting with CJS deployment and noticed that the CJS team increased the pod count and requested more resources causing the CPU critical alert.
+  - 2023-02-02 10:21 **Incident is declared**. 
+  - 2023-02-02 10:22 War room started.
+  - 2023-02-02 10:25 Cloud Platform noticed that the CJS team have 100 replicas for their deployment and many CJS pods started crash looping, this is due to the Descheduler service **RemoveDuplicates** strategy plugin making sure that there is only one pod associated with a ReplicaSet running on the same node. If there are more, those duplicate pods are evicted for better spreading of pods in a cluster. 
+  - The live cluster has 60 nodes as desired capacity. As CJS have 100 ReplicaSet for their deployment, Descheduler started terminating the duplicate CJS pods scheduled on the same node. The restart of multiple CJS pods caused the CPU hike.
+  - 2023-02-02 10:30 Cloud Platform team scaled down Descheduler to stop terminating CJS pods.
+  - 2023-02-02 10:37 CJS Dash team planned to roll back a caching change they made around 10 am that appears to have generated the spike.
+  - 2023-02-02 10:38 Decision made to Increase node count to 60 from 80, to support the CJS team with more pods and resources.
+  - 2023-02-02 10:40 Autoscaling group bumped up to 80 - to resolve the CPU critical. Descheduler is scaled down to 0 to accommodate multiple pods on a node.
+  - 2023-02-02 10:44 Resolved status for CPU-Critical high-priority alert. 
+  - 2023-02-02 11:30 Performance has steadied.
+  - 2023-02-02 11:36 **Incident is resolved**. 
+
+- **Resolution**:
+  - Cloud-platform team scaling down Descheduler to let CJS team have 100 ReplicaSet in their deployment.
+  - CJS Dash team rolled back a change that appears to have generated the spike.
+  - Cloud-Platform team increasing the desired node count to 80.
+
+- **Review actions**:
+  - Create an OPA policy to not allow deployment ReplicaSet greater than an agreed number by the cloud-platform team. 
+  - Update the user guide to mention related to OPA policy.
+  - Update the user guide to request teams to speak to the cloud-platform team before if teams are planning to apply deployments which need large resources like pod count, memory and CPU so the cloud-platform team is aware and provides the necessary support.
+
+
+### Incident on 2023-01-11 14:22 - Cluster image pull failure due to DockerHub password rotation
+
+- **Key events**
+  - First detected: 2023-01-11 14:22
+  - Incident declared: 2023-01-11 15:17
+  - Repaired: 2023-01-11 15:50
+  - Resolved 2023-01-11 15:51
+
+- **Time to repair**: 1h 28m
+
+- **Time to resolve**: 1h 29m
+
+- **Identified**: Identified: Cloud Platform team member observed failed DockerHub login attempts error at 2023-01-11 14:22:
+
+```
+failed to fetch manifest: Head "https://registry-1.docker.io/v2/ministryofjustice/cloud-platform-tools/manifests/2.1": toomanyrequests: too many failed login attempts for username or IP address
+```
+
+- **Impact**: Concourse and EKS cluster nodes unable to pull images from DockerHub for 1h 28m. `ErrImagePull` error reported by one user in #ask-cloud-platform at 2023-01-11 14:54.
+
+- **Context**:
+  - 2023-01-11 14:22: Cloud Platform team member observed failed DockerHub login attempts error:
+
+```
+failed to fetch manifest: Head "https://registry-1.docker.io/v2/ministryofjustice/cloud-platform-tools/manifests/2.1": toomanyrequests: too many failed login attempts for username or IP address
+```
+
+  - 2023-01-11 14:34: Discovered that cluster DockerHub passwords do match the value stored in LastPass.
+  - 2022-01-11 14:40 Concourse DockerHub password updated in `cloud-platform-infrastructure terraform.tfvars` repository.
+  - 2023-01-11 14:51 Explanation revealed. DockerHub password was changed as part of LastPass remediation activities.
+  - 2023-01-11 14:52 KuberhealtyDaemensetCheck reveals cluster is also unable to pull images [https://mojdt.slack.com/archives/C8QR5FQRX/p1673448593904699](https://mojdt.slack.com/archives/C8QR5FQRX/p1673448593904699)
+
+```
+With error:
+Check execution error: kuberhealthy/daemonset: error when waiting for pod to start: ErrImagePull
+```
+
+  - 2023-01-11 14:53 dockerconfig node update requirement identified 
+  - 2023-01-11 14:54 user reports `ErrImagePull` when creating port-forward pods affecting at least two namespaces.
+  - 2023-01-11 14:56 EKS cluster DockerHub password updated in `cloud-platform-infrastructure`
+  - 2023-01-11 15:01 Concourse plan of password update reveals launch-template will be updated, suggesting node recycle.
+  - 2023-01-11 15:02 Decision made to update password in live-2 cluster to determine whether a node recycle will be required 
+  - 2023-01-11 15:11 Comms distributed in #cloud-platform-update and #ask-cloud-platform.
+  - 2023-01-11 15:17 Incident is declared. 
+  - 2023-01-11 15:17 J Birchall assumes incident lead and scribe roles.
+  - 2023-01-11 15:19 War room started
+  - 2023-01-11 15:28 Confirmation that password update will force node recycles across live & manager clusters.
+  - 2023-01-11 15:36 Decision made to restore previous DockerHub password, to allow the team to manage a clean rotation OOH.
+  - 2023-01-11 15:40 DockerHub password changed back to previous value.
+  - 2023-01-11 15:46 Check-in with reporting user that pod is now deploying - answer is yes.
+  - 2023-01-11 15:50 Cluster image pulling observed to be working again.
+  - 2023-01-11 15:51 Incident is resolved 
+  - 2023-01-11 15:51 Noted that live-2 is now set with invalid dockerconfig; no impact on users.
+  - 2023-01-11 16:50 comms distributed in #cloud-platform-update.
+
+- **Resolution**: DockerHub password was restored back to value used by EKS cluster nodes & Concourse to allow an update and graceful recycle of nodes OOH.
+
+- **Review actions**: As part of remediation, we have switched from Dockerhub username and password to Dockerhub token specifically created for Cloud Platform. (Done)
+
+### Incident on 2023-01-05 08:56 - CircleCI Security Incident
+
+- **Key events**
+  - First detected 2023-01-04 (Time TBC)
+  - Incident declared: 2022-01-05 08:56
+  - Repaired 2023-02-01 10:30
+  - Resolved 2022-02-01 10:30
+
+- **Time to repair**: 673h 34m
+
+- **Time to resolve**: 673h 34m
+
+- **Identified**: CircleCI announced a [security alert on 4th January 2023](https://circleci.com/blog/january-4-2023-security-alert/). Their advice was for any and all secrets stored in CircleCI to be rotated immediately as a cautionary measure.
+
+- **Impact**: Exposure of secrets stored within CircleCI for running various services associated with applications running on the Cloud Platform.
+
+- **Context**: Users of the Cloud Platform use CircleCI for CI/CD including deployments into the Cloud Platform. Access for CircleCI into the Cloud Platform is granted by generating a namespace enclosed service-account with required permission set by individual teams/users.
+As all service-account access/permissions were set based on user need, some service-accounts had access to all stored secrets within the namespace it was created in.
+As part of our preliminary investigation, it was also discovered service-accounts were shared between namespaces which exposed this incident wider than first anticipated.
+We made the decision that we need to rotate any and all secrets used within the cluster.
+
+- **Resolution**: Due to the unknown nature opf some of the secrets that may have been exposed a prioritised phased approach was created:
+  - Phase 1
+    Rotate the secret access key all service-accounts named “circle-*”
+    Rotate the secret access key for all other service-accounts
+    Rotate all IRSA service-accounts
+
+  - Phase 2
+    Rotate all AWS keys within namespaces which had a CircleCI service-account
+
+  - Phase 3
+    Rotate all AWS keys within all other namespaces not in Phase 2
+
+  - Phase 4
+    Create and publish guidance for users to rotate all other secrets within namespaces and AWS keys generated via a Cloud Platform Module
+
+  - Phase 5
+    Clean up any other IAM/Access keys not managed via code within the AWS account.
+
+Full detailed breakdown of events can be found in the [postmortem notes](https://docs.google.com/document/d/1HQXzLtiXorRIcyt8YdBu24ZSZqNAFrXVhSSIAy3242A/edit?usp=sharing).
+
+- **Review actions**:
+  - Implement Trivy scanning for container vulnerability (Done)
+  - Implement Secrets Manager
+  - Propose more code to be managed in cloud-platform-environments repository
+  - Look into a Terraform resource for CircleCI
+  - Use IRSA instead of AWS Keys
+
+## Q4 2022 (October-December)
+
+- **Mean Time to Repair**: 27m
+
+- **Mean Time to Resolve**: 27m
+
+### Incident on 2022-11-15 16:03 - Prometheus eks-live DOWN.
+
+- **Key events**
+  - First detected 2022-11-15 16:03
+  - Incident declared: 2022-11-15 16:05
+  - Repaired 2022-11-15 16:30
+  - Resolved 2022-11-15 16:30
+
+- **Time to repair**: 27m
+
+- **Time to resolve**: 27m
+
+- **Identified**:  High Priority Alarms - #347423 Pingdom check Prometheus Cloud-Platform - Healthcheck is DOWN / Resolved: #347424 Pingdom check cloud-platform monitoring Prometheus eks-live is DOWN.
+
+- **Impact**: Prometheus was unavailable for 27 minutes. Not reported at all by users in #ask-cloud-platforms slack channel.
+
+- **Context**:
+  - On the 1st of November 14:49 AWS - notifications sent an email - advising that instance i-087e420c573463c08 (prometheus-operator) would be retired on the 15th of November 2022 at 16:00
+
+  - On the 15th of November 2022 - work being carried out on a Kubernetes upgrade on the "manager" cluster. Cloud-platforms advised in slack in the morning that the instance on "manager" would be retired that very afternoon. It was thought therefore that that this would have little impact on the upgrade work. However the instance was in fact on the "live" cluster - not "manager"
+
+  - The instance was retired by AWS at 16:00, Prometheus went down approx 16:03.
+
+  - Because the node was killed by AWS, and not gracefully by us - it got stuck - the eks node stayed in a status of "not ready", the pod stays as "terminated"
+
+  - Note were users notified in "ask-cloud-platform" slack channel at approx 16:25, once it was determined that it was NOT to do with Kubernetes upgrade work on "manager" and therefore it would indeed be having an impact on the live system.
+
+- **Resolution**:
+
+  - The pod was killed by us at approx 16:12, this therefore made the node go too.
+
+- **Review actions**:
+  - If we had picked up on this retirement in "Live"- we could have recyled the node  gracefully (cordon, drain and kill first), possibly straight way on the 1st of November (well in advance).
+
+  - Therefore we need to find a way of not having these notification buried in our email inbox.
+
+  - First course of action, to ask AWS if there is an recomended alterative way of notifying to our slack channel (an alert). be this by sns to slack or some other method
+
+  - AWS Support Case ID 11297456601 raised
+
+  - AWS advise received - ticket raised to investigate potential solutions: [Implementation of notification of Scheduled Instance Retirements - to Slack. Investigate 2 potential AWS solutions#4264](https://app.zenhub.com/workspaces/cloud-platform-team-5ccb0b8a81f66118c983c189/issues/ministryofjustice/cloud-platform/4264).
+
+## Q3 2022 (July-September)
+
+- **Mean Time to Repair**: 6h 27m
+
+- **Mean Time to Resolve**: 6h 27m
+
+### Incident on 2022-07-11 09:33 - Slow performance for 25% of ingress traffic
+
+- **Key events**
+  - First detected 2022-07-11 09:33
+  - Incident declared 2022-07-11 10:11
+  - Repaired 2022-07-11 16:07
+  - Resolved 2022-07-11 16:07
+
+- **Time to repair**: 6h 27m
+
+- **Time to resolve**: 6h 27m
+
+- **Identified**: Users reported in #ask-cloud-platform they're experiencing slow performance of their applications some of the time.
+
+- **Impact**: Slow performance of 25% of ingress traffic
+
+- **Context**:
+  - Following an AWS incident the day before, one of three network interfaces on the 'default' ingress controllers were experiencing slow performance.
+  - AWS claim, "the health checking subsystem did not correctly detect some of your targets as unhealthy, which resulted in clients timing out when they attempted to connect to one of your Network Load Balancer (NLB) Elastic IP's (EIPs)".
+  - AWS go onto say, "The Networkd Load Balancer (NLB) has a health checking subsystem that checks the health of each target, and if a target is detected as unhealthy it is removed from service. During this issue, the health checking subsystem was unaware of the health status of your the targets in one of the Availability Zones (AZ)".
+  - Timeline: [timeline](https://docs.google.com/document/d/1QR31_9Ga_LdXSzgoFjiemE-jxq5sf59rKj5gAoNTU9E/edit?usp=sharing) for the incident
+  - Slack thread: [#cloud-platform-update](https://mojdt.slack.com/archives/CH6D099DF/p1657531797170269) for the incident
+
+- **Resolution**:
+  - AWS internal components have been restarted. AWS say, "The root cause was a latent software race condition that was triggered when some of the health checking instances were restarted. Since the health checking subsystem was unaware of the targets, it did not return a health check status for a specific Availability Zone (AZ) of the NLB".
+
+  - They (AWS) go onto say, "We restarted the health checking subsystem, which caused it to refresh the list of targets, after this the NLB was recovered in the impacted AZ".
+
+- **Review actions**:
+  - Mitigaton tickets raised following a post-incident review: https://github.com/ministryofjustice/cloud-platform/issues?q=is%3Aissue+is%3Aopen+post-aws-incident
+
+## Q1 2022 (January to March)
+
+- **Mean Time to Repair**: 1h 39m
+
+- **Mean Time to Resolve**: 1h 59m
+
+### Incident on 2022-03-10 11:48 - All ingress resources using *.apps.live.cloud-platform urls showing certificate issue
+
+- **Key events**
+  - First detected 2022-03-10 11:48
+  - Incident declared 2022-03-10 11.50
+  - Repaired 2022-03-10 11:56
+  - Resolved 2022-03-10 11.56
+
+- **Time to repair**: 8m
+
+- **Time to resolve**: 8m
+
+- **Identified**: Users reported in #ask-cloud-platform that they are seeing errors for CP domain urls.
+```Hostname/IP does not match certificate's altnames```
+
+- **Impact**: All ingress resources using the *apps.live.cloud-platform.service.justice.gov.uk have mismatched certificates.
+
+- **Context**:
+  - Occurred immediately following a terraform apply to a test cluster
+  - The change amended the default certificate of `live` cluster to `*.apps.yy-1003-0100.cloud-platform.service.justice.gov.uk`.
+  - Timeline: [timeline](https://docs.google.com/document/d/1uBTizAPPlPBWJDI9w6spPsnOmEg0WElG25Rkz_ozAtY/edit?usp=sharing) for the incident
+  - Slack thread: [#ask-cloud-platform](https://mojdt.slack.com/archives/C57UPMZLY/p1646912939256309) for the incident
+
+- **Resolution**:
+  - The immediate repair was to perform an inline edit of the default certificate in `live`. Adding the wildcard dnsNames `*.apps.live`,`*.live`, `*.apps.live-1` and `*.live-1` to the default certificate i.e. reverting the faulty change.
+  - Further investigation followed finding the cause of the incident was actually was due to the environment variable KUBE_CONFIG set to the config path which had `live` context set
+  - The terraform kubectl provider used to apply `kubectl_manifest` resources  uses environment variable `KUBECONFIG` and `KUBE_CONFIG_PATH`. But it has been found that it can also use variable `KUBE_CONFIG` causing the apply of certificate to the wrong cluster.
+
+- **Review actions**:
+  - Ticket raised to configure kubectl provider to use data source [#3589](https://github.com/ministryofjustice/cloud-platform/issues/3589)
+
+### Incident on 2022-01-22 11:57 - some DNS records got deleted at the weekend
+
+- **Key events**
+  - First detected 2022-01-22 11:57
+  - Incident declared 2022-01-22 14:41
+  - Repaired 2022-01-22 13:59
+  - Resolved 2022-01-22 14:38
+
+- **Time to repair**: 2h 2m
+
+- **Time to resolve**: 2h 41m
+
+- **Identified**: Pingdom alerted an LAA developer to some of their sites becoming unavailable. They reported this to CP team via Slack #ask-cloud-platform, and the messages were spotted by on-call engineers
+
+- **Impact**:
+  - Sites affected:
+    - 2 production sites were unavailable:
+      - laa-fee-calculator-production.apps.live-1.cloud-platform.service.justice.gov.uk
+      - legal-framework-api.apps.live-1.cloud-platform.service.justice.gov.uk
+    - 3 production sites had minor issues - unavailable on domains that only MOJ staff use
+    - 46 non-production sites were unavailable on domains that only MOJ staff use
+  - Impact on users was negligible. The 2 sites that external users would have experienced the unavailability are typically used by office staff, for generally non-urgent work, whereas this incident occurred during the weekend.
+
+- **Context**:
+  - Timeline: [Timeline](https://docs.google.com/document/d/1TXxdb1iOqfW_Vo2HhiGC3LFE-0jEP_hDgQn2nuP1VdM/edit#) for the incident
+  - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C57UPMZLY/p1642855796441900) for the incident.
+
+- **Resolution**:
+  - external-dns was trying to restore the DNS records, but it was receiving errors when writing, due to [missing annotations](external-dns.alpha.kubernetes.io/aws-weight) in an unrelated ingress. Manually adding the annotations restored the DNS.
+
+- **Review actions**:
+  - Create guidance about internal traffic and domain names, and advertise to users in slack [#3497](https://github.com/ministryofjustice/cloud-platform/issues/3497)
+  - Create pingdom alerts for test helloworld apps [#3498](https://github.com/ministryofjustice/cloud-platform/issues/3498)
+  - Investigate if external-dns sync functionality is enough for the DNS cleanup [#3499](https://github.com/ministryofjustice/cloud-platform/issues/3499)
+  - Change the ErrorsInExternalDNS alarm to high priority [#3500](https://github.com/ministryofjustice/cloud-platform/issues/3500)
+  - Create a runbook to handle ErrorsInExternalDNS alarm [#3501](https://github.com/ministryofjustice/cloud-platform/issues/3501)
+  - Assign someone to be the 'hammer' on Fridays
+
+## Q4 2021 (October to December)
+
+- **Mean Time to Repair**: 1h 17m
+
+- **Mean Time to Resolve**: 1h 17m
+
+### Incident on 2021-11-05 - ModSec ingress controller is erroring
+
+- **Key events**
+  - First detected 2021-11-05 9:29
+  - Repaired 2021-11-05 10:46
+  - Incident declared 2021-11-05 9:29
+  - Resolved 2021-11-05 10:46
+
+- **Time to repair**: 1h 17m
+
+- **Time to resolve**: 1h 17m
+
+- **Identified**: Low priority alarms
+
+- **Impact**:
+  -  No users reported issues. Impacted only one pod.
+
+- **Context**:
+  - Timeline/Slack thread: [Timeline/Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1636104558359500) for the incident
+
+- **Resolution**:
+  - Pod restarted.
+
+- **Review actions**:
+  - N/A
+
+## Q3 2021 (July-September)
+
+- **Mean Time to Repair**: 3h 28m
+
+- **Mean Time to Resolve**: 11h 4m
+
+### Incident on 2021-09-30 - SSL Certificate Issue in browsers
+
+- **Key events**
+  - First detected 2021-09-30 15:31
+  - Repaired 2021-10-01 10:29
+  - Incident declared 2021-09-30 17:26
+  - Resolved 2021-10-01 13:09
+
+- **Time to repair**: 5h 3m
+
+- **Time to resolve**: 7h 43m
+
+- **Identified**: User reported that they are getting SSL certificate errors when browsing sites which are hosted on Cloud Platform
+
+- **Impact**:
+  -  300 LAA caseworkers and thousands of DOM1 users using CP-based digital services if it was during office hours. They had Firefox as a fallback and no actual reports.
+  - Public users - No reports.
+
+- **Context**:
+  - Timeline: [Timeline](https://docs.google.com/document/d/1KHCVyDuhEeTSKqbJfrnR9nYWBcwiRi4aLIiP0tT_QCA/edit#heading=h.rmnhbxiesd7b) for the incident
+  - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1633019189383100) for the incident.
+
+- **Resolution**:
+  - The new certificate was pushed to DOM1 and Quantum machines by the engineers who have been contracted to manage these devices
+
+- **Review actions**:
+  - How to get latest announcements/ releases of components used in CP stack? Ticket raised [#3262](https://github.com/ministryofjustice/cloud-platform/issues/3262)
+  - Can we use AWS Certificate Manager instead of Letsencrypt? Ticket raised [#3263](https://github.com/ministryofjustice/cloud-platform/issues/3263)
+  - How would the team escalate a major incident e.g. CP goes down. Runbook page [here](https://runbooks.cloud-platform.service.justice.gov.uk/incident-process.html#3-3-communications-lead)
+  - How we can get visibility of ServiceNow service issues for CP-hosted services. Ticket raised [3264](https://github.com/ministryofjustice/cloud-platform/issues/3264)
+
+### Incident on 2021-09-04 22:05 - Pingdom check Prometheus Cloud-Platform - Healthcheck is DOWN
+
+- **Key events**
+  - First detected 2021-09-04 22:05
+  - Repaired 2021-09-05 12:16
+  - Incident declared 2021-09-05 12:53
+  - Resolved 2021-09-05 12:27
+
+- **Time to repair**: 5h 16m
+
+- **Time to resolve**: 5h 27m
+
+- **Identified**: Prometheus Pod restarted several times with error `OOMKilled` causing Prometheus Healthcheck to go down
+
+- **Impact**:
+  - The monitoring system of the cluster was not available
+  - All application metrics were lost during that time period
+
+- **Context**:
+  - Timeline: [Timeline](https://docs.google.com/document/d/1t75saWS72NQ6iKAgN79MoXAWMhyBmx-OrUiIaksJARo/edit#heading=h.ltzl2aoulsom) for the incident
+  - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1630842806160700) for the incident.
+
+- **Resolution**:
+  - Increased the memory limit for Prometheus container from 25Gi to 50Gi
+
+- **Review actions**:
+  - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3185) to configure Thanos querier to query data for longer period
+  - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3186) to add an alert to check when prometheus container hit 90% resource limit set
+  - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3189) to create a grafana dashboard to display queries that take more than 1 minute to complete
+  - Increase the memory limit for Prometheus container to 60Gi[PR #105](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/pull/105)
+  - Test Pagerduty settings for weekends of the Cloud Platform on-call person to receive alarm immediately on the phone when a high priority alert is triggered
+
+### Incident on 2021-07-12 15:24 - All ingress resources using *apps.live-1 domain names stop working
+
+- **Key events**
+  - First detected 2021-07-12 15:44
+  - Repaired 2021-07-12 15:51
+  - Incident declared 2021-07-12 16:09
+  - Resolved 2021-07-13 11:49
+
+- **Time to repair**: 0h 07m
+
+- **Time to resolve**: 20h 03m
+
+- **Identified**: User reported in #ask-cloud-platform an error from the APM monitoring platform Sentry:
+```Hostname/IP does not match certificate's altnames```
+
+- **Impact**: All ingress resources using the *apps.live-1.cloud-platform.service.justice.gov.uk have mismatched certificates.
+
+- **Context**:
+  - Occurred immediately following an upgrade to the default certificate of "live" clusters (PR here: https://github.com/ministryofjustice/cloud-platform-terraform-ingress-controller/pull/20)
+  - The change amended the default certificate in the `live-1` cluster to `*.apps.manager.cloud-platform.service.justice.gov.uk`.
+  - Timeline: [timeline](https://docs.google.com/document/d/1QCMej6jPupB5XokqkJgUpiljafxRbwCNMFEB11rJy9A/edit#heading=h.jqt487wstjrf)
+  - Slack thread: [#ask-cloud-platform](https://mojdt.slack.com/archives/C57UPMZLY/p1626101058045600) for the incident, [#cloud-platform](https://mojdt.slack.com/archives/C514ETYJX/p1626173354336900?thread_ts=1626101869.307700&cid=C514ETYJX) for the recovery.
+
+- **Resolution**:
+  - The immediate repair was simple: perform an inline edit of the default certificate in `live-1`. Replacing the word `manager` with `live-1` i.e. reverting the faulty change.
+  - Further investigation ensued, finding the cause of the incident was actually an underlying bug in the infrastructure apply pipeline used to perform a `terraform apply` against manager.
+  - This bug had been around from the creation of the pipeline but had never surfaced.
+  - The pipeline uses an environment variable named `KUBE_CTX` to context switch between clusters. This works for resources using the `terraform provider`, however, not for `null_resources`, causing the change in the above PR to apply to the wrong cluster.
+
+- **Review actions**:
+  - Provide guidance on namespace to namespace traffic - using network policy not ingress (and advertise it to users) Ticker [#3082](https://github.com/ministryofjustice/cloud-platform/issues/3082)
+  - Monitoring the cert - Kubehealthy monitor key things including cert. Could replace several of the integration tests that take longer. Ticket [#3044](https://github.com/ministryofjustice/cloud-platform/issues/3044)
+  - Canary app should have #high-priority-alerts after 2 minutes if it goes down. DONE in [PR #5126](https://github.com/ministryofjustice/cloud-platform-environments/pull/5126)
+  - Fix the pipeline: in the [cloud-platform-cli](https://github.com/ministryofjustice/cloud-platform-cli), create an assertion to ensure the cluster name is equal to the terraform workspace name. To prevent the null-resources acting on the wrong cluster. PR exists
+  - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3084) to migrate all terraform null_resources within our modules to [terraform kubectl provider](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs)
+  - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3083) to set terraform kubernetes credentials dynamically (at executing time)
+  - Fix the pipeline: Before the creation of Terraform resources, add a function in the cli to perform a `kubectl context` switch to the correct cluster. PR exists
+
+## Q2 2021 (April-June)
+
+- **Mean Time to Repair**: 2h 32m
+
+- **Mean Time to Resolve**: 2h 44m
+
+### Incident on 2021-06-09 12:47 - All users are unable to create new ingress rules, following bad ModSec Ingress-controller upgrade
+
+- **Key events**
+  - First detected 2021-06-09 13:15
+  - Repaired 2021-06-09 13:46
+  - Incident declared 2020-06-09 13:54
+  - Resolved 2021-06-09 13:58
+
+- **Time to repair**: 0h 31m
+
+- **Time to resolve**: 0h 43m
+
+- **Identified**: User reported in #ask-cloud-platform an error when deploying UAT application:
+```kind Ingress: Internal error occurred: failed calling webhook "validate.nginx.ingress.kubernetes.io": Post https://modsec01-nx-modsec-admission.ingress-controllers.svc:443/networking/v1beta1/ingresses?timeout=10s: x509: certificate is valid for modsec01-nx-controller-admission, modsec01-nx-controller-admission.ingress-controllers.svc, not modsec01-nx-modsec-admission.ingress-controllers.svc```
+
+- **Impact**: It blocked all ingress API calls, so no new ingresses could be created, nor changes to current ingresses could be deployed, which included all user application deployments.
+
+- **Context**:
+  - Occurred immediately following an upgrade to the ModSec Ingress-controller module v3.33.0, which apparently successfully deployed
+  - It caused any new ingress or changes to current ingresses to be blocked by the ModSec Validation webhook
+  - Timeline: [Timeline](https://docs.google.com/document/d/1s5pos29Gcq0ssVnpf0biqG2aE-Kt2PtyxEcpjG88rdc/edit#) for the incident.
+  - Slack thread: [#ask-cloud-platform](https://mojdt.slack.com/archives/C57UPMZLY/p1623240948285500) for the incident, [#cloud-platform](https://mojdt.slack.com/archives/C514ETYJX/p1623242510212300) for the recovery.
+
+- **Resolution**: Rollback to ModSec Ingress-controller module v0.0.7
+
+- **Review actions**:
+  - Find out why this issue didn’t get flagged in the test cluster - try to reproduce the issue - maybe need another test? Ticket [#2972](https://github.com/ministryofjustice/cloud-platform/issues/2972)
+  - Add test that checks the alerts in alertmanager in smoke tests. Ticket [#2973](https://github.com/ministryofjustice/cloud-platform/issues/2973)
+  - Add helloworld app that uses modsec controller, for the smoke tests to check traffic works. Ticket [#2974](https://github.com/ministryofjustice/cloud-platform/issues/2974)
+  - Modsec module, new version, needs to be working on EKS for live-1 and live (neither old or new version work on live). Ticket [#2975](https://github.com/ministryofjustice/cloud-platform/issues/2975)
+
+### Incident on 2021-05-10 12:15 - Apply Pipeline downtime due to accidental destroy of Manager cluster
+
+- **Key events**
+  - First detected 2021-05-10 12:15
+  - Incident not declared, but later agreed it was one
+  - Repaired 2021-05-10 16:48
+  - Resolved 2021-05-11 10:00
+
+- **Time to repair**: 4h 33m
+
+- **Time to resolve**: 4h 45m
+
+- **Identified**: CP team member did 'terraform destroy components', intending it to destroy a test cluster, but it was on Manager cluster by mistake. Was immediately aware of the error.
+
+- **Impact**:
+  - Users couldn't create or change their namespace definitions or AWS resources, due to Concourse being down
+
+- **Context**:
+  - Timeline: [Timeline](https://docs.google.com/document/d/1rrROMuq5D6wajAPZGy3sq_P98ZmvMmaHygWKUgLyTCM/edit#) for the incident
+  - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1620645898320200) for the incident.
+
+- **Resolution**:
+  - Manager cluster was recreated.
+  - During this we encountered a certificate issue with Concourse, so it was restored manually. The terraform had got out of date for the Manager cluster.
+  - Route53 zones were hard-coded and had to be [changed manually](https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/1162/files).
+
+- **Actions following review**:
+  - Spike ways to avoid applying to wrong cluster - see 3 options above. Ticket [#3016](https://github.com/ministryofjustice/cloud-platform/issues/3016)
+  - Try ‘Prevent destroy’ setting on R53 zone - Ticket [#2899](https://github.com/ministryofjustice/cloud-platform/issues/2899)
+  - Disband the cloud-platform-concourse repository. This includes Service accounts, and pipelines. We should split this repository up and move it to the infra/terraform-concourse repos. Ticket [#3017](https://github.com/ministryofjustice/cloud-platform/issues/3017)
+  - Manager needs to use our PSPs instead of eks-privilege - this has already been done.
+
+## Q1 2021 (January - March)
+
+- **Mean Time to Repair**: N/A
+
+- **Mean Time to Resolve**: N/A
+
+### No incidents declared
+
+## Q4 2020 (October - December)
+
+- **Mean Time to Repair**: 2h 8m
+
+- **Mean Time to Resolve**: 8h 46m
+
+### Incident on 2020-10-06 09:07 - Intermittent "micro-downtimes" on various services using dedicated ingress controllers
+
+- **Key events**
+  - First detected 2020-10-06 08:33
+  - Incident declared 2020-10-06 09:07
+  - Repaired 2020-10-06 10:41
+  - Resolved 2020-10-06 17:19
+
+- **Time to repair**: 2h 8m
+
+- **Time to resolve**: 8h 46m
+
+- **Identified**: User reported service problems in #ask-cloud-platform. Confirmed by checking Pingdom
+
+- **Impact**:
+  - Numerous brief and intermittent outages for multiple (but not all) services (production and non-production) which were using dedicated ingress controllers
+
+- **Context**:
+  - Occurred immediately after upgrading live-1 to kubernetes 1.17
+  - 1.17 creates 2 additional SecurityGroupRules per ingress-controller, this took us over a hard AWS limit
+  - Timeline: [Timeline](https://docs.google.com/document/d/108pSsVxt_YJFj2jrY86dIvuuP8g8j5aLFsMdlb1YMeI/edit#heading=h.z8h3a4mkgult) for the incident.
+  - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1601971645475700) for the incident.
+
+- **Resolution**:
+  - Migrate all ingresses back to the default ingress controller
+
+## Q3 2020 (July - September)
+
+- **Mean Time To Repair**: 1h 9m
+
+- **Mean Time To Resolve**: 7h 26m
+
+### Incident on 2020-09-28 13:10 - Termination of nodes updating kops Instance Group.
+
+- **Key events**
+  - First detected 2020-09-28 13:14
+  - Incident declared 2020-09-28 14:05
+  - Repaired 2020-09-28 14:20
+  - Resolved 2020-09-28 14:44
+
+- **Time to repair**: 0h 15m
+
+- **Time to resolve**: 1h 30m
+
+- **Identified**: Periods of downtime while the cloud-platform team was applying per Availability Zone instance groups for worker nodes change in live-1. Failures caused mainly due to termination of a group of 9 nodes and letting kops to handle the cycling of pods, which took very long time for the new containers to be created in the new node group.
+
+- **Impact**:
+  - Some users noticed cycling of pods but taking a long time for the containers to be created.
+  - Prometheus/alertmanager/kibana health check failures.
+  - Users noticed short-lived pingdom alerts & health check failures.
+
+- **Context**:
+  - kops node group (nodes-1.16.13) updated minSize from 25 to 18 nodes and ran kops update cluster --yes, this terminated 9 nodes from existing worker node  group (nodes-1.16.13).
+  - Pods are in pending status for a long time waiting to be scheduled in the new nodes.
+  - Teams using their own ingress-controller have 1 replica for non-prod namespaces, causing some pingdom alerts & health check failures.
+  - Timeline: [Timeline](https://docs.google.com/document/d/1ysz7KYjFrZ7YJ3QhyWQGvbgoPW8D0XHJpMgfJB6g2hc/edit#heading=h.ttkde0ugh32m) for the incident.
+  - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1601298352147700) for the incident.
+
+- **Resolution**:
+  - This is resolved by cordoning and draining nodes one by one before deleting the instance group.
+
+### Incident on 2020-09-21 18:27 - Some cloud-platform components destroyed.
+
+- **Key events**
+  - First detected 2020-09-21 18:27
+  - Incident declared 2020-09-21 18:40
+  - Repaired 2020-09-21 19:05
+  - Resolved 2020-09-21 21:41
+
+- **Time to repair**: 0h 38m
+
+- **Time to resolve**: 3h 14m
+
+- **Identified**: Some components of our production kubernetes cluster (live-1) were accidentally deleted, this caused some services running on cloud-platform gone down.
+
+- **Impact**:
+  - Some users could not access services running on the Cloud Platform.
+  - Prometheus/alertmanager/grafana is not accessible.
+  - kibana is not accessible.
+  - Cannot create new certificates.
+
+- **Context**:
+  - Test cluster deletion script triggered to delete a test cluster, kube context incorrectly targeted the live-1 cluster and deleted some cloud-platform components.
+  - Components include default ingress-controller, prometheus-operator, logging, cert-manager, kiam and external-dns. As ingress-controller gone down some users could not access services running on the Cloud Platform.
+  - Formbuilder services not accessible even after ingress-controller is restored.
+  - Timeline: [Timeline](https://docs.google.com/document/d/1nmhFcLkOEmyvN2E7PwUdo8l2O9EDpVx7c8-4d9pMBSg/edit#heading=h.ttkde0ugh32m) for the incident.
+  - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1600710001173700) for the incident.
+
+- **Resolution**:
+  - Team prioritised to restore default ingress controller, ingress-controller has a dependency of external-dns to update route53 records with
+  new NLB and kiam for providing AWSAssumeRole for external-dns, these components (ingress-controller, external-dns and kiam) got restored successfully. Services start to come back up.
+  - Formbuilder services are still pointing to the old NLB (network load balancer before ingress got replaced), reason for this is route53 TXT records was set incorrect owner field, so external-dns couldn't update the new NLB information in the A record. Team fixed the owner information in the TXT record, external DNS updated formbuilder route53 records to point to new NLB. Formbuilder services is up and running.
+  - Team did target apply to restore remaining components.
+  - Apply pipleine run to restore all the certificates, servicemonitors and prometheus-rules from the [environment repository](https://github.com/ministryofjustice/cloud-platform-environments).
+
+### Incident on 2020-09-07 12:54 - All users are unable to create new ingress rules
+
+- **Key events**
+  - First detected 2020-09-07 12:39
+  - Incident declared 2020-09-07 12:54
+  - Resolved 2020-09-07 15:56
+
+- **Time to repair**: 3h 02m
+
+- **Time to resolve**: 3h 17m
+
+- **Identified**: The Ingress API refused 100% of POST requests.
+
+- **Impact**:
+  - If a user were to provision a new service, they would be unable to create an ingress into the cluster.
+
+- **Context**:
+  - [Version 0.1.0](https://github.com/ministryofjustice/cloud-platform-terraform-teams-ingress-controller/compare/0.0.9...0.1.0) of the [teams ingress controller module](https://github.com/ministryofjustice/cloud-platform-terraform-teams-ingress-controller) enabled the creation of a `validationwebhookconfiguration` resource.
+  - By enabling this option we created a single point of failure for all ingress-controller pods in the `ingress-controller` namespace.
+  - A new 0.1.0 ingress controller failed to create in the "live-1" cluster due to AWS resource limits.
+  - Validation webhook stopped new rules from creating, with the error:
+    ```
+    Error from server (InternalError): error when creating "ingress.yaml": Internal error occurred: failed calling webhook "validate.nginx.ingress.kubernetes.io": Post offender-categorisation-prod-nx-controller-admission.ingress-controllers.svc:443/extensions/v1beta1/ingresses?timeout=30s: x509: certificate signed by unknown authority
+    ```
+  - Initial investigation thread: https://mojdt.slack.com/archives/C514ETYJX/p1599478794246900
+  - Incident declared: https://mojdt.slack.com/archives/C514ETYJX/p1599479640251900
+
+- **Resolution**:
+    The team manually removed the all the additional admission controllers created by 0.1.0. They then removed the admission webhook from the module and created a new release (0.1.1). All ingress modules currently on 0.1.0 were upgraded to the new release 0.1.1.
+
+### Incident on 2020-08-25 11:26 - Connectivity issues with eu-west-2a
+
+- **Key events**
+  - First detected 2020-08-25 11:01
+  - Incident declared 2020-08-25 11:26
+  - Resolved 2020-08-25 12:11
+
+- **Time to repair**: 0h 45m
+
+- **Time to resolve**: 1h 10m
+
+- **Identified**: The AWS  Availability Zones `eu-west-2a`, which contain some of our kubernetes nodes had an outage. API latency was elevated, some EC2 became unreachable and overall connectivity was unstable.
+
+- **Impact**:
+  - Two kubernetes nodes became unreachable
+  - No new node could be launched in eu-west-2a
+  - Kubernetes had issues talking to some of these nodes, preventing some API calls to succeed (Pods were not terminating)
+  - New pods were not able to pull their Docker images.
+
+- **Context**:
+  - Pods and Nodes sitting in other Availability Zones (b & c) were not impacted
+  - Slack threads: [Issue detected](https://mojdt.slack.com/archives/C514ETYJX/p1598351210195200), [Incident Declared](https://mojdt.slack.com/archives/C514ETYJX/p1598351210195200),
+  - We now have 25 pods in the cluster, instead of 21
+
+- **Resolution**:
+    The incident was mitigated by deploying more 2-4 nodes in healthy Availability Zones, manually deleting the non-responding pods, and terminating the impacted nodes
+
+### Incident on 2020-08-14 11:01 - Ingress-controllers crashlooping
+
+- **Key events**
+  - First detected 2020-08-14 10:43
+  - Incident declared 2020-08-14 11:01
+  - Resolved 2020-08-14 11:38
+
+- **Time to repair**: 0h 37m
+
+- **Time to resolve**: 0h 55m
+
+- **Identified**: There are 6 replicas of the ingress-controller pod and 2 out of the 6 were crashlooping. A restart of the pods did not resolve the issue. As per a normal runbook process, a recycle of all pods was required. However after restarting pods 4 and 5, they also started to crashloop. The risk was when restarting pods 5 and 6 -  all 6 pods could be down and all ingresses down for the cluster.
+
+- **Impact**:
+  - Increased risk for all ingresses failing in the cluster if all 6 ingress-controller pods are in a crashloop state.
+
+- **Context**:
+  - 2 of the 6 ingress-controller pods crashlooping, after restart of 4 pods, 4 out of 6 pods crashlooping.
+  - Issue was with the leader ingress-controller pod (which was not identified or restarted yet) and exhausting the shared memory.
+    - After a restart of the leader ingress-controller pod, all other pods reverted back to a ready/running state.
+    - Timeline : [https://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/edit#heading=h.z3py6eydx4qu](https://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/edit#heading=h.z3py6eydx4qu)
+    - Slack thread: [https://mojdt.slack.com/archives/C514ETYJX/p1597399295031000](https://mojdt.slack.com/archives/C514ETYJX/p1597399295031000),
+
+- **Resolution**:
+    A restart of the leader ingress-controller pod was required so the other pods in the replica-set could connect and get the latest nginx.config file.
+
+### Incident on 2020-08-07 16:39 - Master node provisioning failure
+
+- **Key events**
+  - First detected 2020-08-07 15:51
+  - Repaired 2020-08-07 16:29
+  - Incident declared 2020-08-07 16:39
+  - Resolved 2020-08-14 10:06
+
+- **Time to repair**: 0h 38m
+
+- **Time to resolve**: 33h 15m (during support hours 10:00-17:00 M-F)
+
+- **Identified**: Routine replacement of a master node failed because AWS did not have any c4.4xlarge instances available in the relevant availability zone.
+
+- **Impact**:
+  - Increased risk because the cluster was running on 2 out of 3 master nodes, for a brief period
+
+- **Context**:
+  - Lack of availability of a given instance type is not a failure mode for which we have planned
+  - In theory, if a problem occurs which eventually kills each master node in turn, and if instances of the right type are not available in at least 2 availability zones, this could bring down the whole cluster.
+  - Timeline : [https://docs.google.com/document/d/1SOAOeL-89cuK-_fJbtgYcArInWQY7UXiIDY7wN5gjuA/edit#](https://docs.google.com/document/d/1SOAOeL-89cuK-_fJbtgYcArInWQY7UXiIDY7wN5gjuA/edit#)
+ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/edit#heading=h.z3py6eydx4qu)
+  - Slack thread: [https://mojdt.slack.com/archives/C514ETYJX/p1596814746202600](https://mojdt.slack.com/archives/C514ETYJX/p1596814746202600)
+
+- **Resolution**:
+  - A new c4.4xlarge node *was* successfully (and automatically) launched approx. 40 minutes after we saw the problem
+  - We replaced all our master nodes with c5.4xlarge instances, which (currently) have better availability
+  - We and AWS are still investigating longer-term and more reliable fixes
+
+## Q2 2020 (April - June)
+
+- **Mean Time To Repair**: 2h 5m
+
+- **Mean Time To Resolve**: 15h 53m
+
+### Incident on 2020-08-04 17:13
+
+- **Key events**
+  - Fault occurs 2020-08-04 13:30
+  - Fault detected 2020-08-04 18:13
+  - Incident declared 2020-08-05 11:04
+  - Resolved 2020-08-05 16:16
+
+- **Time to repair**: 5h 8m
+
+- **Time to resolve**: 9h 16m (during support hours 10:00-17:00)
+
+- **Identified**: Integration tests failed for cert-manager, apply pipeline failed showing it doesnot have permissions and
+ divergence pipeline shows drift for live-1 components
+
+- **Impact**:
+  - Increased risk for cluster failure because some of the components do not have the correct configuration needed for the `live-1` production cluster
+
+- **Context**:
+  - One of the engineers was creating a test EKS cluster and ran `terraform apply` on EKS components
+  - Without fully aware of the current cluster context, the `terraform apply` for EKS test cluster components has been applied to the `live-1` kops cluster
+  - This has changed the configuration of several resources in the `live-1` cluster
+  - Timeline : [https://docs.google.com/document/d/1VrABxeHLMOnoM4yYoCi9N4N4zRY1SK1hTjrZ9s05zuc/edit?usp=sharing](https://docs.google.com/document/d/1VrABxeHLMOnoM4yYoCi9N4N4zRY1SK1hTjrZ9s05zuc/edit?usp=sharing)
+  - Slack thread: [https://mojdt.slack.com/archives/C514ETYJX/p1596621864015400](https://mojdt.slack.com/archives/C514ETYJX/p1596621864015400),
+
+- **Resolution**:
+    Compare each resource configuration with the terraform state and applied the correct configuration from the code specific to kops cluster
+
+### Incident on 2020-04-15 10:58 Nginx/TLS
+
+- **Key events**
+  - Fault occurs 2020-04-15 07:15
+  - Fault detected 2020-04-15 13:45
+  - Incident declared 2020-04-15 14:39
+  - Resolved 2020-04-15 15:09
+
+- **Status**: Resolved at 2020-04-15 15:09 UTC
+
+- **Time to repair**: 0h 30m
+
+- **Time to resolve**: 5h 09m (during support hours 10:00-17:00)
+
+- **Identified**: After an upgrade of the Nginx ingresses, support for legacy TLS was dropped.
+
+- **Impact**:
+  - IE11 users could not access any services running on the Cloud Platform
+  - A few teams came forward with the issue :
+    - LAA
+    - Correspondence Tool
+    - Prisoner Money
+
+- **Context**:
+  - After an upgrade of the Nginx Helm chart v1.24.0 to v1.35
+  - The current version of Nginx has deprecated support for TLS <1.3
+  - The issue was spotted on IE11 browsers.
+  - Timeline : [https://docs.google.com/document/d/1SCf1WT82IlBYWozWN_FXZqL5h0KUcul_QAkxE84YDw0/edit?usp=sharing](https://docs.google.com/document/d/1SCf1WT82IlBYWozWN_FXZqL5h0KUcul_QAkxE84YDw0/edit?usp=sharing)
+  - Slack thread: [https://mojdt.slack.com/archives/C57UPMZLY/p1586954463298700](https://mojdt.slack.com/archives/C57UPMZLY/p1586954463298700)
+
+- **Resolution**:
+    The Nginx configuration was modified to enable TLSv1, TLSv1.1 and TLSv1.2
+
+## Q1 2020 (January - March)
+
+- **Mean Time To Repair**: 1h 22m
+
+- **Mean Time To Resolve**: 2h 36m
+
+### Incident on 2020-02-25 10:58
+
+- **Key events**
+  - Fault occurs 2020-02-25 07:32
+  - Team aware 2020-02-25 07:36
+  - Incident declared 2020-02-25 10:58
+  - Resolved 2020-02-25 17:07
+
+- **Time to repair**: 4h 9m
+
+- **Time to resolve**: 7h (during support hours 10:00-17:00)
+
+- **Identified**: During an upgrade, new masters were not coming up correctly (missing calico networking and other pods)
+
+- **Impact**:
+  - Degraded kubernetes API performance (because some API calls were being directed to non-functioning masters)
+  - Increased risk of cluster failure, because we were running on a single master during the incident
+
+- **Context**:
+  - Upgrading from kubernetes 1.13.12 to 1.14.10, kops 1.13.2 to 1.14.1
+  - The first master was replaced fine, but the second didn't have calico and some other essential pods, and was not functioning correctly
+  - Attempting to roll back the upgrade, every new master exhibited the same problem
+  - Slack thread: [https://mojdt.slack.com/archives/C514ETYJX/p1582628309085600](https://mojdt.slack.com/archives/C514ETYJX/p1582628309085600)
+
+- **Resolution**:
+    The `kube-system` namespace has a label, `openpolicyagent.org/webhook: ignore` This label tells the Open Policy Agent (OPA) that pods are allowed to run in this namespace on the master nodes. Somehow, this label got removed, so the OPA was preventing pods from running on the new master nodes, as each one came up, so the new master was unable to launch essential pods such as `calico` and `fluentd`.
+
+### Incident on 2020-02-18 14:13 UTC
+
+- **Key events**
+  - Fault occurs 2020-02-18 14:13
+  - Incident declared 2020-02-18 14:23
+  - Resolved 2020-02-18 14:59
+
+- **Time to repair**: 0h 36m
+
+- **Time to resolve**: 0h 46m
+
+- **Identified**: Pingdom reported that Prometheus was down (prometheus.cloud-platform.service.justice.gov.uk).
+
+- **Impact**:
+  - The prometheus dashboard was unavailable for everyone, for the whole duration of the incident.
+  - Between 2020-02-18 14:22 and 2020-02-18 14:26, prometheus could not receive metrics.
+
+- **Context**:
+  - Although the Prometheus URL was unreachable, Grafana and Alertmanager were resolving.
+  - There seemed to be an issue preventing requests to reach the prometheus pods.
+  - Disk space and other resources, the usual suspects, were ruled out as the cause.
+  - The domain name amd ingress were both valid.
+  - Slack thread: <https://mojdt.slack.com/archives/C514ETYJX/p1582035803248800>
+
+- **Resolution**:
+    We suspect an intermittent & external networking issue to be the cause of this outage.
+
+### Incident on 2020-02-12 11:45 UTC
+
+- **Key events**
+  - Fault occurs 2020-02-12 11:45
+  - Incident declared 2020-02-12 11:51
+  - Resolved 2020-02-12 12:07
+
+- **Time to repair**: 0h 16m
+
+- **Time to resolve**: 0h 22m
+
+- **Identified**: Pingdom reported Concourse (concourse.cloud-platform.service.justice.gov.uk) down.
+
+- **Context**:
+  - One of the engineers was deleting old clusters (he ran `terraform destroy`) and he wasn't fully aware in which _terraform workspace_ was working on. Using `terraform destroy`, EKS nodes/workers were deleted from the manager cluster.
+  - Slack thread: <https://mojdt.slack.com/archives/C514ETYJX/p1581508273080900>
+
+  - **Resolution**: Using terraform (`terraform apply -var-file vars/manager.tfvars` specifically) the cluster nodes where created and the infrastructure aligned? to the desired terraform state
+
+
+## About this incident log
+
+The purpose of publishing this incident log:
+
+- for the Cloud Platform team to learn from incidents
+- for the Cloud Platform team and its stakeholders to track incident trends and performance
+- because we operate in the open
+
+Definitions:
+
+- The words used in the timeline of an incident: fault occurs, team becomes aware (of something bad), incident declared (the team acknowledges and has an idea of the impact), repaired (system is fully functional), resolved (fully functional and future failures are prevented)
+- *Incident time* - The start of the failure (Before March 2020 it was the time the incident was declared)
+- *Time to Repair* - The time between the incident being declared (or when the team became aware of the fault) and when service is fully restored. Only includes [Hours of Support](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/reference/operational-processes.html#hours-of-support).
+- *Time to Resolve* - The time between when the fault occurs and when system is fully functional (and include any immediate work done to prevent future failures). Only includes [Hours of Support](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/reference/operational-processes.html#hours-of-support). This is a broader metric of incident response performance, compared to Time to Repair.
+
+Source: [Atlassian](https://www.atlassian.com/incident-management/kpis/common-metrics)
+
+Datestamps: please use `YYYY-MM-DD HH:MM` (almost ISO 8601, but more readable), for the London timezone
+
+## Template
+
+### Incident on YYYY-MM-DD HH:MM - [Brief description]
+
+- **Key events**
+  - First detected YYYY-MM-DD HH:MM
+  - Incident declared YYYY-MM-DD HH:MM
+  - Repaired YYYY-MM-DD HH:MM
+  - Resolved YYYY-MM-DD HH:MM
+
+- **Time to repair**: Xh Xm
+
+- **Time to resolve**: Xh Xm
+
+- **Identified**:
+
+- **Impact**:
+  -
+
+- **Context**:
+  -
+  - Timeline: [Timeline](url of google document) for the incident
+  - Slack thread: [Slack thread](url of primary incident thread) for the incident.
+
+- **Resolution**:
+  -
+
+- **Review actions**:
+  -
+
+  [mean-time-to-repair.rb]: https://github.com/ministryofjustice/cloud-platform/blob/main/runbooks/bin/mean-time-to-repair.rb

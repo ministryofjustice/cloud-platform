@@ -1,0 +1,3 @@
+ metrics
+This example captures all metrics whose names include the string `jenkins_node_`
+curl -v -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/delete_series?match[]={__name__="jenkins_node_artefacts_javaskeleton_build_kaniko_1_rq4tp_0t7pb_1srvx_builds"}'

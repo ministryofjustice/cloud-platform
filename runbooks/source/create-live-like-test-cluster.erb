@@ -1,0 +1,31 @@
+---
+title: Create a live like test cluster
+weight: 54
+last_reviewed_on: 2023-11-22
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+This guide will show you how to create a test cluster that is as close to the live cluster as possible. 
+This is useful for testing kubernetes upgrades with configuration and nodes similar to live cluster. 
+
+## Pre-requisites
+
+- A [test cluster][create-test-cluster]. For this guide, we'll assume it's called `cp-upg-test`
+
+## Steps
+
+- In the AWS console, update 'Desired size' and 'Minimum size' of default node group of `cp-upg-test` same as live cluster
+- Enable below components that are installed specifically for live cluster and perform `terraform apply`. The variables to enable them will be in [cloud-platform-infrastructure repo](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components/components.tf)
+  - ECR exporter
+  - Cloudwatch exporter
+  - Thanos sidecar
+  - Velero
+  - Overprivision
+  - Descheduler
+
+  - Increase the number of starter-pack to 30. If you wish to add more load, you can increase to any higher number
+  - Setup pingdom alerts from the Pingdom UI for few of starter-pack helloworld urls to be sent to #lower-priority-alarms channel
+
+  
