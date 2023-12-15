@@ -27,7 +27,6 @@ To avoid bringing down all the nodes at once is to follow these steps:
 6. re-run the [infrastructure-account/terraform-apply] pipeline to again to update the Modsecurity Audit logs cluster to map roles with only the new node group IAM Role
 7. run the integration tests to ensure the cluster is healthy
 
-
 ### Notes:
 
 - When making changes to the default node group in live, it's handy to pause the pipelines for each of our environments for the duration of the change.
