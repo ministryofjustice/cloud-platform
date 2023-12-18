@@ -1,7 +1,7 @@
 ---
 title: Upgrade cluster components
 weight: 54
-last_reviewed_on: 2023-11-20
+last_reviewed_on: 2023-12-18
 review_in: 6 months
 ---
 
@@ -33,6 +33,10 @@ When you start working on upgrading any cloud-platform-components ticket:
 ### Setup environment
 
 Setup the environment variables listed in [example.env.create-cluster] in the [cloud-platform-infrastructure repo].
+
+### Create test cluster
+
+Run the `create-cluster` concourse job to create a test cluster.
 
 ### Run a shell in the tools image
 
@@ -83,13 +87,15 @@ make run-tests
 
   6. Run the integration tests again
 
-  4. Once the testing is complete and integration tests are passed, create a PR to be reviewed by the team and have the module unit tests passed.
+  7. Once the testing is complete and integration tests are passed, create a PR to be reviewed by the team and have the module unit tests passed.
      After the PR is approved, merge the changes to the main branch of the module and make a release.
 
-  5. Change the module release tag in the eks/components folder of [cloud-platform-infrastructure repo] and raise a PR.
+  8. Change the module release tag in the eks/components folder of [cloud-platform-infrastructure repo] and raise a PR.
      Verify the terraform plan from the [cloud-platform-infrastructure plan pipeline] and get it reviewed by the team.
 
-  6. Once approved, merge the PR and monitor the [cloud-platform-infrastructure apply pipeline] when applying the changes.
+  9. Once approved, merge the PR and monitor the [cloud-platform-infrastructure apply pipeline] when applying the changes.
+
+  10. Run the `reporting` tests in concourse to ensure live/manager/live-2 are working as expected.
 
 ### Things to observe when testing the upgrade
 
@@ -129,3 +135,11 @@ cloud-platform environment bump-module --module certmanager --module-version 0.5
 [docker]: https://www.docker.com/
 [tools image]: https://github.com/ministryofjustice/cloud-platform-tools-image
 [things to observe]: upgrade-cluster-components.html#things-to-observe-when-testing-the-upgrade
+
+#### Logs
+
+Compare the logs for the updated component/addon between test cluster and live to ensure there are no additional warnings or errors.
+
+#### Compare `environment` variables
+
+Check the components/addon deamonset to ensure that the environment variables match.
