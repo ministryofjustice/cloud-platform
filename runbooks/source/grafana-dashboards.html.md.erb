@@ -1,7 +1,7 @@
 ---
 title: Grafana Dashboards
 weight: 9106
-last_reviewed_on: 2023-11-20
+last_reviewed_on: 2023-12-19
 review_in: 3 months
 ---
 
@@ -46,5 +46,34 @@ You'll see an error similar to:
 ```bash
 t=2021-12-03T13:37:35+0000 lvl=eror msg="failed to load dashboard from " logger=provisioning.dashboard type=file name=sidecarProvider file=/tmp/dashboards/<MY-DASHBOARD>.json error="invalid character 'c' looking for beginning of value"
 ```
+To help in identifying the dashboards, you can exec into the Grafana pod as follows:
 
-Identify that dashboard and fix the error in question.
+```
+kubectl exec --stdin --tty prometheus-operator-grafana-xxxxxx-yyyyy --container grafana-sc-dashboard  -- sh
+```
+
+Then, cd into the `/tmp/dashboards` directory, and execute the `find` command as below:
+
+```
+cd /tmp/dashboards/
+for i in $(find ./ -type f); do tail $i; done|grep '"uid": '|cut -f2 -d':'|sort|uniq -c|grep -v ' 1 '
+```
+This will show output any duplicate UIDs and the number of occurrences of each.
+
+ie:
+
+```
+2    "[duplicate-dashboard-uid]",
+...
+```
+
+Now you can grep the dashboard `json` files within the directory to identify which dashboards contain the duplicate UID with:
+
+```
+grep -Rnw . -e "[duplicate-dashboard-uid]"
+
+./my-test-dashboard.json:  "uid": "duplicate-dashboard-uid",
+./my-test-dashboard-2.json:  "uid": "duplicate-dashboard-uid",
+```
+
+Identify that dashboard and fix the error in question, depending on where the dashboard config itself is created you may need to identify the user who created the dashboard and ask them to fix it.
