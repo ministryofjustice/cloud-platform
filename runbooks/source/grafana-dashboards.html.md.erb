@@ -46,6 +46,13 @@ You'll see an error similar to:
 ```bash
 t=2021-12-03T13:37:35+0000 lvl=eror msg="failed to load dashboard from " logger=provisioning.dashboard type=file name=sidecarProvider file=/tmp/dashboards/<MY-DASHBOARD>.json error="invalid character 'c' looking for beginning of value"
 ```
+
+once you have the dashboard name, you can then search for the dashboard namespace using jq this will give a full list of names and namespaces for all configMap where this dashboard name is present:
+
+```
+kubectl get configmaps -A -ojson | jq -r '.items[] | select (.data."<MY-DASHBOARD>.json") | .metadata.namespace + "/" + .metadata.name'
+```
+
 To help in identifying the dashboards, you can exec into the Grafana pod as follows:
 
 ```
