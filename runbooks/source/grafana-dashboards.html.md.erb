@@ -1,7 +1,7 @@
 ---
 title: Grafana Dashboards
 weight: 9106
-last_reviewed_on: 2023-12-19
+last_reviewed_on: 2023-12-29
 review_in: 3 months
 ---
 
@@ -9,7 +9,7 @@ review_in: 3 months
 
 ## Kubernetes Number of Pods per Node
 
-This [dashboard](https://grafana.cloud-platform.service.justice.gov.uk/d/anzGBBJHiz/kubernetes-number-of-pods-per-node?orgId=1) was created to show the current number of pods per node in the cluster.
+This [dashboard](https://grafana.live.cloud-platform.service.justice.gov.uk/d/anzGBBJHiz/kubernetes-number-of-pods-per-node?orgId=1) was created to show the current number of pods per node in the cluster.
 
 ### Dashboard Layout
 
@@ -19,13 +19,12 @@ The exception is the `Max Pods per Node` box. This is a constant number set on c
 
 The current architecture does not allow instance group id to be viewed on the dashboard:
 
-We currently have 5 instance groups:
+We currently have 2 instance groups:
 
-* Masters (one per each of the 3 availability zones in the London region)
-* Nodes
-* 2xlarge Nodes
+* Default worker node group (r6i.2xlarge)
+* Monitoring node group (r6i.8xlarge Nodes)
 
-As the dashboard is set in descending order, the last two boxes are normally from the 2xlarge Nodes group (2 instances), the next 3 boxes are normally the masters, and the rest are from the Nodes group.
+As the dashboard is set in descending order, the last two boxes are normally from the monitoring Nodes group (2 instances), and the rest are from the default Nodes group.
 
 You can run the following command to confirm this and get more information about a node:
 
@@ -33,9 +32,15 @@ You can run the following command to confirm this and get more information about
 kubectl describe node <node_name>
 ```
 
-### Troubleshooting
+## Troubleshooting
 
-If a customer is reporting their dashboards are failing to load, this is usually due to a duplicate entry. You can see errors from the Grafana pod by running:
+### Fixing "failed to load dashboard" errors
+
+The kibana alert has reported an error similar to:
+
+> Grafana failed to load one or more dashboards - This could prevent new dashboards from being created ⚠️
+
+You can also see errors from the Grafana pod by running:
 
 ```bash
 kubectl logs -n monitoring prometheus-operator-grafana-<pod-id> -f -c grafana
@@ -47,11 +52,26 @@ You'll see an error similar to:
 t=2021-12-03T13:37:35+0000 lvl=eror msg="failed to load dashboard from " logger=provisioning.dashboard type=file name=sidecarProvider file=/tmp/dashboards/<MY-DASHBOARD>.json error="invalid character 'c' looking for beginning of value"
 ```
 
-once you have the dashboard name, you can then search for the dashboard namespace using jq this will give a full list of names and namespaces for all configMap where this dashboard name is present:
+Identify the namespace and name of the configmap which contains this dashboard name by running:
 
 ```
 kubectl get configmaps -A -ojson | jq -r '.items[] | select (.data."<MY-DASHBOARD>.json") | .metadata.namespace + "/" + .metadata.name'
 ```
+
+This will return the namespace and name of the configmap which contains the dashboard config. Describe the namespace and find the user's slack-channel which is a annotation on the namespace:
+
+```
+kubectl describe namespace <namespace>
+```
+
+Contact the user in the given slack-channel and ask them to fix it. Provide the list of affected dashboards and the error message to help diagnose the issue.
+
+### Fixing "duplicate dashboard uid" errors
+
+The kibana alert has reported an error similar to:
+
+> Duplicate Grafana dashboard UID's found
+
 
 To help in identifying the dashboards, you can exec into the Grafana pod as follows:
 
@@ -83,4 +103,16 @@ grep -Rnw . -e "[duplicate-dashboard-uid]"
 ./my-test-dashboard-2.json:  "uid": "duplicate-dashboard-uid",
 ```
 
-Identify that dashboard and fix the error in question, depending on where the dashboard config itself is created you may need to identify the user who created the dashboard and ask them to fix it.
+Identify the namespace and name of the configmap which contains this dashboard name by running:
+
+```
+kubectl get configmaps -A -ojson | jq -r '.items[] | select (.data."my-test-dashboard.json") | .metadata.namespace + "/" + .metadata.name'
+```
+
+This will return the namespace and name of the configmap which contains the dashboard config. Describe the namespace and find the user's slack-channel which is a annotation on the namespace:
+
+```
+kubectl describe namespace <namespace>
+```
+
+Contact the user in the given slack-channel and ask them to fix it. Provide the list of affected dashboards and the error message to help diagnose the issue.
