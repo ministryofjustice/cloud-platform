@@ -17,7 +17,7 @@ Concerns with existing ElasticSearch logging:
 * Service teams have access to other teams' logs, which is a concern should personal information be inadvertantly logged
 * Fluentd + AWS OpenSearch combination has no flexibility to parse/define the JSON structure of logs, so all our teams right now have to contend with grabbing the contents of a single log field and parsing it outside ES
 
-With these concerns in mind, and the [migration to EKS](022-EKS.html) meaning we'd need to reimplement log shipping, we reevaluate this strategy.
+With these concerns in mind, and the [migration to EKS](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/022-EKS.md) meaning we'd need to reimplement log shipping, we reevaluate this strategy.
 
 ## User needs
 

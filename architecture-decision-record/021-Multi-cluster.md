@@ -12,7 +12,7 @@ We host user apps across *more than one* Kubernetes cluster. Apps could be moved
 
 ## Context
 
-Service teams' apps currently run on [one Kubernetes cluster](012-One-cluster-for-dev-staging-prod.html). That includes their dev/staging/prod environments - they are not split off. The key reasoning was:
+Service teams' apps currently run on [one Kubernetes cluster](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/012-One-cluster-for-dev-staging-prod.md). That includes their dev/staging/prod environments - they are not split off. The key reasoning was:
 
 * Strong isolation is already required between apps from different teams (via namespaces, network policies), so there is no difference for isolating environments
 * Maintaining clusters for each environment is a cost in effort
