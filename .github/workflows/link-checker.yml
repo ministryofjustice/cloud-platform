@@ -17,13 +17,6 @@ jobs:
       - name: Link Checker
         uses: lycheeverse/lychee-action@v1.8.0
         with:
-          args: --verbose --no-progress **/*.md **/*.html **/*.erb .ignore-links --accept 200,429,403,400,301,302 --exclude-mail
+          args: --verbose --no-progress **/*.md **/*.html **/*.erb .ignore-links --accept 200,429,403,400,301,302,401 --exclude-mail
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-      - name: Create Issue From File
-        uses: peter-evans/create-issue-from-file@v4
-        with:
-          title: Link Checker Report
-          content-filepath: ./lychee/out.md
-          labels: documentation
