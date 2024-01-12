@@ -30,6 +30,6 @@ However there’s plenty of things we’d need to tackle, to achieve this (copie
 
 **How people check the status of their deployments** - to be investigated
 
-**Ingress can't be nginx? - just the load balancer in front** - to be investigated. Would be fine with [ADR032 Managed ingress](032-Managed-ingress)
+**Ingress can't be nginx? - just the load balancer in front** - to be investigated. Would be fine with AWS Managed Ingress
 
 If we don't use Fargate then we should take advantage of Spot instances for reduced costs. However Fargate is the priority, because the main driver here is engineer time, not EC2 cost.
