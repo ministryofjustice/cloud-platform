@@ -14,8 +14,8 @@ Move from EKS managed nodes to EKS Fargate.
 
 This is really attractive because:
 
-* to reduce our operational overhead
-* improve security isolation between pods (it uses Firecracker, so we can stop worrying about an attacker managing to escape a container).
+- to reduce our operational overhead
+- improve security isolation between pods (it uses Firecracker, so we can stop worrying about an attacker managing to escape a container).
 
 However there’s plenty of things we’d need to tackle, to achieve this (copied from [ADR022 EKS - Fargate considerations](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/022-EKS.md#future-fargate-considerations)):
 
@@ -23,8 +23,8 @@ However there’s plenty of things we’d need to tackle, to achieve this (copie
 
 **Daemonset functionality** - needs replacement:
 
-* fluent-bit - currently used for log shipping to ElasticSearch. AWS provides a managed version of [Fluent Bit on Fargate](https://aws.amazon.com/blogs/containers/fluent-bit-for-amazon-eks-on-aws-fargate-is-here/) which can be configured to ship logs to ElasticSearch.
-* prometheus-node-exporter - currently used to export node metrics to prometheus. In Fargate the node itself is managed by AWS and therefore hidden. However we can [collect some useful metrics about pods running in Fargate from scraping cAdvisor](https://aws.amazon.com/blogs/containers/monitoring-amazon-eks-on-aws-fargate-using-prometheus-and-grafana/), including on CPU, memory, disk and network
+- fluent-bit - currently used for log shipping to ElasticSearch. AWS provides a managed version of [Fluent Bit on Fargate](https://aws.amazon.com/blogs/containers/fluent-bit-for-amazon-eks-on-aws-fargate-is-here/) which can be configured to ship logs to ElasticSearch.
+- prometheus-node-exporter - currently used to export node metrics to prometheus. In Fargate the node itself is managed by AWS and therefore hidden. However we can [collect some useful metrics about pods running in Fargate from scraping cAdvisor](https://aws.amazon.com/blogs/containers/monitoring-amazon-eks-on-aws-fargate-using-prometheus-and-grafana/), including on CPU, memory, disk and network
 
 **No EBS support** - Prometheus will run still in a managed node group. Likely other workloads too to consider.
 
