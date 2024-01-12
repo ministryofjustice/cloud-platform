@@ -2,6 +2,8 @@ name: Links
 
 on:
   repository_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
   schedule:
     - cron: "00 18 * * *"
@@ -13,7 +15,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Link Checker
-        uses: lycheeverse/lychee-action@v1.8.0
+        uses: lycheeverse/lychee-action@v1.9.1
         with:
           args: --verbose --no-progress **/*.md **/*.html **/*.erb --accept 200,429,403,400,301,302,401 --exclude-mail
         env:
