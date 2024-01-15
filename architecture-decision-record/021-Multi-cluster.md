@@ -8,27 +8,27 @@ Date: 2021-05-11
 
 ## What’s proposed
 
-We host user apps across *more than one* Kubernetes cluster. Apps could be moved between clusters without too much disruption. Each cluster *may* be further isolated by placing them in separate VPCs or separate AWS accounts.
+We host user apps across _more than one_ Kubernetes cluster. Apps could be moved between clusters without too much disruption. Each cluster _may_ be further isolated by placing them in separate VPCs or separate AWS accounts.
 
 ## Context
 
-Service teams' apps currently run on [one Kubernetes cluster](012-One-cluster-for-dev-staging-prod.html). That includes their dev/staging/prod environments - they are not split off. The key reasoning was:
+Service teams' apps currently run on [one Kubernetes cluster](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/012-One-cluster-for-dev-staging-prod.md). That includes their dev/staging/prod environments - they are not split off. The key reasoning was:
 
-* Strong isolation is already required between apps from different teams (via namespaces, network policies), so there is no difference for isolating environments
-* Maintaining clusters for each environment is a cost in effort
-* You risk the clusters diverging. So you might miss problems when testing on the dev/staging clusters, because they aren't the same as prod.
+- Strong isolation is already required between apps from different teams (via namespaces, network policies), so there is no difference for isolating environments
+- Maintaining clusters for each environment is a cost in effort
+- You risk the clusters diverging. So you might miss problems when testing on the dev/staging clusters, because they aren't the same as prod.
 
 (We also have clusters for other purposes: a 'management' cluster for Cloud Platform team's CI/CD and ephemeral 'test' clusters for the Cloud Platform team to test changes to the cluster.)
 
 However we have seen some problems with using one cluster, and advantages to moving to multi-cluster:
 
-* Scaling limits
-* Single point of failure
-* Derisk upgrading of k8s
-* Reduce blast radius for security
-* Reduce blast radius of accidental deletion
-* Pre-prod cluster
-* Cattle not pets
+- Scaling limits
+- Single point of failure
+- Derisk upgrading of k8s
+- Reduce blast radius for security
+- Reduce blast radius of accidental deletion
+- Pre-prod cluster
+- Cattle not pets
 
 ### Scaling limits
 
@@ -40,11 +40,11 @@ Running everything on a single cluster is a 'single point of failure', which is 
 
 Several elements in the cluster are a single point of failure:
 
-* ingress (incidents: [1](https://runbooks.cloud-platform.service.justice.gov.uk/incident-log.html#incident-on-2020-10-06-09-07-intermittent-quot-micro-downtimes-quot-on-various-services-using-dedicated-ingress-controllers) [2](https://runbooks.cloud-platform.service.justice.gov.uk/incident-log.html#incident-on-2020-04-15-10-58-nginx-tls))
-* external-dns
-* cert manager
-* kiam
-* OPA ([incident](https://runbooks.cloud-platform.service.justice.gov.uk/incident-log.html#incident-on-2020-02-25-10-58))
+- ingress (incidents: [1](https://runbooks.cloud-platform.service.justice.gov.uk/incident-log.html#incident-on-2020-10-06-09-07-intermittent-quot-micro-downtimes-quot-on-various-services-using-dedicated-ingress-controllers) [2](https://runbooks.cloud-platform.service.justice.gov.uk/incident-log.html#incident-on-2020-04-15-10-58-nginx-tls))
+- external-dns
+- cert manager
+- kiam
+- OPA ([incident](https://runbooks.cloud-platform.service.justice.gov.uk/incident-log.html#incident-on-2020-02-25-10-58))
 
 ### Derisk upgrading of k8s
 
@@ -76,8 +76,8 @@ Multi-cluster will allow us to put pre-prod environments on a separate cluster t
 
 If we were to create a fresh cluster, and an app is moved onto it, then there are a lot of impacts:
 
-* **Kubecfg** - a fresh cluster will have a fresh kubernetes key, which invalidates everyone's kubecfg. This means that service teams will need to obtain a fresh token and add it to their app's CI/CD config and every dev will need to refresh their command-line kubecfg for running kubectl.
-* **IP Addresses** - unless the load balancer instance and elastic IPs are reused, it'll have fresh IP addresses. This will particularly affect devices on mobile networks that accessing our CP-hosted apps, because they often cache the DNS longer than the TTL. And if CP-hosted apps access third party systems and have arranged for our egress IP to be allow-listed in their firewall, then they will not work until that's updated.
+- **Kubecfg** - a fresh cluster will have a fresh kubernetes key, which invalidates everyone's kubecfg. This means that service teams will need to obtain a fresh token and add it to their app's CI/CD config and every dev will need to refresh their command-line kubecfg for running kubectl.
+- **IP Addresses** - unless the load balancer instance and elastic IPs are reused, it'll have fresh IP addresses. This will particularly affect devices on mobile networks that accessing our CP-hosted apps, because they often cache the DNS longer than the TTL. And if CP-hosted apps access third party systems and have arranged for our egress IP to be allow-listed in their firewall, then they will not work until that's updated.
 
 ## Steps to achieve it
 

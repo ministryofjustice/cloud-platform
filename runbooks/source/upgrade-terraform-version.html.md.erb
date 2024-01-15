@@ -118,7 +118,9 @@ When all namespaces in the cloud-platform-environments repository are using the 
 - [Remove](https://github.com/ministryofjustice/cloud-platform-environments/commit/b11b0372fe71289e51739395664355014df0e655) the conditional logic in the apply library.
 
 ### Infrastructure state files
-The Infrastructure state we have in the Cloud Platform is structured in a tree related to its dependency, so for example, the [components](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/cloud-platform-components) state (in the output below) relies heavily on the directory above and so on. Here is a snapshot of how our directory looks but this is likely to change:
+The Infrastructure state we have in the Cloud Platform is structured in a tree related to its dependency,
+so for example, the [components](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components) state (in the output below) relies heavily on the directory above and so on.
+Here is a snapshot of how our directory looks but this is likely to change:
 
 ```
 aws-accounts
@@ -128,7 +130,6 @@ aws-accounts
 │       ├── eks                  # Holding EKS, workspaces for individual clusters.
 │       │   └── components       # EKS components. Workspaces for individual clusters
 │       └── kops                 # Holding KOPS, workspaces for individual clusters.
-│           └── components       # KOPS components. Workspaces for individual clusters
 ├── cloud-platform-dsd
 │   └── main.tf
 ├── cloud-platform-ephemeral-test
@@ -136,8 +137,6 @@ aws-accounts
 │   └── vpc
 │       ├── eks
 │       │   └── components
-│       └── kops
-│           └── components
 └── README.md
 ```
 

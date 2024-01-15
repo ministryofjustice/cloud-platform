@@ -12,12 +12,12 @@ Cloud Platform's existing strategy for logs has been to **centralize** them in a
 
 Concerns with existing ElasticSearch logging:
 
-* ElasticSearch costs a lot to run - it uses a lot of memory (for lots of things, although it is disk first for the documents and indexes)
-* CP team doesn't need the power of ElasticSearch very often - rather than use Kibana to look at logs, the CP team mostly uses `kubectl logs`
-* Service teams have access to other teams' logs, which is a concern should personal information be inadvertantly logged
-* Fluentd + AWS OpenSearch combination has no flexibility to parse/define the JSON structure of logs, so all our teams right now have to contend with grabbing the contents of a single log field and parsing it outside ES
+- ElasticSearch costs a lot to run - it uses a lot of memory (for lots of things, although it is disk first for the documents and indexes)
+- CP team doesn't need the power of ElasticSearch very often - rather than use Kibana to look at logs, the CP team mostly uses `kubectl logs`
+- Service teams have access to other teams' logs, which is a concern should personal information be inadvertantly logged
+- Fluentd + AWS OpenSearch combination has no flexibility to parse/define the JSON structure of logs, so all our teams right now have to contend with grabbing the contents of a single log field and parsing it outside ES
 
-With these concerns in mind, and the [migration to EKS](022-EKS.html) meaning we'd need to reimplement log shipping, we reevaluate this strategy.
+With these concerns in mind, and the [migration to EKS](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/022-EKS.md) meaning we'd need to reimplement log shipping, we reevaluate this strategy.
 
 ## User needs
 
@@ -37,11 +37,11 @@ Rather than centralized logging in ES, we'll evaluate different logging solution
 
 **AWS services for logging** - with the cluster now in EKS, it wouldn't be too much of a leap to centralizing logs in CloudWatch and make use of the AWS managed tools. One one hand it's proprietary to AWS, so adds cost of switching away. But it might be preferable to the cost of running ES, and related tools like GuardDuty and Security Hub, with use across Modernization Platform, is attractive.
 
-### Observing apps**
+### Observing apps\*\*
 
-* Loki - seems a good fit. For occasional searches, a disk-based index seems more appropriate - higher latency than memory, but much lower cost to run. (In comparison, ES describes itself as primarily disk based indexes, but it *requires* heavy use of memory.) Could setup an instance per team. Need to evaluate how we'd integrate it, and usability.
-* CloudWatch Logs - possible and low operational overhead - needs further evaluation.
-* Sentry - Some teams have beeing using Sentry for logs, but [Sentry says themself it is better suited to error management](https://sentry.io/vs/logging/), which is a narrower benefit than full logging.
+- Loki - seems a good fit. For occasional searches, a disk-based index seems more appropriate - higher latency than memory, but much lower cost to run. (In comparison, ES describes itself as primarily disk based indexes, but it _requires_ heavy use of memory.) Could setup an instance per team. Need to evaluate how we'd integrate it, and usability.
+- CloudWatch Logs - possible and low operational overhead - needs further evaluation.
+- Sentry - Some teams have beeing using Sentry for logs, but [Sentry says themself it is better suited to error management](https://sentry.io/vs/logging/), which is a narrower benefit than full logging.
 
 ### Observing the platform
 
@@ -53,9 +53,9 @@ TBD
 
 ### Security
 
-* MLAP was designed for this, but it is stalled, so probably best to manage it ourselves.
-* ElasticSearch does have open source plugins for SIEM scanning. And it offers quick searching needed during a live incident. Maybe we could reduce the amount of data we put in it. But fundamentally it is an expensive option, to get both live searching and long retention period.
-* AWS-native solution using GuardDuty and CloudWatch Logs may provide something analogous.
+- MLAP was designed for this, but it is stalled, so probably best to manage it ourselves.
+- ElasticSearch does have open source plugins for SIEM scanning. And it offers quick searching needed during a live incident. Maybe we could reduce the amount of data we put in it. But fundamentally it is an expensive option, to get both live searching and long retention period.
+- AWS-native solution using GuardDuty and CloudWatch Logs may provide something analogous.
 
 ## Next steps
 

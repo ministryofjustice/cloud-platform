@@ -1,7 +1,7 @@
 ---
 title: Tips and Tricks
 weight: 9200
-last_reviewed_on: 2024-05-21
+last_reviewed_on: 2024-01-12
 review_in: 6 months
 ---
 
@@ -84,9 +84,6 @@ Paste this into the search field on [Prometheus]:
 ```
 max by(node) (max by(instance) (kubelet_running_pod_count{job="kubelet",metrics_path="/metrics"}) * on(instance) group_left(node) kubelet_node_name{job="kubelet",metrics_path="/metrics"})
 ```
-## Output all records from Route53 as a CSV file
-
-Use [this script](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/bin/route53-to-csv.rb)
 
 ## Add more RSS feeds to `#cloud-platform-rss` channel
 
