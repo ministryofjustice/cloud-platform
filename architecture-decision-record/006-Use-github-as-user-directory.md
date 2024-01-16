@@ -18,13 +18,11 @@ We are proposing that we aim for a "single sign on" approach where users can use
 
 The current most complete source of this information for people who will be the first users of the cloud platform is GitHub. So our proposal is to use GitHub as our initial user directory - authentication for the new services that we are building will be through GitHub.
 
-
 ## Decision
 
 We will use GitHub as the identify provider for the cloud platform.
 
 We will design and build the new cloud platform with the assumption that users will login to all components using a single GitHub id.
-
 
 ## Consequences
 
