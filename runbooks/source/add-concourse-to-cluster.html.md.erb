@@ -50,7 +50,7 @@ terraform workspace select <WorkspaceName>
 terraform plan
 terraform apply -target=module.concourse
 ```
-- Clone the concourse [repository](https://github.com/ministryofjustice/cloud-platform-terraform-concourse).
+- Clone the Concourse [repository](https://github.com/ministryofjustice/cloud-platform-terraform-concourse).
 
 - Login to Concourse
 
@@ -76,6 +76,12 @@ fly --target david-test1 login \
 Follow the URL this command outputs, choose to login with Username/Password, and enter your local username credentials.
 
 - Apply your pipeline
+
+Please do not deploy the bootstrap pipeline in the [Concourse repository](https://github.com/ministryofjustice/cloud-platform-terraform-concourse/tree/main/pipelines/manager/main) into your test cluster. It is
+for production level deployment and may trigger false alarms to our Slack Channel.
+
+To ensure an isolated testing environment, please create a new folder on your local machine and start with a simple pipeline. You may use [this link](https://concourse-ci.org/tutorial-hello-world.html) as reference
+to deploy the first pipeline into your test cluster and not the one under `manager/main`.
 
 ```
 fly --target david-test1 set-pipeline \
