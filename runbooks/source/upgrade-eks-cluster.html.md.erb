@@ -1,20 +1,23 @@
 ---
 title: Upgrade EKS cluster
 weight: 53
-last_reviewed_on: 2023-10-24
+last_reviewed_on: 2024-01-16
 review_in: 3 months
 ---
 
 # Upgrade EKS cluster
 
-The Cloud Platform EKS cluster upgrade consists of three distinct parts:
+The Cloud Platform EKS cluster upgrade involves upgrading any of the below:
 
 - Upgrade EKS Terraform Module
 - Upgrade EKS version (Control Plane and Node Groups)
 - Upgrade addon(s)
+- Upgrade AMI version
 
-The Cloud Platform EKS clusters are created using the official [terraform-aws-eks](https://github.com/terraform-aws-modules/terraform-aws-eks) module. The EKS version and addons are currently independent of the version of the terraform-aws-eks module.
-Therefore, it will not always require an upgrade of the terraform-aws-eks module and/or the addons whenever there is an upgrade of the EKS version. Please check the changelogs for the terraform-aws-eks module, the EKS version and the addons when planning an upgrade.
+The Cloud Platform EKS clusters are created using the official [terraform-aws-eks](https://github.com/terraform-aws-modules/terraform-aws-eks) module.
+The EKS version and addons are currently independent of the version of the terraform-aws-eks module.
+Therefore, it will not always require an upgrade of the terraform-aws-eks module and/or the addons whenever there is an upgrade of the EKS version.
+Please check the changelogs for the terraform-aws-eks module, the EKS version and the addons when planning an upgrade.
 
 ## Run the upgrade, via the tools image
 
@@ -48,9 +51,7 @@ Before you begin, there are a few pre-requisites:
 
 ### Upgrade EKS Terraform Module
 
-As mentioned previously; when a new EKS major version is released, it is normally followed by a release of an associated [terraform-aws-eks module](https://github.com/terraform-aws-modules/terraform-aws-eks).
-
-1) The first step of the EKS upgrade is to identify the corresponding module release with the EKS major version you want to upgrade to. Review the changes in the [changelog](https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/CHANGELOG.md). Plan/make any necessary changes or required updates.
+The first step of the EKS moduke upgrade is to identify the major version you want to upgrade to. Review the changes in the [changelog](https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/CHANGELOG.md).
 
 Create a PR in Cloud Platform Infrastructure repository against the [EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf) making the change to the desired [terraform-aws-eks version](https://github.com/terraform-aws-modules/terraform-aws-eks)
 
@@ -61,9 +62,13 @@ Create a PR in Cloud Platform Infrastructure repository against the [EKS module]
 +  version = "v17.1.0"
 ```
 
-2) Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, run `terraform apply` to execute the changes.
+Based on the changes in the changelog, you can decide if the upgrade is a breaking change or not.
 
-Note: When you run `terraform plan`, if it is only showing launch_template version change as below, executing `terraform apply` will only create a new template version. For cluster node groups to use the new template version created, you need to run `terraform apply` again, that will trigger a re-cycle of all the nodes. To avoid the re-cycle of nodes at this stage, we don't run `terraform apply` until we complete the upgrade of node groups along with updating the template version at a later stage.
+#### Upgrade with no breaking changes
+
+- Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, run `terraform apply` to execute the changes.
+
+Note: When you run `terraform plan`, if it is only showing launch_template version change as below, executing `terraform apply` will only create a new template version.
 
 ```
   # module.eks.module.node_groups.aws_launch_template.workers["monitoring_ng"] will be updated in-place
@@ -72,9 +77,32 @@ Note: When you run `terraform plan`, if it is only showing launch_template versi
       ~ latest_version          = 1 -> (known after apply)
 ```
 
-### Upgrade Control Plane
+For cluster node groups to use the new template version created, you need to run `terraform apply` again, that will trigger a re-cycle of all the nodes using terraform.
+This can be disruptive and also incur terraform apply timeout. Hence, follow the below steps to update the node groups with the new template version.
 
-3) Create a PR in Cloud Platform Infrastructure repository against the [EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf) making the change to the desired EKS cluster version.
+To update the node groups with the new template version:
+ - login to AWS console
+ - select EKS and select the cluster
+ - click on the Compute and select the node group
+ - click on `Change launch template version` option
+ - select update strategy as `force update` and Update.
+
+This will perform a rolling update of all the nodes in the node group. Follow the steps in [Recycle all nodes](#recycle-all-nodes) section to recycle all the nodes.
+
+#### Upgrade with breaking changes
+
+Recent EKS module upgrade from 17 to 18 mentioned breaking changes to the resources. Hence, a non-distruptive process of creating new node group, moving terraform state,
+draining the old node group and finally deleting the old node group was followed.
+
+Detailed steps are mentioned in the [google doc](https://docs.google.com/document/d/1Nv1WsqdYMBzjpO8jfmXEqjAY5nZ9GYWUpNNaMJVJyaw/edit?usp=sharing)
+
+Any future upgrades where the terraform plan or the changelog shows breaking changes, the procedure needs to be reviewed and modified based on what the breaking changes are.
+
+### Upgrade EKS version
+
+#### Upgrade Control Plane
+
+- Create a PR in Cloud Platform Infrastructure repository against the [EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf) making the change to the desired EKS cluster version.
 
 ```
  module "eks" {
@@ -84,11 +112,10 @@ Note: When you run `terraform plan`, if it is only showing launch_template versi
 
 ```
 
-4) Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, perform the upgrade from the AWS Console EKS Control Plane.
-
-We don't want to run `terraform apply` to apply the EKS cluster version, as the terraform apply process will take longer and timed out, also to avoid re-cycling of nodes as explained in step 2.
-
+- Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, perform the upgrade from the AWS Console EKS Control Plane.
 Once the process is completed, [AWS Console](https://eu-west-2.console.aws.amazon.com/eks/home?region=eu-west-2#/clusters) will confirm the Control Plane is on the correct version.
+
+Note: We don't want to run `terraform apply` to apply the EKS cluster version, as this will trigger a re-cycle of all the nodes using terraform. This can be distruptive and also incur terraform apply timeout.
 
 ```
 $ aws eks describe-cluster --query 'cluster.version' --name manager
@@ -98,7 +125,7 @@ $
 
 ![AWS Console](../images/aws-eks-upgrade.png)
 
-### Upgrade Node Group(s)
+#### Upgrade Node Group(s)
 
 The easiest way to upgrade node groups is through AWS Console. We advise to follow the official AWS EKS upgrade instructions from the [Updating a Managed Node Group](https://docs.aws.amazon.com/eks/latest/userguide/update-managed-node-group.html) documentation.
 
@@ -106,14 +133,16 @@ While updating the node group AMI release version, we should also change the lau
 
 ![Update Node Group](../images/update-node-group.png)
 
-### Recycle all nodes
+**Testing the upgrade in a test cluster**
 
-When a node group version changes, this will cause all of the nodes to recycle. When AWS recycles the nodes, it will not evict pods if it will break the PDB.
-This will cause the node to stall the update and the nodes will **not** continue to recycle.
+Testing the upgrade involves several things and varies depends on the changes involved. Some of the things to consider are:
 
-To rectify this, run the script mentioned in [Recycle-all-nodes- Gotchas](/recycle-all-nodes.html#gotchas) section.
+- Run integrations tests
+- Monitor Cloudwatch API logs for any failures
+- Compare launch template before and after the upgrade and check for any variable changes
+- Check for disk space, Ip subnet and IP allocations changes for any IP starvations. This might not be obvious in test cluster, but to monitor when upgrading live
 
-### Update kubectl version in tools image
+#### Update kubectl version in tools image
 
 kubectl is supported within one minor version (older or newer) of the cluster version. Update the kubectl version in the cloud platform
 [tools image](https://github.com/ministryofjustice/cloud-platform-tools-image.git) to match the current cluster version.
@@ -122,7 +151,11 @@ kubectl is supported within one minor version (older or newer) of the cluster ve
 
 We have 3 addons managed through cloud-platform-terraform-eks-add-ons [module](https://github.com/ministryofjustice/cloud-platform-terraform-eks-add-ons).
 
-Refer to the below documents to get the addon version to be used with the EKS major version you just upgraded to.
+Before every EKS major versions, check and upgrade if the addons versions don't match the EKS major version the cluster is currently on.
+
+After every EKS major versions, check  and upgrade if the addons don't match the EKS major version the cluster you just upgraded to.
+
+The following addons are managed through cloud-platform-terraform-eks-add-ons [module](
 
 [managing-kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 
@@ -131,3 +164,21 @@ Refer to the below documents to get the addon version to be used with the EKS ma
 [managing-vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
 
 Create a PR in Cloud Platform Infrastructure repository against the cloud-platform-terraform-eks-add-ons [module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf#L192) making the changes to the desired addon version’s [here](https://github.com/ministryofjustice/cloud-platform-terraform-eks-add-ons/blob/main/variables.tf#L28-L44). Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, run `terraform apply` to execute the changes.
+
+### Upgrade AMI version
+
+AWS releases new AMI versions for EKS node groups that include Kubernetes patches and security updates. To upgrade the node groups to use the new AMI version:
+
+- login to the AWS console
+- Select EKS and select the cluster
+- Select the node group and click on `Update AMI version`
+- Select the Update Strategy to "Force update" and click on "Update"
+
+This will perform a rolling update of all the nodes in the node group. Follow the steps in [Recycle all nodes](#recycle-all-nodes) section to recycle all the nodes.
+
+### Recycle all nodes
+
+When a node group version changes, this will cause all of the nodes to recycle. When AWS recycles the nodes, it will not evict pods if it will break the PDB.
+This will cause the node to stall the update and the nodes will **not** continue to recycle.
+
+To rectify this, run the script mentioned in [Recycle-all-nodes- Gotchas](/recycle-all-nodes.html#gotchas) section.
