@@ -7,7 +7,7 @@ review_in: 3 months
 
 # Upgrade EKS cluster
 
-The Cloud Platform EKS cluster upgrade consists of three distinct parts:
+The Cloud Platform EKS cluster upgrade involves upgrading any of the below:
 
 - Upgrade EKS Terraform Module
 - Upgrade EKS version (Control Plane and Node Groups)
@@ -82,9 +82,10 @@ This can be disruptive and also incur terraform apply timeout. Hence, follow the
 
 To update the node groups with the new template version:
  - login to AWS console
- - click on the node group
+ - select EKS and select the cluster
+ - click on the Compute and select the node group
  - click on `Change launch template version` option
- - select update strategy as `force update` and Submit.
+ - select update strategy as `force update` and Update.
 
 This will perform a rolling update of all the nodes in the node group. Follow the steps in [Recycle all nodes](#recycle-all-nodes) section to recycle all the nodes.
 
@@ -163,6 +164,17 @@ The following addons are managed through cloud-platform-terraform-eks-add-ons [m
 [managing-vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
 
 Create a PR in Cloud Platform Infrastructure repository against the cloud-platform-terraform-eks-add-ons [module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf#L192) making the changes to the desired addon version’s [here](https://github.com/ministryofjustice/cloud-platform-terraform-eks-add-ons/blob/main/variables.tf#L28-L44). Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, run `terraform apply` to execute the changes.
+
+### Upgrade AMI version
+
+AWS releases new AMI versions for EKS node groups that include Kubernetes patches and security updates. To upgrade the node groups to use the new AMI version:
+
+- login to the AWS console
+- Select EKS and select the cluster
+- Select the node group and click on `Update AMI version`
+- Select the Update Strategy to "Force update" and click on "Update"
+
+This will perform a rolling update of all the nodes in the node group. Follow the steps in [Recycle all nodes](#recycle-all-nodes) section to recycle all the nodes.
 
 ### Recycle all nodes
 
