@@ -1,7 +1,7 @@
 ---
 title: Delete a cluster
 weight: 55
-last_reviewed_on: 2023-11-20
+last_reviewed_on: 2024-01-16
 review_in: 6 months
 ---
 
@@ -13,8 +13,8 @@ In most cases, it is recommended to pass responsibility for deleting a test clus
 
 ## Delete the cluster with Concourse `delete-cluster` pipeline
 
-We have a [dedicated pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/delete-cluster) for deleting test clusters. You can configure and trigger this pipeline
-against your test cluster for removal by utilising the associated cloud-platform cli `pipeline delete-cluster` [command](https://github.com/ministryofjustice/cloud-platform-cli/blob/19d33d6618013f0f4047a545b5f0d184d3d2fdfb/pkg/commands/pipeline.go).
+We have a [dedicated pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/delete-cluster) for deleting test clusters. 
+You can configure and trigger this pipeline against your test cluster for removal by utilising the associated cloud-platform cli `pipeline delete-cluster` [command](https://github.com/ministryofjustice/cloud-platform-cli/blob/19d33d6618013f0f4047a545b5f0d184d3d2fdfb/pkg/commands/pipeline.go).
 
 In order to use this command, ensure you have the following installed:
 
@@ -49,46 +49,65 @@ configuration updated
 started delete-cluster/delete #123
 ```
 
-## Delete the cluster locally, using the cli `cluster delete` command
-
-To delete a cluster:
-
-```
-$ export AWS_PROFILE=moj-cp
-```
-
-Start from the root directory of a working copy of the [infrastructure repo].
-
-There is a [delete-cluster command] which will handle deleting your cluster.
-
-The command is entirely non-interactive, and will not prompt you to confirm anything. It just destroys things.
-
-### First, run `make tools-shell`
-
-> The delete cluster command must *always* be run in a container. This ensures that the environment of the command is fully controlled, and you don't run into problems such as the kubernetes context being changed in another window, or extra environment variables causing unwanted effects.
-
-Then invoke the command like this:
-
-```
-cloud-platform cluster delete --name <cluster-nameto-be-deleted> --dry-run=false
-```
-
-Run with `--dry-run=true` to do a dry run (if you don't pass a flag it will default to true), and see what commands would be executed.
-
-You can get more information using:
-
-```
-cloud-platform cluster delete --help
-```
-
-If any steps fail:
-
-* Fix the underlying problem
-* Re-run the command
-
 ## Delete an EKS cluster manually
 
-The steps can be found here - [Delete an EKS Cluster]
+Follow these steps, to delete the EKS cluster.
+
+First, set the kubectl context for the EKS cluster you are deleting. The easiest way to do this is with aws command:
+
+```
+$ export KUBECONFIG=~/.kube/config
+$ export cluster=<cluster-name>
+$ aws eks --region eu-west-2 update-kubeconfig --name ${cluster}
+```
+
+You should see this output:
+
+```
+Added new context arn:aws:eks:eu-west-2:754256621582:cluster/<cluster-name> to .kube/config
+
+```
+
+Then, from the root of a checkout of the `cloud-platform-infrastructure` repository, run
+these commands to destroy all cluster components, and delete the terraform workspace:
+
+```
+$ cd terraform/aws-accounts/cloud-platform-aws/vpc/eks/components
+$ terraform init
+$ terraform workspace select ${cluster}
+$ terraform destroy
+```
+> The destroy process often gets stuck on prometheus operator. If that happens, running this in a separate window usually works:
+> ```
+> kubectl -n monitoring delete job prometheus-operator-operator-cleanup
+> ```
+
+```
+$ terraform workspace select default
+$ terraform workspace delete ${cluster}
+```
+
+Change directories and perform the following to destroy the EKS cluster, and delete the terraform workspace.
+
+```
+$ cd .. # working dir is now `eks`
+$ terraform init
+$ terraform workspace select ${cluster}
+$ terraform destroy
+$ terraform workspace select default
+$ terraform workspace delete ${cluster}
+```
+
+Change directories and perform the following to destroy the cluster VPC, and delete the terraform workspace.
+
+```
+$ cd .. # working dir is now `vpc`
+$ terraform init
+$ terraform workspace select ${cluster}
+$ terraform destroy
+$ terraform workspace select default
+$ terraform workspace delete ${cluster}
+```
 
 [infrastructure repo]: https://github.com/ministryofjustice/cloud-platform-infrastructure
 [delete-cluster command]: https://github.com/ministryofjustice/cloud-platform-cli/blob/19d33d6618013f0f4047a545b5f0d184d3d2fdfb/pkg/cluster/delete.go
