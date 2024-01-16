@@ -14,9 +14,9 @@ The Cloud Platform EKS cluster upgrade consists of three distinct parts:
 - Upgrade addon(s)
 - Upgrade AMI version
 
-The Cloud Platform EKS clusters are created using the official [terraform-aws-eks](https://github.com/terraform-aws-modules/terraform-aws-eks) module. 
+The Cloud Platform EKS clusters are created using the official [terraform-aws-eks](https://github.com/terraform-aws-modules/terraform-aws-eks) module.
 The EKS version and addons are currently independent of the version of the terraform-aws-eks module.
-Therefore, it will not always require an upgrade of the terraform-aws-eks module and/or the addons whenever there is an upgrade of the EKS version. 
+Therefore, it will not always require an upgrade of the terraform-aws-eks module and/or the addons whenever there is an upgrade of the EKS version.
 Please check the changelogs for the terraform-aws-eks module, the EKS version and the addons when planning an upgrade.
 
 ## Run the upgrade, via the tools image
@@ -62,13 +62,13 @@ Create a PR in Cloud Platform Infrastructure repository against the [EKS module]
 +  version = "v17.1.0"
 ```
 
-Based on the changes in the changelog, you can decide if the upgrade is a breaking change or not. 
+Based on the changes in the changelog, you can decide if the upgrade is a breaking change or not.
 
 #### Upgrade with no breaking changes
 
 - Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, run `terraform apply` to execute the changes.
 
-Note: When you run `terraform plan`, if it is only showing launch_template version change as below, executing `terraform apply` will only create a new template version. 
+Note: When you run `terraform plan`, if it is only showing launch_template version change as below, executing `terraform apply` will only create a new template version.
 
 ```
   # module.eks.module.node_groups.aws_launch_template.workers["monitoring_ng"] will be updated in-place
@@ -77,21 +77,21 @@ Note: When you run `terraform plan`, if it is only showing launch_template versi
       ~ latest_version          = 1 -> (known after apply)
 ```
 
-For cluster node groups to use the new template version created, you need to run `terraform apply` again, that will trigger a re-cycle of all the nodes using terraform. 
+For cluster node groups to use the new template version created, you need to run `terraform apply` again, that will trigger a re-cycle of all the nodes using terraform.
 This can be distruptive and also incur terraform apply timeout. Hence, follow the below steps to update the node groups with the new template version.
 
 To update the node groups with the new template version:
  - login to AWS console
  - click on the node group
  - click on `Change launch template version` option
- - select update strategy as `force update` and Submit. 
- 
+ - select update strategy as `force update` and Submit.
+
 This will perform a rolling update of all the nodes in the node group. Follow the steps in [Recycle all nodes](#recycle-all-nodes) section to recycle all the nodes.
 
 #### Upgrade with breaking changes
 
-Recent EKS module upgrade from 17 to 18 mentioned breaking changes to the resources. Hence, a non-distruptive process of creating new node group, moving terraform state, 
-draining the old node group and finally deleting the old node group was followed. 
+Recent EKS module upgrade from 17 to 18 mentioned breaking changes to the resources. Hence, a non-distruptive process of creating new node group, moving terraform state,
+draining the old node group and finally deleting the old node group was followed.
 
 Detailed steps are mentioned in the [google doc](https://docs.google.com/document/d/1Nv1WsqdYMBzjpO8jfmXEqjAY5nZ9GYWUpNNaMJVJyaw/edit?usp=sharing)
 
