@@ -13,7 +13,7 @@ In most cases, it is recommended to pass responsibility for deleting a test clus
 
 ## Delete the cluster with Concourse `delete-cluster` pipeline
 
-We have a [dedicated pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/delete-cluster) for deleting test clusters. 
+We have a [dedicated pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/delete-cluster) for deleting test clusters.
 You can configure and trigger this pipeline against your test cluster for removal by utilising the associated cloud-platform cli `pipeline delete-cluster` [command](https://github.com/ministryofjustice/cloud-platform-cli/blob/19d33d6618013f0f4047a545b5f0d184d3d2fdfb/pkg/commands/pipeline.go).
 
 In order to use this command, ensure you have the following installed:
