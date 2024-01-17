@@ -1,7 +1,7 @@
 ---
 title: EKS Cluster
 weight: 350
-last_reviewed_on: 2024-01-09
+last_reviewed_on: 2024-01-16
 review_in: 3 months
 ---
 
@@ -11,7 +11,7 @@ review_in: 3 months
 
 You can create a new EKS test cluster using the [cluster build pipeline].
 
-Alternatively, using the `create-cluster` script.
+Alternatively, if you want to create a cluster manually, follow the steps below.
 
 ## Pre-requisites
 
@@ -42,16 +42,10 @@ export AUTH0_CLIENT_ID=
 export AUTH0_CLIENT_SECRET=
 ```
 
-Execute the script inside the [cloud-platform-tool] container from the root of [cloud-platform-infrastructure] repo, run:
-
-```
-make tools-shell
-```
-
-This will launch the tool container, from there you can run the execute script by providing the desired name of your new cluster. e.g.:
+Execute the cloud-platform command to create a new cluster:
 
 ```bash
-./create-cluster.rb --name mogaal-eks
+cloud-platform cluster create --name <cluster-name>
 ```
 
 Check the pre-requisites and environment variables section of this document before running this script.
@@ -60,12 +54,12 @@ NB: Your cluster name must be **no more than 12 characters**. Any longer, and so
 
 See our [cluster naming policy](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/009-Naming-convention-for-clusters.md) for information on how to choose a suitable name for your cluster.
 
-By default, the script will create a `small` cluster. This means the master and worker EC2 instances will be less powerful machine types than in our production cluster.
+By default, the script will create a `small` cluster. This means the worker EC2 instances will be less powerful machine types than in our production cluster.
 
 You can see more options to use when creating the cluster by running:
 
 ```bash
-./create-cluster.rb --help
+cloud-platform cluster create --help
 ```
 
 The script takes around 30 minutes to execute. At the end, you should see output like this:
@@ -161,138 +155,26 @@ terraform workspace new <WorkspaceName>
 terraform apply
 ```
 
-### 4. Delete the EKS cluster
+## Creating a live like test cluster
 
-#### Delete the EKS cluster using the script
+When testing clusteer upgrades, it is useful to test the procedure which is as close to the live cluster as possible. The following steps will update an existing test cluster
+to the configuration similar to the live cluster.
 
-There is a [destroy-cluster.rb] script which you can use to delete your cluster.
+**Pre-requisites:**
 
-Read the script before using it. Deleting a cluster is something you should be very cautious about, and ensure you know exactly what you're doing.
+- a test cluster created using the [cluster build pipeline] or manually
+- The environment variables and pre-requisites as described [above](#pre-requisites)
 
-The script is entirely non-interactive, and will not prompt you to confirm anything. It just destroys things.
+**Steps:**
 
-First, run `make tools-shell`
+- Update the node group desired count to same as live cluster (say 50) in the console. The terraform way of applying doesnt work for desired count
+- Set the node_groups_count to same as live cluster (say 64) and default_ng_min_count to 50 in [terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf]
+- Apply the terraform code changes to the test cluster
+- cd to [terraform/aws-accounts/cloud-platform-aws/vpc/eks/components] and enable ecr-exporter, cloudwatch_exporter, velero, overprovisioner and other components that are installed specific to live cluster
+- Apply the terraform code changes to the test cluster
+- Update the starter pack count to 40 and apply the terraform code changes to the test cluster
+- Setup pingdom alerts for starter-pack helloworld app
 
-> The delete cluster script must *always* be run in a container. This ensures that the environment of the script is fully controlled, and you don't run into problems such as the kubernetes context being changed in another window, or extra environment variables causing unwanted effects.
-
-Then invoke the script like this:
-
-```
-./destroy-cluster.rb --name [short cluster name] --yes
-```
-
-Run without `--yes` to do a dry run, and see what commands would be executed.
-
-You can get more information using:
-
-```
-./destroy-cluster.rb --help
-```
-
-If any steps fail:
-
-* Fix the underlying problem
-* Edit the script to comment out any sections of the `ClusterDeleter.run` function which you no longer need to run
-* Re-run the script
-
-#### Delete the cluster using concourse fly commands
-
-In case you prefer concourse pipeline to destroy the cluster, these are the steps to follow, to delete the cluster using "concourse fly commands"
-
-First, `cd`` to the working copy of the concourse [pipelines repo][pipelines repo]. Make below two changes to the [eks-create-test-destroy.yaml][create-test-destroy] file.
-
-In the eks-create-test-destroy pipeline definition, comment out the below line in destroy-cluster job.
-
-  ```
-  args:
-    # export $(cat keyval/keyval.properties | grep CLUSTER_NAME )
-  ```
-
-Commenting out this will not set the `CLUSTER_NAME` provided by the create-cluster-run-tests job.
-
-```
-./destroy-cluster.rb --name $CLUSTER_NAME --yes
-```
-
-Run the below commands updating the `<cluster-name-to-be-deleted>`.
-
-The first fly command will apply the changes made for the [eks-create-test-destroy.yaml][create-test-destroy] file with the hardcoded `CLUSTER_NAME` in the destroy-cluster job
-
-The second command will trigger the destroy-cluster job for the CLUSTER_NAME updated in the destroy-cluster job.
-
-```
-fly -t manager sp -p create-test-destroy -c create-test-destroy.yaml
-fly -t manager trigger-job -j create-test-destroy/destroy-cluster
-```
-Note: After the destroy-cluster job completed sucessfully, run the [bootstrap pipleine][bootstrap pipleine] to discard the changes made to [eks-create-test-destroy.yaml][create-test-destroy] file.
-
-```
-fly -t manager trigger-job -j bootstrap/bootstrap-pipelines
-```
-
-#### Delete the EKS cluster manually
-
-Follow these steps, to delete the EKS cluster.
-
-First, set the kubectl context for the EKS cluster you are deleting. The easiest way to do this is with aws command:
-
-```
-$ export KUBECONFIG=~/.kube/config
-$ export cluster=<cluster-name>
-$ aws eks --region eu-west-2 update-kubeconfig --name ${cluster}
-```
-
-You should see this output:
-
-```
-Added new context arn:aws:eks:eu-west-2:754256621582:cluster/<cluster-name> to .kube/config
-
-```
-
-Then, from the root of a checkout of the `cloud-platform-infrastructure` repository, run
-these commands to destroy all cluster components, and delete the terraform workspace:
-
-```
-$ cd terraform/aws-accounts/cloud-platform-aws/vpc/eks/components
-$ terraform init
-$ terraform workspace select ${cluster}
-$ terraform destroy
-```
-> The destroy process often gets stuck on prometheus operator. If that happens, running this in a separate window usually works:
-> ```
-> kubectl -n monitoring delete job prometheus-operator-operator-cleanup
-> ```
-
-```
-$ terraform workspace select default
-$ terraform workspace delete ${cluster}
-```
-
-Change directories and perform the following to destroy the EKS cluster, and delete the terraform workspace.
-
-```
-$ cd .. # working dir is now `eks`
-$ terraform init
-$ terraform workspace select ${cluster}
-$ terraform destroy
-$ terraform workspace select default
-$ terraform workspace delete ${cluster}
-```
-
-Change directories and perform the following to destroy the cluster VPC, and delete the terraform workspace.
-
-```
-$ cd .. # working dir is now `vpc`
-$ terraform init
-$ terraform workspace select ${cluster}
-$ terraform destroy
-$ terraform workspace select default
-$ terraform workspace delete ${cluster}
-```
-
-[create a cluster]: https://runbooks.cloud-platform.service.justice.gov.uk/eks-cluster.html#provisioning-eks-clusters
 [cluster build pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/create-cluster
-[destroy-cluster.rb]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/destroy-cluster.rb
-[create-test-destroy]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/eks-create-test-destroy.yaml
-[cloud-platform-tool]: https://github.com/ministryofjustice/cloud-platform-tools-image
-[cloud-platform-infrastructure]: https://github.com/ministryofjustice/cloud-platform-infrastructure
+[terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf
+[terraform/aws-accounts/cloud-platform-aws/vpc/eks/components]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components
