@@ -14,13 +14,13 @@ for VERSION in "${VERSIONS[@]}";
 do
   if [[ "$CLUSTER_VERSION" != "$VERSION" ]]; then
     if (( $(echo "$CLUSTER_VERSION < $VERSION" | bc -l) )); then # check if newer version is supported
-      TITLE="EKS: Upgrade $CLUSTER to Kubernetes v$VERSION";
+      TITLE="EKS: Upgrade Production Clusters to Kubernetes v$VERSION";
       BODY=$(cat << END
 ## Background
 
-EKS supports Kubernetes $VERSION. The $CLUSTER cluster needs upgrading to Kubernetes $VERSION.
+EKS supports Kubernetes $VERSION. Our Production Clusters need upgrading to Kubernetes $VERSION.
 
-## Environments Checklist:
+## Production Clusters Checklist:
 
 - [ ] live-2
 - [ ] manager

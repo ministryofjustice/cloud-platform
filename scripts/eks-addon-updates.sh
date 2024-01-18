@@ -18,15 +18,15 @@ do
   # get latest supported addon version for the cluster/k8s version
   LATEST_SUPPORTED_ADDON_VERSION_FOR_KUBERNETES_VERSION=$(aws eks describe-addon-versions --addon-name "$CLUSTER_ADDON" --kubernetes-version "$CLUSTER_VERSION" | jq -r '.addons[0].addonVersions[0].addonVersion')
 
-  TITLE="EKS addon ($CLUSTER): Update $CLUSTER_ADDON from $CLUSTER_ADDON_VERSION to the latest version"
+  TITLE="EKS addon Production Clusters: Update $CLUSTER_ADDON from $CLUSTER_ADDON_VERSION to the latest version"
 
   if [[ "$LATEST_SUPPORTED_ADDON_VERSION_FOR_KUBERNETES_VERSION" != "$CLUSTER_ADDON_VERSION" ]]; then # check if newer version is supported
     BODY=$(cat << END
 ## Background
 
-There is a new version of the EKS add-on $CLUSTER_ADDON. $CLUSTER_ADDON needs updating on the $CLUSTER cluster. When this issue was created, the latest supported add-on version for Kubernetes $CLUSTER_VERSION was $LATEST_SUPPORTED_ADDON_VERSION_FOR_KUBERNETES_VERSION.
+There is a new version of the EKS add-on $CLUSTER_ADDON. $CLUSTER_ADDON needs updating on all of our clusters. When this issue was created, the latest supported add-on version for Kubernetes $CLUSTER_VERSION was $LATEST_SUPPORTED_ADDON_VERSION_FOR_KUBERNETES_VERSION.
 
-## Environments Checklist:
+## Production Clusters Checklist:
 
 - [ ] live-2
 - [ ] manager
