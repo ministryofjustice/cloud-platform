@@ -21,6 +21,20 @@ The following addons are managed through cloud-platform-terraform-eks-add-ons mo
 
 [managing-vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
 
+## Listing available EKS upgrades
+
+### eksctl Install
+
+```
+brew install eksctl
+```
+
+Run the following command to get a list of supported addon version for the Kubernetes version.
+
+```
+eksctl utils describe-addon-versions --kubernetes-version [k8s-version] --name [addon name: kube-proxy/vpc-cni/coredns] | grep AddonVersion
+```
+
 ## Preparing for upgrade
 
 Check the changelog for each of the addons and determine if there are any breaking changes.
