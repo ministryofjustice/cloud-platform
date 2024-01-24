@@ -10,13 +10,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ministryofjustice/tech-docs-github-pages-publisher:v2
+      image: ministryofjustice/tech-docs-github-pages-publisher:v3.0.1
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Compile Markdown to HTML and create artifact
         run: |
-          cd runbooks; /scripts/compile-and-create-artifact.sh
+          cd runbooks; /scripts/deploy.sh
       - name: Install rsync
         run: |
           apk update && apk add rsync

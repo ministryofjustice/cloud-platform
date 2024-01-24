@@ -17,4 +17,4 @@ build:
 		-v $$(pwd)/docs:/app/docs \
 		-p 4567:4567 \
 		$(IMAGE) \
-		/scripts/compile-and-create-artifact.sh
+		/scripts/deploy.sh
