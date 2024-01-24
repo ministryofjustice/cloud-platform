@@ -1,0 +1,69 @@
+---
+title: Upgrade EKS addons
+weight: 53
+last_reviewed_on: 2024-01-24
+review_in: 3 months
+---
+
+# Upgrade EKS addons
+
+We have 3 addons managed through cloud-platform-terraform-eks-add-ons [module](https://github.com/ministryofjustice/cloud-platform-terraform-eks-add-ons).
+
+Before every EKS major version upgrade, check and upgrade if the addons versions don't match the EKS major version the cluster is currently on.
+
+After every EKS major versions upgrade, check and upgrade if the addons don't match the EKS major version the cluster you just upgraded to.
+
+The following addons are managed through cloud-platform-terraform-eks-add-ons module.
+
+[managing-kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
+
+[managing-coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
+
+[managing-vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
+
+## Listing available EKS upgrades
+
+### eksctl Install
+
+```
+brew install eksctl
+```
+
+Run the following command to get a list of supported addon version for the Kubernetes version.
+
+```
+eksctl utils describe-addon-versions --kubernetes-version [k8s-version] --name [addon name: kube-proxy/vpc-cni/coredns] | grep AddonVersion
+```
+
+## Preparing for upgrade
+
+Check the changelog for each of the addons and determine if there are any breaking changes.
+
+Create a thread in #cloud-platform notifying the team that upgrades are starting and the pipelines will be paused.
+
+## Starting the upgrade
+
+1. Bump the version number in cloud-platform-terraform-eks-add-ons
+2. Commit changes on a new branch and create a pull request
+3. Request review from someone on the team
+4. Merge pull request and create a new release through the Github UI
+5. Bump the version number of the cloud-platform-terraform-eks-add-ons in cloud-platform-infrastructure
+6. Commit changes on a new branch and create a pull request
+7. Request review from someone on the team
+8. Check the terraform plan in concourse and pause the following pipelines:
+  * bootstrap
+  * infrastructure-live
+  * infrastructure-manager
+  * infrastructure-live-2
+9. Create an output of the configuration of a pod before the upgrade. `kubectl -n kube-system get pod $addon -oyaml` there is also a helper [script](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/scripts/addons-upgrade.bash).
+10. Merge the pull request
+11. Unpause an infrastructure pipeline and wait for it to complete
+12. While running:
+  * Keep an eye on pods recycling `watch -n 1 "kubectl -n kube-system get pods"`
+  * Keep an eye on events `watch -n 1 "kubectl -n kube-system get events"`
+13. Run the reporting pipeline on the infrastructure environment
+14. If everything is green repeat steps 11-14 on each environment.
+
+## Finish the upgrade
+
+Finish up communications and close the thread.
