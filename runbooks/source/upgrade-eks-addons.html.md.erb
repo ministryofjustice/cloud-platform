@@ -11,7 +11,7 @@ We have 3 addons managed through cloud-platform-terraform-eks-add-ons [module](h
 
 Before every EKS major version upgrade, check and upgrade if the addons versions don't match the EKS major version the cluster is currently on.
 
-After every EKS major versions, check  and upgrade if the addons don't match the EKS major version the cluster you just upgraded to.
+After every EKS major versions upgrade, check and upgrade if the addons don't match the EKS major version the cluster you just upgraded to.
 
 The following addons are managed through cloud-platform-terraform-eks-add-ons module.
 
@@ -49,7 +49,7 @@ Create a thread in #cloud-platform notifying the team that upgrades are starting
 4. Merge pull request and create a new release through the Github UI
 5. Bump the version number of the cloud-platform-terraform-eks-add-ons in cloud-platform-infrastructure
 6. Commit changes on a new branch and create a pull request
-7. Request review form someone on the team
+7. Request review from someone on the team
 8. Check the terraform plan in concourse and pause the following pipelines:
   * bootstrap
   * infrastructure-live
@@ -62,7 +62,7 @@ Create a thread in #cloud-platform notifying the team that upgrades are starting
   * Keep an eye on pods recycling `watch -n 1 "kubectl -n kube-system get pods"`
   * Keep an eye on events `watch -n 1 "kubectl -n kube-system get events"`
 13. Run the reporting pipeline on the infrastructure environment
-14. If everythin is green repeat steps 11-14 on each environment.
+14. If everything is green repeat steps 11-14 on each environment.
 
 ## Finish the upgrade
 
