@@ -511,7 +511,7 @@ Full detailed breakdown of events can be found in the [postmortem notes](https:/
   - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C57UPMZLY/p1642855796441900) for the incident.
 
 - **Resolution**:
-  - external-dns was trying to restore the DNS records, but it was receiving errors when writing, due to [missing annotations](external-dns.alpha.kubernetes.io/aws-weight) in an unrelated ingress. Manually adding the annotations restored the DNS.
+  - external-dns was trying to restore the DNS records, but it was receiving errors when writing, due to missing annotations (external-dns.alpha.kubernetes.io/aws-weight) in an unrelated ingress. Manually adding the annotations restored the DNS.
 
 - **Review actions**:
   - Create guidance about internal traffic and domain names, and advertise to users in slack [#3497](https://github.com/ministryofjustice/cloud-platform/issues/3497)
@@ -1137,8 +1137,8 @@ Datestamps: please use `YYYY-MM-DD HH:MM` (almost ISO 8601, but more readable), 
 
 - **Context**:
   -
-  - Timeline: [Timeline](url of google document) for the incident
-  - Slack thread: [Slack thread](url of primary incident thread) for the incident.
+  - Timeline: `[Timeline](url of google document)` for the incident
+  - Slack thread: `[Slack thread](url of primary incident thread)` for the incident.
 
 - **Resolution**:
   -
