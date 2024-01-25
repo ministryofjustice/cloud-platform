@@ -1,7 +1,7 @@
 ---
 title: Adding a route to connect to a TGW
 weight: 9000
-last_reviewed_on: 2023-10-24
+last_reviewed_on: 2024-01-25
 review_in: 6 months
 ---
 
@@ -64,11 +64,11 @@ To add live-2 VPC to Transit gateway, below steps needs to be done:
 ## Moving away from  Cloud Platform Transit Gateway account
 With the current setup, the PTTP TGW is shared with Cloud Platform account. Cloud Platform Transit Gateway account only holds the terraform state in s3 bucket for eu-west-2 region.
 
-- Create s3 bucket in CP account, move the state file from transit-gateway account and link the new s3 bucket in the repository
-- Move the code from [transit-gateway-cloud-platform folder] repo to [cloud-platform-infrastructure] or similar where CP can have manage with only CP account permissions
+- Create s3 bucket in CP account, move the state file from transit-gateway account and link the new s3 bucket in the repository - Done
+- Move the code from [transit-gateway-cloud-platform folder] repo to [cloud-platform-infrastructure] or similar where CP can have manage with only CP account permissions - DONE
 - Create a concourse pipeline to apply the transit-gateway code changes to CP account
 - Find a way to test the connection when a new route is added to any of the VPC
 
 [cloud-platform-infrastructure]: https://github.com/ministryofjustice/cloud-platform-infrastructure
 [github repository]: https://github.com/ministryofjustice/deployment-tgw
-[transit-gateway-cloud-platform folder]: https://github.com/ministryofjustice/transit-gateways/tree/master/terraform/cloud-platform
+[transit-gateway-cloud-platform folder]: https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/transit-gateway
