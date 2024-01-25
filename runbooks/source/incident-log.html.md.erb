@@ -42,12 +42,12 @@ weight: 45
   - 2023-09-20 10:00 Team updated the fix on manager and later on live cluster
   - 2023-09-20 12:30 Started draining the old node group
   - 2023-09-20 15:04 There was some increased pod state of “ContainerCreating”
-  - 2023-09-20 15:25 There was increased number of `"failed to assign an IP address to container" eni error`. Checked the CNI logs `Unable to get IP address from CIDR: no free IP available in the prefix` Understood that this might be because of IP Prefix starving and some are freed when draining old nodes. 
+  - 2023-09-20 15:25 There was increased number of `"failed to assign an IP address to container" eni error`. Checked the CNI logs `Unable to get IP address from CIDR: no free IP available in the prefix` Understood that this might be because of IP Prefix starving and some are freed when draining old nodes.
   - 2023-09-20 19:18 All nodes drained and No pods are in errored state. The initial issue of disk space issue is resolved
 
 - **Resolution**:
   - Team identified that the disk space was reduced from 100Gb to 20Gb as part of EKS Module version 18 change
-  - Identified the code changes to launch template and applied the fix 
+  - Identified the code changes to launch template and applied the fix
 
 - **Review actions**:
   - Update runbook to compare launch template changes during EKS module upgrade
@@ -90,13 +90,13 @@ weight: 45
 
 - **Resolution**:
   - Team identified that the latest version of fluent-bit has changes to the chunk drop strategy
-  - Implemented a fix to handle memory buffer overflow by writing to the file system and handling flush logs into smaller chunks 
+  - Implemented a fix to handle memory buffer overflow by writing to the file system and handling flush logs into smaller chunks
 
 - **Review actions**:
   - Push notifications from logging clusters to #lower-priority-alerts [#4704](https://github.com/ministryofjustice/cloud-platform/issues/4704)
-  - Add integration test to check that logs are being sent to the logging cluster 
+  - Add integration test to check that logs are being sent to the logging cluster
 
-### Incident on 2023-07-25 15:21 - Prometheus on live cluster DOWN 
+### Incident on 2023-07-25 15:21 - Prometheus on live cluster DOWN
 
 - **Key events**
   - First detected: 2023-07-25 14:05
@@ -114,7 +114,7 @@ weight: 45
 
 - **Context**:
   - 2023-07-25 14:05 - PagerDuty High Priority alert from Pingdom that Prometheus - live healthcheck is DOWN. Team acknowledged and checked the state of the Prometheus server. Prometheus errored for Rule evaluation and Exit code 137
-  - 2023-07-25 14:09: Prometheus pod is in terminating state 
+  - 2023-07-25 14:09: Prometheus pod is in terminating state
   - 2023-07-25 14:17: The node where prometheus is running went to Not Ready state
   - 2023-07-25 14:22: Drain the monitoring node which moved the prometheus to the another monitoring node
   - 2023-07-25 14:56: After moving to new node the prometheus restarted just after coming back and put the node to Node Ready State
@@ -123,10 +123,10 @@ weight: 45
   - 2023-07-25 15:21: Incident declared. https://mojdt.slack.com/archives/C514ETYJX/p1690294889724869
   - 2023-07-25 15:31: Changed the instance size to `r6i.4xlarge`
   - 2023-07-25 15:50: Still the Prometheus restarted after running. Team found the recent prometheus pod was terminated with OOMKilled. Increased the memory limits 100Gi
-  - 2023-07-25 16:18: Updated the prometheus container limits:CPU - 12 core and 110 Gi Memory to accommodate the resource need for prometheus 
+  - 2023-07-25 16:18: Updated the prometheus container limits:CPU - 12 core and 110 Gi Memory to accommodate the resource need for prometheus
   - 2023-07-25 16:18: Incident repaired
   - 2023-07-05 16:18: Incident resolved
-  
+
 - **Resolution**:
   - Due to increase number of namespaces and prometheus rules, the prometheus server needed more memory. The instance size was not enough to keep the prometheus running.
   - Updating the node type to double the cpu and memory and increasing the container resource limit of prometheus server resolved the issue
@@ -151,11 +151,11 @@ weight: 45
 - **Impact**: The service availability for CP applications may be degraded/at increased risk of failure.
 
 - **Context**:
-  - 2023-07-21 08:15 - User reported of seeing issues with new deployments (stuck with ContainerCreating) 
+  - 2023-07-21 08:15 - User reported of seeing issues with new deployments (stuck with ContainerCreating)
   - 2023-07-21 09:00 - Team started to put together the list of all effected namespaces
   - 2023-07-21 09:31 - Incident declared
   - 2023-07-21 09:45 - Team identified that the issue was affected 6 nodes and added new nodes and and began to cordon/drain affected nodes
-  - 2023-07-21 12:35 - Compared cni settings on a 1.23 test cluster with live and found a setting was different 
+  - 2023-07-21 12:35 - Compared cni settings on a 1.23 test cluster with live and found a setting was different
   - 2023-07-21 12:42 - Set the command to enable Prefix Delegation on the live cluster
   - 2023-07-21 12:42 - Incident repaired
   - 2023-07-21 12:42 - Incident resolved
@@ -172,7 +172,7 @@ weight: 45
 
 - **Mean Time to Resolve**: 0h 55m
 
-### Incident on 2023-06-06 11:00 - User services down 
+### Incident on 2023-06-06 11:00 - User services down
 
 - **Key events**
   - First detected: 2023-06-06 10:26
@@ -199,12 +199,12 @@ weight: 45
   - 2023-06-06 13:11 - Incident resolved
 
 - **Resolution**:
-  - When the node instance type is changed, the nodes are recycled all at a time. This caused the pods to be deleted all at once. 
-  - Raised a ticket with AWS asking the steps to update the node instance type without causing outage to the services. 
+  - When the node instance type is changed, the nodes are recycled all at a time. This caused the pods to be deleted all at once.
+  - Raised a ticket with AWS asking the steps to update the node instance type without causing outage to the services.
   - The instance type update is performed through terraform, hence the team will have to comeup with a plan and update runbook to perform these changes without downtime.
 
 - **Review actions**:
-  - Add a runbook for the steps to perform when changing the node instance type 
+  - Add a runbook for the steps to perform when changing the node instance type
 
 ## Q1 2023 (January-March)
 
@@ -231,17 +231,17 @@ weight: 45
 - **Context**:
   - 2023-02-02 10:14: [CPU-Critical alert](https://moj-digital-tools.pagerduty.com/incidents/Q01V8OZ44WU4EX?utm_campaign=channel&utm_source=slack)
   - 2023-02-02 10:21: Cloudp Platform Team supporting with CJS deployment and noticed that the CJS team increased the pod count and requested more resources causing the CPU critical alert.
-  - 2023-02-02 10:21 **Incident is declared**. 
+  - 2023-02-02 10:21 **Incident is declared**.
   - 2023-02-02 10:22 War room started.
-  - 2023-02-02 10:25 Cloud Platform noticed that the CJS team have 100 replicas for their deployment and many CJS pods started crash looping, this is due to the Descheduler service **RemoveDuplicates** strategy plugin making sure that there is only one pod associated with a ReplicaSet running on the same node. If there are more, those duplicate pods are evicted for better spreading of pods in a cluster. 
+  - 2023-02-02 10:25 Cloud Platform noticed that the CJS team have 100 replicas for their deployment and many CJS pods started crash looping, this is due to the Descheduler service **RemoveDuplicates** strategy plugin making sure that there is only one pod associated with a ReplicaSet running on the same node. If there are more, those duplicate pods are evicted for better spreading of pods in a cluster.
   - The live cluster has 60 nodes as desired capacity. As CJS have 100 ReplicaSet for their deployment, Descheduler started terminating the duplicate CJS pods scheduled on the same node. The restart of multiple CJS pods caused the CPU hike.
   - 2023-02-02 10:30 Cloud Platform team scaled down Descheduler to stop terminating CJS pods.
   - 2023-02-02 10:37 CJS Dash team planned to roll back a caching change they made around 10 am that appears to have generated the spike.
   - 2023-02-02 10:38 Decision made to Increase node count to 60 from 80, to support the CJS team with more pods and resources.
   - 2023-02-02 10:40 Autoscaling group bumped up to 80 - to resolve the CPU critical. Descheduler is scaled down to 0 to accommodate multiple pods on a node.
-  - 2023-02-02 10:44 Resolved status for CPU-Critical high-priority alert. 
+  - 2023-02-02 10:44 Resolved status for CPU-Critical high-priority alert.
   - 2023-02-02 11:30 Performance has steadied.
-  - 2023-02-02 11:36 **Incident is resolved**. 
+  - 2023-02-02 11:36 **Incident is resolved**.
 
 - **Resolution**:
   - Cloud-platform team scaling down Descheduler to let CJS team have 100 ReplicaSet in their deployment.
@@ -249,10 +249,9 @@ weight: 45
   - Cloud-Platform team increasing the desired node count to 80.
 
 - **Review actions**:
-  - Create an OPA policy to not allow deployment ReplicaSet greater than an agreed number by the cloud-platform team. 
+  - Create an OPA policy to not allow deployment ReplicaSet greater than an agreed number by the cloud-platform team.
   - Update the user guide to mention related to OPA policy.
   - Update the user guide to request teams to speak to the cloud-platform team before if teams are planning to apply deployments which need large resources like pod count, memory and CPU so the cloud-platform team is aware and provides the necessary support.
-
 
 ### Incident on 2023-01-11 14:22 - Cluster image pull failure due to DockerHub password rotation
 
@@ -291,13 +290,13 @@ With error:
 Check execution error: kuberhealthy/daemonset: error when waiting for pod to start: ErrImagePull
 ```
 
-  - 2023-01-11 14:53 dockerconfig node update requirement identified 
+  - 2023-01-11 14:53 dockerconfig node update requirement identified
   - 2023-01-11 14:54 user reports `ErrImagePull` when creating port-forward pods affecting at least two namespaces.
   - 2023-01-11 14:56 EKS cluster DockerHub password updated in `cloud-platform-infrastructure`
   - 2023-01-11 15:01 Concourse plan of password update reveals launch-template will be updated, suggesting node recycle.
-  - 2023-01-11 15:02 Decision made to update password in live-2 cluster to determine whether a node recycle will be required 
+  - 2023-01-11 15:02 Decision made to update password in live-2 cluster to determine whether a node recycle will be required
   - 2023-01-11 15:11 Comms distributed in #cloud-platform-update and #ask-cloud-platform.
-  - 2023-01-11 15:17 Incident is declared. 
+  - 2023-01-11 15:17 Incident is declared.
   - 2023-01-11 15:17 J Birchall assumes incident lead and scribe roles.
   - 2023-01-11 15:19 War room started
   - 2023-01-11 15:28 Confirmation that password update will force node recycles across live & manager clusters.
@@ -305,7 +304,7 @@ Check execution error: kuberhealthy/daemonset: error when waiting for pod to sta
   - 2023-01-11 15:40 DockerHub password changed back to previous value.
   - 2023-01-11 15:46 Check-in with reporting user that pod is now deploying - answer is yes.
   - 2023-01-11 15:50 Cluster image pulling observed to be working again.
-  - 2023-01-11 15:51 Incident is resolved 
+  - 2023-01-11 15:51 Incident is resolved
   - 2023-01-11 15:51 Noted that live-2 is now set with invalid dockerconfig; no impact on users.
   - 2023-01-11 16:50 comms distributed in #cloud-platform-update.
 
@@ -511,7 +510,7 @@ Full detailed breakdown of events can be found in the [postmortem notes](https:/
   - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C57UPMZLY/p1642855796441900) for the incident.
 
 - **Resolution**:
-  - external-dns was trying to restore the DNS records, but it was receiving errors when writing, due to [missing annotations](external-dns.alpha.kubernetes.io/aws-weight) in an unrelated ingress. Manually adding the annotations restored the DNS.
+  - external-dns was trying to restore the DNS records, but it was receiving errors when writing, due to missing annotations (external-dns.alpha.kubernetes.io/aws-weight) in an unrelated ingress. Manually adding the annotations restored the DNS.
 
 - **Review actions**:
   - Create guidance about internal traffic and domain names, and advertise to users in slack [#3497](https://github.com/ministryofjustice/cloud-platform/issues/3497)
@@ -978,7 +977,7 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
   - One of the engineers was creating a test EKS cluster and ran `terraform apply` on EKS components
   - Without fully aware of the current cluster context, the `terraform apply` for EKS test cluster components has been applied to the `live-1` kops cluster
   - This has changed the configuration of several resources in the `live-1` cluster
-  - Timeline : [https://docs.google.com/document/d/1VrABxeHLMOnoM4yYoCi9N4N4zRY1SK1hTjrZ9s05zuc/edit?usp=sharing](https://docs.google.com/document/d/1VrABxeHLMOnoM4yYoCi9N4N4zRY1SK1hTjrZ9s05zuc/edit?usp=sharing)
+  - Timeline: [https://docs.google.com/document/d/1VrABxeHLMOnoM4yYoCi9N4N4zRY1SK1hTjrZ9s05zuc/edit?usp=sharing](https://docs.google.com/document/d/1VrABxeHLMOnoM4yYoCi9N4N4zRY1SK1hTjrZ9s05zuc/edit?usp=sharing)
   - Slack thread: [https://mojdt.slack.com/archives/C514ETYJX/p1596621864015400](https://mojdt.slack.com/archives/C514ETYJX/p1596621864015400),
 
 - **Resolution**:
@@ -1009,9 +1008,9 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
 
 - **Context**:
   - After an upgrade of the Nginx Helm chart v1.24.0 to v1.35
-  - The current version of Nginx has deprecated support for TLS <1.3
-  - The issue was spotted on IE11 browsers.
-  - Timeline : [https://docs.google.com/document/d/1SCf1WT82IlBYWozWN_FXZqL5h0KUcul_QAkxE84YDw0/edit?usp=sharing](https://docs.google.com/document/d/1SCf1WT82IlBYWozWN_FXZqL5h0KUcul_QAkxE84YDw0/edit?usp=sharing)
+  - The current version of Nginx has deprecated support for TLS 1.3 and lower
+  - The issue was spotted on IE11 browsers
+  - Timeline: [https://docs.google.com/document/d/1SCf1WT82IlBYWozWN_FXZqL5h0KUcul_QAkxE84YDw0/edit?usp=sharing](https://docs.google.com/document/d/1SCf1WT82IlBYWozWN_FXZqL5h0KUcul_QAkxE84YDw0/edit?usp=sharing)
   - Slack thread: [https://mojdt.slack.com/archives/C57UPMZLY/p1586954463298700](https://mojdt.slack.com/archives/C57UPMZLY/p1586954463298700)
 
 - **Resolution**:
@@ -1072,7 +1071,7 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
   - There seemed to be an issue preventing requests to reach the prometheus pods.
   - Disk space and other resources, the usual suspects, were ruled out as the cause.
   - The domain name amd ingress were both valid.
-  - Slack thread: <https://mojdt.slack.com/archives/C514ETYJX/p1582035803248800>
+  - Slack thread: <https: mojdt.slack.com archives C514ETYJX p1582035803248800>
 
 - **Resolution**:
     We suspect an intermittent & external networking issue to be the cause of this outage.
@@ -1092,10 +1091,9 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
 
 - **Context**:
   - One of the engineers was deleting old clusters (he ran `terraform destroy`) and he wasn't fully aware in which _terraform workspace_ was working on. Using `terraform destroy`, EKS nodes/workers were deleted from the manager cluster.
-  - Slack thread: <https://mojdt.slack.com/archives/C514ETYJX/p1581508273080900>
+  - Slack thread: <https: mojdt.slack.com archives C514ETYJX p1581508273080900>
 
   - **Resolution**: Using terraform (`terraform apply -var-file vars/manager.tfvars` specifically) the cluster nodes where created and the infrastructure aligned? to the desired terraform state
-
 
 ## About this incident log
 
@@ -1137,8 +1135,8 @@ Datestamps: please use `YYYY-MM-DD HH:MM` (almost ISO 8601, but more readable), 
 
 - **Context**:
   -
-  - Timeline: [Timeline](url of google document) for the incident
-  - Slack thread: [Slack thread](url of primary incident thread) for the incident.
+  - Timeline: `[Timeline](url of google document)` for the incident
+  - Slack thread: `[Slack thread](url of primary incident thread)` for the incident.
 
 - **Resolution**:
   -
