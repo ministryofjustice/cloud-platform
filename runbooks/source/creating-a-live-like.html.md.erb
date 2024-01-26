@@ -47,8 +47,19 @@ See documentation for upgrading a [cluster](upgrade-eks-cluster.html).
 
 ## Monitoring the upgrade
 
-* Setup pingdom alerts for starter-pack helloworld app
-* @todo more
+* Setup pingdom alerts for starter-pack helloworld and multi-container app
+
+> When nodes recycle it's possible that the multi-container app will break giving false positives.
+
+* Useful command liners
+  * `watch -n 1 "kubectl get events"` - get all Kubernetes events
+  * `watch -n 1 "kubectl get pods -A | grep ContainerStatusUnknown"` - get all containers in "ContainerStatusUnknown" state
+  * `watch -n 1 "kubectl get pods -A | grep Error"` - get all containers in "Error" state
+  * `watch -n 1 "kubectl get nodes --sort-by=\".metadata.creationTimestamp\""` - get all nodes and sort by create timestamp
+
+* Useful third party tools
+  * [k9s](https://k9scli.io/)
+  * [Stern](https://github.com/stern/stern)
 
 ## Final Tests
 
