@@ -154,27 +154,3 @@ terraform init
 terraform workspace new <WorkspaceName>
 terraform apply
 ```
-
-## Creating a live like test cluster
-
-When testing clusteer upgrades, it is useful to test the procedure which is as close to the live cluster as possible. The following steps will update an existing test cluster
-to the configuration similar to the live cluster.
-
-**Pre-requisites:**
-
-- a test cluster created using the [cluster build pipeline] or manually
-- The environment variables and pre-requisites as described [above](#pre-requisites)
-
-**Steps:**
-
-- Update the node group desired count to same as live cluster (say 50) in the console. The terraform way of applying doesnt work for desired count
-- Set the node_groups_count to same as live cluster (say 64) and default_ng_min_count to 50 in [terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf]
-- Apply the terraform code changes to the test cluster
-- cd to [terraform/aws-accounts/cloud-platform-aws/vpc/eks/components] and enable ecr-exporter, cloudwatch_exporter, velero, overprovisioner and other components that are installed specific to live cluster
-- Apply the terraform code changes to the test cluster
-- Update the starter pack count to 40 and apply the terraform code changes to the test cluster
-- Setup pingdom alerts for starter-pack helloworld app
-
-[cluster build pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/create-cluster
-[terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf
-[terraform/aws-accounts/cloud-platform-aws/vpc/eks/components]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components
