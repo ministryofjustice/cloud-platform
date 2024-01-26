@@ -14,7 +14,7 @@ to the configuration similar to the live cluster.
 
 - a test cluster created using the [cluster build pipeline] or manually
 
-## Setting Cluster size to match Live
+## Setting cluster size to match Live
 
 1. Set the node group desired size to 48 (check the live cluster for up-to-date number) in the AWS console under Compute
 2. Set the node_groups_count to same as live cluster (64) and default_ng_min_count to 48 in [terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf]
