@@ -1,0 +1,77 @@
+---
+title: Creating a live-like Cluster
+weight: 350
+last_reviewed_on: 2024-01-26
+review_in: 6 months
+---
+
+# Creating a live-like cluster
+
+When testing cluster upgrades, it is useful to test the procedure which is as close to the live cluster as possible. The following steps will update an existing test cluster
+to the configuration similar to the live cluster.
+
+## Pre-requisites
+
+- a test cluster created using the [cluster build pipeline] or manually
+
+## Setting cluster size to match Live
+
+1. Set the node group desired size to 48 (check the live cluster for up-to-date number) in the AWS console under Compute
+2. Set the node_groups_count to same as live cluster (64) and default_ng_min_count to 48 in [terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf]
+3. Copy the node_size values from live to default, currently `["r6i.2xlarge", "r6i.xlarge", "r5.2xlarge"]`
+4. Copy the monitoring_node_size values from live to default, currently `["r6i.8xlarge", "r5a.2xlarge"]`
+5. Ensure that your Terraform workspace matches your cluster name
+6. Run `terraform plan` and confirm that your changes are correct
+7. Run `terraform apply` to apply the changes to your test cluster
+
+## Installing live components and test applications
+
+1. In [terraform/aws-accounts/cloud-platform-aws/vpc/eks/components] enable the following components:
+  * cluster_autoscaler
+  * large_nodegroup
+  * kibana_proxy
+  * ecr_exporter
+  * cloudwatch_exporter
+  * velero
+
+> To find components that are enabled in live but not in test you can search for `lookup(local.live_workspace, terraform.workspace, false)` in `components.tf`.
+
+2. Add the `starter_pack_count = 40` variable to the starter_pack module
+3. Run `terraform plan` and confirm that your changes are correct
+4. Run `terraform apply` to apply the changes to your test cluster
+5. You may need to run `plan` and `apply` again as the starter pack addons don't like to be installed all at once
+
+## Upgrading a live-like test cluster
+
+See documentation for upgrading a [cluster](upgrade-eks-cluster.html).
+
+## Monitoring the upgrade
+
+* Setup pingdom alerts for starter-pack helloworld and multi-container app
+
+> When nodes recycle it's possible that the multi-container app will break giving false positives.
+
+* Useful command liners
+  * `watch -n 1 "kubectl get events"` - get all Kubernetes events
+  * `watch -n 1 "kubectl get pods -A | grep ContainerStatusUnknown"` - get all containers in "ContainerStatusUnknown" state
+  * `watch -n 1 "kubectl get pods -A | grep Error"` - get all containers in "Error" state
+  * `watch -n 1 "kubectl get nodes --sort-by=\".metadata.creationTimestamp\""` - get all nodes and sort by create timestamp
+
+* Useful third party tools
+  * [k9s](https://k9scli.io/)
+  * [Stern](https://github.com/stern/stern)
+
+## Final Tests
+
+1. Run `make run-tests` from the root cloud-platform repository
+2. Update `cluster.tf` `cluster_version` to match version upgraded to
+3. Run `terraform plan` to ensure there are no unexpected changes
+
+## Tearing down
+
+1. Run the delete cluster pipeline
+2. Remove pingdom checks
+
+[cluster build pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/create-cluster
+[terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf
+[terraform/aws-accounts/cloud-platform-aws/vpc/eks/components]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components
