@@ -23,7 +23,7 @@ An important limitation: a TGW can only work with VPCs in the same region it is 
 
 The MoJ Transit Gateway infrastructure is managed here : [github repository]
 
-***Note:*** The terms `TGW-MoJ`, `pttp_tgw`, `MoJ Transit Gateway` are used interchangeably in this guide and in the code for legacy reasons, 
+***Note:*** The terms `TGW-MoJ`, `pttp_tgw`, `MoJ Transit Gateway` are used interchangeably in this guide and in the code for legacy reasons,
 but they are all referring to the same Transit Gateway.
 
 ## Transit Gateway
@@ -59,11 +59,10 @@ Note: Something similar need to be done on the 'other side', terraform or not.
 
 There is a task defined in the `infrastructure-vpc-live-1` [Concourse pipeline] that will apply the new route(s) when merged with the main branch.
 
-## Adding routes from live-2 VPC to MoJ Transit Gateway 
-The Transit Gateway attachment from live-2 VPC to MoJ Transit Gateway has been provisioned, but there is no code provisioned to add routes. 
+## Adding routes from live-2 VPC to MoJ Transit Gateway
+The Transit Gateway attachment from live-2 VPC to MoJ Transit Gateway has been provisioned, but there is no code provisioned to add routes.
 We decided not to add this for now as there are no requirements for any routing from live-2 VPC to the MoJ Transition Gateway. Also live-2 is planned for decommission.
 If there is a requirement for this, the [add-live-2-tgw-routes branch] shows the code that needs to be applied.
-
 
 ## Moving away from the *old* Cloud Platform Transit Gateway account
 `Cloud Platform Transit Gateway` AWS account and [transit-gateways repo] previosuly held the terraform state in s3 bucket and terrform code respectively. We have migrated this to the `Cloud-Platform` AWS account and [cloud-platform-infrastructure] repo now. The following tasks remain to completely decommision the old Cloud Platform Transit Gateway:
