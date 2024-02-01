@@ -7,6 +7,51 @@ weight: 45
 
 > Use the [mean-time-to-repair.rb] script to view performance metrics
 
+## Q4 2023 (October-December)
+
+- **Mean Time to Repair**: 35h 36m
+
+- **Mean Time to Resolve**: 35h 36m
+
+### Incident on 2023-11-01 10:41 - Prometheus restarted several times which resulted in missing metrics
+
+- **Key events**
+  - First detected: 2023-11-01 10:15
+  - Incident declared: 2023-11-01 10:41
+  - Repaired: 2023-11-03 14:38 
+  - Resolved 2023-11-03 14:38
+
+- **Time to repair**: 35h 36m
+
+- **Time to resolve**: 35h 36m
+
+- **Identified**: [PagerDuty High Priority alert from Pingdom that Prometheus - live healthcheck is DOWN](https://mojdt.slack.com/archives/C8PF51AT0/p1698833753414539)
+
+- **Impact**: Prometheus is not Available. The Cloud Platform lose the monitoring for a period of time.
+
+
+- **Context**:
+  - 2023-11-01 10:15: PagerDuty High Priority alert from Pingdom that Prometheus - live healthcheck is DOWN. Team acknowledged and checked the state of the Prometheus server.
+  - 2023-11-01 10:41: PagerDuty for Prometheus alerted 3rd time in a row in just few minutes interval. Incident declared 
+  - 2023-11-01 10:41: Prometheus pod has restarted and the prometheus container is starting
+  - 2023-11-01 10:41: Prometheus logs shows there are numerous Evaluation rule failed
+  - 2023-11-01 10:41: Events in monitoring namespace recorded Readiness Probe failed for Prometheus
+  - 2023-11-01 12:35: Team enabled debug log level for prometheus to understand the issue
+  - 2023-11-03 16:01: After investigating the logs, team found that one possible root cause might be the readiness Probe failure prior to the restart of prometheus. Hence team increased the readiness probe timeout
+  - 2023-11-03 16:01: Incident repaired and resolved.
+
+- **Resolution**:
+  - Team identified that the readiness probe was failing and the prometheus was restarted. 
+  - Increased the readiness probe timeout from 3 to 6 seconds to avoid the restart of prometheus
+
+- **Review actions**:
+  - Team discussed about having closer inspection and try to identify these kind of failures earlier
+  - Investigate if the ingestion of data to the database too big or long
+  - Is executing some queries make prometheus work harder and stop responding to the readiness probe
+  - Any other services which is probing prometheus that triggers the restart
+  - Is taking regular velero backups distrub the ebs read/write and cause the restart
+
+
 ## Q3 2023 (July-September)
 
 - **Mean Time to Repair**: 10h 55m
