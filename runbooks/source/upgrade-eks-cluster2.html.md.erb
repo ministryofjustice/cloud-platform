@@ -19,7 +19,6 @@ The EKS version and addons are currently independent of the version of the terra
 Therefore, it will not always require an upgrade of the terraform-aws-eks module and/or the addons whenever there is an upgrade of the EKS version.
 Please check the changelogs for the terraform-aws-eks module, the EKS version and the addons when planning an upgrade.
 
-
 ## Pre-requisites
 
 Before you begin, there are a few pre-requisites:
@@ -64,7 +63,7 @@ Pause the following pipelines:
 * infrastructure-live-2
 * infrastructure-manager
 
-Update `cluster.tf` in `cloud-platform-infrastructure` with the version of Kubernetes you are upgrading to. 
+Update `cluster.tf` in `cloud-platform-infrastructure` with the version of Kubernetes you are upgrading to.
 
 Run a `tf plan` against the cluster your upgrading to check to see if everything is expected, the only changes should be to resources relating to the the version upgrade.
 
