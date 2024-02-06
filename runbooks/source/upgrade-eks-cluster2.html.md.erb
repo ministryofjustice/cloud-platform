@@ -88,7 +88,7 @@ This will cause the node to stall the update and the nodes will **not** continue
 
 To rectify this, run the script mentioned in [Recycle-all-nodes Gotchas](/recycle-all-nodes.html#gotchas) section.
 
-Dashboards??? @TODO
+[This](https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/discover#/?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-15d,to:now))&_a=(columns:!(_source),filters:!(),index:'1f29f240-00eb-11ec-8a38-954e9fb3b0ba',interval:auto,query:(language:kuery,query:'%22failed%20to%20assign%20an%20IP%20address%20to%20container%22'),sort:!())) kibana dashboard is used to monitor the IP assignment for pods when they are rescheduled. If there is a spike in errors then the could be a starvation of IP address while scheduling pods.
 
 ### Starting the upgrade
 
