@@ -94,6 +94,10 @@ Dashboards??? @TODO
 
 As with preparing for the upgrade communication is really important, keep the thread in `#cloud-platform` up to date as much as possible.
 
+#### Increasing coredns pods
+
+To ensure that coredns stays up and running during the cluster upgrade replications should be scaled up to 10.
+
 #### Upgrading the control pane
 
 Log in to the AWS console and select the EKS cluster we're going to upgrade.
@@ -137,6 +141,8 @@ Unpause the following pipelines in this order and check to make sure no changes 
 If there are no changes for terraform shown in each pipeline then the PR can be merged in.
 
 Unpause the bootstrap pipeline.
+
+Scale down the coredns pods.
 
 ### Finishing touches
 
