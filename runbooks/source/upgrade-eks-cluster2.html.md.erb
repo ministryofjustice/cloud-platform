@@ -41,16 +41,16 @@ Before you begin, there are a few pre-requisites:
 
 The following areas need to be looked into to determine if there's any additional preparation work to do:
 
-* Kubernetes API Deprecations
+* Kubernetes API Deprecations/Removals
 * EKS module
 * EKS addons
 * Components
 
 Tools:
 
-For Kubernetes API deprecations you can use [kubent](https://github.com/doitintl/kube-no-trouble) and [pluto](https://github.com/FairwindsOps/pluto) to scan the cluster and find if there are any resources that will deprecated in upcoming releases.
+For Kubernetes API deprecations or removals you can use [kubent](https://github.com/doitintl/kube-no-trouble) and [pluto](https://github.com/FairwindsOps/pluto) to scan the cluster and find if there are any resources impacted in upcoming releases.
 
-Users will need to be notified if their resources are affected by deprecations.
+Users will need to be notified if their resources are affected by API deprecations or removals.
 
 ### Preparing for upgrade
 
@@ -67,7 +67,7 @@ Update `cluster.tf` in `cloud-platform-infrastructure` with the version of Kuber
 
 Run a `tf plan` against the cluster your upgrading to check to see if everything is expected, the only changes should be to resources relating to the the version upgrade.
 
-> Do not run `tf apply` this will most likely time out and fail.
+> **IMPORTANT:** Do not run `tf apply` this will most likely time out and fail.
 
 ### Monitoring the upgrade
 
@@ -88,7 +88,7 @@ Dashboards??? @TODO
 
 ### Starting the upgrade
 
-As with preparing for the upgrade communication is really important, keep the thread in #cloud-platform up to date as much as possible.
+As with preparing for the upgrade communication is really important, keep the thread in `#cloud-platform` up to date as much as possible.
 
 #### Upgrading the control pane
 
