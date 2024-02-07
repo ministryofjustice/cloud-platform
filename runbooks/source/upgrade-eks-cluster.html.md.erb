@@ -51,7 +51,7 @@ Tools:
 For Kubernetes API deprecations or removals you can use [kubent](https://github.com/doitintl/kube-no-trouble) and [pluto](https://github.com/FairwindsOps/pluto) to scan the cluster and find if there are any resources impacted in upcoming releases.
 
 From the AWS console you can also see "Upgrade Insights" which has a break down of API deprecations and removals. You can drill down into specific versions and see the resources effected. In particular, the User Agent
-field here can be useful for tracking down API calling services. 
+field here can be useful for tracking down API calling services.
 
 > Sometimes the User Agent ID isn't clear enough to immediately identify where the resource is effected, if this is the case it's worth cross checking components or helm chart versions. Additionally, you can head
 over to CloudWatch > Log groups > /aws/eks/[cluster-name] and view the `kube-apiserver-audit` logs, and filter by the `userAgent` field, which can help determine the source of the API calls.
