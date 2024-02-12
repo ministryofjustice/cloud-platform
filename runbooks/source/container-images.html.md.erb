@@ -1,0 +1,159 @@
+---
+title: Container Images used by Cluster Components
+weight: 55
+last_reviewed_on: 2024-02-08
+review_in: 3 months
+---
+
+# Container Images used by Cluster Components
+
+Ths runbook contains the list of container images used by the Cloud Platform components.
+
+## How to update this runbook
+
+### Latest version for k8s 1.26
+
+The latest versions of some of the components might not be compatible with k8s 1.26. For this, click the link to check the Compatibility Matrix
+
+### Latest version available
+Thats the latest version available in the public repository. Update the version when there is a new release. You can find the latest version by clicking on the link or by checking the
+[reports](https://reports.cloud-platform.service.justice.gov.uk/helm_whatup) page
+
+### Urgency
+
+This depends on several factors, some of them are:
+- the kubernetes version has been updated and the version currently used or no longer supported
+- the component is not working as expected and the latest version might fix the issue
+- the component is 1 major version behind and more than 3 minor versions behind
+
+🟢 - low, OK to leave for now
+
+🟠 - medium, within the next 2 sprints/4 weeks
+
+🔴 - urgent, within this sprint
+
+## calico-apiserver
+| container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
+|-|-|-|-|-|
+| docker.io/calico/apiserver:v3.25.0 | 🟢 | [v3.27.0](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#kubernetes-requirements) |[v3.27.0](https://github.com/projectcalico/calico/releases/tag/v3.27.0) | [v1.33.0](https://github.com/tigera/operator/releases/tag/v1.33.0) |
+
+## calico-system
+| container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
+|-|-|-|-|-|
+| docker.io/calico/csi:v3.25.0 | 🟢 | [v3.27.0](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#kubernetes-requirements) | [v3.27.0](https://github.com/projectcalico/calico/releases/tag/v3.27.0) | [v1.33.0](https://github.com/tigera/operator/releases/tag/v1.33.0) |
+| docker.io/calico/kube-controllers:v3.25.0 | 🟢 | v3.27.0 | [v3.27.0](https://github.com/projectcalico/calico/releases/tag/v3.27.0) | [v1.33.0](https://github.com/tigera/operator/releases/tag/v1.33.0) |
+| docker.io/calico/node-driver-registrar:v3.25.0 | 🟢 | v3.27.0 | [v3.27.0](https://github.com/projectcalico/calico/releases/tag/v3.27.0) | [v1.33.0](https://github.com/tigera/operator/releases/tag/v1.33.0) |
+| docker.io/calico/node:v3.25.0 | 🟢 | v3.27.0 | [v3.27.0](https://github.com/projectcalico/calico/releases/tag/v3.27.0) | [v1.33.0](https://github.com/tigera/operator/releases/tag/v1.33.0) |
+| docker.io/calico/typha:v3.25.0 | 🟢 | v3.27.0 | [v3.27.0](https://github.com/projectcalico/calico/releases/tag/v3.27.0) | [v1.33.0](https://github.com/tigera/operator/releases/tag/v1.33.0) |
+
+## cert-manager
+| container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
+|-|-|-|-|-|
+| quay.io/jetstack/cert-manager-cainjector:v1.13.1 | 🟢 | [v1.14.2](https://cert-manager.io/docs/releases/#currently-supported-releases) | [v1.14.2](https://github.com/cert-manager/cert-manager/releases/tag/v1.14.2) | [v1.14.2](https://github.com/cert-manager/cert-manager/releases/tag/v1.14.2) |
+| quay.io/jetstack/cert-manager-controller:v1.13.1 | 🟢 | [v1.14.2](https://cert-manager.io/docs/releases/#currently-supported-releases) | [v1.14.2](https://github.com/cert-manager/cert-manager/releases/tag/v1.14.2) | [v1.14.2](https://github.com/cert-manager/cert-manager/releases/tag/v1.14.2) |
+| quay.io/jetstack/cert-manager-webhook:v1.13.1 | 🟢 | [v1.14.2](https://cert-manager.io/docs/releases/#currently-supported-releases) | [v1.14.2](https://github.com/cert-manager/cert-manager/releases/tag/v1.14.2) | [v1.14.2](https://github.com/cert-manager/cert-manager/releases/tag/v1.14.2) |
+
+## concourse
+| container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
+|-|-|-|-|-|
+| concourse/concourse:7.7.0 | 🟠 | [v7.11.0](https://github.com/concourse/concourse/releases) | [v7.11.0](https://github.com/concourse/concourse/releases) | [v17.3.1](https://github.com/concourse/concourse-chart/releases/tag/v17.3.1)
+
+## external-secrets-operator
+| container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
+|-|-|-|-|-|
+| ghcr.io/external-secrets/external-secrets:v0.8.1 | 🟢 | [v0.9.12](https://external-secrets.io/latest/introduction/stability-support/#supported-versions) | [v0.9.12](https://github.com/external-secrets/external-secrets/releases/tag/v0.9.12)  | [v0.9.12](https://github.com/external-secrets/external-secrets/releases/tag/helm-chart-0.9.12)
+
+## gatekeeper-system
+| container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
+|-|-|-|-|-|
+| openpolicyagent/gatekeeper:v3.13.0: | 🟢 | v3.15.0 | [v3.15.0](https://github.com/open-policy-agent/gatekeeper/releases/tag/v3.15.0) | [v3.15.0](https://github.com/open-policy-agent/gatekeeper/releases/tag/v3.15.0) |
+
+## ingress-controllers
+| container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
+|-|-|-|-|-|
+| debian:bookworm-slim | 🟢 | latest | n/a |
+| fluent/fluent-bit:2.1.8-amd64 | 🟢 | v2.2.2 | [v2.2.2](https://github.com/fluent/fluent-bit/releases/tag/v2.2.2) | n/a |
+| ministryofjustice/cloud-platform-custom-error-pages:0.6 | 🟠 | [managed by us](https://github.com/ministryofjustice/cloud-platform-custom-error-pages) | [managed by us](https://github.com/ministryofjustice/cloud-platform-custom-error-pages) | n/a |
+| registry.k8s.io/ingress-nginx/controller:v1.8.4| 🟢 | [v1.9.6](https://github.com/kubernetes/ingress-nginx?tab=readme-ov-file#supported-versions-table) | [v1.9.6](https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.9.6) | [v4.9.1](https://github.com/kubernetes/ingress-nginx/tree/main/charts/ingress-nginx)
+
+## kube-system
+| container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
+|-|-|-|-|-|
+| 602401143452.dkr.ecr.eu-west-2.amazonaws.com/amazon-k8s-cni:v1.15.3-eksbuild.1 | 🟢 | [v1.16.2-eksbuild.1](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html) | [v1.16.2-eksbuild.1](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html) | n/a |
+| 602401143452.dkr.ecr.eu-west-2.amazonaws.com/amazon/aws-network-policy-agent:v1.0.7-eksbuild.1 | 🟢 | [v1.0.7-eksbuild.1](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html) | [v1.0.7-eksbuild.1](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html) | n/a
+| 602401143452.dkr.ecr.eu-west-2.amazonaws.com/eks/coredns:v1.9.3-eksbuild.11 | 🟢 | [v1.9.3-eksbuild.11](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html) | [v1.11.1-eksbuild.6](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html) | n/a |
+| 602401143452.dkr.ecr.eu-west-2.amazonaws.com/eks/kube-proxy:v1.25.15-minimal-eksbuild.2 | 🟠 | [v1.26.12-eksbuild.2](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html) | [v1.29.0-eksbuild.3](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html) | n/a
+| amazon/aws-efs-csi-driver:v1.4.0 | 🟠 | [????](https://github.com/ministryofjustice/cloud-platform/issues/4877#issuecomment-1779717151) |  [v1.7.5](https://github.com/kubernetes-sigs/aws-efs-csi-driver/releases/tag/v1.7.5) | n/a |
+| docker.io/bitnami/external-dns:0.12.2-debian-11-r22 | 🟠 | v0.14.x | [v0.14.x](https://github.com/kubernetes-sigs/external-dns/releases/tag/v0.14.0) | [v0.14.x](https://github.com/bitnami/charts/blob/main/bitnami/external-dns/Chart.yaml#L11) |
+| public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver:v1.24.0 | 🟠 | [v1.27.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver?tab=readme-ov-file#compatibility) | [v1.27.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.27.0) | [2.27.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.27.0) |
+| public.ecr.aws/eks-distro/kubernetes-csi/external-attacher:v4.4.0-eks-1-28-6 | 🟢 | [v4.5.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [v1.27.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.27.0) | [2.27.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.27.0) |
+| public.ecr.aws/eks-distro/kubernetes-csi/external-provisioner:v2.1.1-eks-1-18-13 | 🟠 | [v4.0.0](https://github.com/kubernetes-sigs/aws-efs-csi-driver/releases/tag/v1.7.3) | [#4877](https://github.com/ministryofjustice/cloud-platform/issues/4877#issuecomment-1779717151) | [v4.0.0](https://github.com/kubernetes-sigs/aws-efs-csi-driver/releases/tag/v1.7.3) |
+| public.ecr.aws/eks-distro/kubernetes-csi/external-provisioner:v3.5.0-eks-1-28-6 | 🟢 | [v4.0.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [v1.27.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.27.0) | [2.27.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.27.0) |
+| public.ecr.aws/eks-distro/kubernetes-csi/external-resizer:v1.9.0-eks-1-28-6 | 🟢 | [v1.10.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [v1.27.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.27.0) | [2.27.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.27.0) |
+| public.ecr.aws/eks-distro/kubernetes-csi/livenessprobe:v2.10.0-eks-1-28-6 | 🟢 | [v2.12.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [v1.27.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.27.0) | [2.27.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.27.0) |
+| public.ecr.aws/eks-distro/kubernetes-csi/livenessprobe:v2.2.0-eks-1-18-13 | 🟠 | [v2.12.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [#4877](https://github.com/ministryofjustice/cloud-platform/issues/4877#issuecomment-1779717151) | [v4.0.0](https://github.com/kubernetes-sigs/aws-efs-csi-driver/releases/tag/v1.7.3) |
+| public.ecr.aws/eks-distro/kubernetes-csi/node-driver-registrar:v2.1.0-eks-1-18-13 | 🟠 | [v2.10.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [#4877](https://github.com/ministryofjustice/cloud-platform/issues/4877#issuecomment-1779717151) | [v4.0.0](https://github.com/kubernetes-sigs/aws-efs-csi-driver/releases/tag/v1.7.3) |
+| public.ecr.aws/eks-distro/kubernetes-csi/node-driver-registrar:v2.9.0-eks-1-28-6 | 🟢 | [v2.10.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [v1.27.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.27.0)  | [2.27.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.27.0) |
+| registry.k8s.io/autoscaling/cluster-autoscaler:v1.25.3 | 🔴 | [v1.26.6](https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler#releases) | [v1.29.0](https://github.com/kubernetes/autoscaler/releases/tag/cluster-autoscaler-1.29.0) | [9.35.0](https://github.com/kubernetes/autoscaler/releases/tag/cluster-autoscaler-chart-9.35.0) |
+| registry.k8s.io/descheduler/descheduler:v0.26.1 | 🟢 | [v0.26.1](https://github.com/kubernetes-sigs/descheduler?tab=readme-ov-file#%EF%B8%8F--documentation-versions-by-release) | [v0.29.0](https://github.com/kubernetes-sigs/descheduler/releases/tag/v0.29.0) | [0.29.0](https://github.com/kubernetes-sigs/descheduler/releases/tag/descheduler-helm-chart-0.29.0) |
+| registry.k8s.io/metrics-server/metrics-server:v0.6.2 | 🟠 | [v0.7.0](https://github.com/kubernetes-sigs/metrics-server?tab=readme-ov-file#compatibility-matrix) | [v0.7.0](https://github.com/kubernetes-sigs/metrics-server/releases/tag/v0.7.0) | [3.12.0](https://github.com/kubernetes-sigs/metrics-server/tree/master/charts/metrics-server) |
+
+## kuberhealthy
+| container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
+|-|-|-|-|-|
+| 754256621582.dkr.ecr.eu-west-2.amazonaws.com/webops/cloud-platform-kuberhealthy-checks:1.4 | 🟢 | managed by us | [1.4](https://github.com/ministryofjustice/cloud-platform-kuberhealthy-checks/releases/tag/1.4) | n/a |
+| docker.io/kuberhealthy/daemonset-check:v3.3.0 | 🟢 | v3.3.0 | [v3.3.0](https://github.com/kuberhealthy/kuberhealthy/releases/tag/v2.7.1) | [104](https://github.com/kuberhealthy/kuberhealthy/tree/master/deploy/helm/kuberhealthy) |
+| docker.io/kuberhealthy/deployment-check:v1.9.0 | 🟢 | v1.9.0 | [v3.3.0](https://github.com/kuberhealthy/kuberhealthy/releases/tag/v2.7.1) | [104](https://github.com/kuberhealthy/kuberhealthy/tree/master/deploy/helm/kuberhealthy) |
+| docker.io/kuberhealthy/dns-resolution-check:v1.5.0 | 🟢 | v1.5.0 | [v3.3.0](https://github.com/kuberhealthy/kuberhealthy/releases/tag/v2.7.1) | [104](https://github.com/kuberhealthy/kuberhealthy/tree/master/deploy/helm/kuberhealthy) |
+| docker.io/kuberhealthy/kuberhealthy:v2.7.1 | 🟢 | v2.7.1 | [v3.3.0](https://github.com/kuberhealthy/kuberhealthy/releases/tag/v2.7.1) | [104](https://github.com/kuberhealthy/kuberhealthy/tree/master/deploy/helm/kuberhealthy) |
+
+## kuberos
+| container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
+|-|-|-|-|-|
+| docker.io/ministryofjustice/cloud-platform-kuberos:2.6.0 | 🟢 | managed by us | [0.4.0](https://github.com/ministryofjustice/cloud-platform-helm-charts/tree/main/kuberos) | [0.4.0](https://github.com/ministryofjustice/cloud-platform-helm-charts/tree/main/kuberos)
+
+## logging
+| container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
+|-|-|-|-|-|
+| docker.io/fluent/fluent-bit:2.2.1 | 🟢 | v2.2.1 | [v2.2.1](https://github.com/fluent/fluent-bit/releases/tag/v2.2.1) | [0.43.0](https://github.com/fluent/helm-charts) |
+| gcr.io/heptio-images/eventrouter:v0.3 | 🟠 | deprecated | deprecated | deprecated |
+
+## monitoring
+| container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
+|-|-|-|-|-|
+| docker.io/bitnami/redis:6.2.6-debian-10-r120 | 🟠 | v7.2.4-debian-11-r5 | [7.2.4-debian-11-r5](https://hub.docker.com/layers/bitnami/redis/7.2.4-debian-11-r5/images/sha256-a29afa0e88dcfbd941a4576b723286d02653144eb2c27d0e92482404e691e0cd?context=explore) | n/a |
+| docker.io/bitnami/thanos:0.28.1-scratch-r0 | 🟠 | v0.34.0 | [v0.34.0](https://github.com/thanos-io/thanos/releases)  | [v0.34.0](https://github.com/bitnami/charts/blob/main/bitnami/thanos/Chart.yaml#L13) |
+| grafana/grafana:9.2.4 | 🟠 | v10.3.1| [v10.3.1](https://github.com/grafana/grafana/releases/tag/v10.3.1) | [56.6.2](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
+| ministryofjustice/prometheus-ecr-exporter:0.2.0 | 🟢 | managed by us | n/a | [0.4.0](https://github.com/ministryofjustice/cloud-platform-helm-charts/tree/main/prometheus-ecr-exporter) |
+| prom/cloudwatch-exporter:v0.15.0 | 🟢 | v0.15.5 | [v0.15.5](https://github.com/prometheus/cloudwatch_exporter/releases/tag/v0.15.5) | [0.25.3](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-cloudwatch-exporter)
+| quay.io/kiwigrid/k8s-sidecar:1.19.2 | 🟠 | v1.25.3 |  [v1.25.3](https://github.com/kiwigrid/k8s-sidecar/releases/tag/1.25.3) | [56.6.2](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
+| quay.io/oauth2-proxy/oauth2-proxy:v7.2.1 | 🟠 | v7.5.1 | [v7.5.1](https://github.com/oauth2-proxy/oauth2-proxy/releases/tag/v7.5.1) | [6.23.1](https://oauth2-proxy.github.io/manifests/) |
+| quay.io/prometheus-operator/prometheus-config-reloader:v0.60.1 | 🟠 | v0.70.0 | [v0.70.0](https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.70.0) | [56.6.2](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
+| quay.io/prometheus-operator/prometheus-operator:v0.60.1 | 🟠 | v0.70.0 | [v0.70.0](https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.70.0) | [56.6.2](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
+| quay.io/prometheus/alertmanager:v0.24.0 | 🟠 | v0.26.0 |  [v0.26.0](https://github.com/prometheus/alertmanager/releases/tag/v0.26.0) | [56.6.2](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
+| quay.io/prometheus/node-exporter:v1.3.1 | 🟠 | v1.7.0 |  [v1.7.0](https://github.com/prometheus/node_exporter/releases/tag/v1.7.0) | [56.6.2](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
+| quay.io/prometheus/prometheus:v2.39.1 | 🟠 | v2.48.1 |  [v2.48.1](https://github.com/prometheus/prometheus/releases/tag/v2.48.1)  | [56.6.2](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
+| quay.io/thanos/thanos:v0.28.0 | 🟠 | v0.33.0 | [v0.33.0](https://github.com/thanos-io/thanos/releases/tag/v0.33.0) | [56.6.2](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
+| registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.7.0 |  🔴 | [v2.9.2](https://github.com/kubernetes/kube-state-metrics?tab=readme-ov-file#compatibility-matrix)   | [2.10.1](https://github.com/kubernetes/kube-state-metrics/releases) |  [56.6.2](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
+
+## overprovision
+| container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
+|-|-|-|-|-|
+| registry.k8s.io/cpa/cluster-proportional-autoscaler:1.8.6 | 🟢 | v1.8.9 | [v1.8.9](https://github.com/kubernetes-sigs/cluster-proportional-autoscaler/releases/tag/v1.8.9) | [1.1.0](https://github.com/kubernetes-sigs/cluster-proportional-autoscaler/tree/master/charts/cluster-proportional-autoscaler)
+| registry.k8s.io/pause:3.9 | 🟢 | v3.9 | [v3.9](https://github.com/kubernetes/kubernetes/tree/master/build/pause) | [registry](https://github.com/kubernetes/registry.k8s.io/blob/main/docs/debugging.md#verify-image-repositories-and-tags) |
+
+## tigera-operator
+| container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
+|-|-|-|-|-|
+| quay.io/tigera/operator:v1.29.1 | 🟢 | v1.33.0 | [v1.33.0](https://github.com/tigera/operator/releases/tag/v1.33.0) | [3.27.0](https://github.com/projectcalico/calico/tree/master/charts/tigera-operator)
+
+## trivy-operator
+| container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
+|-|-|-|-|-|
+| ghcr.io/aquasecurity/trivy-operator:0.16.4 | 🟢 | v0.18.5 | [v0.18.5](https://github.com/aquasecurity/trivy-operator/releases/tag/v0.18.5) | [0.20.6](https://github.com/aquasecurity/trivy-operator/blob/main/deploy/helm/Chart.yaml)
+| ghcr.io/aquasecurity/trivy:0.47.0 | 🟢 | v0.49.1 | [v0.49.1](https://github.com/aquasecurity/trivy/releases) | [0.20.6](https://github.com/aquasecurity/trivy-operator/blob/main/deploy/helm/Chart.yaml)
+
+## velero
+| container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
+|-|-|-|-|-|
+| velero/velero:v1.11.1 | 🔴 | [v1.13.0](https://github.com/vmware-tanzu/velero?tab=readme-ov-file#velero-compatibility-matrix) | [v1.13.0](https://github.com/vmware-tanzu/velero/releases) | [v1.13.0](https://github.com/vmware-tanzu/velero/releases/tag/v1.13.0) | [ 5.3.0](https://github.com/vmware-tanzu/helm-charts/tree/main/charts/velero) |
