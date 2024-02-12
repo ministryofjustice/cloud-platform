@@ -7,7 +7,7 @@ review_in: 3 months
 
 # Container Images used by Cluster Components
 
-Ths runnbook contains the list of container images used by the Cloud Platform components. 
+Ths runnbook contains the list of container images used by the Cloud Platform components.
 
 ## How to update this runbook
 
@@ -16,7 +16,7 @@ Ths runnbook contains the list of container images used by the Cloud Platform co
 The latest versions of some of the components might not be compatible with k8s 1.26. For this, click the link to check the Compatibility Matrix
 
 ### Latest version available
-Thats the latest version available in the public repository. Update the version when there is a new release. You can find the latest version by clicking on the link or by checking the 
+Thats the latest version available in the public repository. Update the version when there is a new release. You can find the latest version by clicking on the link or by checking the
 [reports](https://reports.cloud-platform.service.justice.gov.uk/helm_whatup) page
 
 ### Urgency
@@ -32,12 +32,11 @@ This depends on several factors, some of them are:
 
 🔴 - urgent, within this sprint
 
-
 ## calico-apiserver
 | container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
 |-|-|-|-|-|
 | docker.io/calico/apiserver:v3.25.0 | 🟢 | [v3.27.0](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#kubernetes-requirements) |[v3.27.0](https://github.com/projectcalico/calico/releases/tag/v3.27.0) | [v1.33.0](https://github.com/tigera/operator/releases/tag/v1.33.0) |
- 
+
 ## calico-system
 | container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
 |-|-|-|-|-|
@@ -46,7 +45,7 @@ This depends on several factors, some of them are:
 | docker.io/calico/node-driver-registrar:v3.25.0 | 🟢 | v3.27.0 | [v3.27.0](https://github.com/projectcalico/calico/releases/tag/v3.27.0) | [v1.33.0](https://github.com/tigera/operator/releases/tag/v1.33.0) |
 | docker.io/calico/node:v3.25.0 | 🟢 | v3.27.0 | [v3.27.0](https://github.com/projectcalico/calico/releases/tag/v3.27.0) | [v1.33.0](https://github.com/tigera/operator/releases/tag/v1.33.0) |
 | docker.io/calico/typha:v3.25.0 | 🟢 | v3.27.0 | [v3.27.0](https://github.com/projectcalico/calico/releases/tag/v3.27.0) | [v1.33.0](https://github.com/tigera/operator/releases/tag/v1.33.0) |
- 
+
 ## cert-manager
 | container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
 |-|-|-|-|-|
@@ -63,12 +62,12 @@ This depends on several factors, some of them are:
 | container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
 |-|-|-|-|-|
 | ghcr.io/external-secrets/external-secrets:v0.8.1 | 🟢 | [v0.9.12](https://external-secrets.io/latest/introduction/stability-support/#supported-versions) | [v0.9.12](https://github.com/external-secrets/external-secrets/releases/tag/v0.9.12)  | [v0.9.12](https://github.com/external-secrets/external-secrets/releases/tag/helm-chart-0.9.12)
- 
+
 ## gatekeeper-system
 | container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
 |-|-|-|-|-|
 | openpolicyagent/gatekeeper:v3.13.0: | 🟢 | v3.15.0 | [v3.15.0](https://github.com/open-policy-agent/gatekeeper/releases/tag/v3.15.0) | [v3.15.0](https://github.com/open-policy-agent/gatekeeper/releases/tag/v3.15.0) |
- 
+
 ## ingress-controllers
 | container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
 |-|-|-|-|-|
@@ -76,7 +75,7 @@ This depends on several factors, some of them are:
 | fluent/fluent-bit:2.1.8-amd64 | 🟢 | v2.2.2 | [v2.2.2](https://github.com/fluent/fluent-bit/releases/tag/v2.2.2) | n/a |
 | ministryofjustice/cloud-platform-custom-error-pages:0.6 | 🟠 | [managed by us](https://github.com/ministryofjustice/cloud-platform-custom-error-pages) | [managed by us](https://github.com/ministryofjustice/cloud-platform-custom-error-pages) | n/a |
 | registry.k8s.io/ingress-nginx/controller:v1.8.4| 🟢 | [v1.9.6](https://github.com/kubernetes/ingress-nginx?tab=readme-ov-file#supported-versions-table) | [v1.9.6](https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.9.6) | [v4.9.1](https://github.com/kubernetes/ingress-nginx/tree/main/charts/ingress-nginx)
- 
+
 ## kube-system
 | container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
 |-|-|-|-|-|
@@ -107,12 +106,12 @@ This depends on several factors, some of them are:
 | docker.io/kuberhealthy/deployment-check:v1.9.0 | 🟢 | v1.9.0 | [v3.3.0](https://github.com/kuberhealthy/kuberhealthy/releases/tag/v2.7.1) | [104](https://github.com/kuberhealthy/kuberhealthy/tree/master/deploy/helm/kuberhealthy) |
 | docker.io/kuberhealthy/dns-resolution-check:v1.5.0 | 🟢 | v1.5.0 | [v3.3.0](https://github.com/kuberhealthy/kuberhealthy/releases/tag/v2.7.1) | [104](https://github.com/kuberhealthy/kuberhealthy/tree/master/deploy/helm/kuberhealthy) |
 | docker.io/kuberhealthy/kuberhealthy:v2.7.1 | 🟢 | v2.7.1 | [v3.3.0](https://github.com/kuberhealthy/kuberhealthy/releases/tag/v2.7.1) | [104](https://github.com/kuberhealthy/kuberhealthy/tree/master/deploy/helm/kuberhealthy) |
- 
+
 ## kuberos
 | container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
 |-|-|-|-|-|
 | docker.io/ministryofjustice/cloud-platform-kuberos:2.6.0 | 🟢 | managed by us | [0.4.0](https://github.com/ministryofjustice/cloud-platform-helm-charts/tree/main/kuberos) | [0.4.0](https://github.com/ministryofjustice/cloud-platform-helm-charts/tree/main/kuberos)
- 
+
 ## logging
 | container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
 |-|-|-|-|-|
@@ -137,13 +136,12 @@ This depends on several factors, some of them are:
 | quay.io/thanos/thanos:v0.28.0 | 🟠 | v0.33.0 | [v0.33.0](https://github.com/thanos-io/thanos/releases/tag/v0.33.0) | [56.6.2](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
 | registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.7.0 |  🔴 | [v2.9.2](https://github.com/kubernetes/kube-state-metrics?tab=readme-ov-file#compatibility-matrix)   | [2.10.1](https://github.com/kubernetes/kube-state-metrics/releases) |  [56.6.2](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
 
-
 ## overprovision
 | container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
 |-|-|-|-|-|
 | registry.k8s.io/cpa/cluster-proportional-autoscaler:1.8.6 | 🟢 | v1.8.9 | [v1.8.9](https://github.com/kubernetes-sigs/cluster-proportional-autoscaler/releases/tag/v1.8.9) | [1.1.0](https://github.com/kubernetes-sigs/cluster-proportional-autoscaler/tree/master/charts/cluster-proportional-autoscaler)
 | registry.k8s.io/pause:3.9 | 🟢 | v3.9 | [v3.9](https://github.com/kubernetes/kubernetes/tree/master/build/pause) | [registry](https://github.com/kubernetes/registry.k8s.io/blob/main/docs/debugging.md#verify-image-repositories-and-tags) |
- 
+
 ## tigera-operator
 | container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
 |-|-|-|-|-|
@@ -154,9 +152,8 @@ This depends on several factors, some of them are:
 |-|-|-|-|-|
 | ghcr.io/aquasecurity/trivy-operator:0.16.4 | 🟢 | v0.18.5 | [v0.18.5](https://github.com/aquasecurity/trivy-operator/releases/tag/v0.18.5) | [0.20.6](https://github.com/aquasecurity/trivy-operator/blob/main/deploy/helm/Chart.yaml)
 | ghcr.io/aquasecurity/trivy:0.47.0 | 🟢 | v0.49.1 | [v0.49.1](https://github.com/aquasecurity/trivy/releases) | [0.20.6](https://github.com/aquasecurity/trivy-operator/blob/main/deploy/helm/Chart.yaml)
- 
+
 ## velero
 | container image | urgency | latest version for k8s 1.26 | latest version available | latest helm chart |
 |-|-|-|-|-|
 | velero/velero:v1.11.1 | 🔴 | [v1.13.0](https://github.com/vmware-tanzu/velero?tab=readme-ov-file#velero-compatibility-matrix) | [v1.13.0](https://github.com/vmware-tanzu/velero/releases) | [v1.13.0](https://github.com/vmware-tanzu/velero/releases/tag/v1.13.0) | [ 5.3.0](https://github.com/vmware-tanzu/helm-charts/tree/main/charts/velero) |
- 
