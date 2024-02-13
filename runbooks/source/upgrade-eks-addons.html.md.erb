@@ -1,8 +1,8 @@
 ---
 title: Upgrade EKS addons
 weight: 53
-last_reviewed_on: 2024-01-24
-review_in: 3 months
+last_reviewed_on: 2024-02-13
+review_in: 6 months
 ---
 
 # Upgrade EKS addons
@@ -34,6 +34,16 @@ Run the following command to get a list of supported addon version for the Kuber
 ```
 eksctl utils describe-addon-versions --kubernetes-version [k8s-version] --name [addon name: kube-proxy/vpc-cni/coredns] | grep AddonVersion
 ```
+
+#### Error: error creating EKS Add-On (cluster-name:addon-name): InvalidParameterException: Addon version specified is not supported
+
+If you come across this error, it is possible that the aws ui has incorrectly informed you about the supported version. To figure out which version is supported run the following command:
+
+```
+aws eks describe-addon-versions --kubernetes-version=$K8S_VERSION | jq '.addons[] | select(.addonName==$ADDON_NAME) | .addonVersions[] | select(.compatibilities[] | .defaultVersion==true)'
+```
+
+this will pull out the default compatible value for the k8s version for your addon.
 
 ## Preparing for upgrade
 
