@@ -1,0 +1,125 @@
+---
+title: AWS Console Access
+weight: 115
+last_reviewed_on: 2023-11-20
+review_in: 6 months
+---
+
+# AWS Console Access
+
+New joiners for Cloud platform team will need AWS Console access for most things. IAM resources (users, groups, roles, etc) are managed by terraform so new users are nothing more than new resources **in terraform**.
+
+Related repositories:
+
+ - [cloud-platform-infrastructure (/terraform/aws-accounts/cloud-platform-aws/account)](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/account)
+
+ - [cloud-platform-terraform-awsaccounts-iam][awsaccounts-iam]
+
+ - [terraform-aws-iam module](https://github.com/terraform-aws-modules/terraform-aws-iam)
+
+## Steps to create/delete Cloud Platform team users
+
+1) Check the user is in the [webops GitHub team](https://github.com/orgs/ministryofjustice/teams/webops/members), which authorizes access to this AWS account.
+
+2) Create a git branch and add (or delete) the user as [terraform code][awsaccounts-iam]. Do not forget to link the user to a group.
+
+3) Using `terraform plan` in `cloud-platform-infrastructure/terraform/cloud-platform-account/` to verify you're happy with the terraform changes.
+
+4) Create the PR, ask the team to review it, and merge it.
+
+5) [Create a release](https://github.com/ministryofjustice/cloud-platform-terraform-awsaccounts-iam/releases).
+
+6) In the infrastructure repository, edit [the terraform config that calls that module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/account/main.tf#L44), to use the new release - see [example](https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/938/files)
+
+7) Create the PR, ask the team to review it, and merge it.
+
+8) Apply the changes.
+
+9) Verify the user is created. (You can use AWS Console for this.)
+
+10) Tell them they can login here: https://aws-login.cloud-platform.service.justice.gov.uk
+
+## Activating MFA for new users
+
+Unfortunataly terraform can't activate MFA for users, this process must be done done manually either [through AWS Console (UI)](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html) or [through the AWS CLI](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_cliapi.html).
+
+## Modifying external user permissions
+
+This part is the guideline for hanlding requests arise to modify AWS resource permissions on AWS console for users outside the Cloud Platform Team, such as granting read access to ElastiCache for external user.
+
+Related resouce:
+
+ - [cloud-platform-infrastructure (/terraform/aws-accounts/cloud-platform-aws/account)](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/account)
+
+ - [cloud-platform-terraform-aws-sso] (https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso)
+
+ - Make sure you have the MoJ 1Password access
+
+1) Have a discussion within the Cloud Platform Team to assess and agree on the requested permission changes.
+
+2) Navigate to the [cloud-platform-terraform-aws-sso] (https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso) to update or create a new Terraform file (e.g. elasticache.tf) with the new IAM policy for the specified resource.
+
+3) For the newly added resource, modify the [aws.tf] (https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso/blob/main/aws.tf) to include the new policy in the latest `data "aws_iam_policy_document" "combined"` block.
+
+4) Create the PR and request a review from the team.
+
+5) Create a [new release] (https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso/releases).
+
+6) In the [cloud-platform-infrastructure repository] (https://github.com/ministryofjustice/cloud-platform-infrastructure), go to [terraform/aws-accounts/cloud-platform-aws/account/main.tf] (https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/account/main.tf), bump and update the sso module version to the newly released version.
+
+7) Create a PR for the module update, monitor and observe the `terraform plan` result. 
+
+8) Request a review from the team, and merge it.
+
+10) Use the cloud-platform-dummy-user with the credentials from MoJ 1Password to verify the newly granted access on [the AWS console] (https://justice-cloud-platform.eu.auth0.com/samlp/mQev56oEa7mrRCKAZRxSnDSoYt6Y7r5m?connection=github).
+
+11) Once verified, inform the user/requester that the permissions have been updated accordingly.
+
+### Troubleshooting for modifying external user permissions
+
+Sometimes when you add the newly created resource to the `data "aws_iam_policy_document" "combined"` block, you may see the below error. This is because there is a limitation of 6144 characters per managed policy.
+
+```
+│ Error: updating IAM Policy (arn:aws:iam::754256621582:policy/access-via-github): LimitExceeded: Cannot exceed quota for PolicySize: 6144
+│ 	status code: 409, request id: 63ce8d71-4992-4043-a656-a67be75210a7
+```
+To solve this error, you may follow the below steps.
+
+1) Go to the [aws.tf] (https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso/blob/main/aws.tf), create a new AWS IAM Policy document block `data "aws_iam_policy_document" "combined_x"` with next numerical suffix pattern.
+
+```
+data "aws_iam_policy_document" "combined_x" {
+  source_policy_documents = [
+    data.aws_iam_policy_document.elasticache_for_github.json,
+  ]
+}
+```
+
+2) Create a new AWS IAM policy block `resource "aws_iam_policy" "github_access_x"` with next numerical suffix pattern.
+
+```
+resource "aws_iam_policy" "github_access_x" {
+  policy = data.aws_iam_policy_document.combined_x.json
+  name   = "access-via-github-0x"
+  tags = {
+    GithubTeam = "webops"
+  }
+}
+```
+
+3) Create a new AWS IAM policy attachment block `resource "aws_iam_role_policy_attachment" "github_access_x"`  with next numerical suffix pattern.
+
+```
+resource "aws_iam_role_policy_attachment" "github_access_x" {
+  role       = aws_iam_role.github_access.name
+  policy_arn = aws_iam_policy.github_access_x.arn
+}
+```
+
+4) Create the PR and request a review from the team.
+
+5) Create a [new release] (https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso/releases).
+
+6) Follow the steps 6-10 in [Modifying External User Permissions] (#modifying-external-user-permissions) to make changes on [cloud-platform-infrastructure repository] (https://github.com/ministryofjustice/cloud-platform-infrastructure).
+
+[awsaccounts-iam]: https://github.com/ministryofjustice/cloud-platform-terraform-awsaccounts-iam/blob/main/main.tf
