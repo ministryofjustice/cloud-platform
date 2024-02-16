@@ -1,7 +1,7 @@
 ---
 title: AWS Console Access
 weight: 115
-last_reviewed_on: 2023-11-20
+last_reviewed_on: 2024-02-16
 review_in: 6 months
 ---
 
@@ -43,9 +43,9 @@ Related repositories:
 
 Unfortunataly terraform can't activate MFA for users, this process must be done done manually either [through AWS Console (UI)](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html) or [through the AWS CLI](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_cliapi.html).
 
-## Modifying external user permissions
+## Modifying Cloud Platform users permissions
 
-This part is the guideline for hanlding requests arise to modify AWS resource permissions on AWS console for users outside the Cloud Platform Team, such as granting read access to ElastiCache for external user.
+This part is the guideline for handling requests arise to add or modify read only access to any aws resources that are created for Cloud Platform users.
 
 Related resouce:
 
@@ -67,7 +67,7 @@ Related resouce:
 
 6) In the [cloud-platform-infrastructure repository] (https://github.com/ministryofjustice/cloud-platform-infrastructure), go to [terraform/aws-accounts/cloud-platform-aws/account/main.tf] (https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/account/main.tf), bump and update the sso module version to the newly released version.
 
-7) Create a PR for the module update, monitor and observe the `terraform plan` result.
+7) Create a PR for the module update, monitor and observe the `terraform plan` result. 
 
 8) Request a review from the team, and merge it.
 
@@ -75,12 +75,12 @@ Related resouce:
 
 11) Once verified, inform the user/requester that the permissions have been updated accordingly.
 
-### Troubleshooting for modifying external user permissions
+### Troubleshooting for modifying Cloud Platform users permissions
 
 Sometimes when you add the newly created resource to the `data "aws_iam_policy_document" "combined"` block, you may see the below error. This is because there is a limitation of 6144 characters per managed policy.
 
 ```
-│ Error: updating IAM Policy (arn:aws:iam::754256621582:policy/access-via-github): LimitExceeded: Cannot exceed quota for PolicySize: 6144
+│ Error: updating IAM Policy (arn:aws:iam::xxxxxxxxxxxx:policy/access-via-github): LimitExceeded: Cannot exceed quota for PolicySize: 6144
 │ 	status code: 409, request id: 63ce8d71-4992-4043-a656-a67be75210a7
 ```
 To solve this error, you may follow the below steps.
