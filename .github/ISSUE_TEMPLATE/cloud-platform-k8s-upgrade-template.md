@@ -1,6 +1,7 @@
 ---
 name: Cloud Platform Kubernetes Upgrade story
-about: Create new Cloud Platform Kubernetes Upgrade story
+about: This template is for Cloud Platform team to create an epic ticket for kubernetes upgrades
+label: 'EPIC'
 ---
 
 ## Issue 1:
