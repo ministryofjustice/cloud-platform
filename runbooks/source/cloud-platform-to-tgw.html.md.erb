@@ -1,7 +1,7 @@
 ---
 title: Adding a route to connect to a TGW
 weight: 9000
-last_reviewed_on: 2024-01-31
+last_reviewed_on: 2024-02-27
 review_in: 6 months
 ---
 
@@ -64,17 +64,8 @@ The Transit Gateway attachment from live-2 VPC to MoJ Transit Gateway has been p
 We decided not to add this for now as there are no requirements for any routing from live-2 VPC to the MoJ Transition Gateway. Also live-2 is planned for decommission.
 If there is a requirement for this, the [add-live-2-tgw-routes branch] shows the code that needs to be applied.
 
-## Moving away from the *old* Cloud Platform Transit Gateway account
-`Cloud Platform Transit Gateway` AWS account and [transit-gateways repo] previosuly held the terraform state in s3 bucket and terrform code respectively. We have migrated this to the `Cloud-Platform` AWS account and [cloud-platform-infrastructure] repo now. The following tasks remain to completely decommision the old Cloud Platform Transit Gateway:
-
-- Confirm with owners of Transit Gateway VPC Attachments in Cloud Platform Transit Gateways AWS account can be deleted
-- Confirm with owners of Transit Gateway Peering Attachment in Cloud Platform Transit Gateways AWS account can be deleted
-- Terraform destroy all redundant Transit Gateway related resources in Cloud Platform Transit Gateways AWS account that are currently being managed by terraform.
-- Remove redundant code from [transit-gateways repo]
-
 [cloud-platform-infrastructure]: https://github.com/ministryofjustice/cloud-platform-infrastructure
 [github repository]: https://github.com/ministryofjustice/deployment-tgw
 [transit-gateway-cloud-platform folder]: https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/transit-gateway
 [add-live-2-tgw-routes branch]: https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/add-live-2-tgw-routes
 [Concourse pipeline]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/infrastructure-vpc-live-1.yaml
-[transit-gateways repo]: https://github.com/ministryofjustice/transit-gateways
