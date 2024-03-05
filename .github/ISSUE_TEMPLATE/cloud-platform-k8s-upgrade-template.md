@@ -27,6 +27,7 @@ https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-cluster.html
 ## Issue 2:
 ### Update vpc-cni from <current-version> to the version needed for current k8s version
 Check for the latest supported addon version for the current kubernetes version and update the clusters
+[Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
 
 Production Clusters Checklist:
 
@@ -44,6 +45,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 ## Issue 3:
 ### Update kube-proxy from <current-version> to the version needed for current k8s version
 Check for the latest supported addon version for the current kubernetes version and update the clusters
+[Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
 
 Production Clusters Checklist:
 
@@ -61,6 +63,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 ## Issue 4:
 ### Update core-dns from <current-version> to the version needed for current k8s version
 Check for the latest supported addon version for the current kubernetes version and update the clusters
+[Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
 
 Production Clusters Checklist:
 
@@ -97,6 +100,7 @@ Production Clusters Checklist:
 ## Issue 8:
 ### Update vpc-cni from <version> to the version needed for the upgraded k8s version
 Check for the latest supported addon version for the upgraded kubernetes version and update the clusters
+[Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
 
 Production Clusters Checklist:
 
@@ -114,6 +118,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 ## Issue 9:
 ### Update kube-proxy from <version> to the version needed for the upgraded k8s version
 Check for the latest supported addon version for the upgraded kubernetes version and update the clusters
+[Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
 
 Production Clusters Checklist:
 
@@ -131,6 +136,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 ## Issue 10:
 ### Update core-dns from <version> to the version needed for the upgraded k8s version
 Check for the latest supported addon version for the upgraded kubernetes version and update the clusters
+[Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
 
 Production Clusters Checklist:
 
@@ -148,7 +154,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 ### Review cluster components for upgrading
 https://runbooks.cloud-platform.service.justice.gov.uk/container-images.html#container-images-used-by-cluster-components
 
-Review the compatibility matrix for all cluster components and verify if the image is compatible with the upgraded kuebrnetes version
+Review the compatibility matrix for all cluster components and verify if the image is compatible with the upgraded Kubernetes version
 
 ## Issue 12:
 ### Review and upgrade kube-state-metrics for the upgraded cluster version <version>
@@ -156,17 +162,17 @@ https://runbooks.cloud-platform.service.justice.gov.uk/container-images.html#con
 
 https://github.com/kubernetes/kube-state-metrics?tab=readme-ov-file#compatibility-matrix
 
-Review the compatibility matrix of kube-state-metrics and verify if the image is compatible with the upgraded kuebrnetes version. If the version is mismatch, check if the whole kube-prometheus-chart needs updating to get the default version of kube-state-metrics from the chart-> values. Otherwise, pin the kube-state-metrics image to match the kubernetes-version
+Review the compatibility matrix of kube-state-metrics and verify if the image is compatible with the upgraded Kubernetes version. If the version is a mismatch, check if the whole kube-prometheus-chart needs updating to get the default version of kube-state-metrics from the chart-> values. Otherwise, pin the kube-state-metrics image to match the Kubernetes version.
 
 ## Issue 13:
-### Upgrade cluster autoscalar for k8s version <version>
-The Cloud Platform Cluster is in k8s version <version>. Hence upgrade the cluster-autoscalar to match the k8s version.
+### Upgrade cluster autoscaler for k8s version <version>
+The Cloud Platform Cluster is in k8s version <version>. Hence upgrade the cluster-autoscaler to match the k8s version.
 
 https://github.com/kubernetes/autoscaler/tree/master/charts/cluster-autoscaler
 https://github.com/ministryofjustice/cloud-platform-terraform-cluster-autoscaler
 
 ## Issue 14:
-### Upgrade cluster descheudler for k8s version <version>
+### Upgrade cluster descheduler for k8s version <version>
 The Cloud Platform Cluster is in k8s version <version>. Hence upgrade the descheduler to match the k8s version.
 
 https://github.com/kubernetes-sigs/descheduler?tab=readme-ov-file#%EF%B8%8F--documentation-versions-by-release
@@ -182,12 +188,12 @@ Update cloud-platform-cli for kubectl version
 Update concourse pipelines to use updated tools-image and cli
 
 ## Issue 16:
-### Update Upgrade runbook and Issue template:
+### Update Upgrade runbook and Cluster Upgrade Issue Template
 
 Update the runbook for 
 - any changes needed in the steps to perform the upgrade
 - any lessons learnt that could be useful for next upgrade
-- any changes to the upgrade issue template
+- any changes to the [upgrade issue template](https://github.com/ministryofjustice/cloud-platform/blob/main/.github/ISSUE_TEMPLATE/cloud-platform-k8s-upgrade-template.md)
 
 Cluster upgrade Runbook:
 https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-cluster.html
