@@ -12,27 +12,27 @@ As part of the move to Kubernetes 1.25 PSP was deprecated and replaced with Gate
 
 We propose to add a new level to our build process called core. This splits our process into 3 distinct areas within our terraform:
 
-* EKS - Everything required to bring up a basic cluster.
-* Core - Core components that are required for our users to be able to safely and securely deploy their application to.
-* Components - Optional components that provide additional functionality to a cluster
+- EKS - Everything required to bring up a basic cluster.
+- Core - Core components that are required for our users to be able to safely and securely deploy their application to.
+- Components - Optional components that provide additional functionality to a cluster
 
 > Components are not optional in `live`. When testing new components and features all components should be used to make sure there are no edge case issues.
 
 ### Considerations
 
-* Developing this using test clusters will be easier than `live`, documentation and a focus on how we deploy this to `live` should be at the front of the work.
-* Evaluate each component to determine whether they are core or optional components.
-* Prometheus CRDs are a hard requirement on a lot of components, we can split these into `core` but would that increase complexity?
-* Each stage must be a concrete deliverable.
+- Developing this using test clusters will be easier than `live`, documentation and a focus on how we deploy this to `live` should be at the front of the work.
+- Evaluate each component to determine whether they are core or optional components.
+- Prometheus CRDs are a hard requirement on a lot of components, we can split these into `core` but would that increase complexity?
+- Each stage must be a concrete deliverable.
 
 ## Decision
 
 We have decided to:
 
-* Start planning out the work required to split the components into `core`.
-* Document the process of moving components.
-* Test changes using test clusters.
-* Apply the changes to `live`, `live-2` and `manager`
+- Start planning out the work required to split the components into `core`.
+- Document the process of moving components.
+- Test changes using test clusters.
+- Apply the changes to `live`, `live-2` and `manager`
 
 ## Consequences
 
