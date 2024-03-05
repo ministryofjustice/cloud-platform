@@ -8,7 +8,7 @@ Date: 2024-03-04
 
 ## Context
 
-As part of the move to Kubernetes 1.25 PSP was deprecated and replaced with Gatekeeper. This meant a large change in the way our cluster operates and the modules at a components level. While upgrading it became clear that there are a large number of components dependent on each other that are not required. This makes the component level difficult to work with. We also found modules that used non standard methods of declaring dependency because of the version of terraform used at the time. Removing dependencies at the components level will allow us to focus on future features such as [multi cluster](036-multi-cluster.md) and blue green clusters.
+Following the upgrade to Kubernetes 1.25, PodSecurityPolicy was removed, and the team chose to use Gatekeeper's mutating capabilities to replace the functionality that was previously provided by our PSP configurations. This meant a large change in the way our cluster operates and the modules at a components level. While upgrading it became clear that there are a large number of components dependent on each other that are not required. This makes the component level difficult to work with. We also found modules that used non standard methods of declaring dependency because of the version of terraform used at the time. Removing dependencies at the components level will allow us to focus on future features such as [multi cluster](036-multi-cluster.md) and blue green clusters.
 
 We propose to add a new level to our build process called core. This splits our process into 3 distinct areas within our terraform:
 
