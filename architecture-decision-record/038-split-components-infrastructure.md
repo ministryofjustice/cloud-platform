@@ -20,7 +20,7 @@ We propose to add a new level to our build process called core. This splits our 
 
 ### Considerations
 
-- Developing this using test clusters will be easier than `live`, documentation and a focus on how we deploy this to `live` should be at the front of the work.
+- Developing this using test clusters will be easier than `live`, documentation and a focus on how we deploy this to `live`, and safely migrate existing terraform state into its new s3 location should be at the front of the work.
 - Evaluate each component to determine whether they are core or optional components.
 - Prometheus CRDs are a hard requirement on a lot of components, we can split these into `core` but would that increase complexity?
 - Each stage must be a concrete deliverable.
