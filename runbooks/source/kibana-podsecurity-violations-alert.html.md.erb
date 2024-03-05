@@ -1,8 +1,9 @@
 ---
 title: Kibana PodSecurity Violations Alert
 weight: 191
-last_reviewed_on: 2023-11-30
+last_reviewed_on: 2024-03-05
 review_in: 3 months
+reviewer: folarin oyenuga
 ---
 
 # Kibana PodSecurity Violations Alert
@@ -36,4 +37,4 @@ To fix a PSA violation and stop the monitor from triggering, gather the namespac
 
 Kibana will put a message into the `#low-priority-alarms` slack channel whenever the [PodSecurity Violations monitor](https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/opendistro-alerting#/monitors/jR-J3YsBP8PE0GofcRIF) first goes into the `Triggered` status.
 
-The monitor is throttled to only send 1 message every 24 hours per trigger, this means if a namespace is already triggering the monitor then when another violation occurs then it will not send another message. The best way to check what is triggering the monitor is to use the steps mentioned above under [Checking logs for PSA violation in Kibana](#checking-logs-for-psa-violations-in-kibana).
+The monitor is throttled to only send 1 message every 24 hours per trigger. This means if a namespace is already triggering the monitor then when another violation occurs then it will not send another message. The best way to check what is triggering the monitor is to use the steps mentioned above under [Checking logs for PSA violation in Kibana](#checking-logs-for-psa-violations-in-kibana).
