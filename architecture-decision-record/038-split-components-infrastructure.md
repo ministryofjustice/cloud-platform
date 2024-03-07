@@ -16,7 +16,7 @@ We propose to add a new level to our build process called core. This splits our 
 - Core - Core components that are required for our users to be able to safely and securely deploy their application to.
 - Components - Optional components that provide additional functionality to a cluster
 
-> Components are not optional in `live`. When testing new components and features all components should be used to make sure there are no edge case issues.
+> Components are not optional in `live` (apart from the starter pack). When testing new components and features all components should be used to make sure there are no edge case issues.
 
 ### Considerations
 
