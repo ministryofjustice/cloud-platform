@@ -1,7 +1,7 @@
 ---
 name: Cloud Platform Story
 about: Create new Cloud Platform story
-
+labels: 'needs-refining'
 ---
 
 ## Background
