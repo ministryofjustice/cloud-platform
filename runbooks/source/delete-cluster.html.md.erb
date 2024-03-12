@@ -49,6 +49,13 @@ configuration updated
 started delete-cluster/delete #123
 ```
 
+Additionally, if you've made changes in your infrastructure branch that render a destroy from the
+main branch impossible, you can optionally pass your branch name to use that terraform source instead:
+
+```
+cloud-platform pipeline delete-cluster --cluster-name <cluster-name> --branch-name <your-branch-name>
+```
+
 ## Delete an EKS cluster manually
 
 Follow these steps, to delete the EKS cluster.
