@@ -45,10 +45,10 @@ weight: 45
 
 - **Review actions**:
   - Team discussed about having closer inspection and try to identify these kind of failures earlier
-  - Investigate if the ingestion of data to the database too big or long
-  - Is executing some queries make prometheus work harder and stop responding to the readiness probe
+  - Investigate if the ingestion of data to the database is too big or long
+  - Is executing some queries making prometheus work harder and stop responding to the readiness probe?
   - Any other services which is probing prometheus that triggers the restart
-  - Is taking regular velero backups distrub the ebs read/write and cause the restart
+  - Is taking regular velero backups distrubing the ebs read/write and causing the restart?
 
 ## Q3 2023 (July-September)
 
@@ -171,7 +171,7 @@ weight: 45
   - 2023-07-05 16:18: Incident resolved
 
 - **Resolution**:
-  - Due to increase number of namespaces and prometheus rules, the prometheus server needed more memory. The instance size was not enough to keep the prometheus running.
+  - Due to increased number of namespaces and prometheus rules, the prometheus server needed more memory. The instance size was not enough to keep prometheus running.
   - Updating the node type to double the cpu and memory and increasing the container resource limit of prometheus server resolved the issue
 
 - **Review actions**:
@@ -189,7 +189,7 @@ weight: 45
 
 - **Time to resolve**: 4h 27m
 
-- **Identified**: User reported of seeing issues with new deployments in #ask-cloud-platform
+- **Identified**: User reported seeing issues with new deployments in #ask-cloud-platform
 
 - **Impact**: The service availability for CP applications may be degraded/at increased risk of failure.
 
@@ -280,7 +280,7 @@ weight: 45
   - The live cluster has 60 nodes as desired capacity. As CJS have 100 ReplicaSet for their deployment, Descheduler started terminating the duplicate CJS pods scheduled on the same node. The restart of multiple CJS pods caused the CPU hike.
   - 2023-02-02 10:30 Cloud Platform team scaled down Descheduler to stop terminating CJS pods.
   - 2023-02-02 10:37 CJS Dash team planned to roll back a caching change they made around 10 am that appears to have generated the spike.
-  - 2023-02-02 10:38 Decision made to Increase node count to 60 from 80, to support the CJS team with more pods and resources.
+  - 2023-02-02 10:38 Decision made to (Increase or Decrease?) node count to 60 from 80, to support the CJS team with more pods and resources.
   - 2023-02-02 10:40 Autoscaling group bumped up to 80 - to resolve the CPU critical. Descheduler is scaled down to 0 to accommodate multiple pods on a node.
   - 2023-02-02 10:44 Resolved status for CPU-Critical high-priority alert.
   - 2023-02-02 11:30 Performance has steadied.
