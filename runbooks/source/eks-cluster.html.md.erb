@@ -149,13 +149,11 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 
 Core installation refers to a set of components that need to deployed to the cluster before other components are installed. Things like networking, policy engines, monitoring etc. We need to have the `KUBECONFIG` variable exported and make sure you have access to the cluster. To deploy core we go to [terraform/aws-accounts/cloud-platform-aws/vpc/eks/core](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core) and follow exactly the same terraform workflow:
 
-
 ```
 terraform init
 terraform workspace new <WorkspaceName>
 terraform apply
 ```
-
 
 ### 4. Deploy components
 
