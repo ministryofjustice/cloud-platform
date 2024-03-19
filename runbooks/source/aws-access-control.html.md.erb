@@ -1,7 +1,7 @@
 ---
 title: AWS Console Access
 weight: 115
-last_reviewed_on: 2024-02-16
+last_reviewed_on: 2024-03-19
 review_in: 6 months
 ---
 
@@ -23,7 +23,7 @@ Related repositories:
 
 2) Create a git branch and add (or delete) the user as [terraform code][awsaccounts-iam]. Do not forget to link the user to a group.
 
-3) Using `terraform plan` in `cloud-platform-infrastructure/terraform/cloud-platform-account/` to verify you're happy with the terraform changes.
+3) Using `terraform plan` in `cloud-platform-infrastructure/terraform/aws-accounts/cloud-platform-aws/accounts` to verify you're happy with the terraform changes.
 
 4) Create the PR, ask the team to review it, and merge it.
 
@@ -34,6 +34,8 @@ Related repositories:
 7) Create the PR, ask the team to review it, and merge it.
 
 8) Apply the changes.
+
+> Note: The accounts concourse pipeline intentionally fails. See [here](https://mojdt.slack.com/archives/C514ETYJX/p1682428491188399) for further details.
 
 9) Verify the user is created. (You can use AWS Console for this.)
 
