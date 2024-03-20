@@ -94,10 +94,10 @@ To resolve the issue:
 
     ```
     watch -n 300 ./delete-pods-in-namespace.sh '/aws/eks/<cluster-name>/cluster' > deleted_pods.log
-    ``` 
+    ```
     The `<cluster-name>` is the short name of the cluster e.g. `cp-2901-1531`
 
-4. Run `tail -f deleted_pods.log` in another terminal. 
+4. Run `tail -f deleted_pods.log` in another terminal.
 
 If you want to find the offending pod manually, follow these steps:
 
