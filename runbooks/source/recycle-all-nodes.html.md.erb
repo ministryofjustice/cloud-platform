@@ -1,8 +1,8 @@
 ---
 title: Recycling all the nodes in a cluster
 weight: 255
-last_reviewed_on: 2024-01-09
-review_in: 3 months
+last_reviewed_on: 2024-03-20
+review_in: 6 months
 ---
 
 # Recycle-all-nodes
@@ -46,56 +46,58 @@ This will eventually cause the update to stop, wait and then exit, leaving the r
 
 AWS EKS in some circumstances has even reverted the update and started to drain the new nodes and replace them with the old update template again. So it's important to monitor how the update is going and act when nodes get stuck.
 
-To resolve the issue, evict the offending pod by running the below script:
+To resolve the issue:
 
-```watch -n 300 ./delete-pods-in-namespace.sh '/aws/eks/<cluster-name>/cluster' > deleted_pods.log```
+1. Copy below script and save it as `delete-pods-in-namespace.sh`.
 
-and `tail -f delete_pods.log` in another terminal. The `<cluster-name>` is the short name of the cluster e.g. `cp-2901-1531`
+    ```
+    #!/bin/bash
 
-```
-#!/bin/bash
+    delete_pods() {
+      NAMESPACE=$(echo "$1" | sed -E 's/\/api\/v1\/namespaces\/(.*)\/pods\/.*/\1/')
+      POD=$(echo "$1" | sed -E 's/.*\/pods\/(.*)\/eviction/\1/')
 
-delete_pods() {
-  NAMESPACE=$(echo "$1" | sed -E 's/\/api\/v1\/namespaces\/(.*)\/pods\/.*/\1/')
-  POD=$(echo "$1" | sed -E 's/.*\/pods\/(.*)\/eviction/\1/')
+      echo $NAMESPACE
 
-  echo $NAMESPACE
+      echo $POD
 
-  echo $POD
+      kubectl delete pod -n $NAMESPACE $POD
+    }
 
-  kubectl delete pod -n $NAMESPACE $POD
-}
+    export -f delete_pods
 
-export -f delete_pods
+    TIME_NOW_EPOCH=$(date +%s)
 
-TIME_NOW_EPOCH=$(date +%s)
+    START_TIME=$(($TIME_NOW_EPOCH - 180))
 
-START_TIME=$(($TIME_NOW_EPOCH - 180))
+    CLUSTER_LOG_GROUP=$1
 
-CLUSTER_LOG_GROUP=$1
+    QUERY_ID=$(aws logs start-query \
+      --start-time $START_TIME \
+      --end-time $TIME_NOW_EPOCH \
+      --log-group-name $CLUSTER_LOG_GROUP \
+      --query-string 'fields @timestamp, @message | filter @logStream like "kube-apiserver-audit" | filter ispresent(requestURI) | filter objectRef.subresource = "eviction" | filter responseObject.status = "Failure" | display @logStream, requestURI, responseObject.message | stats count(*) as retry by requestURI, requestObject.message' \
+      | jq -r '.queryId' )
 
-QUERY_ID=$(aws logs start-query \
-  --start-time $START_TIME \
-  --end-time $TIME_NOW_EPOCH \
-  --log-group-name $CLUSTER_LOG_GROUP \
-  --query-string 'fields @timestamp, @message | filter @logStream like "kube-apiserver-audit" | filter ispresent(requestURI) | filter objectRef.subresource = "eviction" | filter responseObject.status = "Failure" | display @logStream, requestURI, responseObject.message | stats count(*) as retry by requestURI, requestObject.message' \
-  | jq -r '.queryId' )
+    sleep 2
 
-sleep 2
+    RESULTS=$(aws logs get-query-results --query-id $QUERY_ID)
 
-RESULTS=$(aws logs get-query-results --query-id $QUERY_ID)
+    echo -n $RESULTS | jq '.results[]' | grep '/api/v1' | awk '{ print $2 }' | xargs -I {} bash -c 'delete_pods {}'
 
-echo -n $RESULTS | jq '.results[]' | grep '/api/v1' | awk '{ print $2 }' | xargs -I {} bash -c 'delete_pods {}'
+    exit 0
 
-exit 0
+    ```
+2. Run `chmod +x delete-pods-in-namespace.sh`.
 
-```
-Run the script with the command editing the cluster log group
+3. Evict the offending pod by running the below script:
 
-```
-watch -n 180 ./delete-pods-in-namespace.sh <cluster-log-group-name> deleted_pods.log
-```
-and `tail -f delete_pods.log` in another terminal.
+    ```
+    watch -n 300 ./delete-pods-in-namespace.sh '/aws/eks/<cluster-name>/cluster' > deleted_pods.log
+    ```
+    The `<cluster-name>` is the short name of the cluster e.g. `cp-2901-1531`
+
+4. Run `tail -f deleted_pods.log` in another terminal.
 
 If you want to find the offending pod manually, follow these steps:
 
