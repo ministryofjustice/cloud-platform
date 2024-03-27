@@ -1,8 +1,8 @@
 ---
 title: EKS Cluster
 weight: 350
-last_reviewed_on: 2024-01-16
-review_in: 3 months
+last_reviewed_on: 2024-03-18
+review_in: 6 months
 ---
 
 # Provisioning EKS clusters
@@ -145,9 +145,19 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 
 ```
 
-### 3. Deploy components
+### 3. Deploy core
 
-Components installation is the last step, for that we need to have the `KUBECONFIG` variable exported and make sure you have access to the cluster. To deploy components we go to [terraform/aws-accounts/cloud-platform-aws/vpc/eks/components](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components) and follow exactly the same terraform workflow:
+Core installation refers to a set of components that need to deployed to the cluster before other components are installed. Things like networking, policy engines, monitoring etc. We need to have the `KUBECONFIG` variable exported and make sure you have access to the cluster. To deploy core we go to [terraform/aws-accounts/cloud-platform-aws/vpc/eks/core](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core) and follow exactly the same terraform workflow:
+
+```
+terraform init
+terraform workspace new <WorkspaceName>
+terraform apply
+```
+
+### 4. Deploy components
+
+Components installation is the last step, for that we need to have the `KUBECONFIG` variable exported and make sure you have access to the cluster. To deploy components we go to [terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components) and follow exactly the same terraform workflow:
 
 ```
 terraform init
