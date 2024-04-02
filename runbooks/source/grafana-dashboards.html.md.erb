@@ -1,7 +1,7 @@
 ---
 title: Grafana Dashboards
 weight: 9106
-last_reviewed_on: 2023-12-29
+last_reviewed_on: 2024-04-02
 review_in: 3 months
 ---
 
@@ -13,11 +13,11 @@ This [dashboard](https://grafana.live.cloud-platform.service.justice.gov.uk/d/an
 
 ### Dashboard Layout
 
-Each box on the dashboard has the name of the node and the number of pods on the node  - This number includes pods with a statuses such as "DeadlineExceeded" and completed".
+Each box on the dashboard has the name of the node and the number of pods on the node. This number includes pods with a statuses such as "DeadlineExceeded" and completed".
 
 The exception is the `Max Pods per Node` box. This is a constant number set on creation for the maximum allowed pods per node.
 
-The current architecture does not allow instance group id to be viewed on the dashboard:
+The current architecture does not allow instance group id to be viewed on the dashboard.
 
 We currently have 2 instance groups:
 
@@ -58,7 +58,7 @@ Identify the namespace and name of the configmap which contains this dashboard n
 kubectl get configmaps -A -ojson | jq -r '.items[] | select (.data."<MY-DASHBOARD>.json") | .metadata.namespace + "/" + .metadata.name'
 ```
 
-This will return the namespace and name of the configmap which contains the dashboard config. Describe the namespace and find the user's slack-channel which is a annotation on the namespace:
+This will return the namespace and name of the configmap which contains the dashboard config. Describe the namespace and find the user's slack-channel which is an annotation on the namespace:
 
 ```
 kubectl describe namespace <namespace>
@@ -86,7 +86,7 @@ for i in $(find ./ -type f); do tail $i; done|grep '"uid": '|cut -f2 -d':'|sort|
 ```
 This will show output any duplicate UIDs and the number of occurrences of each.
 
-ie:
+i.e.:
 
 ```
 2    "[duplicate-dashboard-uid]",
@@ -108,7 +108,7 @@ Identify the namespace and name of the configmap which contains this dashboard n
 kubectl get configmaps -A -ojson | jq -r '.items[] | select (.data."my-test-dashboard.json") | .metadata.namespace + "/" + .metadata.name'
 ```
 
-This will return the namespace and name of the configmap which contains the dashboard config. Describe the namespace and find the user's slack-channel which is a annotation on the namespace:
+This will return the namespace and name of the configmap which contains the dashboard config. Describe the namespace and find the user's slack-channel which is an annotation on the namespace:
 
 ```
 kubectl describe namespace <namespace>
