@@ -1,0 +1,43 @@
+---
+title: Working with .terraform.lock.hcl files
+weight: 60
+last_reviewed_on: 2024-04-03
+review_in: 6 months
+---
+
+# What is `.terraform.lock.hcl`?
+
+In the [cloud-platform-infrastructure repo](https://github.com/ministryofjustice/cloud-platform-infrastructure) each layer has a `.terraform.lock.hcl` file [for example](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/.terraform.lock.hcl).
+
+**The lock file is concerned with pinning provider versions**. Terraform providers manage resources by communicating between Terraform and the target APIs eg. the kubectl provider allows terraform to take hcl code and run kubectl commands.
+
+The lock file ensures that every user is using the same providers. This is important because different providers can deploy resources differently, resulting in inconsistent applies each machine.
+
+Everytime you run the `terraform init` command terraform _creates or updates_ the `.terraform.lock.hcl` file.
+
+There are 2 aspects to pinning providers:
+
+1. terraform that specifies version constraints [for example](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/versions.tf)
+2. the `.terraform.lock.hcl` dependency lock file which contains the specific hashes for the version to be used
+
+## <%= current_page.data.title %>
+
+Due to the architecture difference between our mac m* chips and the pipeline every time a user runs a `terraform init` it will make changes to the `.terraform.lock.hcl` file. This diff is sometimes misleading.
+
+### Rules
+
+- Do not commit the lock file if you have not changed any provider versions
+- If you make changes to _any_ provider versions then you should use the command below to add a platform compatible lock file
+
+### Commiting changes to the lock file
+
+Because the team is mainly on mac m* chips we are generally running a different architecture (arm64) to the terraform that will run in the pipeline (amd64). Therefore if we want to commit a compatible lock file you must run before adding it to git:
+
+```
+terraform providers lock -platform=amd64
+```
+
+#### Further reading
+
+- [terraform lock docs](https://developer.hashicorp.com/terraform/language/files/dependency-lock)
+- [terraform lock tutorial](https://developer.hashicorp.com/terraform/tutorials/configuration-language/provider-versioning?utm_source=WEBSITE&utm_medium=WEB_IO&utm_offer=ARTICLE_PAGE&utm_content=DOCS)
