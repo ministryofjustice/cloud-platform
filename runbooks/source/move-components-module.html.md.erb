@@ -1,0 +1,67 @@
+---
+title: Moving components modules into core
+weight: 60
+last_reviewed_on: 2024-04-03
+review_in: 6 months
+---
+
+# Moving `components` modules into `core`
+
+## Step 1 - Migrating resources
+
+Pause pipelines.
+
+Move the module from `core/components.tf` into it's own file e.g. `gatekeeper.tf` in `core`.
+
+Remove any dependencies from `core/components.tf`
+
+Run `terraform plan -out=$dir.tfplan` on both `core` and `components` there should be the same number of resources being removed as applied.
+
+Commit the changes and create a pull request.
+
+## Step 2 - Get state
+
+Get a list of all resources being added in `core`
+
+```
+terraform show -no-color -json core.tfplan | jq -r '.resource_changes[] | select(.change.actions[0]=="update" or .change.actions[0]=="create" or .change.actions[0]=="create") | .address'
+```
+[Source](https://www.reddit.com/r/Terraform/comments/10m7jdd/comment/jjcihv4/)
+
+Pull `core` and `components` terraform state:
+
+```
+terraform state pull > $dir.tfstate
+```
+
+Create a copy of each tfstate file as a backup in case something goes wrong.
+
+Copy each resource state block from `components.tfstate` into `core.tfstate`.
+
+## Step 3 - Core
+
+Run `terraform state push -force core.tfstate` this will overwrite the remote state file with our updated state with the additional resources from components.
+
+Run `terraform plan` this should show no changes.
+
+## Step 4 - Components
+
+Once cores state has been updated with the new state file we need to remove the duplicated resources in components.
+
+```
+terraform state rm $resource
+```
+
+Do this for each resource from step 2.
+
+Run `terraform plan` and confirm there are no changes.
+
+## Step 4 - Cleanup
+
+Unpause the pipelines there should be no changes.
+
+## Disaster Recovery
+
+If for some reason something goes wrong then you can use the backed up state file to overwrite the remote.
+
+Alternatively all our tf state objects are versioned in S3 so you can restore a previous known working version from the AWS console.
