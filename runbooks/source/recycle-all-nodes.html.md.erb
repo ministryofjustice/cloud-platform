@@ -1,7 +1,7 @@
 ---
 title: Recycling all the nodes in a cluster
 weight: 255
-last_reviewed_on: 2024-03-20
+last_reviewed_on: 2024-04-10
 review_in: 6 months
 ---
 
@@ -55,7 +55,7 @@ To resolve the issue:
 
     delete_pods() {
       NAMESPACE=$(echo "$1" | sed -E 's/\/api\/v1\/namespaces\/(.*)\/pods\/.*/\1/')
-      POD=$(echo "$1" | sed -E 's/.*\/pods\/(.*)\/eviction/\1/')
+      POD=$(echo "$1" | sed -E 's/.*\/pods\/(.*)\/eviction\?timeout=.*/\1/')
 
       echo $NAMESPACE
 
@@ -110,7 +110,8 @@ If you want to find the offending pod manually, follow these steps:
     ```
 4. If there are results they will have a pattern like this:
     `/api/v1/namespaces/$NAMESPACE/pods/$POD_NAME-$POD_ID/eviction?timeout=19s`
-5. You can then run the following command to manually delete the pod
+5. You may also go to the [CloudWatch Dashboard](https://eu-west-2.console.aws.amazon.com/cloudwatch/home?region=eu-west-2#dashboards/dashboard/cloud-platform-eks-live-pdb-eviction-status) directly to identify the offending pod.
+6. You can then run the following command to manually delete the pod
     `kubectl delete pod -n $NAMESPACE $POD_NAME-$POD_ID`
 
 Nodes should continue to recycle and after a few moments there should be one less node with the status "Ready,SchedulingDisabled"

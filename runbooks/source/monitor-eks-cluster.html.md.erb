@@ -1,0 +1,184 @@
+---
+title: Monitor EKS Cluster
+weight: 70
+last_reviewed_on: 2024-04-10
+review_in: 6 months
+---
+
+# Monitor EKS Cluster
+
+## Monitoring with K9s
+[K9s](https://k9scli.io/)  provides a powerful terminal UI to interact with your Kubernetes clusters, allowing you to monitor and manage your resources efficiently. This part covers how to monitor nodes, pods, and events, and how to use filters to narrow down your view to specific namespaces or pods in specific status.
+
+###Installation
+Before you begin, ensure that K9s is installed on your machine. If not, please follow the official [K9s installation instructions](https://k9scli.io/topics/install/).
+
+###Launching K9s
+To start K9s, open your terminal and type `k9s`
+
+This command launches the K9s interface, displaying your default namespace's pods.
+
+###Monitoring Nodes
+To view and monitor nodes:
+
+Press `:` to activate the command mode and type `nodes` and press Enter.
+
+Here, you can see a list of your cluster's nodes along with their status, CPU, memory usage, version, Pods and age.
+
+####Sorting for nodes
+K9s allows you to sort resources based on different metrics, providing flexibility in how you view your cluster's data.
+This can be particularly useful in troubleshooting or Cluster Upgrade when you need to quickly identify which nodes are under the most strain or which are the newest or oldest.
+
+```
+<shift-a>                   Sort Age
+<shift-c>                   Sort CPU
+<shift-m>                   Sort Memory
+<shift-n>                   Sort Name
+<shift-o>                   Sort Pods
+<shift-r>                   Sort Role
+```
+
+By default, sorting is in descending order for most metrics except for age. If you need to change the sort order to ascending (for example, to sort the node by CPU usage), you can toggle the sort order by:
+
+Pressing `shift-c` and this will show the node sort with CPU usage in descending order.
+
+You can press `shift-c` again to toggle back to ascending order.
+
+Sorting by age `shift-a` is different and is default in ascending order (see the newest nodes first when sorting by age). If you need to change the sort order to descending to see the oldest nodes first when sorting by age), you can toggle the sort order by
+pressing `shift-a` again.
+
+During EKS Cluster upgrade, it is recommended to sort nodes by age in ascending order which allows you to:
+
+- Identify Newly Created Nodes: Quickly determine which nodes are the newest additions to your cluster. This is especially useful to verify that nodes are being successfully created as part of the upgrade process.
+- Monitor Node Replacement: Ensure that older nodes are being decommissioned as expected.
+- Troubleshoot Issues: Identify and troubleshoot any anomalies with node creation times, such as unexpected delays or nodes not being created as planned.
+
+###Monitoring Pods
+
+To view and monitor pods:
+
+Press `:` to activate the command mode and type `pods` and press Enter.
+
+Here, you can see a list of pods along with their namespace, name, status, IP, node and age.
+
+Press `0` to monitor all pods across all namespaces.
+
+####Filtering Pods
+
+Filter pods by specific namespace:
+
+With the pods view open, press `/` to start a filter.
+Type the namespace name and press Enter.
+Only pods within the specified namespace will be displayed.
+
+You can also monitor 2 or more namepsace at the same time by adding `|` in the filter, like `namespace-1|namespace-2` to view pods in those 2 namespace.
+
+Filter pods by status:
+
+With the pods view open, press `/` to start a filter.
+Type `error` and press Enter to filter pod by error status.
+You can also filter pods at 2 or more status at the same time by adding `|` in the filter, like `error|fail` to view pods in those 2 namespace.
+
+During EKS Cluster upgrade, it is recommended to filter pods by status `ContainerStatusUnknown|error|fail` to get all pods in unnormal state.
+
+####Sorting for Pods
+Sorting concecpt for pods is similar to sorting for nodes. You may refer to [Sorting for nodes](#sorting-for-nodes) for more details.
+
+```
+<shift-a>                                 Sort Age                                                                                                                                                                                                                                                                                                              │
+<shift-c>                                 Sort CPU                                                                                                                                                                                                                                                                                                              │
+<ctrl-x>                                  Sort CPU/L                                                                                                                                                                                                                                                                                                            │
+<shift-x>                                 Sort CPU/R                                                                                                                                                                                                                                                                                                            │
+<shift-i>                                 Sort IP                                                                                                                                                                                                                                                                                                               │
+<shift-m>                                 Sort MEM                                                                                                                                                                                                                                                                                                              │
+<ctrl-q>                                  Sort MEM/L                                                                                                                                                                                                                                                                                                            │
+<shift-z>                                 Sort MEM/R                                                                                                                                                                                                                                                                                                            │
+<shift-n>                                 Sort Name                                                                                                                                                                                                                                                                                                             │
+<shift-p>                                 Sort Namespace                                                                                                                                                                                                                                                                                                        │
+<shift-o>                                 Sort Node                                                                                                                                                                                                                                                                                                             │
+<shift-r>                                 Sort Ready                                                                                                                                                                                                                                                                                                            │
+<shift-t>                                 Sort Restart                                                                                                                                                                                                                                                                                                          │
+<shift-s>                                 Sort Status                                                                                                                                                                                                                                                                                                           │
+```
+
+###Monitoring Events
+
+To view and monitor events:
+
+Press `:` to activate the command mode and type `events` and press Enter.
+
+Here, you can see a list of events along with their namespace, last seen, type, reason, object and count.
+
+Press `0` to monitor all events across all namespaces.
+
+Press `1` to monitor all events across in default view, which is useful for Cluster Upgrade.
+
+####Filtering Events
+Filtering Events by Namespace:
+
+With the events view open, press `/`.
+Enter the namespace name and press Enter.
+Only events related to the specified namespace will be shown.
+
+####Sorting for Pods
+Sorting concecpt for pods is similar to sorting for nodes. You may refer to [Sorting for nodes](#sorting-for-nodes) for more details.
+
+```
+<shift-a>                                  Sort Age
+<shift-c>                                  Sort Count
+<shift-f>                                  Sort FirstSeen
+<shift-l>                                  Sort LastSeen
+<shift-n>                                  Sort Name
+<shift-p>                                  Sort Namespace
+<shift-r>                                  Sort Reason
+<shift-s>                                  Sort Source
+<shift-t>                                  Sort Type                                                                                                                                                                                                                                                                                                          │
+```
+
+During EKS Cluster upgrade, it is recommended to sort events in default view by last seen in ascending order. This sorting method enhances your understanding by providing a chronological sequence of events.
+It ensures that you can easily track the progression of the upgrade and promptly identify any recent issues that may arise.
+
+### Further reading
+For more details, you may refer to the built-in help by pressing `?` within K9s or below pages.
+
+- [K9s Commands](https://k9scli.io/topics/commands/)
+- [K9s Configuration](https://k9scli.io/topics/config/)
+
+## Monitoring with Stern
+
+[Stern](https://github.com/stern/stern) allows you to tail multiple pods on Kubernetes and multiple containers within the pod. Each result is color coded for quicker debugging.
+
+Stern simplifies the process of monitoring logs from multiple pods within Kubernetes. It aggregates logs from various sources, allowing for real-time monitoring and troubleshooting.
+
+###Basic Usage
+To start using Stern, open your terminal and point it to your Kubernetes cluster by setting the correct context with `kubectl`.
+
+To tail logs from all pods in a specific namespace, you may run
+
+```
+stern -n <namepsace>
+```
+
+Tailing Logs from Specific Pods
+To tail logs from specific pods in a specific namespace, you may run
+
+```
+stern -n <namepsace> <pod-name>
+```
+
+It's particularly useful during the update process of EKS add-ons, offering visibility into how changes affect pod operations.
+
+```
+stern --namespace kube-system <coredns aws-node kube-proxy>
+```
+Stern sometimes may reach the maximum number of log request which is 50 by default, and you may use the flag `--max-log-requests <number>` to increase the log limit, for example
+
+```
+stern -n kube-system kube-proxy --max-log-requests 500
+```
+
+### Further reading
+For more details, you may refer to the below pages.
+
+- [Stern Doc](https://github.com/stern/stern?tab=readme-ov-file#usage)
+- [Tail Kubernetes with Stern](https://kubernetes.io/blog/2016/10/tail-kubernetes-with-stern/)

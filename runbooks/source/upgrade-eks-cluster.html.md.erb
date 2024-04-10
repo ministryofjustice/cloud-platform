@@ -1,8 +1,8 @@
 ---
 title: Upgrade EKS cluster
 weight: 53
-last_reviewed_on: 2024-01-24
-review_in: 3 months
+last_reviewed_on: 2024-04-10
+review_in: 6 months
 ---
 
 # Upgrade EKS cluster
@@ -79,14 +79,18 @@ Run a `tf plan` against the cluster your upgrading to check to see if everything
 
 Before you start the upgrade it is useful to have a few monitoring resources up and running so you can catch any issues quickly.
 
-[k9s](https://k9scli.io/) is a useful tool to have open in a few terminal windows, the following views are helpful:
+[K9s](https://k9scli.io/) is a useful tool to have open in a few terminal windows, the following views are helpful:
 
 * nodes - see nodes recycling and coming up with new version
 * events - check to see if there are any errors
 * pods - you can use vim style searching to see pods in `Error` state.
 
+You may refer to [Monitoring with K9s](/monitor-eks-cluster.html#monitoring-with-k9s) section for more details.
+
 When a node group version changes, this will cause all of the nodes to recycle. When AWS recycles the nodes, it will not evict pods if it will break the PDB.
 This will cause the node to stall the update and the nodes will **not** continue to recycle.
+
+[This] (https://eu-west-2.console.aws.amazon.com/cloudwatch/home?region=eu-west-2#dashboards/dashboard/cloud-platform-eks-live-pdb-eviction-status) CloudWatch Dashboard is used to monitor the pod eviction stauts for live cluster.
 
 To rectify this, run the script mentioned in [Recycle-all-nodes Gotchas](/recycle-all-nodes.html#gotchas) section.
 

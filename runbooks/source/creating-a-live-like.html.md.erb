@@ -1,7 +1,7 @@
 ---
 title: Creating a live-like Cluster
 weight: 350
-last_reviewed_on: 2024-01-26
+last_reviewed_on: 2024-04-10
 review_in: 6 months
 ---
 
@@ -16,8 +16,8 @@ to the configuration similar to the live cluster.
 
 ## Setting cluster size to match Live
 
-1. Set the node group desired size to 48 (check the live cluster for up-to-date number) in the AWS console under Compute
-2. Set the node_groups_count to same as live cluster (64) and default_ng_min_count to 48 in [terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf]
+1. Set the node group desired size to 60 (check the live cluster for up-to-date number) in the AWS console under Compute
+2. Set the node_groups_count to same as live cluster (60) and default_ng_min_count to 60 in [terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf]
 3. Copy the node_size values from live to default, currently `["r6i.2xlarge", "r6i.xlarge", "r5.2xlarge"]`
 4. Copy the monitoring_node_size values from live to default, currently `["r6i.8xlarge", "r5a.2xlarge"]`
 5. Ensure that your Terraform workspace matches your cluster name
@@ -61,14 +61,17 @@ See documentation for upgrading a [cluster](upgrade-eks-cluster.html).
   * `watch -n 1 "kubectl get nodes --sort-by=\".metadata.creationTimestamp\""` - get all nodes and sort by create timestamp
 
 * Useful third party tools
-  * [k9s](https://k9scli.io/)
+  * [K9s](https://k9scli.io/)
   * [Stern](https://github.com/stern/stern)
+
+  You may refer to [Monitor EKS Cluster](/monitor-eks-cluster.html) section for more details.
 
 ## Final Tests
 
-1. Run `make run-tests` from the root cloud-platform repository
+1. Run `make run-tests` from the root cloud-platform-infrastructure repository
 2. Update `cluster.tf` `cluster_version` to match version upgraded to
 3. Run `terraform plan` to ensure there are no unexpected changes
+4. Go to `component` layer and scale up and down the `starter_pack` module to ensure `terraform apply` can run smoothly
 
 ## Tearing down
 
