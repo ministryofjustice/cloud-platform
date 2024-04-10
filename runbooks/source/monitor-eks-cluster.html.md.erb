@@ -26,16 +26,15 @@ Press `:` to activate the command mode and type `nodes` and press Enter.
 Here, you can see a list of your cluster's nodes along with their status, CPU, memory usage, version, Pods and age.
 
 ####Sorting for nodes
-K9s allows you to sort resources based on different metrics, providing flexibility in how you view your cluster's data. 
+K9s allows you to sort resources based on different metrics, providing flexibility in how you view your cluster's data.
 This can be particularly useful in troubleshooting or Cluster Upgrade when you need to quickly identify which nodes are under the most strain or which are the newest or oldest.
 
-
-``` 
-<shift-a>                   Sort Age    
+```
+<shift-a>                   Sort Age
 <shift-c>                   Sort CPU
-<shift-m>                   Sort Memory 
+<shift-m>                   Sort Memory
 <shift-n>                   Sort Name
-<shift-o>                   Sort Pods   
+<shift-o>                   Sort Pods
 <shift-r>                   Sort Role
 ```
 
@@ -85,7 +84,7 @@ During EKS Cluster upgrade, it is recommended to filter pods by status `Containe
 ####Sorting for Pods
 Sorting concecpt for pods is similar to sorting for nodes. You may refer to [Sorting for nodes](#sorting-for-nodes) for more details.
 
-``` 
+```
 <shift-a>                                 Sort Age                                                                                                                                                                                                                                                                                                              │
 <shift-c>                                 Sort CPU                                                                                                                                                                                                                                                                                                              │
 <ctrl-x>                                  Sort CPU/L                                                                                                                                                                                                                                                                                                            │
@@ -101,8 +100,6 @@ Sorting concecpt for pods is similar to sorting for nodes. You may refer to [Sor
 <shift-t>                                 Sort Restart                                                                                                                                                                                                                                                                                                          │
 <shift-s>                                 Sort Status                                                                                                                                                                                                                                                                                                           │
 ```
-
-
 
 ###Monitoring Events
 
@@ -126,20 +123,20 @@ Only events related to the specified namespace will be shown.
 ####Sorting for Pods
 Sorting concecpt for pods is similar to sorting for nodes. You may refer to [Sorting for nodes](#sorting-for-nodes) for more details.
 
-``` 
-<shift-a>                                  Sort Age   
-<shift-c>                                  Sort Count 
-<shift-f>                                  Sort FirstSeen   
-<shift-l>                                  Sort LastSeen  
-<shift-n>                                  Sort Name  
-<shift-p>                                  Sort Namespace  
-<shift-r>                                  Sort Reason  
-<shift-s>                                  Sort Source 
+```
+<shift-a>                                  Sort Age
+<shift-c>                                  Sort Count
+<shift-f>                                  Sort FirstSeen
+<shift-l>                                  Sort LastSeen
+<shift-n>                                  Sort Name
+<shift-p>                                  Sort Namespace
+<shift-r>                                  Sort Reason
+<shift-s>                                  Sort Source
 <shift-t>                                  Sort Type                                                                                                                                                                                                                                                                                                          │
 ```
 
-During EKS Cluster upgrade, it is recommended to sort events in default view by last seen in ascending order. This sorting method enhances your understanding by providing a chronological sequence of events. 
-It ensures that you can easily track the progression of the upgrade and promptly identify any recent issues that may arise.  
+During EKS Cluster upgrade, it is recommended to sort events in default view by last seen in ascending order. This sorting method enhances your understanding by providing a chronological sequence of events.
+It ensures that you can easily track the progression of the upgrade and promptly identify any recent issues that may arise.
 
 ### Further reading
 For more details, you may refer to the built-in help by pressing `?` within K9s or below pages.
@@ -172,7 +169,7 @@ stern -n <namepsace> <pod-name>
 It's particularly useful during the update process of EKS add-ons, offering visibility into how changes affect pod operations.
 
 ```
-stern --namespace kube-system <coredns/aws-node/kube-proxy>
+stern --namespace kube-system <coredns aws-node kube-proxy>
 ```
 Stern sometimes may reach the maximum number of log request which is 50 by default, and you may use the flag `--max-log-requests <number>` to increase the log limit, for example
 
