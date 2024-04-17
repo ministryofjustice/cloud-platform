@@ -62,3 +62,12 @@ cloud-platform environment destroy \
 ```
 The command will then destroy all terraform and kubernetes resources associated with the namespace, and finally will delete
 the namespace itself.
+
+## Locating PR number
+
+If you are unable to locate the PR number for the namespace deletion, you can run this handy `git` command from the root of the `cloud-platform-environments` repo 
+to get the commit hash for the namespace deletion, and then search for the PR in the environments repository via the GitHub UI search.
+
+```bash
+git rev-list -n 1 HEAD -- namespaces/live.cloud-platform.service.justice.gov.uk/[namespace-name]
+```
