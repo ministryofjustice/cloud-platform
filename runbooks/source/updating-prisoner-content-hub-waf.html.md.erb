@@ -10,7 +10,7 @@ review_in: 6 months
 Every so often the Prisoner Content Hub require their WAF IP allowlist updating. This is a bespoke job and not fully #gitops
 
 1. Log in to AWS Console
-2. Goto Parameter Store - ensure your in eu-west-2
+2. Goto Parameter Store - ensure you're in eu-west-2
 3. Search for "prisoner"
 4. Select the correct `ip-allow-list` parameter store (per environment)
 5. Add or remove the IP address from the JSON object and save
