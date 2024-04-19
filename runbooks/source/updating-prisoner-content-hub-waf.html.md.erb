@@ -1,0 +1,20 @@
+---
+title: Updating Prisoner Content Hub WAF
+weight: 60
+last_reviewed_on: 2024-04-19
+review_in: 6 months
+---
+
+# Updating Prisoner Content Hub WAF
+
+Every so often the Prisoner Content Hub require their WAF IP allowlist updating. This is a bespoke job and not fully #gitops
+
+1. Log in to AWS Console
+2. Goto Parameter Store - ensure your in eu-west-2
+3. Search for "prisoner"
+4. Select the correct `ip-allow-list` parameter store (per environment)
+5. Add or remove the IP address from the JSON object and save
+6. Log in to Concourse
+7. Run the `infrastructure-account` plan pipeline - you should see the `aws_wafv2_ip_set` have pending updates
+8. Run the `infrastructure-account` apply pipeline
+9. Confirm the changes by going to WAF & Shield, select Web ACLs, click on the correct environment, select Rules and search for the IP address.
