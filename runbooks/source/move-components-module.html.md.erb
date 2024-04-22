@@ -17,7 +17,7 @@ review_in: 6 months
 7. Run `migrate-module` pipeline from the Concourse UI.
 8. Unpause pipeline environment specific pipeline (e.g. live-2)
 9. Re-run PR plan - the plan should show "No changes. Your infrastructure matches the configuration."
-10. Re-run step 5-8 with the next environment (e.g. manager)
+10. Re-run step 5-9 with the next environment (e.g. manager)
 11. Get approval for the PR and merge.
 12. Un-pause `live-2` and check for a clean apply
 13. Repeat 9. with `manager` and `live`
