@@ -7,6 +7,14 @@ review_in: 6 months
 
 # Moving `components` modules into `core`
 
+In order to migrate a terraform module from `components` into `core` there are a number of steps that need to be done in order to make sure the process runs smoothly. From a high level the terraform module needs to be moved and then tested in a test cluster.
+
+The aim is to make sure that when a terraform plan is run against both `core` and `compoents` after the MTM tool is ran there should be no terraform changes.
+
+There is a pipeline in Concourse that accepts `$CLUSTER_NAME` and `$MODULE_NAME` setting these and running the pipeline will migrate that module on the cluster specified.
+
+The exact steps should follow:
+
 1. Raise PR with migrated module
 2. Update #cloud-platform informing the team about the module migration and to not make new PRs against `cloud-platform-infrastructure`.
 3. Pause pipelines
