@@ -7,21 +7,29 @@ review_in: 6 months
 
 # Moving `components` modules into `core`
 
+In order to migrate a terraform module from `components` into `core` there are a number of steps that need to be done in order to make sure the process runs smoothly. From a high level the terraform module needs to be moved and then tested in a test cluster.
+
+The aim is to make sure that when a terraform plan is run against both `core` and `compoents` after the MTM tool is ran there should be no terraform changes.
+
+There is a pipeline in Concourse that accepts `$CLUSTER_NAME` and `$MODULE_NAME` setting these and running the pipeline will migrate that module on the cluster specified.
+
+The exact steps should follow:
+
 1. Raise PR with migrated module
 2. Update #cloud-platform informing the team about the module migration and to not make new PRs against `cloud-platform-infrastructure`.
 3. Pause pipelines
-3. Log in to Concourse using `fly -t moj-cp login -c https://concourse.cloud-platform.service.justice.gov.uk/`
-3. Ensure your in the `cloud-platform-terraform-concourse` directory.
-3. Update pipelines with module name and cluster name:
+4. Log in to Concourse using `fly -t moj-cp login -c https://concourse.cloud-platform.service.justice.gov.uk/`
+5. Ensure your in the `cloud-platform-terraform-concourse` directory.
+6. Update pipelines with module name and cluster name:
     `fly -t moj-cp set-pipeline --pipeline migrate-module --config migrate-module.yaml -v cluster_name=$CLUSTER_NAME -v module=$MODULE_NAME`
-4. Run `migrate-module` pipeline from the Concourse UI.
-5. Unpause pipelines
-6. Re-run PR plan - the plan should show "No changes. Your infrastructure matches the configuration."
-7. Pause pipelines
-8. Get approval for the PR and merge.
-9. Un-pause `live-2` and check for a clean apply
-10. Repeat 9. with `manager` and `live`
-11. Update #cloud-platform informing the team of the completed migration and that pipelines are unpaused.
+7. Run `migrate-module` pipeline from the Concourse UI.
+8. Unpause pipeline environment specific pipeline (e.g. live-2)
+9. Re-run PR plan - the plan should show "No changes. Your infrastructure matches the configuration."
+10. Re-run step 5-9 with the next environment (e.g. manager)
+11. Get approval for the PR and merge.
+12. Un-pause `live-2` and check for a clean apply
+13. Repeat 9. with `manager` and `live`
+14. Update #cloud-platform informing the team of the completed migration and that pipelines are unpaused.
 
 ## Disaster Recovery
 
