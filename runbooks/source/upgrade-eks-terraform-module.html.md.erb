@@ -20,13 +20,13 @@ Before you begin, there are a few pre-requisites:
 
 - You have terraform and docker installed
 
-- Identify the major version you want to upgrade to 
+- Identify the major version you want to upgrade to
 
 - Review the changes in the [changelog](https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/CHANGELOG.md).
 
 ## Upgrade Steps
 
-Create a PR in Cloud Platform Infrastructure repository against the [EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf) 
+Create a PR in Cloud Platform Infrastructure repository against the [EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf)
 making the change to the desired [terraform-aws-eks version](https://github.com/terraform-aws-modules/terraform-aws-eks)
 
 ```
@@ -61,8 +61,8 @@ To update the node groups with the new template version:
  - click on `Change launch template version` option
  - select update strategy as `force update` and Update.
 
-This will perform a rolling update of all the nodes in the node group. 
-When AWS recycles the nodes, it will not evict pods if it will break the PDB. 
+This will perform a rolling update of all the nodes in the node group.
+When AWS recycles the nodes, it will not evict pods if it will break the PDB.
 This will cause the node to stall the update and the nodes will not continue to recycle.
 
 This CloudWatch Dashboard is used to monitor the pod eviction status for live cluster.
@@ -71,7 +71,7 @@ To rectify this, run the script mentioned in [Recycle-all-nodes Gotchas](/recycl
 
 ### Upgrade with breaking changes
 
-Recent EKS module upgrade from 17 to 18 mentioned breaking changes to the resources. 
+Recent EKS module upgrade from 17 to 18 mentioned breaking changes to the resources.
 Hence, a non-distruptive process of creating new node group, moving terraform state,
 draining the old node group and finally deleting the old node group was followed.
 
