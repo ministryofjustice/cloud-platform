@@ -1,0 +1,81 @@
+---
+title: Upgrade EKS Terraform Module
+weight: 53
+last_reviewed_on: 2024-04-22
+review_in: 6 months
+---
+
+# Upgrade EKS Terraform Module
+
+The Cloud Platform EKS clusters are created using the official [terraform-aws-eks](https://github.com/terraform-aws-modules/terraform-aws-eks) module.
+This is independent of the EKS version and EKS addons. Therefore, it will not always require to upgrade the EKS version or EKS addons when the EKS module is upgraded.
+
+## Pre-requisites
+
+Before you begin, there are a few pre-requisites:
+
+- Your GPG key must be added to the [infrastructure repo](https://github.com/ministryofjustice/cloud-platform-infrastructure) so that you can run `git-crypt unlock`.
+
+- You have the [AWS CLI](https://aws.amazon.com/cli/) profile `moj-cp` with suitable credentials.
+
+- You have terraform and docker installed
+
+- Identify the major version you want to upgrade to
+
+- Review the changes in the [changelog](https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/CHANGELOG.md).
+
+## Upgrade Steps
+
+Create a PR in Cloud Platform Infrastructure repository against the [EKS module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf)
+making the change to the desired [terraform-aws-eks version](https://github.com/terraform-aws-modules/terraform-aws-eks)
+
+```
+ module "eks" {
+   source  = "terraform-aws-modules/eks/aws"
+-  version = "17.24.0"
++  version = "18.31.2"
+```
+
+Based on the changes in the changelog, you can decide if the upgrade is a breaking change or not.
+
+### Upgrade with no breaking changes
+
+- Execute `terraform plan` (or the automated plan pipeline) and review changes. If changes are all as expected, run `terraform apply` to execute the changes.
+
+Note: When you run `terraform plan`, if it is only showing launch_template version change as below, executing `terraform apply` will only create a new template version.
+
+```
+  # module.eks.module.node_groups.aws_launch_template.workers["monitoring_ng"] will be updated in-place
+  ~ resource "aws_launch_template" "workers" {
+      ~ default_version         = 1 -> (known after apply)
+      ~ latest_version          = 1 -> (known after apply)
+```
+
+For cluster node groups to use the new template version created, you need to run `terraform apply` again, that will trigger a re-cycle of all the nodes using terraform.
+This can be disruptive and also incur terraform apply timeout. Hence, follow the below steps to update the node groups with the new template version.
+
+To update the node groups with the new template version:
+ - login to AWS console
+ - select EKS and select the cluster
+ - click on the Compute and select the node group
+ - click on `Change launch template version` option
+ - select update strategy as `force update` and Update.
+
+This will perform a rolling update of all the nodes in the node group.
+When AWS recycles the nodes, it will not evict pods if it will break the PDB.
+This will cause the node to stall the update and the nodes will not continue to recycle.
+
+This CloudWatch Dashboard is used to monitor the pod eviction status for live cluster.
+
+To rectify this, run the script mentioned in [Recycle-all-nodes Gotchas](/recycle-all-nodes.html#gotchas) section
+
+### Upgrade with breaking changes
+
+Recent EKS module upgrade from 17 to 18 mentioned breaking changes to the resources.
+Hence, a non-distruptive process of creating new node group, moving terraform state,
+draining the old node group and finally deleting the old node group was followed.
+
+Detailed steps are mentioned in the [google doc](https://docs.google.com/document/d/1Nv1WsqdYMBzjpO8jfmXEqjAY5nZ9GYWUpNNaMJVJyaw/edit?usp=sharing)
+The PR with the module changes are here: Here is the PR for the changes: [#2458](https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/2458)
+
+Any future upgrades where the terraform plan or the changelog shows breaking changes, the procedure needs to be reviewed and modified based on what the breaking changes are.
