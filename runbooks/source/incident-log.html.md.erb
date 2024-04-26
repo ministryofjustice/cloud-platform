@@ -7,6 +7,53 @@ weight: 45
 
 > Use the [mean-time-to-repair.rb] script to view performance metrics
 
+
+## Q1 2024 (January-April)
+
+- **Mean Time to Repair**: 3h 21m
+
+- **Mean Time to Resolve**: 21h 20m
+
+### Incident on 2024-04-15 - Prometheus restarted during WAL reload several times which resulted in missing metrics
+
+- **Key events**
+  - First detected: 2024-04-15 12:32
+  - Incident declared: 2024-04-15 14.43
+  - Repaired: 2024-04-15 15:53
+  - Resolved 2024-04-18 16:13
+
+- **Time to repair**: 3h 21m
+
+- **Time to resolve**: 21h 20m
+
+- **Identified**: Team observed that the prometheus pod was restarted several times after a planned prometheus change
+
+- **Impact**: Prometheus is not Available. The Cloud Platform lose the monitoring for a period of time.
+
+- **Context**:
+  - 2024-04-15 12:32: Prometheus was not available after a planned change
+  - 2024-04-15 12:52: Found that the WAL reload was not completing and triggering a restart before completing
+  - 2024-04-15 13:00: Update send to users about the issue with Prometheus
+  - 2024-04-15 12:57: Planned change reverted to exclude that as a root cause but that didnt help
+  - 2024-04-15 13:46: Debugged the log shows that startupProbe failed event
+  - 2024-04-15 15:21: Increasing the StartupProbe to a higher value to 30 mins. The default is 15 mins
+  – 2024-04-15 15:53: Applied the change to increase startupProbe, Prometheus has become available, Incident repaired  
+  - 2024-04-15 16:00: Users updated with the Prometheus Status
+  - 2024-04-18 16:13: Team identified the reason for the longer WAL reload and recorded findings, Incident Resolved. 
+
+- **Resolution**:
+  - During the planning restart, the WAL count of Prometheus was higher and hence the reload takes too much time that the default startupProbe was not enough
+  - Increasing the startupProbe threshold allowed the WAL reload to complete
+
+- **Review actions**:
+  - Team discussed about performing planned prometheus restarts when the WAL count is lower to reduce the restart time
+  - The default CPU and Memory requests were set to meet the maximum usage
+  - Create a test setup to recreate live WAL count
+  - Explore memory-snapshot-on-shutdown and auto-gomaxprocs feature flag options
+  - Explore remre storage of WAL files to a different location
+  - Look into creating a blue-green prometheus to have live like setup to test changes before applying to live
+  - Spike into Amazon Managed Prometheus
+
 ## Q4 2023 (October-December)
 
 - **Mean Time to Repair**: 35h 36m
