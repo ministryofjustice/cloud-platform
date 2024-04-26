@@ -7,7 +7,6 @@ weight: 45
 
 > Use the [mean-time-to-repair.rb] script to view performance metrics
 
-
 ## Q1 2024 (January-April)
 
 - **Mean Time to Repair**: 3h 21m
@@ -37,9 +36,9 @@ weight: 45
   - 2024-04-15 12:57: Planned change reverted to exclude that as a root cause but that didnt help
   - 2024-04-15 13:46: Debugged the log shows that startupProbe failed event
   - 2024-04-15 15:21: Increasing the StartupProbe to a higher value to 30 mins. The default is 15 mins
-  – 2024-04-15 15:53: Applied the change to increase startupProbe, Prometheus has become available, Incident repaired  
+  – 2024-04-15 15:53: Applied the change to increase startupProbe, Prometheus has become available, Incident repaired
   - 2024-04-15 16:00: Users updated with the Prometheus Status
-  - 2024-04-18 16:13: Team identified the reason for the longer WAL reload and recorded findings, Incident Resolved. 
+  - 2024-04-18 16:13: Team identified the reason for the longer WAL reload and recorded findings, Incident Resolved.
 
 - **Resolution**:
   - During the planning restart, the WAL count of Prometheus was higher and hence the reload takes too much time that the default startupProbe was not enough
