@@ -54,11 +54,13 @@ Find an up to date list in our [user guide](https://user-guide.cloud-platform.se
 | [Kuberos](https://github.com/ministryofjustice/cloud-platform-terraform-kuberos)                                                                  | Deploys kuberos which enables users to authenticate to the cluster                                                                  |
 | [Logging](https://github.com/ministryofjustice/cloud-platform-terraform-logging)                                                                  | Deploys standard logging tools such as [fluentbit](https://fluentbit.io/), etc.                                                     |
 | [Monitoring](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring)                                                            | Deploys standard monitoring tools such as [AlertManager](https://prometheus.io/docs/alerting/latest/alertmanager/), exporters, etc. |
-| [Gatekeeper](https://github.com/ministryofjustice/cloud-platform-terraform-gatekeeper) Deploys Gatekeeper policy controller and required policies |
+| [Gatekeeper](https://github.com/ministryofjustice/cloud-platform-terraform-gatekeeper)                                                            | Deploys Gatekeeper policy controller and required policies
 | [Starter Pack](https://github.com/ministryofjustice/cloud-platform-terraform-starter-pack)                                                        | Deploys Helloworld and multicontainer app                                                                                           |
 | [Trivy Operator](https://github.com/ministryofjustice/cloud-platform-terraform-trivy-operator)                                                    | Deploys [Trivy Operator](https://aquasecurity.github.io/trivy-operator/v0.1.5/operator/installation/helm/)                          |
-| [Velero](https://github.com/ministryofjustice/cloud-platform-terraform-velero) Deploys velero to manage backup and restore                        |
+| [Velero](https://github.com/ministryofjustice/cloud-platform-terraform-velero)                                                                    | Deploys Velero to manage backup and restore
 | [VPC Flow logs](https://github.com/ministryofjustice/cloud-platform-terraform-flow-logs)                                                          | Enables AWS Flow logs to capture information about the IP traffic going to and from network interfaces in VPC.                      |
+| [OpenSearch CloudWatch Alarm](https://github.com/ministryofjustice/cloud-platform-terraform-opensearch-cloudwatch-alarm)                          | Deploys the recommended [Amazon OpenSearch CloudWatch Alarm](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/cloudwatch-alarms.html) and sends alerts to an SNS topic                      |
+
 
 ### Other
 
