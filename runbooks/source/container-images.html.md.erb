@@ -1,7 +1,7 @@
 ---
 title: Container Images used by Cluster Components
 weight: 55
-last_reviewed_on: 2024-04-17
+last_reviewed_on: 2024-05-10
 review_in: 3 months
 ---
 
@@ -80,7 +80,7 @@ This depends on several factors, some of them are:
 | container image | urgency | latest version for k8s 1.27 | latest version available | latest helm chart |
 |-|-|-|-|-|
 | debian:bookworm-slim | 🟢 | latest | n/a |
-| fluent/fluent-bit:2.1.8-amd64 | 🟠 | v3.0.1 | [v3.0.1](https://github.com/fluent/fluent-bit/releases/tag/v3.0.1) | n/a |
+| fluent/fluent-bit:3.0.2-amd64 | 🟢 | v3.0.1 | [v3.0.3](https://github.com/fluent/fluent-bit/releases/tag/v3.0.3) | n/a |
 | ministryofjustice/cloud-platform-custom-error-pages:0.6 | 🟠 | [managed by us](https://github.com/ministryofjustice/cloud-platform-custom-error-pages) | [managed by us](https://github.com/ministryofjustice/cloud-platform-custom-error-pages) | n/a |
 | registry.k8s.io/ingress-nginx/controller:v1.8.4| 🟢 | [v1.10.0](https://github.com/kubernetes/ingress-nginx?tab=readme-ov-file#supported-versions-table) | [v1.10.0](https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.10.0) | [v4.10.0](https://github.com/kubernetes/ingress-nginx/tree/main/charts/ingress-nginx)
 
@@ -92,12 +92,12 @@ This depends on several factors, some of them are:
 | 602401143452.dkr.ecr.eu-west-2.amazonaws.com/eks/coredns:v1.10.1-eksbuild.7 | 🟢 | [v1.10.1-eksbuild.7](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html) | [v1.11.1-eksbuild.6](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html) | n/a |
 | 066635153087.dkr.ecr.il-central-1.amazonaws.com/eks/kube-proxy:v1.27.10-minimal-eksbuild.2 | 🟢 | [v1.27.12-eksbuild.2](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html) | [v1.29.1-eksbuild.2](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html) | n/a
 | docker.io/bitnami/external-dns:0.13.4-debian-11-r14 | 🟢 | v0.14.x | [v0.14.x](https://github.com/kubernetes-sigs/external-dns/releases/tag/v0.14.0) | [v0.14.x](https://github.com/bitnami/charts/blob/main/bitnami/external-dns/Chart.yaml#L11) |
-| public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver:v1.24.0 | 🟠 | [v1.29.1](https://github.com/kubernetes-sigs/aws-ebs-csi-driver?tab=readme-ov-file#compatibility) | [v1.29.1](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.29.1) | [2.29.1](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.29.1) |
-| public.ecr.aws/eks-distro/kubernetes-csi/external-attacher:v4.4.0-eks-1-28-6 | 🟠 | [v4.5.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [v1.29.1](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.29.1) | [2.29.1](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.29.1) |
-| public.ecr.aws/eks-distro/kubernetes-csi/external-provisioner:v3.5.0-eks-1-28-6 | 🟠 | [v4.0.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [v1.29.1](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.29.1) | [2.29.1](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.29.1) |
-| public.ecr.aws/eks-distro/kubernetes-csi/external-resizer:v1.9.0-eks-1-28-6 | 🟠 | [v1.10.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [v1.29.1](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.29.1) | [2.29.1](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.29.1) |
-| public.ecr.aws/eks-distro/kubernetes-csi/livenessprobe:v2.10.0-eks-1-28-6 | 🟠 | [v2.12.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [v1.29.1](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.29.1) | [2.29.1](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.29.1) |
-| public.ecr.aws/eks-distro/kubernetes-csi/node-driver-registrar:v2.9.0-eks-1-28-6 | 🟠 | [v2.10.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [v1.29.1](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.29.1)  | [2.29.1](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.29.1) |
+| public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver:v1.29.1 | 🟢 | [v1.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver?tab=readme-ov-file#compatibility) | [v1.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.30.0) | [2.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.30.0) |
+| public.ecr.aws/eks-distro/kubernetes-csi/external-attacher:v4.5.0-eks-1-29-7 | 🟢 | [v4.5.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [v1.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.29.1) | [2.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.30.0) |
+| public.ecr.aws/eks-distro/kubernetes-csi/external-provisioner:v4.0.0-eks-1-29-7 | 🟢 | [v4.0.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [v1.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.29.1) | [2.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.30.0) |
+| public.ecr.aws/eks-distro/kubernetes-csi/external-resizer:v1.10.0-eks-1-29-7 | 🟢 | [v1.10.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [v1.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.29.1) | [2.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.30.0) |
+| public.ecr.aws/eks-distro/kubernetes-csi/livenessprobe:v2.12.0-eks-1-29-7 | 🟢 | [v2.12.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [v1.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.29.1) | [2.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.30.0) |
+| public.ecr.aws/eks-distro/kubernetes-csi/node-driver-registrar:v2.10.0-eks-1-29-7 | 🟢 | [v2.10.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [v1.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.29.1)  | [2.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.30.0) |
 | registry.k8s.io/autoscaling/cluster-autoscaler:v1.27.5 | 🟢 | [v1.27.5](https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler#releases) | [v1.29.0](https://github.com/kubernetes/autoscaler/releases/tag/cluster-autoscaler-1.29.0) | [9.36.0](https://github.com/kubernetes/autoscaler/releases/tag/cluster-autoscaler-chart-9.36.0) |
 | registry.k8s.io/descheduler/descheduler:v0.27.1 | 🟢 | [v0.27.1](https://github.com/kubernetes-sigs/descheduler?tab=readme-ov-file#%EF%B8%8F--documentation-versions-by-release) | [v0.29.0](https://github.com/kubernetes-sigs/descheduler/releases/tag/v0.29.0) | [0.29.0](https://github.com/kubernetes-sigs/descheduler/releases/tag/descheduler-helm-chart-0.29.0) |
 | registry.k8s.io/metrics-server/metrics-server:v0.6.2 | 🟠 | [v0.7.1](https://github.com/kubernetes-sigs/metrics-server?tab=readme-ov-file#compatibility-matrix) | [v0.7.1](https://github.com/kubernetes-sigs/metrics-server/releases/tag/v0.7.1) | [3.12.1](https://github.com/kubernetes-sigs/metrics-server/releases/tag/metrics-server-helm-chart-3.12.1) |
@@ -119,7 +119,7 @@ This depends on several factors, some of them are:
 ## logging
 | container image | urgency | latest version for k8s 1.27 | latest version available | latest helm chart |
 |-|-|-|-|-|
-| docker.io/fluent/fluent-bit:2.2.1 | 🟠  | v3.0.1 | [v3.0.1](https://github.com/fluent/fluent-bit/releases/tag/v3.0.1) | [0.46.0](https://github.com/fluent/helm-charts) |
+| docker.io/fluent/fluent-bit:3.0.2 | 🟢  | v3.0.2 | [v3.0.3](https://github.com/fluent/fluent-bit/releases/tag/v3.0.3) | [0.46.5](https://github.com/fluent/helm-charts) |
 
 ## monitoring
 | container image | urgency | latest version for k8s 1.27 | latest version available | latest helm chart |
@@ -148,7 +148,7 @@ This depends on several factors, some of them are:
 ## tigera-operator
 | container image | urgency | latest version for k8s 1.27 | latest version available | latest helm chart |
 |-|-|-|-|-|
-| quay.io/tigera/operator:v1.29.1 | 🟠 | v1.33.0 | [v1.33.0](https://github.com/tigera/operator/releases/tag/v1.33.0) | [3.27.0](https://github.com/projectcalico/calico/tree/master/charts/tigera-operator)
+| quay.io/tigera/operator:v1.30.0 | 🟠 | v1.33.0 | [v1.33.0](https://github.com/tigera/operator/releases/tag/v1.33.0) | [3.27.0](https://github.com/projectcalico/calico/tree/master/charts/tigera-operator)
 
 ## trivy-system
 | container image | urgency | latest version for k8s 1.27 | latest version available | latest helm chart |
