@@ -1,7 +1,7 @@
 ---
 title: Credentials rotation for auth0 apps
 weight: 68
-last_reviewed_on: 2023-11-20
+last_reviewed_on: 2024-05-24
 review_in: 6 months
 ---
 
@@ -43,14 +43,14 @@ $terraform plan
 $ terraform apply -target=module.monitoring.kubernetes_secret.grafana_secret -target=module.monitoring.helm_release.prometheus_proxy -target=module.monitoring.helm_release.alertmanager_proxy  -target=module.kuberos.helm_release.kuberos -target=module.monitoring.helm_release.kibana_audit_proxy -target=module.monitoring.helm_release.kibana_proxy
 ```
 
-Unfortunately, grafana pod will not pick up the secret change, so it needs to be recyled (just delete it and it will automatically get redeployed):
+Unfortunately, grafana pod will not pick up the secret change, so it needs to be recycled (just delete it and it will automatically get redeployed):
 
 ```
 $ GrafanaPodName=$(kubectl -n monitoring get pods -o name | grep grafana)
 $ kubectl -n monitoring delete pod $GrafanaPodName
 ```
 
-## 3) Verifiying changes
+## 3) Verifying changes
 
 In order to verify that the changes were successfully applied, follow the checklist below (order doesn't matter):
 

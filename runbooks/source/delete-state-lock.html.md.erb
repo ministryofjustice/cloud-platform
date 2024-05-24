@@ -1,7 +1,7 @@
 ---
 title: Delete terraform state lock
 weight: 199
-last_reviewed_on: 2023-11-20
+last_reviewed_on: 2024-05-24
 review_in: 6 months
 ---
 
@@ -16,9 +16,7 @@ Error: Error locking state: Error acquiring the state lock: ConditionalCheckFail
     status code: 400, request id: 8F9C5H04HLD0TVN4V0PQIRRMFBVV4KQNSO5AEMVJF66Q9ASUAAJG
 ```
 
-If you see repeated failures trying to acquire the lock on the same namespace,
-it probably means the lock record has been left in place by mistake, because a
-previous run failed to release the lock when it should have.
+If you see repeated failures trying to acquire the lock on the same namespace, it probably means the lock record has been left in place by mistake, because a previous run failed to release the lock when it should have.
 
 To fix this, you need to delete the lock record.
 
@@ -61,9 +59,7 @@ Invoke it like this:
 4. Enter `LockID` as the filter attribute, and change `String, =` to `String, contains` as the filter criteria
 5. Enter the namespace name as the string value to match, and click `Start search`
 
-When you find the relevant lock records, delete them. Terraform will recreate
-any missing records the next time it tries to acquire the lock for that
-terraform state file.
+When you find the relevant lock records, delete them. Terraform will recreate any missing records the next time it tries to acquire the lock for that terraform state file.
 
 ## Terraform command
 
