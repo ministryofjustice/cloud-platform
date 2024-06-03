@@ -15,7 +15,7 @@ When a launch template is updated, this will cause all of the nodes to recycle. 
 
 ## Recycling process
 
-Avoid letting terraform run the changes because terraform can start by deleting all the current nodes and then recreating them causing an outage to users. Instead create a new node group through the aws console, [instructions can be found here](https://runbooks.cloud-platform.service.justice.gov.uk/node-group-changes.html)
+Avoid letting terraform run EKS level changes because terraform can start by deleting all the current nodes and then recreating them causing an outage to users. Instead, _create a new node group_ through terraform and then cordon and drain the old node group [instructions can be found here](https://runbooks.cloud-platform.service.justice.gov.uk/node-group-changes.html)
 
 AWS will handle the process of killing the nodes with the old launch configurations and launching new nodes with the latest
 launch configuration. AWS will initially spin up some extra nodes (for around a 60 node cluster it will spin up 8 extra) to provide spaces for pods as old nodes are cordoned, drained and deleted.
