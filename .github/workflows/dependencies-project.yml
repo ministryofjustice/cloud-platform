@@ -1,0 +1,11 @@
+name: Add dependencies to Cloud Platform project
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  add-dependabot-to-project:
+    uses: ministryofjustice/cloud-platform-github-workflows/.github/workflows/dependencies-project.yml@main
+    secrets: inherit
