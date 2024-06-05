@@ -31,7 +31,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Approving PR
-        uses: hmarr/auto-approve-action@v2
+        uses: hmarr/auto-approve-action@v4
 
         if: steps.approve_pr_check.outputs.review_pr == 'true'
         with:
