@@ -1,7 +1,7 @@
 ---
 title: Change Process in Cloud Platform
 weight: 51
-last_reviewed_on: 2024-01-24
+last_reviewed_on: 2024-06-06
 review_in: 6 months
 ---
 
@@ -13,15 +13,16 @@ The Cloud Platform team implements and encourage an Infrastructure as Code (IaC)
 
 Mostly all components are Terraform [modules](https://developer.hashicorp.com/terraform/language/modules), and they are managed in their own git repository; you can list all modules [here](https://github.com/ministryofjustice?q=cloud-platform-terraform&type=&language=).
 
-## Making Changes to cloud-plarform-infrastructure
+## Making Changes to cloud-platform-infrastructure
 
-1. Create a PR which includes the change you want to make. Make sure the [plan pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-plan-infra-live/) is happy with the change.
+1. Create a PR which includes the change you want to make. Make sure the [plan pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-plan-infra-live/) is happy with the change. It is good practice to link the PR to the issue that describes the change.
 2. Chase the team to get your PR approved, and if it involves downtime ensure you have communications in place.
-3. Merge and wait until the [apply pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-apply-infra-live/) applies your change.
+3. For certain changes, pausing the infrastructure apply pipelines and running them individually is favourable. If you are pausing bootstrap and infrastructure pipelines, be sure to communicate this in the team slack channel.
+4. Merge and wait until the [apply pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-apply-infra-live/) applies your change.
 
 ## Making Changes to Terraform modules
 
-Updating a module is very simple and consist in the following steps:
+Updating a module is very simple and consists of the following steps:
 
 1. Create a PR and ask a team member for approval.
 2. Merge PR
@@ -30,7 +31,7 @@ Updating a module is very simple and consist in the following steps:
 
 Steps 2 and 3 can be done at any time and they don't affect the running infrastructure, since all Terraform modules calls have a pinned release version. No Terraform module should point to master branches or latest releases automatically.
 
-Finally, create the PR which updates the definition where your module is called and get ready to apply it following the guidelines above.
+Finally, create the PR which updates the definition where your module is called and get ready to apply it following the guidelines above. For clarity, reference the module release in the PR description.
 
 ## Making Changes to Helm Charts
 
