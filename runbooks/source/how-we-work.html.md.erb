@@ -86,8 +86,6 @@ We have a support squad to manage the support requests and alerts that come in. 
 
 - Acknowledging and invoking the team to high-priority alerts in the `#high-priority-alarms` slack channel during support hours
 - The 🔨 Hammer of Justice
-    - Ensuring queries in the `#ask-cloud-platform` slack channel are answered
-    - Reviewing PRs raised by users of the Cloud Platform against the [environments repository]
 - Acknowledging and responding to alerts in the `#lower-priority-alarms` slack channel which include
     - Alerts related to the platform - lower priority alarms which are triggered from Prometheus, AWS, and Pingdom
     - Alerts from concourse pipelines related to Integration tests, infrastructure and divergence
@@ -108,7 +106,6 @@ The Hammer is responsible for:
 
 * Ensuring questions/problems in the `#ask-cloud-platform` slack channel are being worked on, and that users receive frequent updates until a problem is resolved
 * Ensuring that users' PRs raised against the [environments repository] are reviewed in a timely fashion
-* Ensuring that Cloud Platform team members' PRs are reviewed in a timely fashion
 
 It is **not** the Hammer's job to **answer** every query in the channel or **review** every PR
 
@@ -124,14 +121,16 @@ and there is also the risk that questions go unanswered and PRs get blocked wait
 ### Support Tickets
 
 Support tickets are created by users of Cloud Platform for various reasons. These can be anything from
-- a request for help with a technical problem,
+
+- a request for help with a technical problem
 - a request for a new feature or service
 - setting up Alertmanager Receiver
 - setting up pingdom integration
 
 Support tickets are triaged by the support squad. If the support ticket is a quick change e.g. for setting an Alertmanager receiver, the ticket should be assigned to
-a member of the support team and should be finished in a day or two. If the ticket involves some investigation work, then this can be assigned to a support squad member in the same sprint, or discussed in
-backlog refinement and added to the following sprint.
+a member of the support team and should be finished in a day or two. 
+
+If the ticket involves some investigation work, then this can be assigned to a support squad member in the same sprint, or discussed in backlog refinement and added to the following sprint.
 
 When working on support ticket, ensure that the ticket is updated with the progress and the user is informed.
 
