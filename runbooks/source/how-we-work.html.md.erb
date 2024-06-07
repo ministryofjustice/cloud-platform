@@ -1,7 +1,7 @@
 ---
 title: How We Work
 weight: 10
-last_reviewed_on: 2024-02-14
+last_reviewed_on: 2024-06-06
 review_in: 3 months
 ---
 
@@ -49,7 +49,7 @@ Stories are estimated with story points based on **complexity** during planning 
 
 ## The Board / Tickets
 
-We use a kanban process to manage our backlog of work on this [zenhub board], which aggregates GitHub Issues from the various CP team repositories.
+We use a kanban process to manage our backlog of work on this [Github Project board], which aggregates GitHub Issues from the various CP team repositories.
 
 During the sprint, the process of getting work done should look like this:
 
@@ -81,7 +81,24 @@ Please read these [technical guidelines](https://ministryofjustice.github.io/tec
 * Please be pro-active about reviewing other team members' PRs
 * When reviewing a PR, please add a "reaction" emoji to the corresponding slack message, so that other team members know you're doing so. This avoids duplicated effort. We tend to use 👀 to show we're reviewing a PR, and/or ✔ when we've approved it.
 
-## The 🔨 Hammer of Justice
+## Support Squad
+We have a support squad to manage the support requests and alerts that come in. The support squad is responsible for the below in order of priority:
+
+- Acknowledging and invoking the team to high-priority alerts in the `#high-priority-alarms` slack channel during support hours
+- The 🔨 Hammer of Justice
+    - Ensuring queries in the `#ask-cloud-platform` slack channel are answered
+    - Reviewing PRs raised by users of the Cloud Platform against the [environments repository]
+- Acknowledging and responding to alerts in the `#lower-priority-alarms` slack channel which include
+    - Alerts related to the platform - lower priority alarms which are triggered from Prometheus, AWS, and Pingdom
+    - Alerts from concourse pipelines related to Integration tests, infrastructure and divergence
+    - Alerts from concourse pipelines related to [environments repository] i.e apply-namespace, apply-live
+    - Any other alerts from concourse pipelines
+- Support tickets raised by users
+- Actions from the How out of date are we? report i.e. (e.g. reviewing documentation pages, or __carefully__ destroying orphaned AWS resources)
+- Open Dependabot PRs raised against the `cloud-platform` repositories, which are managed in our GitHub Project [here](https://github.com/orgs/ministryofjustice/projects/65/views/16)
+- Any issues from [link checker report]
+
+### The 🔨 Hammer of Justice
 
 The origin of the name is lost, but it sounds a lot more fun than "support manager" 😏
 
@@ -99,18 +116,24 @@ It **is** the Hammer's job to ensure that all queries are handled, and that PRs 
 
 > Anyone can (and should) respond to queries in `#ask-cloud-platform`, and review PRs. You don't have to be the Hammer to help.
 
-### Backlog Tickets
+#### Backlog Tickets
 
-Working on tickets in the backlog when you're the Hammer is not advised. The constant context switching makes it hard to get significant work done, and there is also the risk that questions go unanswered and PRs get blocked waiting for review because you're head down in a problem and don't notice them.
+Working on tickets in the backlog when you're the Hammer is not advised. The constant context switching makes it hard to get significant work done,
+and there is also the risk that questions go unanswered and PRs get blocked waiting for review because you're head down in a problem and don't notice them.
 
-Instead, when not answering queries and reviewing PRs, the Hammer should work on fixing "squeaky wheels" - the minor alerts and problems that crop up which don't necessarily result in backlog tickets, or where such tickets never become high-priority enough to get selected during sprint planning.
+### Support Tickets
 
-"Squeaky wheels" could include things like:
+Support tickets are created by users of Cloud Platform for various reasons. These can be anything from
+- a request for help with a technical problem,
+- a request for a new feature or service
+- setting up Alertmanager Receiver
+- setting up pingdom integration
 
-* Todo items reported by [How out of date are we?] - (e.g. reviewing documentation pages, or (carefully) destroying orphaned AWS resources)
-* Intermittent alerts in the `#lower-priority-alarms` slack channel
-* Improving our integration tests
-* Fixing open issues from Link Checker Report
+Support tickets are triaged by the support squad. If the support ticket is a quick change e.g. for setting an Alertmanager receiver, the ticket should be assigned to
+a member of the support team and should be finished in a day or two. If the ticket involves some investigation work, then this can be assigned to a support squad member in the same sprint, or discussed in
+backlog refinement and added to the following sprint.
+
+When working on support ticket, ensure that the ticket is updated with the progress and the user is informed.
 
 ## Documentation
 
@@ -123,8 +146,9 @@ It is important to keep all of this up to date as the underlying code changes, s
 
 [This page](https://reports.cloud-platform.service.justice.gov.uk/documentation) hosts a list of documents which are overdue for review. Please feel free to review any of the documents listed, and raise a PR making any updates (including updating the `last_reviewed_on` date).
 
-[zenhub board]: https://app.zenhub.com/workspaces/cloud-platform-team-5ccb0b8a81f66118c983c189/board
+[Github Project board]: https://github.com/orgs/ministryofjustice/projects/65
 [environments repository]: https://github.com/ministryofjustice/cloud-platform-environments
 [user guide]: https://user-guide.cloud-platform.service.justice.gov.uk
 [runbooks]: https://runbooks.cloud-platform.service.justice.gov.uk
 [How out of date are we?]: https://reports.cloud-platform.service.justice.gov.uk/dashboard
+[link checker report]: https://github.com/ministryofjustice/cloud-platform/issues?q=is%3Aissue+is%3Aopen+Link+Checker+Report
