@@ -11,17 +11,19 @@ In order to migrate a terraform module from `components` into `core` there are a
 
 The aim is to make sure that when a terraform plan is run against both `core` and `compoents` after the MTM tool is ran there should be no terraform changes.
 
-There is a pipeline in Concourse that accepts `$CLUSTER_NAME` and `$MODULE_NAME` setting these and running the pipeline will migrate that module on the cluster specified.
+There is a pipeline in Concourse that accepts `$CLUSTER_NAME`, `$MODULE_NAME` and `$RESOURCE` setting these and running the pipeline will migrate that module/resource on the cluster specified. Resources can be passed as a comma seperated string.
+
+If you need to upgrade the `mtm` cli you can update the `$MTM_VERSION` parameter in the pipeline.
 
 The exact steps should follow:
 
-1. Raise PR with migrated module
-2. Update #cloud-platform informing the team about the module migration and to not make new PRs against `cloud-platform-infrastructure`.
-3. Pause pipelines
+1. Notify `#cloud-platform` that you are pausing concourse pipelines
+2. Pause `bootstrap`, `live-2`, `manager` and `live` pipelines.
+3. Raise PR with migrated module
 4. Log in to Concourse using `fly -t moj-cp login -c https://concourse.cloud-platform.service.justice.gov.uk/`
 5. Ensure your in the `cloud-platform-terraform-concourse` directory.
-6. Update pipelines with module name and cluster name:
-    `fly -t moj-cp set-pipeline --pipeline migrate-module --config migrate-module.yaml -v cluster_name=$CLUSTER_NAME -v module=$MODULE_NAME`
+6. Update pipelines with module and/or resources name and cluster name:
+    `fly -t moj-cp set-pipeline --pipeline migrate-module --config migrate-module.yaml -v cluster_name=cp-0306-0730 -v module=tigera_calico -v resources=kubectl_manifest.calico_crds,http.calico_crds`
 7. Run `migrate-module` pipeline from the Concourse UI.
 8. Unpause pipeline environment specific pipeline (e.g. live-2)
 9. Re-run PR plan - the plan should show "No changes. Your infrastructure matches the configuration."
