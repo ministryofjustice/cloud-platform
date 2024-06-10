@@ -11,7 +11,7 @@ In order to migrate a terraform module from `components` into `core` there are a
 
 The aim is to make sure that when a terraform plan is run against both `core` and `compoents` after the MTM tool is ran there should be no terraform changes.
 
-There is a pipeline in Concourse that accepts `$CLUSTER_NAME`, `$MODULE_NAME` and `$RESOURCE` setting these and running the pipeline will migrate that module/resource on the cluster specified. Resources can be passed as a comma seperated string. Getting a list of resources to migrate is a manual process that requires you to read through the terraform files in `components`, some can be found by tracing back dependencies others should be obvious via there name.
+There is a pipeline in Concourse that accepts `$CLUSTER_NAME`, `$MODULE_NAME` and `$RESOURCE` setting these and running the pipeline will migrate that module/resource on the cluster specified. Resources can be passed as a comma seperated string. Getting a list of resources to migrate is a manual process that requires you to read through the terraform files in `components`, some can be found by tracing back dependencies others should be obvious via there name. The name format for resources follow `$resource_type.$resource name` so `resource "kubernetes_storage_class" "storageclass"` becomes `kubernetes_storage_class.storageclass`, you can double check this by running `terraform state list`.
 
 If you need to upgrade the `mtm` cli you can update the `$MTM_VERSION` parameter in the pipeline.
 
