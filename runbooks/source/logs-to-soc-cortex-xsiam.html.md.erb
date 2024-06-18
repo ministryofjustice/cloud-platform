@@ -20,7 +20,7 @@ We are planning to push the following logs in the coming sprints. [Epic found he
 
 ## 1. Cloudtrail logs
 ### Architecture
-We have followed Palo Alto's documentation on implementation to allow [Cortex XSIAM to injest logs from Cloudtrail]. 
+We have followed Palo Alto's documentation on implementation to allow [Cortex XSIAM to injest logs from Cloudtrail].
 
 Cloudtrail logs are written to a S3 bucket. The implementation consist of enabling the S3 bucket to trigger event notifications to an SQS queue. An IAM user with access keys has been created to grant Cortex XSIAM to accesse the SQS queue and recieves all the log messages. The terraform code for this implementation is found in the [cloud-platform-terraform-infrastructure] repository.
 
@@ -33,7 +33,6 @@ To be implemented
 To be implemented
 ## 4. EKS logs
 To be implemented
-
 
 [Cortex XSIAM to injest logs from Cloudtrail]: https://docs-cortex.paloaltonetworks.com/r/Cortex-XSIAM/Cortex-XSIAM-Administrator-Guide/Ingest-Audit-Logs-from-AWS-Cloud-Trail
 [Epic found here]: https://github.com/ministryofjustice/cloud-platform/milestone/35
