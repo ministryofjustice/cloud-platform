@@ -1,0 +1,37 @@
+---
+title: How to Investigate PrometheusOperatorReconcile Errors
+weight: 218
+last_reviewed_on: 2024-06-17
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+When you see a `PrometheusOperatorReconcile` alert in the `#lower-priority-alarms` channel, it means that the Prometheus Operator is unable to reconcile the state of the Prometheus resources in the cluster.
+This means some of the prometheus rules or alerts are having issues and has not applied fine.
+
+## Troubleshooting
+
+Check the logs of the Prometheus Operator pod to see if there are any errors:
+
+```bash
+kubectl logs -n monitoring prometheus-operator-kube-p-operator-<pod-id> -f
+```
+
+If you see any error like below:
+
+```
+level=info ts=2024-02-23T10:31:29.0543824Z caller=rules.go:345
+component=prometheusoperator msg="Invalid rule" err="group
+\"XXX-elasticache\", rule 1, \"elasticache-enginecpu-utilisation\":
+annotation \"message\": template: __alert_elasticache-enginecpu-utilisation:1:
+undefined variable \"$clusterId\""
+```
+
+This could stops Prometheus from sending out alerts to certain channels and stops changes/new ones being created. You may also see an alert
+[PrometheusErrorSendingAlertsToSomeAlertmanagers](https://mojdt.slack.com/archives/C8QR5FQRX/p1718608823815629) if that was the case.
+
+You will need to fix the erroring PrometheusRule.
+
+If the rule is not configured in [cloud-platform-environments](https://github.com/ministryofjustice/cloud-platform-environments) repository,
+find the namespace that rule is applied and get the team slack-channel or the last person who made a change and inform them to fix the rule.
