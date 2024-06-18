@@ -21,17 +21,17 @@ kubectl logs -n monitoring prometheus-operator-kube-p-operator-<pod-id> -f
 If you see any error like below:
 
 ```
-level=info ts=2024-02-23T10:31:29.0543824Z caller=rules.go:345 
-component=prometheusoperator msg="Invalid rule" err="group 
-\"XXX-elasticache\", rule 1, \"elasticache-enginecpu-utilisation\": 
-annotation \"message\": template: __alert_elasticache-enginecpu-utilisation:1: 
+level=info ts=2024-02-23T10:31:29.0543824Z caller=rules.go:345
+component=prometheusoperator msg="Invalid rule" err="group
+\"XXX-elasticache\", rule 1, \"elasticache-enginecpu-utilisation\":
+annotation \"message\": template: __alert_elasticache-enginecpu-utilisation:1:
 undefined variable \"$clusterId\""
 ```
 
-This could stops Prometheus from sending out alerts to certain channels and stops changes/new ones being created. You may also see an alert 
+This could stops Prometheus from sending out alerts to certain channels and stops changes/new ones being created. You may also see an alert
 [PrometheusErrorSendingAlertsToSomeAlertmanagers](https://mojdt.slack.com/archives/C8QR5FQRX/p1718608823815629) if that was the case.
 
-You will need to fix the erroring PrometheusRule. 
+You will need to fix the erroring PrometheusRule.
 
-If the rule is not configured in [cloud-platform-environments](https://github.com/ministryofjustice/cloud-platform-environments) repository, 
+If the rule is not configured in [cloud-platform-environments](https://github.com/ministryofjustice/cloud-platform-environments) repository,
 find the namespace that rule is applied and get the team slack-channel or the last person who made a change and inform them to fix the rule.
