@@ -1,7 +1,7 @@
 ---
 title: Container Images used by Cluster Components
 weight: 55
-last_reviewed_on: 2024-06-24
+last_reviewed_on: 2024-06-25
 review_in: 3 months
 ---
 
@@ -90,7 +90,7 @@ This depends on several factors, some of them are:
 | 602401143452.dkr.ecr.eu-west-2.amazonaws.com/amazon-k8s-cni:v1.18.2-eksbuild.1 | 🟢 | [v1.18.2-eksbuild.1](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html) | [v1.18.2-eksbuild.1](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html) | n/a |
 | 602401143452.dkr.ecr.eu-west-2.amazonaws.com/amazon/aws-network-policy-agent:v1.1.2-eksbuild.1 | 🟢 | [v1.1.2-eksbuild.1](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html) | [v1.1.2-eksbuild.1](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html) | n/a
 | 602401143452.dkr.ecr.eu-west-2.amazonaws.com/eks/coredns:v1.10.1-eksbuild.11 | 🟢 | [v1.10.1-eksbuild.11](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html) | [v1.11.1-eksbuild.9](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html) | n/a |
-| 066635153087.dkr.ecr.il-central-1.amazonaws.com/eks/kube-proxy:v1.27.10-minimal-eksbuild.2 | 🟢 | [v1.28.8-eksbuild.5](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html) | [v1.30.0-eksbuild.3](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html) | n/a
+| 602401143452.dkr.ecr.eu-west-2.amazonaws.com/eks/kube-proxy:v1.28.8-minimal-eksbuild.5 | 🟢 | [v1.28.8-eksbuild.5](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html) | [v1.30.0-eksbuild.3](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html) | n/a
 | docker.io/bitnami/external-dns:0.13.4-debian-11-r14 | 🟢 | v0.14.x | [v0.14.x](https://github.com/kubernetes-sigs/external-dns/releases/tag/v0.14.0) | [v0.14.x](https://github.com/bitnami/charts/blob/main/bitnami/external-dns/Chart.yaml#L11) |
 | public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver:v1.29.1 | 🟢 | [v1.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver?tab=readme-ov-file#compatibility) | [v1.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.30.0) | [2.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.30.0) |
 | public.ecr.aws/eks-distro/kubernetes-csi/external-attacher:v4.5.0-eks-1-29-7 | 🟢 | [v4.5.0](https://distro.eks.amazonaws.com/releases/1-26/28/) | [v1.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v1.29.1) | [2.30.0](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/helm-chart-aws-ebs-csi-driver-2.30.0) |
