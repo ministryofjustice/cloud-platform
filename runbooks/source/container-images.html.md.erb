@@ -1,7 +1,7 @@
 ---
 title: Container Images used by Cluster Components
 weight: 55
-last_reviewed_on: 2024-06-25
+last_reviewed_on: 2024-06-27
 review_in: 3 months
 ---
 
@@ -80,9 +80,9 @@ This depends on several factors, some of them are:
 | container image | urgency | latest version for k8s 1.28 | latest version available | latest helm chart |
 |-|-|-|-|-|
 | debian:bookworm-slim | 🟢 | latest | n/a |
-| fluent/fluent-bit:3.0.2-amd64 | 🟢 | v3.0.1 | [v3.0.3](https://github.com/fluent/fluent-bit/releases/tag/v3.0.3) | n/a |
-| ministryofjustice/cloud-platform-custom-error-pages:0.6 | 🟠 | [managed by us](https://github.com/ministryofjustice/cloud-platform-custom-error-pages) | [managed by us](https://github.com/ministryofjustice/cloud-platform-custom-error-pages) | n/a |
-| registry.k8s.io/ingress-nginx/controller:v1.8.4| 🟢 | [v1.10.0](https://github.com/kubernetes/ingress-nginx?tab=readme-ov-file#supported-versions-table) | [v1.10.0](https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.10.0) | [v4.10.0](https://github.com/kubernetes/ingress-nginx/tree/main/charts/ingress-nginx)
+| fluent/fluent-bit:3.0.2-amd64 | 🟢 | v3.0.7 | [v3.0.7](https://github.com/fluent/fluent-bit/releases/tag/v3.0.7) | n/a |
+| ministryofjustice/cloud-platform-custom-error-pages:0.6 | 🟠 | [managed by us](https://github.com/ministryofjustice/cloud-platform-custom-error-pages) | [managed by us](https://github.com/ministryofjustice/cloud-platform-custom-error-pages/releases/tag/1.1.3) | n/a |
+| registry.k8s.io/ingress-nginx/controller:v1.8.4| 🟢 | [v1.10.1](https://github.com/kubernetes/ingress-nginx?tab=readme-ov-file#supported-versions-table) | [v1.10.1](https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.10.1) | [v4.10.1](https://github.com/kubernetes/ingress-nginx/tree/main/charts/ingress-nginx)
 
 ## kube-system
 | container image | urgency | latest version for k8s 1.28 | latest version available | latest helm chart |
@@ -124,20 +124,20 @@ This depends on several factors, some of them are:
 ## monitoring
 | container image | urgency | latest version for k8s 1.28 | latest version available | latest helm chart |
 |-|-|-|-|-|
-| docker.io/bitnami/redis:7.2.4-debian-11-r5 | 🟢 | v7.2.4-debian-12-r11 | [v7.2.4-debian-12-r11](https://hub.docker.com/layers/bitnami/redis/7.2.4-debian-12-r11/images/sha256-5447a91cb398819dc9a396bfc6d24a0ef0f72800e18e6c442a53ededd45a6331?context=explore) | n/a |
-| docker.io/bitnami/thanos:0.34.1-debian-12-r1 | 🟢 | v0.34.1 | [v0.34.1](https://github.com/thanos-io/thanos/releases)  | [v0.34.1](https://github.com/bitnami/charts/blob/main/bitnami/thanos/Chart.yaml#L13) |
-| docker.io/grafana/grafana:10.3.3 | 🟢 | v10.4.1| [v10.4.1](https://github.com/grafana/grafana/releases/tag/v10.4.1) | [58.0.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
-| ministryofjustice/prometheus-ecr-exporter:0.2.0 | 🟢 | managed by us | n/a | [0.4.0](https://github.com/ministryofjustice/cloud-platform-helm-charts/tree/main/prometheus-ecr-exporter) |
-| prom/cloudwatch-exporter:v0.15.1 | 🟢 | v0.15.5 | [v0.15.5](https://github.com/prometheus/cloudwatch_exporter/releases/tag/v0.15.5) | [0.25.3](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-cloudwatch-exporter)
-| quay.io/kiwigrid/k8s-sidecar:1.25.2 | 🟠 | v1.26.1 |  [v1.26.1](https://github.com/kiwigrid/k8s-sidecar/releases/tag/1.26.1) | [58.0.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
-| quay.io/oauth2-proxy/oauth2-proxy:v7.6.0 | 🟢 | v7.6.0 | [v7.6.0](https://github.com/oauth2-proxy/oauth2-proxy/releases/tag/v7.6.0) | [7.4.1](https://github.com/oauth2-proxy/manifests/releases/tag/oauth2-proxy-7.4.1) |
-| quay.io/prometheus-operator/prometheus-config-reloader:v0.71.2 | 🟠 | v0.73.0 | [v0.73.0](https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.73.0) | [58.0.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
-| quay.io/prometheus-operator/prometheus-operator:v0.71.2 | 🟠 | v0.73.0 | [v0.73.0](https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.73.0) | [58.0.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
-| quay.io/prometheus/alertmanager:v0.27.0 | 🟢 | v0.27.0 |  [v0.27.0](https://github.com/prometheus/alertmanager/releases/tag/v0.27.0) | [58.0.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
-| quay.io/prometheus/node-exporter:v1.7.0 | 🟢 | v1.7.0 |  [v1.7.0](https://github.com/prometheus/node_exporter/releases/tag/v1.7.0) | [58.0.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
-| quay.io/prometheus/prometheus:v2.50.1 | 🟢 | v2.51.1 |  [v2.51.1](https://github.com/prometheus/prometheus/releases/tag/v2.51.1)  | [58.0.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
-| quay.io/thanos/thanos:v0.33.0 | 🟢 | v0.34.1 | [v0.34.1](https://github.com/thanos-io/thanos/releases/tag/v0.34.1) | [58.0.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
-| registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.10.1 | 🟢 | [v2.10.1](https://github.com/kubernetes/kube-state-metrics?tab=readme-ov-file#compatibility-matrix)   | [2.12.0](https://github.com/kubernetes/kube-state-metrics/releases) |  [58.0.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L24) |
+| docker.io/bitnami/redis:7.2.4-debian-11-r5 | 🟢 | v7.2.5-debian-12-r1 | [v7.2.5-debian-12-r1](https://hub.docker.com/layers/bitnami/redis/7.2.5-debian-12-r1/images/sha256-4c7ac96a3d576ce06603c2809d32f0c0e1754699aeb5bc3cb727d158d14caefd?context=explore | n/a |
+| docker.io/bitnami/thanos:0.34.1-debian-12-r1 | 🟢 | v0.36.0 | [v0.36.0](https://github.com/thanos-io/thanos/releases/tag/v0.36.0-rc.0)  | [v0.35.1](https://github.com/bitnami/charts/blob/main/bitnami/thanos/Chart.yaml#L13) |
+| docker.io/grafana/grafana:10.3.3 | 🟢 | v11.1.0| [v11.1.0](https://github.com/grafana/grafana/releases/tag/v11.1.0) | [60.4.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L26) |
+| ministryofjustice/prometheus-ecr-exporter:0.2.0 | 🟢 | managed by us | n/a | [0.4.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-cloudwatch-exporter/Chart.yaml#L5) |
+| prom/cloudwatch-exporter:v0.15.1 | 🟢 | v0.15.5 | [v0.15.5](https://github.com/prometheus/cloudwatch_exporter/releases/tag/v0.15.5) | [0.25.3](https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-cloudwatch-exporter/Chart.yaml#L5)
+| quay.io/kiwigrid/k8s-sidecar:1.25.2 | 🟠 | v1.26.4 |  [v1.26.4](https://github.com/kiwigrid/k8s-sidecar/releases/tag/1.26.4) | [60.4.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L26) |
+| quay.io/oauth2-proxy/oauth2-proxy:v7.6.0 | 🟢 | v7.6.0 | [v7.6.0](https://github.com/oauth2-proxy/oauth2-proxy/releases/tag/v7.6.0) | [7.7.7](https://github.com/oauth2-proxy/manifests/releases/tag/oauth2-proxy-7.7.7) |
+| quay.io/prometheus-operator/prometheus-config-reloader:v0.71.2 | 🟠 | v0.75.0 | [v0.75.0](https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.73.0) | [60.4.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L26) |
+| quay.io/prometheus-operator/prometheus-operator:v0.71.2 | 🟠 | v0.75.0 | [v0.75.0](https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.75.0) | [60.4.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L26) |
+| quay.io/prometheus/alertmanager:v0.27.0 | 🟢 | v0.27.0 |  [v0.27.0](https://github.com/prometheus/alertmanager/releases/tag/v0.27.0) | [60.4.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L26) |
+| quay.io/prometheus/node-exporter:v1.7.0 | 🟢 | v1.7.0 |  [v1.8.1](https://github.com/prometheus/node_exporter/releases/tag/v1.8.1) | [60.4.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L26) |
+| quay.io/prometheus/prometheus:v2.50.1 | 🟢 | v2.53.0 |  [v2.53.0](https://github.com/prometheus/prometheus/releases/tag/v2.53.0)  | [60.4.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L26) |
+| quay.io/thanos/thanos:v0.33.0 | 🟢 | v0.36.0 | [v0.36.0](https://github.com/thanos-io/thanos/releases/tag/v0.36.0-rc.0) | [60.4.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L26) |
+| registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.10.1 | 🟢 | [v2.10.1](https://github.com/kubernetes/kube-state-metrics?tab=readme-ov-file#compatibility-matrix)   | [2.12.0](https://github.com/kubernetes/kube-state-metrics/releases) |  [60.4.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L26) |
 
 ## overprovision
 | container image | urgency | latest version for k8s 1.28 | latest version available | latest helm chart |
