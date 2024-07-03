@@ -1,7 +1,7 @@
 ---
 title: Container Images used by Cluster Components
 weight: 55
-last_reviewed_on: 2024-06-27
+last_reviewed_on: 2024-07-03
 review_in: 3 months
 ---
 
@@ -127,8 +127,8 @@ This depends on several factors, some of them are:
 | docker.io/bitnami/redis:7.2.4-debian-11-r5 | 🟢 | v7.2.5-debian-12-r1 | [v7.2.5-debian-12-r1](https://hub.docker.com/layers/bitnami/redis/7.2.5-debian-12-r1/images/sha256-4c7ac96a3d576ce06603c2809d32f0c0e1754699aeb5bc3cb727d158d14caefd?context=explore | n/a |
 | docker.io/bitnami/thanos:0.34.1-debian-12-r1 | 🟢 | v0.36.0 | [v0.36.0](https://github.com/thanos-io/thanos/releases/tag/v0.36.0-rc.0)  | [v0.35.1](https://github.com/bitnami/charts/blob/main/bitnami/thanos/Chart.yaml#L13) |
 | docker.io/grafana/grafana:10.3.3 | 🟠 | v11.1.0| [v11.1.0](https://github.com/grafana/grafana/releases/tag/v11.1.0) | [60.4.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L26) |
-| ministryofjustice/prometheus-ecr-exporter:0.2.0 | 🟢 | managed by us | n/a | [0.4.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-cloudwatch-exporter/Chart.yaml#L5) |
-| prom/cloudwatch-exporter:v0.15.1 | 🟢 | v0.15.5 | [v0.15.5](https://github.com/prometheus/cloudwatch_exporter/releases/tag/v0.15.5) | [0.25.3](https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-cloudwatch-exporter/Chart.yaml#L5)
+| ministryofjustice/prometheus-ecr-exporter:0.2.0 | 🟢 | managed by us | n/a | [0.4.0](https://github.com/ministryofjustice/cloud-platform-helm-charts/blob/main/prometheus-ecr-exporter/Chart.yaml#L5) |
+| ghcr.io/nerdswords/yet-another-cloudwatch-exporter:v0.61.2 | 🟢 | v0.61.2 | [v0.61.2](https://github.com/nerdswords/yet-another-cloudwatch-exporter/releases) | [0.38.0](https://github.com/nerdswords/helm-charts/releases)
 | quay.io/kiwigrid/k8s-sidecar:1.25.2 | 🟠 | v1.26.4 |  [v1.26.4](https://github.com/kiwigrid/k8s-sidecar/releases/tag/1.26.4) | [60.4.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L26) |
 | quay.io/oauth2-proxy/oauth2-proxy:v7.6.0 | 🟢 | v7.6.0 | [v7.6.0](https://github.com/oauth2-proxy/oauth2-proxy/releases/tag/v7.6.0) | [7.7.7](https://github.com/oauth2-proxy/manifests/releases/tag/oauth2-proxy-7.7.7) |
 | quay.io/prometheus-operator/prometheus-config-reloader:v0.71.2 | 🟠 | v0.75.0 | [v0.75.0](https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.73.0) | [60.4.0](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L26) |
