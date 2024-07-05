@@ -1,7 +1,7 @@
 ---
 title: Upgrade EKS cluster
 weight: 53
-last_reviewed_on: 2024-04-10
+last_reviewed_on: 2024-07-05
 review_in: 6 months
 ---
 
@@ -34,6 +34,10 @@ Before you begin, there are a few pre-requisites:
 - Review the official [EKS upgrading a cluster](https://docs.aws.amazon.com/eks/latest/userguide/update-cluster.html) document for any extra steps that are a part of a specific EKS release.
 
 - Run [kubent](https://github.com/doitintl/kube-no-trouble) against cluster to find deprecated APIs.
+
+## Creating Cluster Upgrade GitHub Issues
+
+In order to help maintain a clear process for steps to follow in carrying out a cluster upgrade, we have an [issue template](https://github.com/ministryofjustice/cloud-platform/blob/main/.github/ISSUE_TEMPLATE/cloud-platform-k8s-upgrade-template.md) which is used by [this script](https://github.com/ministryofjustice/cloud-platform/blob/main/cmd/create-upgrade-issues/main.go) to create individual issues for each step of the upgrade process. As you work through these issues, its helpful to review and update the template where necessary to ensure it remains relevant for future upgrades.
 
 ## Upgrade Steps
 

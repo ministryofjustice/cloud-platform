@@ -166,3 +166,9 @@ terraform apply
 ```
 
 [cluster build pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/create-cluster
+
+# Provisiong a custom cluster
+
+If you working on a task that involves changing/adding cluster configuration or components, you can have Concourse execute a clean cluster build for you based off your working infrastructure branch. Refer to the instructions detailed in the Concourse repository [pipelines README](https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/README.md#custom-cluster-pipeline) for the steps to follow. 
+
+Once you're done with your customised cluster, you can have Concourse delete it for you using the branch flag of the [CLI delete-cluster command](https://runbooks.cloud-platform.service.justice.gov.uk/delete-cluster.html#delete-the-cluster-with-concourse-delete-cluster-pipeline).
