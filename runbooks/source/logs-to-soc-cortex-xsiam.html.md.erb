@@ -1,7 +1,7 @@
 ---
 title: Logs going to SOC Palo Alto Cortex Xsiam
 weight: 9100
-last_reviewed_on: 2024-06-18
+last_reviewed_on: 2024-07-10
 review_in: 6 months
 ---
 
@@ -31,7 +31,11 @@ We have followed Palo Alto's documentation on implementation to allow [Cortex XS
 This implementation follows the same architectural pattern as pushing CloudTrail logs above. VPC flowlogs are written to a S3 bucket and triggers event notifications to an SQS queue. Cortex XSIAM then uses the references in these messages to retrieve the logs from the S3 bucket. The same IAM user access keys are used here. The terraform code for this implementation is found in the [cloud-platform-terraform-infrastructure] repository.
 
 ## 3. Route53 logs
-To be implemented
+### Architecture
+We have followed Palo Alto's documentation on implementation to allow [Cortex XSIAM to injest Route53 from S3].
+
+Since Route53 [Resolver query logging](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-query-logs.html) is VPC bound, we are calling the [Route53 logs module](https://github.com/ministryofjustice/cloud-platform-terraform-route53-logs) at the [VPC layer within infrastructure](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/main.tf#L114) and referencing the S3 bucket for the related SQS resources in the same way we do so for VPC FlowLogs, in the [cloud-platform-terraform-infrastructure] repository.
+
 ## 4. EKS logs
 To be implemented
 
@@ -41,6 +45,7 @@ We need put in a mechanism to periodically rotate the IAM User access keys creat
 
 [Cortex XSIAM to injest logs from Cloudtrail]: https://docs-cortex.paloaltonetworks.com/r/Cortex-XSIAM/Cortex-XSIAM-Administrator-Guide/Ingest-Audit-Logs-from-AWS-Cloud-Trail
 [Cortex XSIAM to injest VPC flowlogs from S3]: https://docs-cortex.paloaltonetworks.com/r/Cortex-XSIAM/Cortex-XSIAM-Administrator-Guide/Ingest-Network-Flow-Logs-from-Amazon-S3
+[Cortex XSIAM to injest Route53 from S3]: https://docs-cortex.paloaltonetworks.com/r/Cortex-XSIAM/Cortex-XSIAM-Administrator-Guide/Ingest-Network-Route-53-Logs-from-Amazon-S3
 [Epic found here]: https://github.com/ministryofjustice/cloud-platform/milestone/35
 [cloud-platform-terraform-infrastructure]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/account/sqs.tf
 [Suggestion and issue]: https://github.com/ministryofjustice/cloud-platform/issues/5724
