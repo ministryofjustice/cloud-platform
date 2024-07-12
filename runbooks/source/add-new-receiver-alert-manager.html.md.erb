@@ -1,13 +1,13 @@
 ---
 title: Add a new Alertmanager receiver and a slack webhook
 weight: 85
-last_reviewed_on: 2024-01-12
+last_reviewed_on: 2024-07-12
 review_in: 6 months
 ---
 
 # Add a new Alertmanager receiver and a slack webhook
 
-When Development Teams require to send custom alarms to their own channels the Alertmanager receiver has to be added to the alertmanager.
+When Development Teams require to send custom alarms to their own channels, the Alertmanager receiver has to be added to the alertmanager.
 
 ## Pre-requisites
 
@@ -39,7 +39,7 @@ Check [git-crypt documentation in user guide](https://user-guide.cloud-platform.
 
 3. Apply the terraform code changes to the live
 
-Once the changes are applied, provide the `severity` to the development team requested. Development team have to use the value as severity label when creating all custom application alerts.
+Once the changes are applied, provide the `severity` to the development team requested. Development teams have to use the value as severity label when creating all custom application alerts.
 
 An example receiver set and a prometheus rule will look as below
 
@@ -76,12 +76,12 @@ spec:
 
 ## Information Alerts
 
-AlertManager receivers for slack integration are configured for 2 type of alerts.
+AlertManager receivers for slack integration are configured for 2 types of alerts.
 
-1. to send a warning upon a alert rule condition is met and a recovery message once the condition is reversed
-2. to send a information type alert for monitoring non-problem/non-failure events and no recovery message - e.g for rule condition to positively know something happened (like a database refresh, or app deployment etc) which is not of type of problem/failure.
+1. to send a warning upon an alert rule condition is met and a recovery message once the condition is reversed
+2. to send an information type alert for monitoring non-problem/non-failure events and no recovery message - e.g for rule condition to positively know something happened (like a database refresh, or app deployment etc) which is not a type of problem/failure.
 
-All alerts are routed using the severity label set from the prometheus rule. If the severity label matches the keyword `info-`<severity> then it is routed to information type receivers.
+All alerts are routed using the severity label set from the prometheus rule. If the severity label matches the keyword `info-`<severity>, then it is routed to information type receivers.
 Hence, to receive information alert, prepend `info-` when setting the `severity` label of the prometheus rule.
 
 An example receiver set and a prometheus rule will look as below
