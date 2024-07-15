@@ -1,7 +1,7 @@
 ---
 title: Add nodes to the AWS EKS cluster
 weight: 65
-last_reviewed_on: 2024-01-15
+last_reviewed_on: 2024-07-15
 review_in: 6 months
 ---
 
@@ -61,7 +61,7 @@ Set the desired number of nodes that the group should launch with initially.
 nodes
 ```
 
-Modifying the node_groups_count in terraform will not update the desired size of the EKS cluster nor increase the actual node count. Its a design decision the
+Modifying the node_groups_count in terraform will neither update the desired size of the EKS cluster nor increase the actual node count. It is a design decision the
 module has taken. Refer issue [#835](https://github.com/terraform-aws-modules/terraform-aws-eks/issues/835).
 
 To increase/decrease the desired node group count, we need to use the AWS dashboard. Login to the AWS dashboard and navigate to EKS -> Select Cluster -> Select Compute tab
