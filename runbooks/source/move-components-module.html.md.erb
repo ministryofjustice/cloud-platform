@@ -15,7 +15,18 @@ There is a pipeline in Concourse that accepts `$CLUSTER_NAME`, `$MODULE_NAME` an
 
 If you need to upgrade the `mtm` cli you can update the `$MTM_VERSION` parameter in the pipeline.
 
-The exact steps should follow:
+## Notes on the pipeline
+
+The pipeline takes the following arguments:
+
+* `cluster_name` - Name of the cluster to target e.g. `cp-0001-0001`.
+* `module_name` - Name of the module to target e.g. `cert_manager`.
+* `resource` - Name of the resource to target e.g. `kubectl_manifest.prometheus_operator_crds`, accepts a comma separated list for multiple resources.
+* `flagged_resource` Name of flagged resource to target, this is used for resources that need to be pulled out of a module, accepts a comma separated list for multiple resources.
+
+Because of the way concourse variables work, none of the above can be blank. You can pass a dummy string in like `module.null` and the MTM tool will try and migrated a module/resource that doesn't exist.
+
+## Process
 
 1. Notify `#cloud-platform` that you are pausing concourse pipelines
 2. Pause `bootstrap`, `live-2`, `manager` and `live` pipelines.
@@ -23,7 +34,7 @@ The exact steps should follow:
 4. Log in to Concourse using `fly -t moj-cp login -c https://concourse.cloud-platform.service.justice.gov.uk/`
 5. Ensure your in the `cloud-platform-terraform-concourse` directory.
 6. Update pipelines with module and/or resources name and cluster name:
-    `fly -t moj-cp set-pipeline --pipeline migrate-module --config migrate-module.yaml -v cluster_name=cp-0306-0730 -v module=tigera_calico -v resources=kubectl_manifest.calico_crds,http.calico_crds`
+    `fly -t moj-cp set-pipeline --pipeline migrate-module --config migrate-module.yaml -v cluster_name=cp-0306-0730 -v module=tigera_calico -v resources=kubectl_manifest.calico_crds,http.calico_crds -v flagged_resources=module.null`
 7. Run `migrate-module` pipeline from the Concourse UI.
 8. Unpause pipeline environment specific pipeline (e.g. live-2)
 9. Re-run PR plan - the plan should show "No changes. Your infrastructure matches the configuration."
