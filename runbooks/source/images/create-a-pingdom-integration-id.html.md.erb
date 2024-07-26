@@ -1,18 +1,18 @@
 ---
 title: Create a Pingdom integration id
 weight: 86
-last_reviewed_on: 2024-01-24
+last_reviewed_on: 2024-07-26
 review_in: 6 months
 ---
 
 # Create a Pingdom integration id
 
-The intention of this document is to provide brief instructions on how to create an integration id in Pingdom. For more information on integration id's, please refer to the [Pingdom documentation](https://help.pingdom.com/hc/en-us/articles/207081599-Webhooks-or-Slack-Integration)
+The intention of this document is to provide brief instructions on how to create an integration id in Pingdom. For more information on integration ids, please refer to the [Pingdom documentation](https://help.pingdom.com/hc/en-us/articles/207081599-Webhooks-or-Slack-Integration)
 
 Completing the following steps are necessary to support Cloud Platform user requests as detailed [here](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-pingdom-checks.html#adding-slack-notification)
 ## How to create integration id (webhook)
 
-This cannot be managed by Terraform and will need to be created manually. To continue any further it is assumed you have the following:
+This cannot be managed by Terraform and will need to be created manually. To continue any further, it is assumed you have the following:
 
 - Access to the [Pingdom slack app](https://slack.com/apps/A0F814AV7-pingdom?next_id=0)
 - Access to Pingdom
@@ -24,14 +24,14 @@ To create the webhook, perform the following:
 
   1. Select the target slack channel
   2. Click 'Add Pingdom Integration'
-  3. Locate the newly generated Webhook URL, and copy to clipboard. This will look similar to `https://hooks.slack.com/services/xxxxxx/xxxxxx/xxxxx`
+  3. Locate the newly generated Webhook URL and copy to clipboard. This will look similar to `https://hooks.slack.com/services/xxxxxx/xxxxxx/xxxxx`
 
 - Sign into [Pingdom](https://my.pingdom.com/app)
-- Go to Settings cog in side menu > `Integrations` > `Add integration`
-- Fill in a suitable name for the integration, and paste the generated webhook from previous step
+- Go to Settings cog in the side menu > `Integrations` > `Add integration`
+- Fill in a suitable name for the integration and paste the generated webhook from the previous step
 - Save integration
 
-Now it's a simple case of finding the `integrationid`, which can be found by clicking your newly created integration and making a note of the `integration=` in the URL.
+Now, it's a simple case of finding the `integrationid`, which can be found by clicking your newly created integration and making a note of the `integration=` in the URL.
 
 eg:
 ```
