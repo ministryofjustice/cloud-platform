@@ -7,6 +7,58 @@ weight: 45
 
 > Use the [mean-time-to-repair.rb] script to view performance metrics
 
+## Q3 2024 (July-September)
+
+- **Mean Time to Repair**: 3h 8m
+
+- **Mean Time to Resolve**: 4h 9m
+
+### Incident on 2024-07-25
+
+- **Key events**
+  - First deteceted: 2024-07-25 12:10
+  - Incident declared: 2024-07-25 14:54
+  - Repaired declared: 2024-07-25 15:18
+  - Resolved 2024-07-25 16:19
+
+- **Time to repair**: 3h 8m
+
+- **Time to resolve**: 4h 9m
+
+- **Identified**: User reported that Elasticsearch was no longer receiving logs
+
+- **Impact**: Elasticsearch and Opensearch did not recieve logs
+
+- **Context**:
+  - 2024-07-25 12:10: cp-live-app-logs - ClusterIndexWritesBlocked starts
+  - 2024-07-25 12:30: cp-live-app-logs - ClusterIndexWritesBlocked recovers
+  - 2024-07-25 12:50: cp-live-app-logs - ClusterIndexWritesBlocked recovers
+  - 2024-07-25 12:35: cp-live-app-logs - ClusterIndexWritesBlocked starts
+  - 2024-07-25 12:55: cp-live-app-logs - ClusterIndexWritesBlocked starts
+  - 2024-07-25 13:15: cp-live-app-logs - ClusterIndexWritesBlocked recovers and starts
+  - 2024-07-25 13:40: cp-live-app-logs - ClusterIndexWritesBlocked recovers and starts
+  - 2024-07-25 13:45: Kibana no longer receiving any logs
+  - 2024-07-25 14:27: User notifies team via #ask-cloud-platform that Kibana has not been receiving logs since 13:45.
+  - 2024-07-25 14:32: Initial investigation shows no problems in live monitoring namespace
+  - 2024-07-25 14:42: Google meet call started to triage
+  - 2024-07-25 14:54: Incident declared
+  - 2024-07-25 14:55: Logs from fluent-bit containers show “could not enqueue into the ring buffer”
+  - 2024-07-25 14:59: rollout restart of all fluent-bit containers, logs partially start flowing but after a few minutes show the same error message
+  - 2024-07-25 15:18: It is noted that Opensearch is out of disk space, this is increased from 8000 to 12000
+  - 2024-07-25 15:58: Disk space increase is complete and we start seeing fluent-bit processing logs
+  - 2024-07-25 16:15: Remediation tasks are defined and started to action
+  - 2024-07-25 16:19: Incident declared resolved
+
+- **Resolution**:
+  - Opensearch disk space is increased from 8000 to 12000
+  - Fluenbit is configured to not log to Opensearch
+
+- **Review actions**:
+  - [Opensearch and Elasticsearch index dating issues](https://github.com/ministryofjustice/cloud-platform/issues/5931)
+  - [Investigate fluent-bit "failed to flush chunk"](https://github.com/ministryofjustice/cloud-platform/issues/5930)
+  - [Document and fix live-2 logging](https://github.com/ministryofjustice/cloud-platform/issues/5929)
+  - [High priority alerts for Elasticsearch and Opensearch](https://github.com/ministryofjustice/cloud-platform/issues/5928)
+
 ## Q1 2024 (January-April)
 
 - **Mean Time to Repair**: 3h 21m
