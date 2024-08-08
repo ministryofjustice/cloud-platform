@@ -1,7 +1,7 @@
 ---
 title: Onboarding into the Cloud Platform Team
 weight: 9000
-last_reviewed_on: 2024-03-19
+last_reviewed_on: 2024-08-08
 review_in: 6 months
 ---
 
@@ -53,7 +53,7 @@ review_in: 6 months
 
 ## Access
 
-* Access to AWS accounts this includes MOJ DSD
+* Access to required Cloud Platform AWS account(s)
 * Protect against accidentally pushing secrets to GitHub, using [git-secrets]
 
 ```bash
@@ -70,7 +70,7 @@ git config --global init.templateDir ~/.git-templates/git-secrets
 * Add to [MoJ 1Password](https://ministryofjustice.1password.eu/)
 * Authenticate to live cluster
   * Add User to [EKS Admins group](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf)
-* Create and destroy test cluster
+* Create and destroy [test cluster](eks-cluster.html)
 * Access to pagerduty
 * Create GPG key
 * Add [GPG and SSH keys](https://github.com/settings/keys) to github user account (if not already there)

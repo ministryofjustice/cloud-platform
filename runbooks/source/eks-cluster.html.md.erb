@@ -1,7 +1,7 @@
 ---
 title: EKS Cluster
 weight: 350
-last_reviewed_on: 2024-07-08
+last_reviewed_on: 2024-08-08
 review_in: 6 months
 ---
 
@@ -23,14 +23,14 @@ Alternatively, if you want to create a cluster manually, follow the steps below.
     export AWS_PROFILE=moj-cp
 ```
 
-- Your GPG key must be added to the [infrastructure repo](https://github.com/ministryofjustice/cloud-platform-infrastructure) so that you are able to run `git-crypt unlock` (the script will run this for you, but you must be *able* to do it)
+- Your GPG key must be added to the [infrastructure repo](https://github.com/ministryofjustice/cloud-platform-infrastructure) so that you are able to run `git-crypt unlock`.
 - You have [docker](https://docs.docker.com/get-docker/) installed
 - An AWS iam user with "AdministratorAccess", this can be achieved by adding a user to the [cloud-platform-terraform-awsaccounts-iam](https://github.com/ministryofjustice/cloud-platform-terraform-awsaccounts-iam) repo
 - Make sure your user is added to the `terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf -> module -> eks -> map_users` in [cloud-platform-infrastructure](https://github.com/ministryofjustice/cloud-platform-infrastructure) and that is deployed on main)
 
 ## Environment Variables
 
-See the file [example.env.create-cluster](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/example.env.create-cluster) in the infrastructure repo. This shows examples of the environment variables which must be set in order to run the `create-cluster.rb` script to create a new cluster.
+See the file [example.env.create-cluster](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/example.env.create-cluster) in the infrastructure repo.
 
 You can get the auth0 values from the `terraform-provider-auth0` application on [justice-cloud-platform - auth0](https://auth0.com/docs/authenticate/login).
 
@@ -42,13 +42,17 @@ export AUTH0_CLIENT_ID=
 export AUTH0_CLIENT_SECRET=
 ```
 
-Execute the cloud-platform command to create a new cluster:
+## Provisioning an EKS cluster with the cloud-platform CLI
+
+- In your terminal, navigate to the root of the `cloud-platform-infrastructure` repository.
+
+- Ensure your local git-crypted files are decryped with `git-crypt unlock`
+
+- Execute the cloud-platform command to create a new cluster:
 
 ```bash
 cloud-platform cluster create --name <cluster-name>
 ```
-
-Check the pre-requisites and environment variables section of this document before running this script.
 
 NB: Your cluster name must be **no more than 12 characters**. Any longer, and some of the computed strings which include the cluster name will exceed their maximum allowed values. The error messages you get if this happens are unhelpful. In order to prevent this, the build script will fail immediately if you supply a name which is too long.
 
@@ -77,7 +81,7 @@ process. The number of tests will change, so the output will vary from what is s
 
 Alternatively, if you need more control over the test cluster parameters, or you just prefer to do it manually, the rest of this document describes the process.
 
-## Provisioning
+## Manually provisioning a cluster
 
 ### 1. VPC
 
@@ -92,7 +96,7 @@ terraform apply
 
 You should be able to see your new VPC (called `WorkspaceName`) inside the AWS Console. Check it before jumping to the next step.
 
-**NOTE**: For conventions purposes please call all terraform workspaces the same.
+**NOTE**: It is important that you use the same workspace name at each terraform level during this process. Please pick a workspace name that will make your cluster easily identifiable.
 
 ### 2. Creating EKS cluster
 
@@ -166,6 +170,10 @@ terraform apply
 ```
 
 [cluster build pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/create-cluster
+
+## Deleting your test cluster
+
+Refer to [this runbook](delete-cluster.html) for various methods of deleting your cluster.
 
 ## Provisioning a custom cluster
 
