@@ -4,7 +4,7 @@
 
 This is the Ministry of Justice (MOJ) Cloud Platform team's repository for public facing documentation, feature work, enhancements, and issues.
 
-The Cloud Platform team utilises [GitHub issues](https://github.com/ministryofjustice/cloud-platform/issues) to manage their work, and a team [ZenHub board](https://app.zenhub.com/workspaces/cloud-platform-team-5ccb0b8a81f66118c983c189/board) to surface GitHub issues into a product management board.
+The Cloud Platform team utilises [GitHub issues](https://github.com/ministryofjustice/cloud-platform/issues) to manage their work, and a team [Github Project](https://github.com/orgs/ministryofjustice/projects/65) to surface GitHub issues into a product management board.
 
 It's best to search our [GitHub issues](https://github.com/ministryofjustice/cloud-platform/issues) before adding new issues in an effort to reduce duplicates and encourage activity through existing conversations.
 
