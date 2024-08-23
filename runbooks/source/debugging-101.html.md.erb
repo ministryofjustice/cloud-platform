@@ -11,27 +11,19 @@ Useful dashboards and searches for debugging issues on the cluster, starting fro
 
 ## Grafana Dashboards
 
-### Kubernetes / View / Nodes
-
-https://grafana.live.cloud-platform.service.justice.gov.uk/d/k8s_views_nodes/kubernetes-views-nodes?orgId=1&var-job=node-exporter&var-datasource=prometheus&var-resolution=30s&var-node=ip-172-20-56-77.eu-west-2.compute.internal&var-instance=172.20.56.77:9100&from=now-1h&to=now
+### [Kubernetes / View / Nodes](https://grafana.live.cloud-platform.service.justice.gov.uk/d/k8s_views_nodes/kubernetes-views-nodes?orgId=1&var-job=node-exporter&var-datasource=prometheus&var-resolution=30s&var-node=ip-172-20-56-77.eu-west-2.compute.internal&var-instance=172.20.56.77:9100&from=now-1h&to=now)
 
 This dashboard is useful for inspecting a node and seeing if there are any pods with excessive resource usage. The dashboard can be filtered by node.
 
-### Kubernetes / Compute Resources / Node (Pods)
-
-https://grafana.live.cloud-platform.service.justice.gov.uk/d/200ac8fdbfbb74b39aff88118e4d1c2c/kubernetes-compute-resources-node-pods?orgId=1&var-datasource=P5DCFC7561CCDE821&var-cluster=&var-node=ip-172-20-101-196.eu-west-2.compute.internal&var-node=ip-172-20-56-77.eu-west-2.compute.internal&from=now-1h&to=now
+### [Kubernetes / Compute Resources / Node (Pods)](https://grafana.live.cloud-platform.service.justice.gov.uk/d/200ac8fdbfbb74b39aff88118e4d1c2c/kubernetes-compute-resources-node-pods?orgId=1&var-datasource=P5DCFC7561CCDE821&var-cluster=&var-node=ip-172-20-101-196.eu-west-2.compute.internal&var-node=ip-172-20-56-77.eu-west-2.compute.internal&from=now-1h&to=now)
 
 Similar to the first dashboard but focuses on the pods rather than the nodes.
 
-### Kubernetes / Views / Pods
-
-https://grafana.live.cloud-platform.service.justice.gov.uk/d/k8s_views_pods/kubernetes-views-pods?orgId=1&refresh=30s
+### [Kubernetes / Views / Pods](https://grafana.live.cloud-platform.service.justice.gov.uk/d/k8s_views_pods/kubernetes-views-pods?orgId=1&refresh=30s)
 
 A detailed view of individual pods, can filter based on namespace and refreshes by default every 30 seconds.
 
-### Kubernetes Nginx Ingress Controller NextGen - DevOps Nirvana2
-
-https://grafana.live.cloud-platform.service.justice.gov.uk/d/k8s-nginx-ingress-prometheus-ng2/5178fc76-29af-51b9-83a8-cbab85db37a6?orgId=1&refresh=1m
+### [Kubernetes Nginx Ingress Controller NextGen - DevOps Nirvana2](https://grafana.live.cloud-platform.service.justice.gov.uk/d/k8s-nginx-ingress-prometheus-ng2/5178fc76-29af-51b9-83a8-cbab85db37a6?orgId=1&refresh=1m)
 
 This dashboard shows statistics around our ingresses.
 
