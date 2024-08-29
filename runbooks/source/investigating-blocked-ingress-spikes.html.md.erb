@@ -1,0 +1,31 @@
+---
+title: Investigating blocked ingress spikes
+weight: 9999
+last_reviewed_on: 2024-08-28
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+Things to look at while investigating a spike in blocked access:
+
+1. Is the spike isolation to that application? If there is an attack it could be either cluster wide or specifically targeted at a single app.
+2. Is the ingress using modsec?
+3. [Access denied with code 406 in the last 24 hours](https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/discover#/?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-1d,to:now))&_a=(columns:!(_source),filters:!(),index:'8a728bc0-00eb-11ec-9062-27aa363b66a2',interval:auto,query:(language:kuery,query:'%22Access%20denied%20with%20code%20406%22'),sort:!())). Not every user uses the custom `406` status so this is not a catch all solution.
+3. Are there any suspect logs in the namespace?
+4. Is there a wider impact on the platform?
+    * Has the cluster scaled up due to extra resource usage?
+    * Are there more 4xx/5xx errors than usual?
+    * Are we seeing ingress related alarms in #lower-priority-alarms
+5. Note any suspicious IP addresses.
+6. Has modsec been misconfigured? Further information can be found [here](https://www.netnea.com/cms/apache-tutorial-7_including-modsecurity-core-rules/)
+
+## Communication
+
+It's important to clearly and efficiently communicate between the Cloud Platform team and user. It may be required to call an [incident](https://runbooks.cloud-platform.service.justice.gov.uk/incident-process.html). Where possible keep a record of findings as either part of the a Slack thread or Google document.
+
+Further issues can be raised in the Cloud Platform issue [tracker](https://github.com/ministryofjustice/cloud-platform/issues).
+
+## Other Links
+
+* [Debugging 101](https://runbooks.cloud-platform.service.justice.gov.uk/debugging-101.html)
