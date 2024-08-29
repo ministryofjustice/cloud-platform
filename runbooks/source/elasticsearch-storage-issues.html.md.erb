@@ -11,6 +11,8 @@ review_in: 6 months
 
 A way of increasing the storage space for either Hot or Warm nodes is to increase them. If increasing one then the other must be equal as well, for example if upping the Hot nodes to 20 Warm should be upped to 20 as well.
 
+The number of shards and the nodes should be increased by a multiple of the index with the largest number of shards, further [information](https://aws.amazon.com/blogs/opensource/open-distro-elasticsearch-shard-allocation/).
+
 ## Manually migrating failed indexes
 
 It may be necessary to migrate indexes manually. The process for this is:
