@@ -7,9 +7,9 @@ review_in: 6 months
 
 # Making changes to EKS node groups, instances types, or launch templates
 
-You may need to make a change to an EKS [cluster node group], [instance type config], or [launch template]. **Any of these changes force recycling of all nodes in a node group**. 
+You may need to make a change to an EKS [cluster node group], [instance type config], or [launch template]. **Any of these changes force recycling of all nodes in a node group**.
 
-> ⚠️ **Warning** ⚠️  
+> ⚠️ **Warning** ⚠️
 > We need to be careful during this process as bringing up too many new nodes at once can cause node-level issues allocating IPs to pods.
 
 > We also can't let terraform apply these changes because terraform doesn't gracefully rollout the old and new nodes. **Terraform will bring down all of the old nodes immediately**, which will cause outages to users.
@@ -31,41 +31,72 @@ You may need to make a change to an EKS [cluster node group], [instance type con
 
     > **Note:**
     >
-    > If recycling multiple clusters, the route is to drain `manager` `default-ng` (⚠️ **must** be done from local terminal ⚠️) then `monitoring`. After that, `live-2`, then `live`. Recycle `monitoring` before `default`.
+    > If recycling multiple clusters, the order is to drain `manager` `default-ng` (⚠️ **must** be done from local terminal ⚠️) then `monitoring`. After that, `live-2`, then `live`. Recycle `monitoring` before `default`.
 
 1. Lookup the old node group name (you can find this in the aws gui).
-1. Cordon and drain the old node group using the relevant commands below:
-    * `manager` cluster, `default-ng` node group (_These commands will cause concourse to experience a brief outage, as concourse workers move from the old node group to the new node group._):
+1. Cordon and drain the old node group following the instructions below:
+  * **for the `manager` cluster, `default-ng` node group** (_These commands will cause concourse to experience a brief outage, as concourse workers move from the old node group to the new node group._):
+      * Set the existing node group's desired and max node number to the current number of nodes, and set the min node number to 1:
+          * This prevents new nodes spinning up in response to nodes being removed
 
-    ```bash
-    kubectl get pods --field-selector="status.phase=Failed" -A --no-headers | awk '{print $2 " -n " $1}' | parallel -j1 --will-cite kubectl delete pod "{= uq =}"
+        ```bash
+        CURRENT_NUM_NODES=$(kubectl get nodes -l eks.amazonaws.com/nodegroup=$NODE_GROUP_TO_DRAIN --no-headers | wc -l)
 
-    kubectl get nodes -l eks.amazonaws.com/nodegroup=$NODE_GROUP_TO_DRAIN --no-headers | awk '{print $1}' | parallel -j1 --keep-order --delay 300 --will-cite cloud-platform cluster recycle-node --name {} --skip-version-check --kubecfg $KUBECONFIG --drain-only --ignore-label
-    ```
+        aws eks --region eu-west-2 update-nodegroup-config \
+          --cluster-name manager \
+          --nodegroup-name $NODE_GROUP_TO_DRAIN \
+          --scaling-config maxSize=$CURRENT_NUM_NODES,desiredSize=$CURRENT_NUM_NODES,minSize=1
+        ```
+      * Kick off the process of draining the node
 
-    * all other node groups:
+        ```bash
+        kubectl get pods --field-selector="status.phase=Failed" -A --no-headers \
+          | awk '{print $2 " -n " $1}' \
+          | parallel -j1 --will-cite kubectl delete pod "{= uq =}"
+
+        kubectl get nodes -l eks.amazonaws.com/nodegroup=$NODE_GROUP_TO_DRAIN \
+          --sort-by=metadata.creationTimestamp --no-headers \
+          | awk '{print $1}' \
+          | parallel -j1 --keep-order --delay 300 --will-cite \
+          cloud-platform cluster recycle-node --name {} --skip-version-check --kubecfg $KUBECONFIG --drain-only --ignore-label
+        ```
+      * Once this command has run and all of the `manager` cluster node group's nodes have drained, run the command to scale the node group down to 1
+
+          * This will delete all of the nodes except the most recently drained node, which will be removed in a later step when the node group is deleted in code.
+
+          ```bash
+          aws eks --region eu-west-2 update-nodegroup-config \
+            --cluster-name manager \
+            --nodegroup-name $NODE_GROUP_TO_DRAIN \
+            --scaling-config maxSize=1,desiredSize=1,minSize=1
+          ```
+    * **for all other node groups**:
+
+    > **Note**
+    > When making changes to the default node group in `live`, it's handy to pause the pipelines for each of our environments for the duration of the change.
 
     ```bash
     cloud-platform pipeline cordon-and-drain --cluster-name <cluster_name> --node-group <old_node_group_name>
     ```
-    
-    > ⚠️ **Warning** ⚠️  
-    > Because this command runs remotely in concourse you can't use this command to drain default ng on the manager cluster. It must be run locally while your context is set to the correct cluster.
-    
-    * The above `cloud-platform` cli command runs [this script].
+
+    > ⚠️ **Warning** ⚠️
+    > Because this command runs remotely in concourse, this command can't be used to drain default ng on the manager cluster. It must be run locally while your context is set to the correct cluster.
+
+    <!-- -->
+    > **Note:** The above `cloud-platform` cli command runs [this script].
+
 1. Raise a new pr [deleting the old node group].
 1. Re-run the [infrastructure-account/terraform-apply] pipeline to again to update the Modsecurity Audit logs cluster to map roles with only the new node group IAM Role.
 1. Run the integration tests to ensure the cluster is healthy.
 
 ### Notes:
 
-- When making changes to the default node group in `live`, it's handy to pause the pipelines for each of our environments for the duration of the change.
 - The `cloud-platform pipeline` command [cordons-and-drains-nodes] in a given node group waits 5 minutes between each drained node.
 - If you can avoid it try not to fiddle around with the target node group in the aws console for example reducing the desired nodes, aws deletes nodes in an unpredictable way which might cause the pipeline command to fail. Although it is possible if you need to.
 
 ### Useful commands:
 
-#### [`k9s`](https://k9scli.io/) 
+#### [`k9s`](https://k9scli.io/)
 A useful cli tool to get a good overview of the state of the cluster. Useful commands for monitoring a cluster [are listed here].
 
 #### `kubectl`
@@ -89,7 +120,6 @@ Where nodes have a status of `Ready,SchedulingDisabled`, this indicates that the
 When all nodes have been recycled, all nodes will all have a status of `Ready`.
 
 The `cordon-and-drain` pipeline takes 5 minutes per node, so takes approximately 1 hour per 12 nodes. Expect a process that involves making changes to multiple clusters including `live` to take a whole day.
-
 
 [cluster node group]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/97768bfd8b4e25df6f415035acac60cf531d88c1/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf#L60
 [instance type config]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/97768bfd8b4e25df6f415035acac60cf531d88c1/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf#L43
