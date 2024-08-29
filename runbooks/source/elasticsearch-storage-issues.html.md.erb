@@ -1,0 +1,29 @@
+---
+title: Elasticsearch Storage Issues
+weight: 9999
+last_reviewed_on: 2024-08-29
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+## Hot/Warm Node Parity
+
+A way of increasing the storage space for either Hot or Warm nodes is to increase them. If increasing one then the other must be equal as well, for example if upping the Hot nodes to 20 Warm should be upped to 20 as well.
+
+## Manually migrating failed indexes
+
+It may be necessary to migrate indexes manually. The process for this is:
+
+1. Navigate to "Policy managed indices"
+2. Find `Failed to start **** migration`
+3. Copy the index name
+4. Search "Warm" indexes and get index size
+5. Search "Cold" indexes and get index size
+6. If the "Cold" index size is smaller than "Warm" then it can be deleted
+7. Delete the index via the devtools `DELETE _cold/live_kubernetes_ingress-2024.07.13`
+8. Click retry policy
+
+## Further Reading
+
+* [Open search best practices](https://runbooks.cloud-platform.service.justice.gov.uk/resolve-opensearch-shard-issues.html)
