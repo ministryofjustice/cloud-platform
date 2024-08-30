@@ -36,16 +36,14 @@ You may need to make a change to an EKS [cluster node group], [instance type con
 1. Lookup the old node group name (you can find this in the aws gui).
 1. Cordon and drain the old node group following the instructions below:
   * **for the `manager` cluster, `default-ng` node group** (_These commands will cause concourse to experience a brief outage, as concourse workers move from the old node group to the new node group._):
-      * Set the existing node group's desired and max node number to the current number of nodes, and set the min node number to 1:
+      * disable auto scaling for the node group:
           * This prevents new nodes spinning up in response to nodes being removed
 
         ```bash
-        CURRENT_NUM_NODES=$(kubectl get nodes -l eks.amazonaws.com/nodegroup=$NODE_GROUP_TO_DRAIN --no-headers | wc -l)
+        ASG_NAME=$(aws eks --region eu-west-2 describe-nodegroup --cluster-name $KUBECONFIG_CLUSTER_NAME --nodegroup-name $NODE_GROUP_TO_DRAIN  | jq -r ".nodegroup.resources.autoScalingGroups[0].name")
+        aws autoscaling suspend-processes --auto-scaling-group-name $ASG_NAME
 
-        aws eks --region eu-west-2 update-nodegroup-config \
-          --cluster-name manager \
-          --nodegroup-name $NODE_GROUP_TO_DRAIN \
-          --scaling-config maxSize=$CURRENT_NUM_NODES,desiredSize=$CURRENT_NUM_NODES,minSize=1
+        aws autoscaling create-or-update-tags --tags ResourceId=$ASG_NAME,ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/enabled,Value=false,PropagateAtLaunch=true
         ```
       * Kick off the process of draining the node
 
@@ -65,6 +63,8 @@ You may need to make a change to an EKS [cluster node group], [instance type con
           * This will delete all of the nodes except the most recently drained node, which will be removed in a later step when the node group is deleted in code.
 
           ```bash
+          aws autoscaling resume-processes --auto-scaling-group-name $ASG_NAME
+
           aws eks --region eu-west-2 update-nodegroup-config \
             --cluster-name manager \
             --nodegroup-name $NODE_GROUP_TO_DRAIN \
