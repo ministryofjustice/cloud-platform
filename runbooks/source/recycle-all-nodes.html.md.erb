@@ -1,7 +1,7 @@
 ---
 title: Recycling all the nodes in a cluster
 weight: 255
-last_reviewed_on: 2024-06-03
+last_reviewed_on: 2024-08-16
 review_in: 6 months
 ---
 
@@ -15,10 +15,19 @@ When a launch template is updated, this will cause all of the nodes to recycle. 
 
 ## Recycling process
 
-Avoid letting terraform run EKS level changes because terraform can start by deleting all the current nodes and then recreating them causing an outage to users. Instead, _create a new node group_ through terraform and then cordon and drain the old node group [instructions can be found here](https://runbooks.cloud-platform.service.justice.gov.uk/node-group-changes.html)
+Avoid letting terraform run EKS-level changes because terraform can start by deleting all the current nodes and then recreating them causing an outage to users.
 
-AWS will handle the process of killing the nodes with the old launch configurations and launching new nodes with the latest
-launch configuration. AWS will initially spin up some extra nodes (for around a 60 node cluster it will spin up 8 extra) to provide spaces for pods as old nodes are cordoned, drained and deleted.
+### High level method
+
+1. Add the new node group with a low number of nodes alongside the existing node groups in code
+1. Drain the old node group using the pipeline and allow the autoscaler to bring in new nodes into the new node group
+1. Once workloads have moved over remove the old node groups from code
+
+[detailed instructions can be found here](https://runbooks.cloud-platform.service.justice.gov.uk/node-group-changes.html)
+
+#### Useful commands
+
+[k9s](https://k9scli.io/) is a useful cli tool to get a good overview of the state of the cluster
 
 - `watch kubectl get nodes --sort-by=.metadata.creationTimestamp`
 
@@ -37,85 +46,4 @@ Where nodes have the Status "Ready,SchedulingDisabled" this indicates the nodes 
 
 When all nodes have been recycled they will all have a status of "Ready".
 
-This process can take 3 to 4 hours on a cluster of ~60 nodes, depending on how quickly you resolve the gotchas below.
-
-### Gotchas
-
-When AWS is draining the old nodes, even after choosing the "force update" option, it will still respect the ["Pod Disruption Budget"] and will not evict pods if it will break the PDB.
-
-If a ["Pod Disruption Budget"] is poorly configured, kubernetes can't evict a specific pod. Without manual intervention, this will indefinitely stall the update and the nodes will **not** continue to recycle.
-This will eventually cause the update to stop, wait and then exit, leaving the remaining nodes with the old update template and others with the new update template.
-
-AWS EKS in some circumstances has even reverted the update and started to drain the new nodes and replace them with the old update template again. So it's important to monitor how the update is going and act when nodes get stuck.
-
-To resolve the issue:
-
-1. Copy below script and save it as `delete-pods-in-namespace.sh`.
-
-    ```
-    #!/bin/bash
-
-    delete_pods() {
-      NAMESPACE=$(echo "$1" | sed -E 's/\/api\/v1\/namespaces\/(.*)\/pods\/.*/\1/')
-      POD=$(echo "$1" | sed -E 's/.*\/pods\/(.*)\/eviction\?timeout=.*/\1/')
-
-      echo $NAMESPACE
-
-      echo $POD
-
-      kubectl delete pod -n $NAMESPACE $POD
-    }
-
-    export -f delete_pods
-
-    TIME_NOW_EPOCH=$(date +%s)
-
-    START_TIME=$(($TIME_NOW_EPOCH - 180))
-
-    CLUSTER_LOG_GROUP=$1
-
-    QUERY_ID=$(aws logs start-query \
-      --start-time $START_TIME \
-      --end-time $TIME_NOW_EPOCH \
-      --log-group-name $CLUSTER_LOG_GROUP \
-      --query-string 'fields @timestamp, @message | filter @logStream like "kube-apiserver-audit" | filter ispresent(requestURI) | filter objectRef.subresource = "eviction" | filter responseObject.status = "Failure" | display @logStream, requestURI, responseObject.message | stats count(*) as retry by requestURI, requestObject.message' \
-      | jq -r '.queryId' )
-
-    sleep 2
-
-    RESULTS=$(aws logs get-query-results --query-id $QUERY_ID)
-
-    echo -n $RESULTS | jq '.results[]' | grep '/api/v1' | awk '{ print $2 }' | xargs -I {} bash -c 'delete_pods {}'
-
-    exit 0
-
-    ```
-2. Run `chmod +x delete-pods-in-namespace.sh`.
-
-3. Evict the offending pod by running the below script:
-
-    ```
-    watch -n 300 ./delete-pods-in-namespace.sh '/aws/eks/<cluster-name>/cluster' > deleted_pods.log
-    ```
-    The `<cluster-name>` is the short name of the cluster e.g. `cp-2901-1531`
-
-4. Run `tail -f deleted_pods.log` in another terminal.
-
-If you want to find the offending pod manually, follow these steps:
-
-1. Use Cloudwatch Logs > Logs Insights to identify the offending pod
-2. Select the relevant cluster from the `log group` drop down
-3. Paste the following query (this will identify which pods have failed to be deleted and how many times deletion has been retried) into the box:
-
-    ```
-    fields @timestamp, @message | filter @logStream like "kube-apiserver-audit" | filter ispresent(requestURI) | filter objectRef.subresource = "eviction" | filter responseObject.status = "Failure" | display @logStream, requestURI, responseObject.message | stats count(*) as retry by requestURI, requestObject.message
-    ```
-4. If there are results they will have a pattern like this:
-    `/api/v1/namespaces/$NAMESPACE/pods/$POD_NAME-$POD_ID/eviction?timeout=19s`
-5. You may also go to the [CloudWatch Dashboard](https://eu-west-2.console.aws.amazon.com/cloudwatch/home?region=eu-west-2#dashboards/dashboard/cloud-platform-eks-live-pdb-eviction-status) directly to identify the offending pod.
-6. You can then run the following command to manually delete the pod
-    `kubectl delete pod -n $NAMESPACE $POD_NAME-$POD_ID`
-
-Nodes should continue to recycle and after a few moments there should be one less node with the status "Ready,SchedulingDisabled"
-
-["Pod Disruption Budget"]: https://kubernetes.io/docs/concepts/workloads/pods/disruptions/#pod-disruption-budgets
+This process can take several hours on a cluster of ~60 nodes, depending on how quickly you resolve the gotchas below.

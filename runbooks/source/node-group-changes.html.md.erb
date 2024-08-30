@@ -1,42 +1,134 @@
 ---
-title: Handling Node Group and Instance Changes
+title: Making changes to EKS node groups, instances types, or launch templates
 weight: 54
 last_reviewed_on: 2024-06-03
 review_in: 6 months
 ---
 
-# Making changes to EKS node groups or instances types
+# Making changes to EKS node groups, instances types, or launch templates
 
-## Why?
+You may need to make a change to an EKS [cluster node group], [instance type config], or [launch template]. **Any of these changes force recycling of all nodes in a node group**.
 
-You may need to make a change to an EKS [cluster node group] or [instance type config]. We can't just let terraform apply these changes because terraform doesn't gracefully rollout the old and new nodes. Terraform will bring down all of the old nodes immediately, which will cause outages to users.
+> ⚠️ **Warning** ⚠️
+> We need to be careful during this process as bringing up too many new nodes at once can cause node-level issues allocating IPs to pods.
 
-## How?
+> We also can't let terraform apply these changes because terraform doesn't gracefully rollout the old and new nodes. **Terraform will bring down all of the old nodes immediately**, which will cause outages to users.
 
-To avoid bringing down all the nodes at once is to follow these steps:
+## Process for recycling all nodes in a cluster
 
-1. add a new node group with your [updated changes]
-2. re-run the [infrastructure-account/terraform-apply] pipeline to update the Modsecurity Audit logs cluster to map roles to both old and new node group IAM Role
-   This is to avoid losing modsec audit logs from the new node group
-3. lookup the old node group name (you can find this in the aws gui)
-4. once merged in you can drain the old node group using the command below:
+**Briefly:**
 
-    > cloud-platform pipeline cordon-and-drain --cluster-name <cluster_name> --node-group <old_node_group_name>
-    [script source] because this command runs remotely in concourse you can't use this command to drain default ng on the manager cluster.
-5. raise a new [pr deleting] the old node group
-6. re-run the [infrastructure-account/terraform-apply] pipeline to again to update the Modsecurity Audit logs cluster to map roles with only the new node group IAM Role
-7. run the integration tests to ensure the cluster is healthy
+1. Add the new node group - configured with low starting `minimum` and `desired` node counts - alongside the existing node groups in code (_[typically suffixed with the date of the changes]_)
+    * Make sure to amend both default and monitoring if recyling _all_ nodes
+1. Drain the old node group using the `cordon-and-drain` pipeline and allow the autoscaler to add new nodes to the new node group
+1. Once workloads have moved over, [remove the old node groups, and update the `minimum` and `desired` node counts for the new node group in code].
+
+**In more detail:**
+
+1. Add a new node group with your [updated changes].
+1. Re-run the [infrastructure-account/terraform-apply] pipeline to update the Modsecurity Audit logs cluster. This maps roles to both old and new node group IAM roles.
+    * This is to avoid losing modsec audit logs from the new node group.
+
+    > **Note:**
+    >
+    > If recycling multiple clusters, the order is to drain `manager` `default-ng` (⚠️ **must** be done from local terminal ⚠️) then `monitoring`. After that, `live-2`, then `live`. Recycle `monitoring` before `default`.
+
+1. Lookup the old node group name (you can find this in the aws gui).
+1. Cordon and drain the old node group following the instructions below:
+  * **for the `manager` cluster, `default-ng` node group** (_These commands will cause concourse to experience a brief outage, as concourse workers move from the old node group to the new node group._):
+      * Set the existing node group's desired and max node number to the current number of nodes, and set the min node number to 1:
+          * This prevents new nodes spinning up in response to nodes being removed
+
+        ```bash
+        CURRENT_NUM_NODES=$(kubectl get nodes -l eks.amazonaws.com/nodegroup=$NODE_GROUP_TO_DRAIN --no-headers | wc -l)
+
+        aws eks --region eu-west-2 update-nodegroup-config \
+          --cluster-name manager \
+          --nodegroup-name $NODE_GROUP_TO_DRAIN \
+          --scaling-config maxSize=$CURRENT_NUM_NODES,desiredSize=$CURRENT_NUM_NODES,minSize=1
+        ```
+      * Kick off the process of draining the node
+
+        ```bash
+        kubectl get pods --field-selector="status.phase=Failed" -A --no-headers \
+          | awk '{print $2 " -n " $1}' \
+          | parallel -j1 --will-cite kubectl delete pod "{= uq =}"
+
+        kubectl get nodes -l eks.amazonaws.com/nodegroup=$NODE_GROUP_TO_DRAIN \
+          --sort-by=metadata.creationTimestamp --no-headers \
+          | awk '{print $1}' \
+          | parallel -j1 --keep-order --delay 300 --will-cite \
+          cloud-platform cluster recycle-node --name {} --skip-version-check --kubecfg $KUBECONFIG --drain-only --ignore-label
+        ```
+      * Once this command has run and all of the `manager` cluster node group's nodes have drained, run the command to scale the node group down to 1
+
+          * This will delete all of the nodes except the most recently drained node, which will be removed in a later step when the node group is deleted in code.
+
+          ```bash
+          aws eks --region eu-west-2 update-nodegroup-config \
+            --cluster-name manager \
+            --nodegroup-name $NODE_GROUP_TO_DRAIN \
+            --scaling-config maxSize=1,desiredSize=1,minSize=1
+          ```
+    * **for all other node groups**:
+
+    > **Note**
+    > When making changes to the default node group in `live`, it's handy to pause the pipelines for each of our environments for the duration of the change.
+
+    ```bash
+    cloud-platform pipeline cordon-and-drain --cluster-name <cluster_name> --node-group <old_node_group_name>
+    ```
+
+    > ⚠️ **Warning** ⚠️
+    > Because this command runs remotely in concourse, this command can't be used to drain default ng on the manager cluster. It must be run locally while your context is set to the correct cluster.
+
+    <!-- -->
+    > **Note:** The above `cloud-platform` cli command runs [this script].
+
+1. Raise a new pr [deleting the old node group].
+1. Re-run the [infrastructure-account/terraform-apply] pipeline to again to update the Modsecurity Audit logs cluster to map roles with only the new node group IAM Role.
+1. Run the integration tests to ensure the cluster is healthy.
 
 ### Notes:
 
-- When making changes to the default node group in live, it's handy to pause the pipelines for each of our environments for the duration of the change.
-- The `cloud-platform pipeline` command [cordons-and-drains-nodes] in a given node group waiting 5mins between each drained node.
+- The `cloud-platform pipeline` command [cordons-and-drains-nodes] in a given node group waits 5 minutes between each drained node.
 - If you can avoid it try not to fiddle around with the target node group in the aws console for example reducing the desired nodes, aws deletes nodes in an unpredictable way which might cause the pipeline command to fail. Although it is possible if you need to.
+
+### Useful commands:
+
+#### [`k9s`](https://k9scli.io/)
+A useful cli tool to get a good overview of the state of the cluster. Useful commands for monitoring a cluster [are listed here].
+
+#### `kubectl`
+- `watch kubectl get nodes --sort-by=.metadata.creationTimestamp`
+
+The above command will output all of the nodes like this:
+
+```
+NAME                                           STATUS   ROLES    AGE     VERSION
+ip-172-20-124-118.eu-west-2.compute.internal   Ready,SchedulingDisabled      <none>   47h     v1.22.15-eks-fb459a0
+ip-172-20-101-81.eu-west-2.compute.internal    Ready,SchedulingDisabled      <none>   47h     v1.22.15-eks-fb459a0
+ip-172-20-119-182.eu-west-2.compute.internal   Ready    <none>   47h     v1.22.15-eks-fb459a0
+ip-172-20-106-20.eu-west-2.compute.internal    Ready    <none>   47h     v1.22.15-eks-fb459a0
+ip-172-20-127-1.eu-west-2.compute.internal     Ready    <none>   47h     v1.22.15-eks-fb459a0
+```
+
+### Monitoring nodes
+
+Where nodes have a status of `Ready,SchedulingDisabled`, this indicates that the nodes are cordoned off and will no longer schedule pods. Only nodes from the outdated nodes (those with old templates) should adopt this status. Nodes in a `Ready` state will schedule pods. This should be any 'old template' node that haven't yet been cordoned, or any 'new template' nodes.
+
+When all nodes have been recycled, all nodes will all have a status of `Ready`.
+
+The `cordon-and-drain` pipeline takes 5 minutes per node, so takes approximately 1 hour per 12 nodes. Expect a process that involves making changes to multiple clusters including `live` to take a whole day.
 
 [cluster node group]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/97768bfd8b4e25df6f415035acac60cf531d88c1/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf#L60
 [instance type config]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/97768bfd8b4e25df6f415035acac60cf531d88c1/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf#L43
-[pr deleting]: https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/2663
-[updated changes]: https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/2657
+[deleting the old node group]: https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/2663
+[updated changes]: https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/3296/files
 [cordons and drains nodes]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/cordon-and-drain-nodes.yaml
-[script source]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/7851f741e6c180ed868a97d51cec0cf1e109de8d/pipelines/manager/main/cordon-and-drain-nodes.yaml#L50
+[this script]: https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/7851f741e6c180ed868a97d51cec0cf1e109de8d/pipelines/manager/main/cordon-and-drain-nodes.yaml#L50
 [infrastructure-account/terraform-apply]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-account/jobs/terraform-apply
+[launch template]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/e18d678712871ca732a4696cfd77710230523ac3/terraform/aws-accounts/cloud-platform-aws/vpc/eks/templates/user-data-140824.tpl
+[typically suffixed with the date of the changes]: https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/2657/files
+[remove the old node groups, and update the `minimum` and `desired` node counts for the new node group in code]: https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/2663/files
+[are listed here]: https://runbooks.cloud-platform.service.justice.gov.uk/monitor-eks-cluster.html#monitoring-with-k9s
