@@ -1,7 +1,7 @@
 ---
 title: Git-crypt
 weight: 75
-last_reviewed_on: 2024-02-23
+last_reviewed_on: 2024-09-03
 review_in: 6 months
 ---
 
@@ -127,6 +127,6 @@ git show HEAD:<path-to-file>
 
 - where `<path-to-file>` is either absolute from the base of the git repo or relative (eg.: `git show:./my-secret-file.yaml`)
 
-- You should see binary output which begins with `^@GITCRYPT^@`.
+- You should see a binary output which begins with `^@GITCRYPT^@`.
 
 Note: If you need to `checkout` an older commit, branch, tag etc., make sure to `git-crypt lock` your repository beforehand in order to avoid a broken local working directory. Once you've locked and checked out the desired revision, you can `git-crypt unlock`.

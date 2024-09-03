@@ -1,7 +1,7 @@
 ---
 title: Incident Process
 weight: 40
-last_reviewed_on: 2024-02-23
+last_reviewed_on: 2024-09-03
 review_in: 6 months
 ---
 
@@ -20,9 +20,9 @@ We define an incident as an event which:
 * degrades user-facing services, or
 * increases risk to production services
 
-> "Users" includes end-users of services (citizens or members of internal user groups such as prison officers), as well as users of the platform - i.e. members of service teams who maintain or depend on services we host/maintain.
+> "Users" include end-users of services (citizens or members of internal user groups such as prison officers), as well as users of the platform - i.e. members of service teams who maintain or depend on services we host/maintain.
 
-> An example of increased risk might be when one or more members of a high-availability set of components stops working. e.g. if one of our three master nodes in live-1 stopped working, it would not have any visible effect to end users but the cluster would be at increased risk, because we would no longer have a highly-available cluster.
+> An example of increased risk might be when one or more members of a high-availability set of components stop working. e.g. if one of our three master nodes in live-1 stopped working, it would not have any visible effect to end users but the cluster would be at increased risk, because we would no longer have a highly-available cluster.
 
 If this event does not constitute an incident, the appropriate response is probably to [raise a ticket] to fix whatever needs fixing.
 
@@ -109,7 +109,7 @@ Once appointed, the scribe should post this message on the incident slack thread
 I am the scribe
 ```
 
-The form of the log is at the scribe's discretion, provided key events are timestamped, and that it can easily be handed off to another member of the team if they take over as scribe.
+The form of the log is at the scribe's discretion, provided key events are timestamped, and that it can be easily handed off to another member of the team if they take over as scribe.
 
 ### 3.3 Communications Lead
 
@@ -129,7 +129,7 @@ People to update:
 * Team members for awareness or because they might be able to help - via #cloud-platform
 * People in the team who manage communication with senior leadership in MoJ - Steve, Karen, Tony.
 
-In the case of high-priority user-impacting incidents there is a need to keep the MoJ Incident Management Team aware. This is done by posting updates in the private **#p1s** slack channel (only Steve and Tony can do this), and via email to **[MoJdtincidentmanagement@justice.gov.uk](mailto:MoJdtincidentmanagement@justice.gov.uk)**
+In the case of high-priority user-impacting incidents, there is a need to keep the MoJ Incident Management Team aware. This is done by posting updates in the private **#p1s** slack channel (only Steve and Tony can do this), and via email to **[MoJdtincidentmanagement@justice.gov.uk](mailto:MoJdtincidentmanagement@justice.gov.uk)**
 
 ### Transferring roles
 
