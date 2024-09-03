@@ -1,7 +1,7 @@
 ---
 title: Velero - Cluster backups and disaster recovery
 weight: 601
-last_reviewed_on: 2024-02-23
+last_reviewed_on: 2024-09-03
 review_in: 6 months
 ---
 
@@ -29,7 +29,7 @@ You can verify the Velero server pod is installed and running using the kubectl 
 kubectl get pods -n velero
 ```
 
-All backups are are stored in a S3 bucket for 30 days. To view the backup location run the following command:
+All backups are are stored in an S3 bucket for 30 days. To view the backup location, run the following command:
 
 ```
 velero get backup-locations
@@ -42,7 +42,7 @@ The output will show the bucket name and corresponding prefix.
 
 There are hundreds of reasons why you need to backup parts and/or your full cluster, a few high level reasons are:
 
-- The cluster can not be recovered back to to a fully working state after a failed upgrade
+- The cluster can not be recovered back to a fully working state after a failed upgrade
 - A user accidentally deletes a resource or namespace
 - Losing or corrupted persistent storage (EBS Volume)
 
@@ -50,13 +50,13 @@ There are hundreds of reasons why you need to backup parts and/or your full clus
 
 Velero can be used to back up as little as a single resource type to the whole cluster (all namespaces and resources).
 
-StatefulSets including corresponding persistent volumes are backed up together, as unlike stateless applications, it is not possible to easily get an application restored when it has persistent data.
+StatefulSets, including corresponding persistent volumes, are backed up together, unlike stateless applications, it is not possible to easily get an application restored when it has persistent data.
 
-Velero **does not** backup the Kubernetes state stored in etcd. It is highly recommenced that a specific backup solution is used for etcd and its relevant certificates in addition to Velero.
+Velero **does not** backup the Kubernetes state stored in etcd. It is highly recommended that a specific backup solution is used for etcd and its relevant certificates in addition to Velero.
 
 ### How?
 
-It is possible to create manual backups as well as schedules ones.
+It is possible to create manual backups as well as scheduled ones.
 
 #### Manual backups
 
@@ -82,14 +82,14 @@ To view all stored backups within the cluster, run the following command:
 velero get backups
 ```
 
-It is also possible to restore (and exclude) specific namespaces and resources from a velero-allnamespace backup. Below are examples of restoring a specific namespace and resource.
+It is also possible to restore (and exclude) specific namespaces and resources from a velero-allnamespace backup. Below are examples of restoring a specific namespace and resource:
 
 ```
 velero restore create --from-backup velero-allnamespacebackup --include-namespaces monitoring
 velero restore create --from-backup velero-allnamespacebackup --include-resource prometheusrules
 
 ```
-In a disaster recovery scenario, scheduled backups continue to backup, this may create backups with incorrect config. Instead of stopping individual scheduled jobs, it is recommended to change the storage location access mode to `ReadOnly`. To do this you require the storage location name. the following command will give you the storage location name and current access mode:
+In a disaster recovery scenario, scheduled backups continue to backup, this may create backups with incorrect config. Instead of stopping individual scheduled jobs, it is recommended to change the storage location access mode to `ReadOnly`. To do this, you require the storage location name. The following command will give you the storage location name and current access mode:
 
 ```
 velero get backup-locations
@@ -127,7 +127,7 @@ velero backup-location create <location-name> --provider aws --bucket <bucket-na
 
 At this point, when you execute `velero backups get` you will see 2 different locations under the storage location column.
 
-If you want to create normal backups with 2 different storage locations configured, you either have to set one of the locatons as default. or add `--volume-snapshot-locations` to your backup command.
+If you want to create normal backups with 2 different storage locations configured, you either have to set one of the locatons as default or add `--volume-snapshot-locations` to your backup command.
 
 ```
 velero backup create <backup-name> --volume-snapshot-locations <location-name>

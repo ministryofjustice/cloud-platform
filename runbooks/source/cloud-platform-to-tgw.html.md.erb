@@ -1,25 +1,25 @@
 ---
 title: Adding a route to connect to a TGW
 weight: 9000
-last_reviewed_on: 2024-02-27
+last_reviewed_on: 2024-09-03
 review_in: 6 months
 ---
 
 # Adding a route to connect to the MOJ Transit Gateway
 
 This document is a description of the current Cloud Platform attachment to the MoJ Transit Gateway.
-It also explain how to modify the relevant route table to route traffic from Cloud Platform to the MoJ Transit Gateway.
+It also explains how to modify the relevant route table to route traffic from Cloud Platform to the MoJ Transit Gateway.
 
 *The scope of this guide is limited on purpose, it only covers the Cloud Platform responsibilities.
 The NVVS DevOps team is able to share the Transit Gateways with other AWS accounts.*
 
 ## Quick introduction
 
-AWS Transit Gateways allows VPCs, from different accounts or regions, to be connected securely.
+AWS Transit Gateways allow VPCs, from different accounts or regions, to be connected securely.
 Transit Gateways have their own route-table.
-Transit Gateways (TGW) also support connecting to VPNs, AWS Direct Connect and other Transit Gateway
+Transit Gateways (TGW) also support connecting to VPNs, AWS Direct Connect and other Transit Gateways.
 
-An important limitation: a TGW can only work with VPCs in the same region it is in. However, TGW from different regions can be peered.
+An important limitation: a TGW can only work with VPCs in the same region it is in. However, TGWs from different regions can be peered.
 
 The MoJ Transit Gateway infrastructure is managed here : [github repository]
 
@@ -34,11 +34,11 @@ The vpc_attachement is done by creating the resource `aws_ec2_transit_gateway_vp
 vpc_id and the private subnet_ids of `live-1` VPC. The NVVS DevOps team then approves the vpc attachement and adds the attachment from their side.
 In order to allow the traffic to flow, a new route needs to be added to VPC's route-table for each target VPC.
 
-Example: The Analytical Platform(AP) wants to access the Cloud Platform (CP) VPC.
+Example: The Analytical Platform(AP) wants to access the Cloud Platform's (CP) VPC.
 
  - Both are attached the the TGW
  - The CP route-table should contain a route with the AP VPC's CIDR block as a destination, but with the TGW ID as a target.
- - The same needs to be done on the AP VPC, to route back to CP.
+ - The same needs to be done on the AP's VPC, to route back to CP.
 
 ## Making the change
 
@@ -55,7 +55,7 @@ pttp_tgw_destination_cidr_blocks = [
         ...
       ]
 ```
-Note: Something similar need to be done on the 'other side', terraform or not.
+Note: Something similar needs to be done on the 'other side', terraform or not.
 
 There is a task defined in the `infrastructure-vpc-live-1` [Concourse pipeline] that will apply the new route(s) when merged with the main branch.
 
