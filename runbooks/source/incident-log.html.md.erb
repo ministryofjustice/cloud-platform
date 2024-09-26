@@ -10,8 +10,41 @@ weight: 45
 ## Q3 2024 (July-September)
 
 - **Mean Time to Repair**: 3h 8m
-
 - **Mean Time to Resolve**: 4h 9m
+
+### Incident on 2024-09-20 - EKS Subnet Route Table Associations destroyed
+
+- **Key events**
+  - First detected: 2024-09-20 11:24
+  - Incident declared: 2024-09-20 11:30
+  - Repaired: 2024-09-20 11:33
+  - Resolved: 2024-09-20 11:40
+
+- **Time to repair**: 11m
+
+- **Time to resolve**: 20m
+
+- **Identified**: High priority pingdom alerts for live cluster services and users reporting that services could not be resolved.
+
+- **Impact**: Cloud Platform services were not available for a period of time.
+
+- **Context**:
+  - 2024-09-20 11:21: infrastructure-vpc-live-1 pipeline unpaused
+  - 2024-09-20 11:22: EKS Subnet route table associations are destroyed by queued PR infra pipeline
+  - 2024-09-20 11:24: Cloud platform team alerted via High priority alarm
+  - 2024-09-20 11:26: teams begin reporting in #ask channel that services are unavailable
+  - 2024-09-20 11:32: CP team re-run local terraform apply to rebuild route table associations
+  - 2024-09-20 11:33: CP team communicate to users that service availability is restored
+  - 2024-09-20 11:40: Incident declared as resolved
+
+- **Resolution**:
+  - Cloud Platform infrastructure pipelines had been paused for an extended period of time in order to carry out required manual updates to Terraform remote state. Upon resuming the infrastructure pipeline, a PR which had not been identified by the team during this time was queued up to run. This PR executed automatically and destroyed subnet route table configurations, disabling internet routing to Cloud Platform services.
+  - Route table associations were rebuilt by running Terraform apply manually, restoring service availability.
+
+- **Review actions**:
+  - Review and update the process for pausing and resuming infrastructure pipelines to ensure that all team members are aware of the implications of doing so.
+  - Investigate options for suspending the execution of queued PRs during periods of ongoing manual updates to infrastructure.
+  - Investigate options for improving isolation of infrastructure plan and apply pipeline tasks.
 
 ### Incident on 2024-07-25
 
@@ -371,7 +404,7 @@ weight: 45
 
 - **Context**:
   - 2023-02-02 10:14: [CPU-Critical alert](https://moj-digital-tools.pagerduty.com/incidents/Q01V8OZ44WU4EX?utm_campaign=channel&utm_source=slack)
-  - 2023-02-02 10:21: Cloudp Platform Team supporting with CJS deployment and noticed that the CJS team increased the pod count and requested more resources causing the CPU critical alert.
+  - 2023-02-02 10:21: Cloud Platform Team supporting with CJS deployment and noticed that the CJS team increased the pod count and requested more resources causing the CPU critical alert.
   - 2023-02-02 10:21 **Incident is declared**.
   - 2023-02-02 10:22 War room started.
   - 2023-02-02 10:25 Cloud Platform noticed that the CJS team have 100 replicas for their deployment and many CJS pods started crash looping, this is due to the Descheduler service **RemoveDuplicates** strategy plugin making sure that there is only one pod associated with a ReplicaSet running on the same node. If there are more, those duplicate pods are evicted for better spreading of pods in a cluster.
