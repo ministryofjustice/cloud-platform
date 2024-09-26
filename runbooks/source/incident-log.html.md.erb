@@ -18,7 +18,7 @@ weight: 45
   - First detected: 2024-09-20 11:24
   - Incident declared: 2024-09-20 11:30
   - Repaired: 2024-09-20 11:33
-  - Resolved: 2024-09-20 11:40 
+  - Resolved: 2024-09-20 11:40
 
 - **Time to repair**: 11m
 
@@ -33,12 +33,12 @@ weight: 45
   - 2024-09-20 11:22: EKS Subnet route table associations are destroyed by queued PR infra pipeline
   - 2024-09-20 11:24: Cloud platform team alerted via High priority alarm
   - 2024-09-20 11:26: teams begin reporting in #ask channel that services are unavailable
-  - 2024-09-20 11:32: CP team re-run local terraform apply to rebuild route table associations 
+  - 2024-09-20 11:32: CP team re-run local terraform apply to rebuild route table associations
   - 2024-09-20 11:33: CP team communicate to users that service availability is restored
   - 2024-09-20 11:40: Incident declared as resolved
 
 - **Resolution**:
-  - Cloud Platform infrastructure pipelines had been paused for an extended period of time in order to carry out required manual updates to Terraform remote state. Upon resuming the infrastructure pipeline, a PR which had not been identified by the team during this time was queued up to run. This PR executed automatically and destroyed subnet route table configurations, disabling internet routing to Cloud Platform services. 
+  - Cloud Platform infrastructure pipelines had been paused for an extended period of time in order to carry out required manual updates to Terraform remote state. Upon resuming the infrastructure pipeline, a PR which had not been identified by the team during this time was queued up to run. This PR executed automatically and destroyed subnet route table configurations, disabling internet routing to Cloud Platform services.
   - Route table associations were rebuilt by running Terraform apply manually, restoring service availability.
 
 - **Review actions**:
