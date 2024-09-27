@@ -1,7 +1,7 @@
 ---
 title: AWS Console Access
 weight: 115
-last_reviewed_on: 2024-03-19
+last_reviewed_on: 2024-09-27
 review_in: 6 months
 ---
 
@@ -39,41 +39,41 @@ Related repositories:
 
 9) Verify the user is created. (You can use AWS Console for this.)
 
-10) Tell them they can login here: https://aws-login.cloud-platform.service.justice.gov.uk
+10) Tell them they can login here: [https://aws-login.cloud-platform.service.justice.gov.uk](https://aws-login.cloud-platform.service.justice.gov.uk)
 
 ## Activating MFA for new users
 
-Unfortunataly terraform can't activate MFA for users, this process must be done done manually either [through AWS Console (UI)](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html) or [through the AWS CLI](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_cliapi.html).
+Unfortunately terraform can't activate MFA for users, this process must be done done manually either [through AWS Console (UI)](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html) or [through the AWS CLI](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_cliapi.html).
 
 ## Modifying Cloud Platform users permissions
 
 This part is the guideline for handling requests arise to add or modify read only access to any aws resources that are created for Cloud Platform users.
 
-Related resouce:
+Related resource:
 
  - [cloud-platform-infrastructure (/terraform/aws-accounts/cloud-platform-aws/account)](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/account)
 
- - [cloud-platform-terraform-aws-sso] (https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso)
+ - [cloud-platform-terraform-aws-sso](https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso)
 
  - Make sure you have the MoJ 1Password access
 
 1) Have a discussion within the Cloud Platform Team to assess and agree on the requested permission changes.
 
-2) Navigate to the [cloud-platform-terraform-aws-sso] (https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso) to update or create a new Terraform file (e.g. elasticache.tf) with the new IAM policy for the specified resource.
+2) Navigate to the [cloud-platform-terraform-aws-sso](https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso) to update or create a new Terraform file (e.g. elasticache.tf) with the new IAM policy for the specified resource.
 
-3) For the newly added resource, modify the [aws.tf] (https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso/blob/main/aws.tf) to include the new policy in the latest `data "aws_iam_policy_document" "combined"` block.
+3) For the newly added resource, modify the [aws.tf](https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso/blob/main/aws.tf) to include the new policy in the latest `data "aws_iam_policy_document" "combined"` block.
 
 4) Create the PR and request a review from the team.
 
 5) Create a [new release] (https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso/releases).
 
-6) In the [cloud-platform-infrastructure repository] (https://github.com/ministryofjustice/cloud-platform-infrastructure), go to [terraform/aws-accounts/cloud-platform-aws/account/main.tf] (https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/account/main.tf), bump and update the sso module version to the newly released version.
+6) In the [cloud-platform-infrastructure repository](https://github.com/ministryofjustice/cloud-platform-infrastructure), go to [terraform/aws-accounts/cloud-platform-aws/account/main.tf](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/account/main.tf), bump and update the sso module version to the newly released version.
 
 7) Create a PR for the module update, monitor and observe the `terraform plan` result.
 
 8) Request a review from the team, and merge it.
 
-10) Use the cloud-platform-dummy-user with the credentials from MoJ 1Password to verify the newly granted access on [the AWS console] (https://justice-cloud-platform.eu.auth0.com/samlp/mQev56oEa7mrRCKAZRxSnDSoYt6Y7r5m?connection=github).
+10) Use the cloud-platform-dummy-user with the credentials from MoJ 1Password to verify the newly granted access on [the AWS console](https://justice-cloud-platform.eu.auth0.com/samlp/mQev56oEa7mrRCKAZRxSnDSoYt6Y7r5m?connection=github).
 
 11) Once verified, inform the user/requester that the permissions have been updated accordingly.
 
@@ -87,7 +87,7 @@ Sometimes when you add the newly created resource to the `data "aws_iam_policy_d
 ```
 To solve this error, you may follow the below steps.
 
-1) Go to the [aws.tf] (https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso/blob/main/aws.tf), create a new AWS IAM Policy document block `data "aws_iam_policy_document" "combined_x"` with next numerical suffix pattern.
+1) Go to the [aws.tf](https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso/blob/main/aws.tf), create a new AWS IAM Policy document block `data "aws_iam_policy_document" "combined_x"` with next numerical suffix pattern.
 
 ```
 data "aws_iam_policy_document" "combined_x" {
@@ -120,8 +120,8 @@ resource "aws_iam_role_policy_attachment" "github_access_x" {
 
 4) Create the PR and request a review from the team.
 
-5) Create a [new release] (https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso/releases).
+5) Create a [new release](https://github.com/ministryofjustice/cloud-platform-terraform-aws-sso/releases).
 
-6) Follow the steps 6-10 in [Modifying External User Permissions] (#modifying-external-user-permissions) to make changes on [cloud-platform-infrastructure repository] (https://github.com/ministryofjustice/cloud-platform-infrastructure).
+6) Follow the steps 6-10 in [Modifying External User Permissions](#modifying-external-user-permissions) to make changes on [cloud-platform-infrastructure repository](https://github.com/ministryofjustice/cloud-platform-infrastructure).
 
 [awsaccounts-iam]: https://github.com/ministryofjustice/cloud-platform-terraform-awsaccounts-iam/blob/main/main.tf
