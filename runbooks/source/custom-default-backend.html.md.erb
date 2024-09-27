@@ -84,7 +84,7 @@ spec:
 
 ## Use the platform-level error page
 
-Some teams want their application's to serve their own error's `example 404's`, but want to serve cloud platforms custom error page from ingress controller default backend for other error codes like 502,503 and 504, this can be done by using [custom-http-errors][custom-http-error-annotation] annotation in your ingress for error codes teams want to serve the cloud platforms custom error page.
+Some teams want their application to serve their own error page for example 404s, but want to serve cloud platforms custom error page from ingress controller default backend for other error codes like 502,503 and 504, this can be done by using [custom-http-errors][custom-http-error-annotation] annotation in your ingress for error codes teams want to serve the cloud platforms custom error page.
 
 Example Ingress file to use platform-level error page for custom-http-errors: "502,503,504". All other errors except `502,503,504` will be served from the application error page.
 
@@ -114,7 +114,7 @@ spec:
 
 ## Serve all errors from your custom default backend
 
-Some teams want application's to serve all errors. It is possible as there is a [fix][fix-from-nginx-ingress] from Nginx-Ingress to cancel out the [global-custom-http-errors][cp-config-custom-http-errors] set to serve cloud platforms custom error page from the default backend, this is done by adding the Ingress annotation and setting an error not used in [global-custom-http-errors][cp-config-custom-http-errors].
+Some teams want applications to serve all errors. It's possible as there is a [fix][fix-from-nginx-ingress] from Nginx-Ingress to cancel out the [global-custom-http-errors][cp-config-custom-http-errors] set to serve cloud platforms custom error page from the default backend, this is done by adding the Ingress annotation and setting an error not used in [global-custom-http-errors][cp-config-custom-http-errors].
 
 If you have [custom-default-backend][customized-default-backend] set up in your namespace, adding the [default-backend][default-backend-annotation] annotation along with [custom-http-errors][custom-http-error-annotation] annotation with an unused error code in [global-custom-http-errors][cp-config-custom-http-errors], will serve custom error page from namespace default-backend service, when the service in the Ingress rule does not have active endpoints.
 
