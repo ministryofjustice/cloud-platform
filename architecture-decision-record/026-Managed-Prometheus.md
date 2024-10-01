@@ -85,14 +85,14 @@ Lock-in: the configuration syntax and other interfaces are the same or similar t
 
 ### Existing install
 
-The 'monitoring' namespace is configured in [components terraform](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components/components.tf#L115-L138) calling the [cloud-platform-terraform-monitoring module](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring). This [installs](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/blob/main/prometheus.tf#L88) the [kube-prometheus-stack Helm chart](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md) / [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) (among other things).
+The 'monitoring' namespace is configured in [components terraform](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components/components.tf#L115-L138) calling the [cloud-platform-terraform-monitoring module](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring). This [installs](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/blob/main/prometheus.tf#L88) the [kube-prometheus-stack Helm chart](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md) / [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) (among other things).
 
 [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) contains a number of things:
 
 * [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) - adds kubernetes-native wrappers for managing Prometheus
   * CRDs for install: Prometheus, Alertmanager, Grafana, ThanosRuler
   * CRDs for configuring: ServiceMonitor, PodMonitor, Probe, PrometheusRule, AlertmanagerConfig
-    - allows specifying monitoring targets using kubernetes labels 
+    - allows specifying monitoring targets using kubernetes labels
 * Kubernetes manifests
 * Grafana dashboards
 * Prometheus rules
@@ -134,7 +134,7 @@ Prometheus web interface - previously AMP was headless, but now it comes with th
 Prometheus Rules and Alerts:
 
 * In our existing cluster:
-   * we get ~3500 Prometheus rules from: https://github.com/kubernetes-monitoring/kubernetes-mixin 
+   * we get ~3500 Prometheus rules from: https://github.com/kubernetes-monitoring/kubernetes-mixin
    * kube-prometheus compiles it to JSON and applies it to the cluster
 * So for our new cluster:
    * we need to do the same thing for our new cluster. But let's avoid using kube-prometheus. Just copy what it does.
