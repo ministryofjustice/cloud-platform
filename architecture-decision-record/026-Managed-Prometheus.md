@@ -16,12 +16,12 @@ Use [Amazon Managed Service for Prometheus](https://aws.amazon.com/prometheus/) 
 
 It's good operational practice to have good 'observability'. This includes monitoring, achieved by regular checking the metrics, or health numbers, of the containers running. The timeseries data which is collected can be shown as graphs or other indicators in a dashboard, and evaluated against rules which trigger alerts to the operators. Typical use by operators include:
 
-* to become familiar with the typical quantity of resources consumed by their software
-* to be alerted to deteriorating health, so that they can fix it, before it becomes an incident
-* being alerted to an incident, to be able to react quickly, not just when users flag it
-* during an incident getting an at-a-glance overview of where problems exist
-* after an incident to understand what went wrong, and help review the actions taken during the response
-* reviewing long-term patterns of health
+- to become familiar with the typical quantity of resources consumed by their software
+- to be alerted to deteriorating health, so that they can fix it, before it becomes an incident
+- being alerted to an incident, to be able to react quickly, not just when users flag it
+- during an incident getting an at-a-glance overview of where problems exist
+- after an incident to understand what went wrong, and help review the actions taken during the response
+- reviewing long-term patterns of health
 
 ### Choice of Prometheus
 
@@ -35,9 +35,9 @@ So overall we are happy to stick with Prometheus.
 
 Prometheus is setup to monitor the whole of Cloud Platform, including:
 
-* Tenant containers
-* Tenant AWS resources
-* Kubernetes cluster. kube-prometheus
+- Tenant containers
+- Tenant AWS resources
+- Kubernetes cluster. kube-prometheus
 
 Prometheus is configured to store 24h worth of data, which is enough to support most use cases. The data is also sent on to Thanos, which efficiently stores 1 year of metrics data, and makes it available for queries using the same PromQL syntax.
 
@@ -47,18 +47,19 @@ Alertmanager uses the Prometheus data when evaluating its alert rules.
 
 The Prometheus container has not run smoothly in recent months:
 
-* **Performance (resolved)** - There were some serious performance issues - alert rules were taking too long to evaluate against the Prometheus data, however this was successfully alleviated by increasing the disk iops, so is not a remaining concern.
+- **Performance (resolved)** - There were some serious performance issues - alert rules were taking too long to evaluate against the Prometheus data, however this was successfully alleviated by increasing the disk iops, so is not a remaining concern.
 
-* **Custom node group** - Being a single Prometheus instance for monitoring the entire platform, it consumes a lot of resources. We've put it on a dedicated node, so it has the full resources. And it needs more memory than other nodes, which means it needs a custom node group, which is a bit of extra management overhead.
+- **Custom node group** - Being a single Prometheus instance for monitoring the entire platform, it consumes a lot of resources. We've put it on a dedicated node, so it has the full resources. And it needs more memory than other nodes, which means it needs a custom node group, which is a bit of extra management overhead.
 
-* **Scalability** - Scaling in this vertical way is not ideal - scaling up is not smooth and eventually we'll hit a limit of CPU/memory/iops. There are options to shard - see below.
+- **Scalability** - Scaling in this vertical way is not ideal - scaling up is not smooth and eventually we'll hit a limit of CPU/memory/iops. There are options to shard - see below.
 
 We also need to address:
 
-* **Management overhead** - Managed cloud services are generally preferred to self-managed because the cost tends to be amortized over a large customer base and be far cheaper than in-house staff. And people with ops skills are at a premium. The management overhead is:
-  * for each of Prometheus, kube-prometheus
+- **Management overhead** - Managed cloud services are generally preferred to self-managed because the cost tends to be amortized over a large customer base and be far cheaper than in-house staff. And people with ops skills are at a premium. The management overhead is:
 
-* **High availability** - We have a single instance of Prometheus, simply because we've not got round to choosing and implementing a HA arrangement yet. This risks periods of outage where we don't collect metrics data. Although the impact on the use cases is not likely to be very disruptive, there is some value in fixing this up.
+  - for each of Prometheus, kube-prometheus
+
+- **High availability** - We have a single instance of Prometheus, simply because we've not got round to choosing and implementing a HA arrangement yet. This risks periods of outage where we don't collect metrics data. Although the impact on the use cases is not likely to be very disruptive, there is some value in fixing this up.
 
 ### Options for addressing the concerns
 
@@ -82,21 +83,20 @@ Resilience: AMP is relatively isolated against cluster issues. The data kept in 
 
 Lock-in: the configuration syntax and other interfaces are the same or similar to our existing self-hosted Prometheus, so we maintain low lock-in / migration cost.
 
-
 ### Existing install
 
-The 'monitoring' namespace is configured in [components terraform](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/components/components.tf#L115-L138) calling the [cloud-platform-terraform-monitoring module](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring). This [installs](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/blob/main/prometheus.tf#L88) the [kube-prometheus-stack Helm chart](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md) / [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) (among other things).
+The 'monitoring' namespace is configured in [components terraform](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components/components.tf#L115-L138) calling the [cloud-platform-terraform-monitoring module](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring). This [installs](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/blob/main/prometheus.tf#L88) the [kube-prometheus-stack Helm chart](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md) / [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) (among other things).
 
 [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) contains a number of things:
 
-* [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) - adds kubernetes-native wrappers for managing Prometheus
-  * CRDs for install: Prometheus, Alertmanager, Grafana, ThanosRuler
-  * CRDs for configuring: ServiceMonitor, PodMonitor, Probe, PrometheusRule, AlertmanagerConfig
-    - allows specifying monitoring targets using kubernetes labels 
-* Kubernetes manifests
-* Grafana dashboards
-* Prometheus rules
-* example configs for: node_exporter, scrape targets, alerting rules for cluster issues
+- [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) - adds kubernetes-native wrappers for managing Prometheus
+  - CRDs for install: Prometheus, Alertmanager, Grafana, ThanosRuler
+  - CRDs for configuring: ServiceMonitor, PodMonitor, Probe, PrometheusRule, AlertmanagerConfig
+    - allows specifying monitoring targets using kubernetes labels
+- Kubernetes manifests
+- Grafana dashboards
+- Prometheus rules
+- example configs for: node_exporter, scrape targets, alerting rules for cluster issues
 
 High Availability - not implemented (yet).
 
@@ -105,8 +105,8 @@ https://github.com/ministryofjustice/cloud-platform/issues/1749#issue-587058014
 
 Prometheus config is held in k8s resources:
 
-* ServiceMonitor
-* PrometheusRule - alerting
+- ServiceMonitor
+- PrometheusRule - alerting
 
 ## How it would work with AMP
 
@@ -122,23 +122,23 @@ Storage: - you can throw as much data at it. Instead there is a days limit of 15
 
 Alertmanager:
 
-* AMP has an Alertmanager-compatible option, which we'd use with the same rules
-* Sending alerts would need to us to configure: create SNS topic that forwards to user Slack channels
+- AMP has an Alertmanager-compatible option, which we'd use with the same rules
+- Sending alerts would need to us to configure: create SNS topic that forwards to user Slack channels
 
 Grafana:
 
-* Amazon Managed Grafana has no terraform support yet so just setup in AWS console. So in the meantime we stick with self-managed Grafana, which works fine.
+- Amazon Managed Grafana has no terraform support yet so just setup in AWS console. So in the meantime we stick with self-managed Grafana, which works fine.
 
 Prometheus web interface - previously AMP was headless, but now it comes with the web interface
 
 Prometheus Rules and Alerts:
 
-* In our existing cluster:
-   * we get ~3500 Prometheus rules from: https://github.com/kubernetes-monitoring/kubernetes-mixin 
-   * kube-prometheus compiles it to JSON and applies it to the cluster
-* So for our new cluster:
-   * we need to do the same thing for our new cluster. But let's avoid using kube-prometheus. Just copy what it does.
-   * when we upgrade the prometheus version, we'll manually [run the jsonnet config generation](https://github.com/kubernetes-monitoring/kubernetes-mixin#generate-config-files), and paste the resulting rules into our terraform module e.g.: https://github.com/ministryofjustice/cloud-platform-terraform-amp/blob/main/example/rules.tf
+- In our existing cluster:
+  - we get ~3500 Prometheus rules from: https://github.com/kubernetes-monitoring/kubernetes-mixin
+  - kube-prometheus compiles it to JSON and applies it to the cluster
+- So for our new cluster:
+  - we need to do the same thing for our new cluster. But let's avoid using kube-prometheus. Just copy what it does.
+  - when we upgrade the prometheus version, we'll manually [run the jsonnet config generation](https://github.com/kubernetes-monitoring/kubernetes-mixin#generate-config-files), and paste the resulting rules into our terraform module e.g.: https://github.com/ministryofjustice/cloud-platform-terraform-amp/blob/main/example/rules.tf
 
 ### Still to figure out
 
@@ -152,8 +152,8 @@ Look at scale and costs. Ingestion: $1 for 10m samples
 
 Prices (Ireland):
 
-* EU-AMP:MetricSampleCount - $0.35 per 10M metric samples for the next 250B metric samples
-* EU-AMP:MetricStorageByteHrs - $0.03 per GB-Mo for storage above 10GB
+- EU-AMP:MetricSampleCount - $0.35 per 10M metric samples for the next 250B metric samples
+- EU-AMP:MetricStorageByteHrs - $0.03 per GB-Mo for storage above 10GB
 
 #### Region
 
@@ -163,10 +163,10 @@ AMP is not released in the London region yet (at the time of writing, 3/11/21). 
 
 We should check our usage of these related components, and if we still need them in the new cluster:
 
-* CloudWatch exporter
-* Node exporter
-* ECR exporter
-* Pushgateway
+- CloudWatch exporter
+- Node exporter
+- ECR exporter
+- Pushgateway
 
 #### Showing alerts
 
@@ -178,4 +178,4 @@ Or maybe we can give users read-only access to the console, for their team's SNS
 
 #### Workspace as a service?
 
-We could offer users a Prometheus workspace to themselves - a full monitoring stack that they fully control. Just a terraform module they can run.  Maybe this is better for everyone, than a centralized one, or just for some specialized users - do some comparison?
+We could offer users a Prometheus workspace to themselves - a full monitoring stack that they fully control. Just a terraform module they can run. Maybe this is better for everyone, than a centralized one, or just for some specialized users - do some comparison?
