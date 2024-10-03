@@ -34,7 +34,7 @@ Due to the architecture difference between our mac m* chips and the pipeline, ev
 Because the team is mainly on mac m* chips, we are generally running a different architecture (arm64) to the terraform that will run in the pipeline (amd64). Therefore if you want to commit a compatible lock file, you must run the following before adding it to git:
 
 ```
-terraform providers lock -platform=linux_amd64 
+terraform providers lock -platform=linux_amd64
 ```
 
 #### Further reading
