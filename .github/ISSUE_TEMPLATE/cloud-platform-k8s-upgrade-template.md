@@ -1,22 +1,22 @@
 ---
-name: Cloud Platform Kubernetes Upgrade story
-about: This template is for Cloud Platform team to create an epic ticket for kubernetes upgrades
+name: Cloud Platform Kubernetes Upgrade Template ticket
+about: This template is for Cloud Platform team to create an epic ticket for Kubernetes upgrades
 label: 'EPIC'
 ---
 
 ## Issue 1:
-### Planning upgrade to EKS <version>
+### Planning upgrade to EKS <upgrade-version>
 
-Go through the release notes of EKS 1.27 and create a plan to upgrade our clusters
+Go through the release notes of EKS <upgrade-version> and create a plan to upgrade our clusters
 
 Things to consider:
 
-Review changelog & release notes
-EKS Module support at current version?
-Are there any API deprecations & removals? (Check insights)
+Review EKS / Kubernetes changelogs & release notes
+EKS Module supported at target upgrade version?
+Are there any API deprecations & removals? (Check EKS insights)
 Are there new components being added?
 What changes are being introduced to current components?
-Are there changes to core infra of the CP required? i.e. Are all our current components compatible with <version>?
+Are there changes to core infra of the CP required? i.e. Are all our current components compatible with <upgrade-version>?
 Are there changes users need to make?
 Do we need to expand any of our smoke/integration testing?
 Create additional tickets needed for any findings specific to this upgrade
@@ -25,8 +25,8 @@ Cluster upgrade Runbook:
 https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-cluster.html
 
 ## Issue 2:
-### Update vpc-cni from <current-version> to the version needed for current k8s version
-Check for the latest supported addon version for the current kubernetes version and update the clusters
+### Update vpc-cni to latest supported release for current EKS version
+Check for the latest supported addon release for the current EKS version and update the clusters
 [Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
 
 Production Clusters Checklist:
@@ -43,8 +43,8 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 
 
 ## Issue 3:
-### Update kube-proxy from <current-version> to the version needed for current k8s version
-Check for the latest supported addon version for the current kubernetes version and update the clusters
+### Update kube-proxy to latest supported release for current EKS version
+Check for the latest supported addon release for the current EKS version and update the clusters
 [Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
 
 Production Clusters Checklist:
@@ -61,8 +61,8 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 
 
 ## Issue 4:
-### Update core-dns from <current-version> to the version needed for current k8s version
-Check for the latest supported addon version for the current kubernetes version and update the clusters
+### Update core-dns to latest supported release for current EKS version
+Check for the latest supported addon release for the current EKS version and update the clusters
 [Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
 
 Production Clusters Checklist:
@@ -78,17 +78,17 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
 
 ## Issue 5:
-### Test EKS <version> on test cluster
+### Test EKS <upgrade-version> on test cluster
 
 Follow instructions from Upgrade runbook: https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-cluster.html#upgrade-eks-cluster
 
 ## Issue 6:
-### Test EKS <version> on live-like cluster
+### Test EKS <upgrade-version> on live-like cluster
 
 Follow instructions from creating a live like cluster runbook: https://runbooks.cloud-platform.service.justice.gov.uk/creating-a-live-like.html#creating-a-live-like-cluster
 
 ## Issue 7:
-### EKS: Upgrade Production clusters to Kubernetes <version>
+### EKS: Upgrade Production clusters to Kubernetes <upgrade-version>
 https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-cluster.html
 
 Production Clusters Checklist:
@@ -98,8 +98,8 @@ Production Clusters Checklist:
 - [ ] live
 
 ## Issue 8:
-### Update vpc-cni from <version> to the version needed for the upgraded k8s version
-Check for the latest supported addon version for the upgraded kubernetes version and update the clusters
+### Update vpc-cni to latest supported release for upgraded EKS version
+Check for the latest supported addon version for the upgraded EKS version and update the clusters
 [Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
 
 Production Clusters Checklist:
@@ -116,8 +116,8 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 
 
 ## Issue 9:
-### Update kube-proxy from <version> to the version needed for the upgraded k8s version
-Check for the latest supported addon version for the upgraded kubernetes version and update the clusters
+### Update kube-proxy to latest supported release for upgraded EKS version
+Check for the latest supported addon version for the upgraded EKS version and update the clusters
 [Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
 
 Production Clusters Checklist:
@@ -134,8 +134,8 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 
 
 ## Issue 10:
-### Update core-dns from <version> to the version needed for the upgraded k8s version
-Check for the latest supported addon version for the upgraded kubernetes version and update the clusters
+### Update core-dns to latest supported release for upgraded EKS version
+Check for the latest supported addon version for the upgraded EKS version and update the clusters
 [Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
 
 Production Clusters Checklist:
@@ -157,7 +157,7 @@ https://runbooks.cloud-platform.service.justice.gov.uk/container-images.html#con
 Review the compatibility matrix for all cluster components and verify if the image is compatible with the upgraded Kubernetes version
 
 ## Issue 12:
-### Review and upgrade kube-state-metrics for the upgraded cluster version <version>
+### Review and upgrade kube-state-metrics for the upgraded EKS version <upgrade-version>
 https://runbooks.cloud-platform.service.justice.gov.uk/container-images.html#container-images-used-by-cluster-components
 
 https://github.com/kubernetes/kube-state-metrics?tab=readme-ov-file#compatibility-matrix
@@ -165,24 +165,24 @@ https://github.com/kubernetes/kube-state-metrics?tab=readme-ov-file#compatibilit
 Review the compatibility matrix of kube-state-metrics and verify if the image is compatible with the upgraded Kubernetes version. If the version is a mismatch, check if the whole kube-prometheus-chart needs updating to get the default version of kube-state-metrics from the chart-> values. Otherwise, pin the kube-state-metrics image to match the Kubernetes version.
 
 ## Issue 13:
-### Upgrade cluster autoscaler for k8s version <version>
-The Cloud Platform Cluster is in k8s version <version>. Hence upgrade the cluster-autoscaler to match the k8s version.
+### Upgrade cluster autoscaler for EKS version <upgrade-version>
+The Cloud Platform EKS Cluster is in Kubernetes version <upgrade-version>. Hence upgrade the cluster-autoscaler to match the Kubernetes version.
 
 https://github.com/kubernetes/autoscaler/tree/master/charts/cluster-autoscaler
 https://github.com/ministryofjustice/cloud-platform-terraform-cluster-autoscaler
 
 ## Issue 14:
-### Upgrade cluster descheduler for k8s version <version>
-The Cloud Platform Cluster is in k8s version <version>. Hence upgrade the descheduler to match the k8s version.
+### Upgrade cluster descheduler for EKS version <upgrade-version>
+The Cloud Platform EKS Cluster is in Kubernetes version <upgrade-version>. Hence upgrade the descheduler to match the Kubernetes version.
 
 https://github.com/kubernetes-sigs/descheduler?tab=readme-ov-file#%EF%B8%8F--documentation-versions-by-release
 https://github.com/ministryofjustice/cloud-platform-terraform-descheduler
 
 ## Issue 15:
-### Post k8s version <version> Cleanup
-Following upgrade from EKS <old-version > <version>, there will be a number of cleanup activities that need addressing:
+### Post EKS version <upgrade-version> Cleanup
+Following upgrade to EKS <upgrade-version>, there will be a number of cleanup activities that need addressing:
 
-Update user guide / runbook references
+Update user guide / runbook references to EKS version
 Update tools-image for kubectl version
 Update cloud-platform-cli for kubectl version 
 Update concourse pipelines to use updated tools-image and cli
@@ -193,7 +193,7 @@ Update concourse pipelines to use updated tools-image and cli
 Update the runbook for 
 - any changes needed in the steps to perform the upgrade
 - any lessons learnt that could be useful for next upgrade
-- any changes to the [upgrade issue template](https://github.com/ministryofjustice/cloud-platform/blob/main/.github/ISSUE_TEMPLATE/cloud-platform-k8s-upgrade-template.md)
+- any changes to the [upgrade issue template](https://github.com/ministryofjustice/cloud-platform/blob/main/.github/ISSUE_TEMPLATE/cloud-platform-Kubernetes-upgrade-template.md)
 
 Cluster upgrade Runbook:
 https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-cluster.html
