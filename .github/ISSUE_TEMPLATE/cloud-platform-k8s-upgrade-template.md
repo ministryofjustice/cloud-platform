@@ -193,7 +193,7 @@ Update concourse pipelines to use updated tools-image and cli
 Update the runbook for 
 - any changes needed in the steps to perform the upgrade
 - any lessons learnt that could be useful for next upgrade
-- any changes to the [upgrade issue template](https://github.com/ministryofjustice/cloud-platform/blob/main/.github/ISSUE_TEMPLATE/cloud-platform-Kubernetes-upgrade-template.md)
+- any changes to the [upgrade issue template](https://github.com/ministryofjustice/cloud-platform/blob/main/.github/ISSUE_TEMPLATE/cloud-platform-k8s-upgrade-template.md)
 
 Cluster upgrade Runbook:
 https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-cluster.html
