@@ -7,7 +7,7 @@ label: 'EPIC'
 ## Issue 1:
 ### Planning upgrade to EKS <upgrade-version>
 
-Go through the release notes of EKS <upgrade-version> and create a plan to upgrade our clusters
+Go through the EKS and Kubernetes release notes for version <upgrade-version> and create a plan to upgrade our clusters
 
 Things to consider:
 
