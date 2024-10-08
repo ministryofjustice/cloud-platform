@@ -2,7 +2,7 @@
 
 This script will generate a set of GitHub issues based on the content of the [Cloud Platform Kubernetes Upgrade Template ticket](https://raw.githubusercontent.com/ministryofjustice/cloud-platform/refs/heads/main/.github/ISSUE_TEMPLATE/cloud-platform-k8s-upgrade-template.md)
 
-It works by parsing the template ticket and generating an individual issue for specific element of EKS upgrade work, splitting the issues by "## Issue" headers in the template. 
+It works by parsing the template ticket and generating an individual issue for specific element of EKS upgrade work, splitting the issues by "## Issue" headers in the template.
 
 ## Prerequisites
 
