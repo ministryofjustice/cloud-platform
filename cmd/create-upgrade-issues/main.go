@@ -20,7 +20,7 @@ type GitHubAccess struct {
 }
 
 // ParseIssue parses the given issue and returns a slice of issues
-func ParseIssue(issue string) []string {
+func ParseIssue(issue string, upgradeVersion string) []string {
 	var issues []string
 	sections := strings.Split(issue, "## Issue")
 
@@ -29,6 +29,7 @@ func ParseIssue(issue string) []string {
 			lines := strings.Split(strings.TrimSpace(section), "\n")
 			title := strings.TrimSpace(lines[0])
 			body := strings.TrimSpace(strings.Join(lines[1:], "\n"))
+			body = strings.ReplaceAll(body, "<upgrade-version>", upgradeVersion)
 			issues = append(issues, fmt.Sprintf("## %s\n%s", title, body))
 		}
 	}
@@ -36,17 +37,19 @@ func ParseIssue(issue string) []string {
 }
 
 // CreateIssue creates a GitHub issue
-func CreateIssue(client *github.Client, ghAccess GitHubAccess, issue string, epicIssueNumber int) error {
+func CreateIssue(client *github.Client, ghAccess GitHubAccess, issue string, templateIssueNumber int, upgradeVersion string) error {
 	issueParts := strings.SplitN(issue, "\n", 3)
 	title := strings.TrimSpace(strings.TrimPrefix(issueParts[1], "###"))
 	body := strings.TrimSpace(issueParts[2])
 
-	// Append the body with the epic issue number
-	body = fmt.Sprintf("%s\n\n Related to: #%d", body, epicIssueNumber)
+	// Append the body with the template issue number
+	body = fmt.Sprintf("%s\n\n Related to: #%d", body, templateIssueNumber)
+	label := "eks-" + upgradeVersion + "-upgrade"
 
 	issueRequest := &github.IssueRequest{
-		Title: &title,
-		Body:  &body,
+		Title:  &title,
+		Body:   &body,
+		Labels: &[]string{label},
 	}
 	_, _, err := client.Issues.Create(context.Background(), ghAccess.RepoOwner, ghAccess.RepoName, issueRequest)
 	return err
@@ -59,8 +62,14 @@ func main() {
 	flag.StringVar(&ghAccess.RepoOwner, "owner", "ministryofjustice", "the repository to create issues")
 	flag.StringVar(&ghAccess.RepoName, "repo", "cloud-platform", "the repository to create issues")
 	flag.IntVar(&ghAccess.IssueNumber, "issue", 0, "the issue number to create issues")
+	upgradeVersion := flag.String("upgrade-version", "", "the target EKS upgrade version")
 
 	flag.Parse()
+
+	if *upgradeVersion == "" {
+		fmt.Println("Error: you must specify the k8s upgrade version")
+		os.Exit(1)
+	}
 
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
@@ -76,10 +85,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	issues := ParseIssue(*issueContent.Body)
+	issues := ParseIssue(*issueContent.Body, *upgradeVersion)
 	for _, issue := range issues {
 		//fmt.Println("Creating issue:", issue)
-		err := CreateIssue(client, ghAccess, issue, ghAccess.IssueNumber)
+		err := CreateIssue(client, ghAccess, issue, ghAccess.IssueNumber, *upgradeVersion)
 		if err != nil {
 			fmt.Println("Error creating issue:", err)
 			os.Exit(1)
