@@ -59,14 +59,13 @@ func convertHoursToMinutes(i int) int {
 }
 
 func main() {
+	var data []string
+	var str strings.Builder
+
 	lines, err := readLines("../../runbooks/source/incident-log.html.md.erb")
 	if err != nil {
 		log.Fatalf("readLines: %s", err)
 	}
-
-	var data []string
-
-	var str strings.Builder
 
 	for _, line := range lines {
 		str.WriteString(line)
