@@ -29,8 +29,6 @@ func readLines(path string) ([]string, error) {
 
 func convertToRaw(data string) int {
 	s := strings.Split(data, " ")
-	total := 0
-
 	hours := 0
 	minutes := 0
 
@@ -52,9 +50,8 @@ func convertToRaw(data string) int {
 			minutes = i
 		}
 	}
-	total = hours + minutes
 
-	return total
+	return hours + minutes
 }
 
 func convertHoursToMinutes(i int) int {
