@@ -95,7 +95,7 @@ func main() {
 			t := strings.Replace(regmatch, "**Time to repair**: ", "", -1)
 			timeToRepairTemp := convertToRaw(t)
 			timeToRepair = timeToRepair + timeToRepairTemp
-			count = count + 1
+			count += 1
 		}
 
 		re2 := regexp.MustCompile(`\*\*Time to resolve\*\*: (\d*. \d*.|\d*.)`)
@@ -105,7 +105,7 @@ func main() {
 			t := strings.Replace(resolveMatch, "**Time to resolve**: ", "", -1)
 			timeToResolveTemp := convertToRaw(t)
 			timeToResolve = timeToResolve + timeToResolveTemp
-			resolveCount = resolveCount + 1
+			resolveCount += 1
 		}
 
 		if count != 0 {
