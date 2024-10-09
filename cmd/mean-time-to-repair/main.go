@@ -55,8 +55,7 @@ func convertToRaw(data string) int {
 }
 
 func convertHoursToMinutes(i int) int {
-	i = i * 60
-	return i
+	return i * 60
 }
 
 func main() {
