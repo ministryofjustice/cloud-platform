@@ -5,12 +5,13 @@ weight: 45
 
 # Incident Log
 
-> Use the [mean-time-to-repair.rb] script to view performance metrics
+> Use the [mean-time-to-repair] go script to view performance metrics
 
+---
 ## Q3 2024 (July-September)
 
-- **Mean Time to Repair**: 3h 8m
-- **Mean Time to Resolve**: 4h 9m
+- **Mean Time to Repair**: 1h 39m
+- **Mean Time to Resolve**: 2h 14m
 
 ### Incident on 2024-09-20 - EKS Subnet Route Table Associations destroyed
 
@@ -92,6 +93,7 @@ weight: 45
   - [Re-introduce Opensearch in to Live logging](https://github.com/ministryofjustice/cloud-platform/issues/5929)
   - [Investigate fluent-bit "failed to flush chunk"](https://github.com/ministryofjustice/cloud-platform/issues/5930)
 
+---  
 ## Q1 2024 (January-April)
 
 - **Mean Time to Repair**: 3h 21m
@@ -138,6 +140,7 @@ weight: 45
   - Look into creating a blue-green prometheus to have live like setup to test changes before applying to live
   - Spike into Amazon Managed Prometheus
 
+---
 ## Q4 2023 (October-December)
 
 - **Mean Time to Repair**: 35h 36m
@@ -181,6 +184,7 @@ weight: 45
   - Any other services which is probing prometheus that triggers the restart
   - Is taking regular velero backups distrub the ebs read/write and cause the restart
 
+---
 ## Q3 2023 (July-September)
 
 - **Mean Time to Repair**: 10h 55m
@@ -340,6 +344,7 @@ weight: 45
 - **Review actions**:
   - Add a test/check to ensure the IP address allocation is working as expected [#4669](https://github.com/ministryofjustice/cloud-platform/issues/4669)
 
+---
 ## Q2 2023 (April-June)
 
 - **Mean Time to Repair**: 0h 55m
@@ -380,9 +385,10 @@ weight: 45
 - **Review actions**:
   - Add a runbook for the steps to perform when changing the node instance type
 
+---
 ## Q1 2023 (January-March)
 
-- **Mean Time to Repair**: 225h 11m
+- **Mean Time to Repair**: 225h 10m
 
 - **Mean Time to Resolve**: 225h 28m
 
@@ -534,6 +540,7 @@ Full detailed breakdown of events can be found in the [postmortem notes](https:/
   - Look into a Terraform resource for CircleCI
   - Use IRSA instead of AWS Keys
 
+---
 ## Q4 2022 (October-December)
 
 - **Mean Time to Repair**: 27m
@@ -582,6 +589,7 @@ Full detailed breakdown of events can be found in the [postmortem notes](https:/
 
   - AWS advise received - ticket raised to investigate potential solutions: [Implementation of notification of Scheduled Instance Retirements - to Slack. Investigate 2 potential AWS solutions#4264](https://app.zenhub.com/workspaces/cloud-platform-team-5ccb0b8a81f66118c983c189/issues/ministryofjustice/cloud-platform/4264).
 
+---
 ## Q3 2022 (July-September)
 
 - **Mean Time to Repair**: 6h 27m
@@ -619,11 +627,12 @@ Full detailed breakdown of events can be found in the [postmortem notes](https:/
 - **Review actions**:
   - Mitigaton tickets raised following a post-incident review: https://github.com/ministryofjustice/cloud-platform/issues?q=is%3Aissue+is%3Aopen+post-aws-incident
 
+---
 ## Q1 2022 (January to March)
 
-- **Mean Time to Repair**: 1h 39m
+- **Mean Time to Repair**: 1h 05m
 
-- **Mean Time to Resolve**: 1h 59m
+- **Mean Time to Resolve**: 1h 24m
 
 ### Incident on 2022-03-10 11:48 - All ingress resources using *.apps.live.cloud-platform urls showing certificate issue
 
@@ -694,6 +703,7 @@ Full detailed breakdown of events can be found in the [postmortem notes](https:/
   - Create a runbook to handle ErrorsInExternalDNS alarm [#3501](https://github.com/ministryofjustice/cloud-platform/issues/3501)
   - Assign someone to be the 'hammer' on Fridays
 
+---
 ## Q4 2021 (October to December)
 
 - **Mean Time to Repair**: 1h 17m
@@ -726,6 +736,7 @@ Full detailed breakdown of events can be found in the [postmortem notes](https:/
 - **Review actions**:
   - N/A
 
+---
 ## Q3 2021 (July-September)
 
 - **Mean Time to Repair**: 3h 28m
@@ -833,6 +844,7 @@ Full detailed breakdown of events can be found in the [postmortem notes](https:/
   - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3083) to set terraform kubernetes credentials dynamically (at executing time)
   - Fix the pipeline: Before the creation of Terraform resources, add a function in the cli to perform a `kubectl context` switch to the correct cluster. PR exists
 
+---
 ## Q2 2021 (April-June)
 
 - **Mean Time to Repair**: 2h 32m
@@ -902,6 +914,7 @@ Full detailed breakdown of events can be found in the [postmortem notes](https:/
   - Disband the cloud-platform-concourse repository. This includes Service accounts, and pipelines. We should split this repository up and move it to the infra/terraform-concourse repos. Ticket [#3017](https://github.com/ministryofjustice/cloud-platform/issues/3017)
   - Manager needs to use our PSPs instead of eks-privilege - this has already been done.
 
+---
 ## Q1 2021 (January - March)
 
 - **Mean Time to Repair**: N/A
@@ -910,6 +923,7 @@ Full detailed breakdown of events can be found in the [postmortem notes](https:/
 
 ### No incidents declared
 
+---
 ## Q4 2020 (October - December)
 
 - **Mean Time to Repair**: 2h 8m
@@ -942,11 +956,12 @@ Full detailed breakdown of events can be found in the [postmortem notes](https:/
 - **Resolution**:
   - Migrate all ingresses back to the default ingress controller
 
+---
 ## Q3 2020 (July - September)
 
-- **Mean Time To Repair**: 1h 9m
+- **Mean Time To Repair**: 59m
 
-- **Mean Time To Resolve**: 7h 26m
+- **Mean Time To Resolve**: 7h 13m
 
 ### Incident on 2020-09-28 13:10 - Termination of nodes updating kops Instance Group.
 
@@ -1123,11 +1138,12 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
   - We replaced all our master nodes with c5.4xlarge instances, which (currently) have better availability
   - We and AWS are still investigating longer-term and more reliable fixes
 
+---
 ## Q2 2020 (April - June)
 
-- **Mean Time To Repair**: 2h 5m
+- **Mean Time To Repair**: 2h 49m
 
-- **Mean Time To Resolve**: 15h 53m
+- **Mean Time To Resolve**: 7h 12m
 
 ### Incident on 2020-08-04 17:13
 
@@ -1190,6 +1206,7 @@ ttps://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/e
 - **Resolution**:
     The Nginx configuration was modified to enable TLSv1, TLSv1.1 and TLSv1.2
 
+---
 ## Q1 2020 (January - March)
 
 - **Mean Time To Repair**: 1h 22m
@@ -1318,4 +1335,4 @@ Datestamps: please use `YYYY-MM-DD HH:MM` (almost ISO 8601, but more readable), 
 - **Review actions**:
   -
 
-  [mean-time-to-repair.rb]: https://github.com/ministryofjustice/cloud-platform/blob/main/runbooks/bin/mean-time-to-repair.rb
+  [mean-time-to-repair.rb]: https://github.com/ministryofjustice/cloud-platform/blob/main/cmd/mean-time-to-repair
