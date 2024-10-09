@@ -1,7 +1,7 @@
 ---
 title: Grafana Dashboards
 weight: 9106
-last_reviewed_on: 2024-07-08
+last_reviewed_on: 2024-10-09
 review_in: 3 months
 ---
 
@@ -13,7 +13,7 @@ This [dashboard](https://grafana.live.cloud-platform.service.justice.gov.uk/d/an
 
 ### Dashboard Layout
 
-Each box on the dashboard has the name of the node and the number of pods on the node. This number includes pods with a statuses such as "DeadlineExceeded" and completed".
+Each box on the dashboard has the name of the node and the number of pods on the node. This number includes pods with statuses such as "DeadlineExceeded" and completed".
 
 The exception is the `Max Pods per Node` box. This is a constant number set on creation for the maximum allowed pods per node.
 
@@ -24,7 +24,7 @@ We currently have 2 instance groups:
 * Default worker node group (r6i.2xlarge)
 * Monitoring node group (r6i.8xlarge Nodes)
 
-As the dashboard is set in descending order, the last two boxes are normally from the monitoring Nodes group (2 instances), and the rest are from the default Nodes group.
+As the dashboard is set in descending order, the last two boxes are normally from the monitoring Nodes group (2 instances), and the rest are from the default Node groups.
 
 You can run the following command to confirm this and get more information about a node:
 
@@ -70,7 +70,7 @@ Contact the user in the given slack-channel and ask them to fix it. Provide the 
 
 The kibana alert has reported an error similar to:
 
-> Duplicate Grafana dashboard UID's found
+> Duplicate Grafana dashboard UIDs found
 
 To help in identifying the dashboards, you can exec into the Grafana pod as follows:
 
@@ -84,7 +84,7 @@ Then, cd into the `/tmp/dashboards` directory, and execute the `find` command as
 cd /tmp/dashboards/
 for i in $(find ./ -type f); do tail $i; done|grep '"uid": '|cut -f2 -d':'|sort|uniq -c|grep -v ' 1 '
 ```
-This will show output any duplicate UIDs and the number of occurrences of each.
+This will output any duplicate UIDs and the number of occurrences of each.
 
 i.e.:
 
