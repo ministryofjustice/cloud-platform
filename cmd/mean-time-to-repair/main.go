@@ -39,7 +39,7 @@ func convertToRaw(data string) int {
 			time = strings.Replace(time, "h", "", -1)
 			i, err := strconv.Atoi(time)
 			if err != nil {
-				panic(err)
+				log.Fatalf("contains h: %s", err)
 			}
 			hours = convertHoursToMinutes(i)
 		}
@@ -47,7 +47,7 @@ func convertToRaw(data string) int {
 			time = strings.Replace(time, "m", "", -1)
 			i, err := strconv.Atoi(time)
 			if err != nil {
-				panic(err)
+				log.Fatalf("contains m: %s", err)
 			}
 			minutes = i
 		}
