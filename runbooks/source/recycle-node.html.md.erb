@@ -1,13 +1,13 @@
 ---
 title: Manually run recycle node command
 weight: 250
-last_reviewed_on: 2024-07-10
+last_reviewed_on: 2024-10-10
 review_in: 3 months
 ---
 
 # Recycle-node
 
-The [recycle-node pipeline][recyclenode-pipeline-definition] runs every day on the `live` cluster, it executes the [cloud-platform cli][recycle-node-cli] command to replace the oldest worker node by:
+The [recycle-node pipeline][recyclenode-pipeline-definition] runs every day on the `live` cluster. It executes the [cloud-platform cli][recycle-node-cli] command to replace the oldest worker node by:
 
 * Cordoning the oldest node
 * Draining the node
@@ -19,7 +19,7 @@ To recycle to oldest node on the cluster in your current context:
 
     cloud-platform cluster recycle-node --oldest
 
-To recycle a given node on the cluster in your current context
+To recycle a given node on the cluster in your current context,:
 
     cloud-platform cluster recycle-node --name ip-XXX.XX.XX.XX.eu-west-2.compute.internal
 
@@ -33,7 +33,7 @@ FATA[0000] node ip-172-20-53-167.eu-west-2.compute.internal is already cordoned,
 
     cloud-platform cluster recycle-node --ignore-label
 
-The other optional flags are
+The other optional flags are:
 
 ```bash
       --aws-access-key string   aws access key to use

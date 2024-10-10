@@ -1,6 +1,6 @@
 ---
 title: Custom default-backend
-last_reviewed_on: 2024-07-10
+last_reviewed_on: 2024-10-10
 weight: 9000
 review_in: 3 months
 ---
@@ -16,12 +16,12 @@ However, some applications don’t want to use the cloud-platform custom default
 ## Creating your own custom error page
 
 ### 1. Create your docker image
-First create a docker image containing custom HTTP error pages using the [example][ingress-nginx-custom-error-pages] from the ingress-nginx, or [simplified version][cloud-platform-custom-error-pages] created by the cloud platform team.
+First, create a docker image containing custom HTTP error pages using the [example][ingress-nginx-custom-error-pages] from the ingress-nginx, or [simplified version][cloud-platform-custom-error-pages] created by the cloud platform team.
 
 ### 2. Creating a service and deployment
 Using this [custom-default-backend][customized-default-backend] example from ingress-nginx, create a service and deployment of the error pages container in your namespace.
 
-To create Deployment and Service manually use this below command:
+To create Deployment and Service manually, use the command below:
 
 ```
 $ kubectl -n ${namespace} create -f custom-default-backend.yaml
@@ -80,11 +80,11 @@ spec:
             port:
               number: 4567
 ```
-> Note - Please change the `ingress-name` and `environment-name` values in the above example, you can get the `environment-name` value from your namespace label "cloud-platform.justice.gov.uk/environment-name". The `colour` should be `green` for ingress in EKS `live` cluster
+> Note - Please change the `ingress-name` and `environment-name` values in the above example. You can get the `environment-name` value from your namespace label "cloud-platform.justice.gov.uk/environment-name". The `colour` should be `green` for ingress in EKS `live` cluster
 
 ## Use the platform-level error page
 
-Some teams want their application to serve their own error page for example 404s, but want to serve cloud platforms custom error page from ingress controller default backend for other error codes like 502,503 and 504, this can be done by using [custom-http-errors][custom-http-error-annotation] annotation in your ingress for error codes teams want to serve the cloud platforms custom error page.
+Some teams want their application to serve their own error page, for example 404s, but want to serve cloud platforms custom error page from ingress controller default backend for other error codes like 502,503 and 504. This can be done by using the [custom-http-errors][custom-http-error-annotation] annotation in your ingress for error codes teams want to serve the cloud platforms custom error page.
 
 Example Ingress file to use platform-level error page for custom-http-errors: "502,503,504". All other errors except `502,503,504` will be served from the application error page.
 

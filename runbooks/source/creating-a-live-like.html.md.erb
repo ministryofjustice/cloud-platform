@@ -1,7 +1,7 @@
 ---
 title: Creating a live-like Cluster
 weight: 350
-last_reviewed_on: 2024-04-10
+last_reviewed_on: 2024-10-10
 review_in: 6 months
 ---
 
@@ -38,7 +38,7 @@ to the configuration similar to the live cluster.
 
 2. Add the `starter_pack_count = 40` variable to the starter_pack module
 
-> Sometimes terraform will error out with an unclear error message this is usually due to a low default `ulimit` to fix this you can set `ulimit -n 2048`
+> Sometimes terraform will error out with an unclear error message. This is usually due to a low default `ulimit`. To fix this, you can set `ulimit -n 2048`
 
 3. Run `terraform plan` and confirm that your changes are correct
 4. Run `terraform apply` to apply the changes to your test cluster
@@ -52,7 +52,7 @@ See documentation for upgrading a [cluster](upgrade-eks-cluster.html).
 
 * Setup pingdom alerts for starter-pack helloworld and multi-container app
 
-> When nodes recycle it's possible that the multi-container app will break giving false positives.
+> When nodes recycle, it's possible that the multi-container app will break giving false positives.
 
 * Useful command liners
   * `watch -n 1 "kubectl get events"` - get all Kubernetes events
