@@ -1,18 +1,18 @@
 ---
 title: Updating Prisoner Content Hub WAF
 weight: 60
-last_reviewed_on: 2024-04-19
+last_reviewed_on: 2024-10-22
 review_in: 6 months
 ---
 
 # Updating Prisoner Content Hub WAF
 
-Every so often the Prisoner Content Hub require their WAF IP allowlist updating. This is a bespoke job and not fully #gitops
+Every so often, the Prisoner Content Hub require their WAF IP allowlist updating. This is a bespoke job and not fully #gitops
 
-> Note: When adding an IP range e.g. `/28` it must start with the first address in the range. `10.0.0.50/28` is not valid however `10.0.0.48/28` is since it's the start of the block.
+> Note: When adding an IP range e.g. `/28`, it must start with the first address in the range. `10.0.0.50/28` is not valid, however `10.0.0.48/28` is since it's the start of the block.
 
 1. Log in to AWS Console
-2. Goto Parameter Store - ensure you're in eu-west-2
+2. Go to Parameter Store - ensure you're in eu-west-2
 3. Search for "prisoner"
 4. Select the correct `ip-allow-list` parameter store (per environment)
 5. Add or remove the IP address from the JSON object and save
