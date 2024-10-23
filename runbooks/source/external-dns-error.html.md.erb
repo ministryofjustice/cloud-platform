@@ -1,17 +1,17 @@
 ---
 title: How to Investigate External-Dns Errors
 weight: 217
-last_reviewed_on: 2024-04-18
+last_reviewed_on: 2024-10-22
 review_in: 6 months
 ---
 
 # <%= current_page.data.title %>
 
-When there are errors in external-dns logs, "ErrorsInExternalDNS" alert sent to the low priority slack channel.
+When there are errors in external-dns logs, "ErrorsInExternalDNS" alerts are sent to the low priority slack channel.
 
 ## Troubleshooting
 
-If we see an ErrorsInExternalDNS alert in low-priority-alerts, this is usually due to a external-dns have an issue to write records to Route-53 for a particual hosted zones.
+If we see an ErrorsInExternalDNS alert in low-priority-alerts, this is usually because an external-dns is unable to write records to Route-53 for a particual hosted zone.
 You can see errors from the external-dns pod by running:
 
 ```bash
@@ -35,7 +35,7 @@ resource record set [name='cluster-thisingress.example.', type='TXT'] but it alr
 level=error msg="failed to submit all changes for the following zones: [/hostedzone/ABCDEFGHIJKLMN /hostedzone/NMLKJIHGFEDCBA]"
 ```
 
-Identify the ingress causing the error in question and fix the ingress depending upon the error message. We may need to inform users to update their ingress causing the error.
+Identify the ingress causing the error in question and fix the ingress depending on the error message. We may need to inform users to update the ingress causing the error.
 
 Follow this [troubleshoot guide](https://aws.amazon.com/premiumsupport/knowledge-center/troubleshoot-route53-resource-record/) for common error messages to determine the error's cause and how to troubleshoot it.
 
@@ -54,4 +54,4 @@ level=error msg="records retrieval failed: failed to list hosted zones: Throttli
 level=error msg="failed to list resource records sets for zone /hostedzone/BLAH_MOX: Throttling: Rate exceeded\n\tstatus code: 400, request id: 0-9216-435fblah"
 ```
 
-There isn't much we can do about being rate limited, acknowledge the alert.
+There isn't much we can do about being rate limited; acknowledge the alert.

@@ -1,7 +1,7 @@
 ---
 title: Add Concourse to a test cluster
 weight: 51
-last_reviewed_on: 2024-04-18
+last_reviewed_on: 2024-10-22
 review_in: 6 months
 ---
 
@@ -15,7 +15,7 @@ review_in: 6 months
 ## Process
 
 - Go to [`cloud-platform-infrastructure/terraform/aws-accounts/cloud-platform-aws/vpc/eks` directory](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks)
-and update `node_groups_count` and `node_size` as below to match the Manager cluster configuration, as this will support the cpu and memory demands of concourse module.
+and update `node_groups_count` and `node_size` as below to match the Manager cluster configuration, as this will support the cpu and memory demands of the concourse module.
 
 ```
   node_groups_count = {
@@ -54,7 +54,7 @@ terraform apply -target=module.concourse
 
 - Login to Concourse
 
-For this step you will need to authenticate to Concourse using your instance's local username and password. These are stored in the kubernete secret `concourse-web` in
+For this step, you will need to authenticate to Concourse using your instance's local username and password. These are stored in the kubernete secret `concourse-web` in
 the `concourse` namespace, and can be obtained using the `cloud-platform` cli tool:
 
 ```
@@ -89,7 +89,7 @@ fly --target david-test1 set-pipeline \
     --config pipelines/david-test1/main/plan-environments.yaml
 ```
 
-Repeat this command whenever you make changes to the pipeline yaml file.
+Repeat this command whenever you make changes to the pipeline's yaml file.
 
 - Set up secrets
 
