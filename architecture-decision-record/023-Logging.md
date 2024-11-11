@@ -8,7 +8,7 @@ Date: 11/11/2024
 
 ## Context
 
-> Cloud Platform's existing strategy for logs has been to **centralize** them in an ElasticSearch instance (Saas hosted by AWS OpenSearch). 
+> Cloud Platform's existing strategy for logs has been to **centralize** them in an ElasticSearch instance (Saas hosted by AWS OpenSearch).
 
 As of November 2024, we have migrated the logging service over to AWS OpenSearch, with ElasticSearch due for retirement (pending some decisions and actions on how to manage existing data retention on that cluster).
 Service teams can use OpenSearch's [search and browse functionality](https://app-logs.cloud-platform.service.justice.gov.uk/_dashboards/app/home#/) for the purposes of debugging and resolving incidents. All pods' stdout get [shipped using Fluentbit](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/logging-an-app/log-collection-and-storage.html#application-log-collection-and-storage) and ElasticSearch stored them for 30 days.
