@@ -1,6 +1,6 @@
 # 26 Managed Prometheus
 
-Date: 2021-10-08
+Date: 2024-11-11
 
 ## Status
 
@@ -67,7 +67,9 @@ We also need to address:
 
 **Sharding**: We could split/shard the Prometheus instance: perhaps dividing into two - tenants and platform. Or if we did multi-cluster we could have one Prometheus instance per cluster. This appears relatively straightforward to do. There would be concern that however we split it, as we scale in the future we'll hit future scaling thresholds, where it will be necessary to change how to divide it into shards, so a bit of planning would be needed.
 
-**High Availability**: The recommended approach would be to run multiple instances of Prometheus configured the same, scraping the same endpoints independently. [Source](https://prometheus-operator.dev/docs/operator/high-availability/#prometheus) There is a `replicas` option to do this. However for HA we would also need to have a load balancer for the PromQL queries to the Prometheus API, to fail-over if the primary is unresponsive. And it's not clear how this works with duplicate alerts being sent to AlertManager. This doesn't feel like a very paved path, with Prometheus Operator [saying](https://prometheus-operator.dev/docs/operator/high-availability/) "We are currently implementing some of the groundwork to make this possible, and figuring out the best approach to do so, but it is definitely on the roadmap!" - Jan 2017, and not updated since.
+**High Availability**: We are now running Prometheus in HA mode [with 3 replicas](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/pull/239). Keeping the findings below as we may have some additional elements of HA to consider in the future: 
+
+> [Source](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/high-availability.md#prometheus) There is a `replicas` option to do this. However for HA we would also need to have a load balancer for the PromQL queries to the Prometheus API, to fail-over if the primary is unresponsive. And it's not clear how this works with duplicate alerts being sent to AlertManager. This doesn't feel like a very paved path, with Prometheus Operator [saying](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/high-availability.md) "We are currently implementing some of the groundwork to make this possible, and figuring out the best approach to do so, but it is definitely on the roadmap!" - Jan 2017, and not updated since.
 
 **Managed Prometheus**: Using a managed service of prometheus, such as AMP, would address most of these concerns, and is evaluated in detail in the next section.
 
