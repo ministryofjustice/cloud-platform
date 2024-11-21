@@ -73,6 +73,8 @@ Pause the following pipelines:
 * infrastructure-live-2
 * infrastructure-manager
 
+> **IMPORTANT:** Add a Pull Request to pause the Dependabot action in the infrastructure repository before pausing as you do not want any changes going through concourse after unpausing the pipeline.
+
 Update `cluster.tf` in `cloud-platform-infrastructure` with the version of Kubernetes you are upgrading to.
 
 Run a `tf plan` against the cluster your upgrading to check to see if everything is expected, the only changes should be to resources relating to the the version upgrade.
@@ -106,7 +108,12 @@ As with preparing for the upgrade communication is really important, keep the th
 
 #### Increasing coredns pods
 
-To ensure that coredns stays up and running during the cluster upgrade replications should be scaled up to 10.
+To ensure that coredns stays up and running during the cluster upgrade replications should be scaled up to 10. This can be done with the following command:
+
+```bash
+kubectl scale deployment coredns --replicas=10 -n kube-system
+```
+> **NOTE:** This is a temporary measure, double check the deployment for the current replicaset, as you will need this for when you scale back after the completion of the upgrade.
 
 #### Upgrading the control pane
 
@@ -130,7 +137,7 @@ Click `Update`
 
 From the cluster control panel select `Compute` tab.
 
-Select `Upgrade now` next to the monitoring node group.
+Select `Upgrade now` next to the default node group.
 
 For update strategy select "Force update"
 
@@ -153,6 +160,10 @@ If there are no changes for terraform shown in each pipeline then the PR can be 
 Unpause the bootstrap pipeline.
 
 Scale down the coredns pods.
+
+```bash
+kubectl scale deployment coredns --replicas=3 -n kube-system
+```
 
 ### Finishing touches
 
