@@ -1,7 +1,7 @@
 ---
 title: Cloud Platform Disaster Recovery Scenarios
 weight: 91
-last_reviewed_on: 2024-05-20
+last_reviewed_on: 2024-11-25
 review_in: 6 months
 ---
 
@@ -152,7 +152,7 @@ This way of restoring the whole cluster have been tested with below procedure
 Any namespaces over 3 hours old can be recovered using Velero (newer namespaces might not have been backed up before the incident occurred).
 
 Create the cluster with the **same** name from the [source code](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/create-cluster.rb)
-and provide the exisiting `vpc-name`. This will link the velero backup locations to the lost cluster.
+and provide the existing `vpc-name`. This will link the velero backup locations to the lost cluster.
 
 Find the name of the most recent backup of the `allnamespacebackup` schedule:
 
