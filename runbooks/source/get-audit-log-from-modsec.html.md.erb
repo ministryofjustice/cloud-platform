@@ -1,42 +1,39 @@
 ---
 title: Get an audit log from modsec
 weight: 8600
-last_reviewed_on: 2024-11-25
+last_reviewed_on: 2024-11-27
 review_in: 6 months
 ---
 
 # OpenSearch modsec setup
 
-We have introduced an openSearch dashboard which collects all modsec logs and has document level security enabled. This means users can only access the logs for the github team they are in [see here for more details](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/networking/modsecurity.html). With this feature in place users can self serve and access their own modsec logs. In the case of a rare error and logs aren't flowing to OpenSearch, then you must use the instructions below to access modsec logs on behalf of the user.
+We have introduced an OpenSearch dashboard which collects all modsec logs and has document level security enabled. This means users can only access the logs for the github team they are in [see here for more details](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/networking/modsecurity.html). With this feature in place users can self serve and access their own modsec logs. In the case of a rare error and logs aren't flowing to OpenSearch, then you must use the instructions below to access modsec logs on behalf of the user.
 
 ## Get an audit log from modsec (when fluent-bit is not pushing to OpenSearch)
 
-On occasion users may need you to provide them with audit log information on an modsec event from our ingress-controllers. This information may be sensitive so it can't be placed in our org-wide Elasticsearch cluster. You'll need to fetch this information from the pod that generated the log.
+In the event that audit logs have failed to ship to OpenSearch, you'll need to fetch this information from the pod that generated the log.
 
 ### How do I check the audit log
 
-As mentioned above, the audit log cannot be placed into Elasticsearch so you'll need the following:
-
-- A Kibana event from the user. A request will come into the ask-cloud-platform channel asking something like:
+- An OpenSearch ingress event from the user. A request will come into the ask-cloud-platform channel asking something like:
 
 ```
 Good afternoon, could I ask for the detailed logs for this block from ModSecurity, please?
-https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/kibana#/doc/fb2e6550-0186-11ec-a2cf-6b21[…]lue:0),time:(from:now-3h,to:now))
-(I need to find out which rules triggered the block, it has 2 critical fails)
-
-example: https://mojdt.slack.com/archives/C57UPMZLY/p1630936971082200
-```
-
-- The Kibana event above should provide you with the following key information
+https://app-logs.cloud-platform.service.justice.gov.uk/_dashboards/app/data-explorer/discover#?[SOME-SEARCH-QUERY.....]
+(I need to find out which rules triggered the block)
 
 ```
- modsec pod name (optional): This will allow you to hone in on the correct pod.
- unique_id: This is a hash of the event in question, e.g. 16494071776.005464
+
+- The OpenSearch event above should provide you with the following key information
+
+```
+ kubernetes.pod_name (optional): This will allow you to hone in on the modsec ingress correct pod.
+ unique_id: This is a hash of the event in question, e.g. 16494071776.005464, and can be located in the log entry.
 ```
 
 - Kubectl access to the live cluster and access to the `ingress-controllers` namespace.
 
-### Perform a search for the unique-id (obtained from the Kibana entry)
+### Perform a search for the unique-id (obtained from the OpenSearch entry)
 
 ```
 # assuming the event id is 16494071776.005464
