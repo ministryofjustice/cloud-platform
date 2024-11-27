@@ -1,0 +1,40 @@
+---
+title: Create Custom Cluster
+weight: 8600
+last_reviewed_on: 2024-11-27
+review_in: 6 months
+---
+
+# Create custom cluster
+
+In concourse we have the ability to create custom clusters based of whichever branch you specify.
+
+First we need to update the pipeline config with our branch, you need to run the following command from the `cloud-platform-terraform-concourse` repo root folder.
+
+```
+fly -t moj-cp set-pipeline --pipeline custom-cluster  --config pipelines/manager/main/custom-cluster.yaml -v branch_name=migrate-eks-csi
+```
+
+From here you can then kick off the build from the concourse UI.
+
+## Deleting your custom cluster
+
+Our delete pipeline allows you to specify the `branch_name` in the config so to do this you run:
+
+```
+fly -t moj-cp set-pipeline --pipeline delete-cluster --config pipelines/manager/main/delete-cluster.yaml -v branch_name=migrate-eks-csi -v cluster_name=tp-0000-0000
+```
+
+You need to pass both `branch_name` and `cluster_name` to the command.
+
+## Rerunning stages in the create custom cluster pipeline
+
+@TODO
+
+## Run integration tests against custom cluster
+
+You can also use the `custom-integration-tests` job within the `custom-cluster` pipeline to execute the go integration test suite against a cluster of your choice:
+
+`fly -t manager set-pipeline -p custom-cluster -c pipelines/manager/main/custom-cluster.yaml -v branch_name=<SOME-OTHER-BRANCH> -v cluster_name=<YOUR-TEST-CLUSTER-NAME>`
+
+And then trigger a new build in `custom-integration-tests` job view.
