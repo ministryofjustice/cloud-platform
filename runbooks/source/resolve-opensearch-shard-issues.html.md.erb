@@ -1,7 +1,7 @@
 ---
 title: Resolving OpenSearch shard problems
 weight: 190
-last_reviewed_on: 2024-05-24
+last_reviewed_on: 2024-11-25
 review_in: 6 months
 ---
 
@@ -52,7 +52,7 @@ kubectl run curl-pod -n <your-namespace> --image="alpine/curl" --restart=Never -
 
 ## Connecting to the OpenSearch api
 
-Because we have fine-grained access enabled on OpenSearch connection isn't based on ip. It's based on SAML. To link your cli with OpenSearch there is a manual step of adding your aws user arn to the `all_access` OpenSearh role.
+Because we have fine-grained access enabled on OpenSearch connection isn't based on ip. It's based on SAML. To link your cli with OpenSearch there is a manual step of adding your aws user arn to the `all_access` OpenSearch role.
 
 1. login to the OpenSearch dashboard using github via saml
 1. as a webops team member you have permissions to edit roles so head to Security -> Roles -> `all_access` (see screenshot below)
