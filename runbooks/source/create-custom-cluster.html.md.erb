@@ -29,7 +29,13 @@ You need to pass both `branch_name` and `cluster_name` to the command.
 
 ## Rerunning stages in the create custom cluster pipeline
 
-@TODO
+If you need to re-run a plan or apply at any stage after the cluster has been created you can do this by running the following:
+
+```
+fly -t moj-cp set-pipeline --pipeline custom-cluster  --config pipelines/manager/main/custom-cluster.yaml -v branch_name=migrate-eks-csi -v cluster_name=tp-0000-0000
+```
+
+Then you can select the step in the pipeline that you'd like to re-run.
 
 ## Run integration tests against custom cluster
 
