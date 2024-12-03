@@ -29,6 +29,9 @@ jobs:
         uses: ministryofjustice/cloud-platform-doc-checker@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_OWNER: ${{ github.event.pull_request.user.login }}
+          GITHUB_OAUTH_TOKEN: ${{ secrets.DOCUMENT_REVIEW_GITHUB }}
+          TEAM_NAME: "WebOps"
 
       - name: Approving PR
         uses: hmarr/auto-approve-action@v4
