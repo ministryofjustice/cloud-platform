@@ -45,6 +45,8 @@ aws eks describe-addon-versions --kubernetes-version=$K8S_VERSION | jq '.addons[
 
 this will pull out the default compatible value for the k8s version for your addon.
 
+You can use the helper script to get the most up-to-date available addon versions for each kubernetes cluster version [script here](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/scripts/addons-upgrade.bash)
+
 ## Preparing for upgrade
 
 Check the changelog for each of the addons and determine if there are any breaking changes.
@@ -53,26 +55,24 @@ Create a thread in #cloud-platform notifying the team that upgrades are starting
 
 ## Starting the upgrade
 
-1. Bump the version number in cloud-platform-terraform-eks-add-ons
-2. Commit changes on a new branch and create a pull request
-3. Request review from someone on the team
-4. Merge pull request and create a new release through the Github UI
-5. Bump the version number of the cloud-platform-terraform-eks-add-ons in cloud-platform-infrastructure
-6. Commit changes on a new branch and create a pull request
-7. Request review from someone on the team
-8. Check the terraform plan in concourse and pause the following pipelines:
+1. Run the helper [script](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/scripts/addons-upgrade.bash) before
+2. Bump the version of the addon
+3. Commit changes on a new branch and create a pull request
+4. Request review from someone on the team
+5. Check the terraform plan in concourse and pause the following pipelines:
   * bootstrap
   * infrastructure-live
   * infrastructure-manager
   * infrastructure-live-2
-9. Create an output of the configuration of a pod before the upgrade. `kubectl -n kube-system get pod $addon -oyaml` there is also a helper [script](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/scripts/addons-upgrade.bash).
-10. Merge the pull request
-11. Unpause an infrastructure pipeline and wait for it to complete
-12. While running:
+6. Create an output of the configuration of a pod before the upgrade. `kubectl -n kube-system get pod $addon -oyaml` there is also a helper .
+7. Merge the pull request
+8 Unpause an infrastructure pipeline and wait for it to complete
+9. While running:
   * Keep an eye on pods recycling `watch -n 1 "kubectl -n kube-system get pods"`
   * Keep an eye on events `watch -n 1 "kubectl -n kube-system get events"`
-13. Run the reporting pipeline on the infrastructure environment
-14. If everything is green repeat steps 11-14 on each environment.
+10. Run the helper [script](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/scripts/addons-upgrade.bash) after
+11. Run the reporting pipeline on the infrastructure environment
+12. If everything is green repeat steps 8 - 11 on each environment.
 
 ## Finish the upgrade
 

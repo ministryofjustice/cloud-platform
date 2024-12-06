@@ -1,7 +1,7 @@
 ---
 title: Upgrade Terraform Version
 weight: 54
-last_reviewed_on: 2024-05-24
+last_reviewed_on: 2024-11-25
 review_in: 6 months
 ---
 
@@ -126,10 +126,10 @@ Here is a snapshot of how our directory looks but this is likely to change:
 aws-accounts
 ├── cloud-platform-aws
 │   ├── account                  # AWS Account specific configuration.
-│   └── vpc                  # VPC creation. Workspaces for individual clusters
+│   └── vpc                      # VPC creation. Workspaces for individual clusters
 │       ├── eks                  # Holding EKS, workspaces for individual clusters.
-│       │   └── components       # EKS components. Workspaces for individual clusters
-│       └── kops                 # Holding KOPS, workspaces for individual clusters.
+│       │   └── core             # EKS core. Workspaces for individual clusters
+            |   └── components   # EKS components.
 ├── cloud-platform-dsd
 │   └── main.tf
 ├── cloud-platform-ephemeral-test
