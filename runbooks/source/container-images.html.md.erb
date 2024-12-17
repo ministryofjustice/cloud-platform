@@ -1,7 +1,7 @@
 ---
 title: Container Images used by Cluster Components
 weight: 55
-last_reviewed_on: 2024-11-14
+last_reviewed_on: 2024-12-17
 review_in: 3 months
 ---
 
@@ -80,7 +80,7 @@ This depends on several factors, some of them are:
 | container image | urgency | latest version for k8s 1.29 | latest version available | latest helm chart |
 |-|-|-|-|-|
 | debian:bookworm-slim::bookworm-20241016-slim | 🟢 | latest | n/a |
-| fluent/fluent-bit:3.0.2-amd64 | 🟢 | v3.1.10 | [v3.1.10](https://github.com/fluent/fluent-bit/releases/tag/v3.1.10) | n/a |
+| fluent/fluent-bit:3.0.2-amd64 | 🟢 | v3.2.2 | [v3.2.2](https://github.com/fluent/fluent-bit/releases/tag/v3.2.2) | n/a |
 | ministryofjustice/cloud-platform-custom-error-pages:1.1.5 | 🟢 | [managed by us](https://github.com/ministryofjustice/cloud-platform-custom-error-pages) | [managed by us](https://github.com/ministryofjustice/cloud-platform-custom-error-pages/releases/tag/1.1.5) | n/a |
 | registry.k8s.io/ingress-nginx/controller:v1.10.1| 🟢 | [v1.11.3](https://github.com/kubernetes/ingress-nginx?tab=readme-ov-file#supported-versions-table) | [v1.11.3](https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.11.3) | [v4.11.3](https://github.com/kubernetes/ingress-nginx/releases/tag/helm-chart-4.11.3)
 
@@ -123,7 +123,7 @@ This depends on several factors, some of them are:
 ## logging
 | container image | urgency | latest version for k8s 1.29 | latest version available | latest helm chart |
 |-|-|-|-|-|
-| fluent/fluent-bit:2.2.1 | 🔴 | v3.1.10 | [v3.1.10](https://github.com/fluent/fluent-bit/releases/tag/v3.1.10) | [0.47.11](https://github.com/fluent/helm-charts) |
+| fluent/fluent-bit:2.2.1 | 🔴 | v3.2.2 | [v3.2.2](https://github.com/fluent/fluent-bit/releases/tag/v3.2.2) | [0.48.3](https://github.com/fluent/helm-charts/releases/tag/fluent-bit-0.48.3) |
 
 ## monitoring
 | container image | urgency | latest version for k8s 1.29 | latest version available | latest helm chart |
