@@ -18,7 +18,7 @@ Things to note:
 
 - When creating a CloudFormation template, use the `Partition: Daily` option. This will create a partition for each day and will make it easier to query the logs for a specific day.
 - Provide Partition start date and end date closer when the issue was observed. The duration is limited to 20 days
-- Create two s3 buckets: 
-  - one for CloudFormation template 
+- Create two s3 buckets:
+  - one for CloudFormation template
   - one to store the Athena query results which you will provide when creating the CloudFormation stack.
 - When the flow logs are downloaded and the user has investigated the issue, delete the created s3 buckets for CloudFormation template and Athena query results and the CloudFormation stack.
