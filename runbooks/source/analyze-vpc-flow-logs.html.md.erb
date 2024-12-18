@@ -1,7 +1,7 @@
 ---
 title: Analyze VPC Flow Logs
 weight: 219
-last_reviewed_on: 2024-06-17
+last_reviewed_on: 2024-12-18
 review_in: 6 months
 ---
 
@@ -11,10 +11,14 @@ Cloud Platform `live-1` VPC is connected to various MoJ AWS accounts VPCs using 
 that are coming to/from Cloud Platform VPC, the VPC flow logs are enabled. These logs are stored in an S3 bucket and can be analyzed using Athena when needed.
 
 The steps involve a pointy-clicky exercise to generate Athena integration by creating a CloudFormation stack using a template and use that as a datasource in Athena.
+
 Follow the steps as mentioned in the blog: [AWS blog - Analyze VPC Flow Logs with point-and-click Amazon Athena integration](https://aws.amazon.com/blogs/networking-and-content-delivery/analyze-vpc-flow-logs-with-point-and-click-amazon-athena-integration/).
 
 Things to note:
+
 - When creating a CloudFormation template, use the `Partition: Daily` option. This will create a partition for each day and will make it easier to query the logs for a specific day.
 - Provide Partition start date and end date closer when the issue was observed. The duration is limited to 20 days
-- Create two s3 buckets: one for CloudFormation template and another to store the Athena query results which you will provide when creating the CloudFormation stack.
+- Create two s3 buckets: 
+  - one for CloudFormation template 
+  - one to store the Athena query results which you will provide when creating the CloudFormation stack.
 - When the flow logs are downloaded and the user has investigated the issue, delete the created s3 buckets for CloudFormation template and Athena query results and the CloudFormation stack.
