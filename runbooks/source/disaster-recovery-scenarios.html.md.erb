@@ -305,16 +305,19 @@ Access the S3 bucket where the effected terraform state is stored. From the list
 #### Recovery Steps:
 
 - Navigate to AWS console > switch region to eu-west-1 (not necessary)> cloud-platform-terraform-state/aws-accounts/cloud-platform-aws/vpc/eks/core/components>your-cluster>terraform.tfstate
-- download the state file with this command -- aws s3 cp s3://cloud-platform-terraform-state/aws-accounts/cloud-platform-aws/vpc/eks/core/components/your-cluster/terraform.tfstate terraform.tfstate
-- Upload the terraform.tfstate file back to the bucket -- aws s3 cp terraform.tfstate s3://cloud-platform-terraform-state/aws-accounts/cloud-platform-aws/vpc/eks/core/components/cp-1712-1719/terraform.tfstate
-- Reran terraform plan -target=module.starter-pack and got No changes. Your infrastructure matches the configuration. as indicated in the documentation.
-
-Now running terraform plan will show, infrastructure is up-to-date.
-
+- download the state file:
 ```
-terraform plan -target=module.starter_pack
+aws s3 cp s3://cloud-platform-terraform-state/aws-accounts/cloud-platform-aws/vpc/eks/core/components/your-cluster/terraform.tfstate terraform.tfstate
+```
+- Upload the terraform.tfstate file back to the bucket:
+```
+aws s3 cp terraform.tfstate s3://cloud-platform-terraform-state/aws-accounts/cloud-platform-aws/vpc/eks/core/components/cp-1712-1719/terraform.tfstate
+ ```
+- Reranning the command below will generate the feedback beneath it:
+```
+terraform plan -target=module.starter-pack
 
-No changes. Infrastructure is up-to-date.
+No changes. Your infrastructure matches the configuration. Your infrastructure is up-to-date
 ```
 
 ### Resolving a PartiallyFailed backup alert
