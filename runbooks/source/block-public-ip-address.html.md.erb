@@ -22,21 +22,19 @@ By default, the [network access control list] (ACL) is configured to allow all t
 | 100           | All traffic | All        | All          | 0.0.0.0/0       | Allow       |
 | *             | All traffic | All        | All          | 0.0.0.0/0       | Deny        |
 
-
 The above default rules means all public traffic can hit resources sitting in the subents, including the Network Load Balancer that serves traffic to the nodes on the cluster.
 
-
 ## Adding deny rules to the public network ACL
-If there is a requirement to block traffic from specific a public IP address(es) to be able to hit the cluster (for example in the event of a cyber attack from particular host), we can add deny rules to the public ACL. 
+If there is a requirement to block traffic from specific a public IP address(es) to be able to hit the cluster (for example in the event of a cyber attack from particular host), we can add deny rules to the public ACL.
 
 The rules can be added by terraform applying the `public-nacl-rules.tf` file [infratructure repository]. The file contains commented out placeholder resources to introduce ingress and egress deny rules.
 
 Steps to add deny rules:
 1. Pull infrastructure repository
 2. Create a new branch
-3. Uncomment the placeholder code and update the `cidr_block` with the IP address (or range) you want to block. 
+3. Uncomment the placeholder code and update the `cidr_block` with the IP address (or range) you want to block.
 
-**N.B** The `rule_number` needs to be less than `100` in order for the deny rule to take precedence over the default _Allow All_ rule. 
+**N.B** The `rule_number` needs to be less than `100` in order for the deny rule to take precedence over the default _Allow All_ rule.
 
 It should look like the following:
 ```
@@ -78,7 +76,5 @@ resource "aws_network_acl_rule" "deny_outbound_1" {
 | 100           | All traffic | All        | All          | 0.0.0.0/0       | Allow       |
 | *             | All traffic | All        | All          | 0.0.0.0/0       | Deny        |
 
-
 [network access control list]: https://docs.aws.amazon.com/vpc/latest/userguide/default-network-acl.html
 [infratructure repository]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/public-nacl-rules.tf
-
