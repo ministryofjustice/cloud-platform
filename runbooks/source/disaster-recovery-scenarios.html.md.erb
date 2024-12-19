@@ -1,7 +1,7 @@
 ---
 title: Cloud Platform Disaster Recovery Scenarios
 weight: 91
-last_reviewed_on: 2024-11-25
+last_reviewed_on: 2024-12-19
 review_in: 6 months
 ---
 
@@ -98,7 +98,7 @@ velero restore create <restore-name> --from-backup <backup-name> --include-names
 Example:
 
 ```
-velero restore create my-namespace-dev-restore --from-backup velero-backup-00000000000000 --include-namespaces my-namespace-dev --wait
+velero restore create restore-deployment --from-backup velero-backup-00000000000000 --selector=deployment-name --include-namespaces my-namespace-dev --wait
 ```
 
 Once completed, you should be able to see the resources recovered:
@@ -109,6 +109,11 @@ kubectl get deployment/my-deployment-name -n my-namespace-dev
 NAME                                     READY   UP-TO-DATE   AVAILABLE   AGE
 deployment.apps/my-deployment-name        1/1       1            1         1m
 
+```
+
+It's also possible to restore multiple objects/components with one command:
+```
+velero restore create --from-backup velero-backup-00000000000000 --include-resources component,service --namespace-mappings original-namespace:target-namespace --wait
 ```
 
 ## Losing the whole cluster
@@ -191,6 +196,45 @@ velero restore logs velero-allnamespacebackup-00000000000000-00000000000000
 
 ```
 
+### Restoring a Lost Cluster to a New One with a Different Name
+
+To do this:
+    - You need the cluster backup-location of the lost cluster
+    - Lost cluster's backup-location name (it usually comes as `default`)
+    - Lost cluster's backup name
+
+Below are the restore steps:
+- unset the backup-location of the new cluster: velero backup-location set --default=false
+- create a .yaml file that contains details of the old cluster's backup-location in this format:
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+    name: lost-cluster
+    namespace: velero
+    spec:
+        provider: aws
+    objectStorage:
+        bucket: cloud-platform-velero-backups
+        prefix: cp-0000-0000 #velero backup-location get (from the old cluster)
+    config:
+        region: eu-west-2
+
+- kubectl apply -f file-name.yaml
+- velero backup-location set lost-cluster --default=true
+- velero restore create --from-backup velero-allnamespacebackup-timestamp #this refers to the lost cluster's backup name
+- confirm the restore by:
+    confirming the new cluster's default backup-location
+```
+running velero backup-location get 
+```
+
+    confirm the new cluster now uses the lost cluster's backup name:
+```
+velero backup get
+```
+
+This is a makeshift for the time being.
+
 ## Deleted terraform state
 
 Severity : low
@@ -239,6 +283,7 @@ terraform apply -target=module.starter_pack.kubernetes_namespace.starter_pack
 
 Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
 ```
+Best to do this in a feature branch.
 
 ### Recovering more complex scenarios
 
@@ -256,6 +301,13 @@ In this scenario, terraform state can be restored from the remote_state stored i
 For example [eks/core/components](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components) state is stored in "aws-accounts/cloud-platform-aws/vpc/eks/core/components" s3 bucket as defined [here-eks](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components/main.tf/#L5-L14).
 
 Access the S3 bucket where the effected terraform state is stored. From the list of terraform.tfstate file versions, identify the file before the state got removed and download as terraform.tfstate. Upload the file again, this will set uploaded file as latest version.
+
+#### Recovery Steps:
+
+- Navigate to AWS console > switch region to eu-west-1 (not necessary)> cloud-platform-terraform-state/aws-accounts/cloud-platform-aws/vpc/eks/core/components>your-cluster>terraform.tfstate
+- download the state file with this command -- aws s3 cp s3://cloud-platform-terraform-state/aws-accounts/cloud-platform-aws/vpc/eks/core/components/your-cluster/terraform.tfstate terraform.tfstate
+- Upload the terraform.tfstate file back to the bucket -- aws s3 cp terraform.tfstate s3://cloud-platform-terraform-state/aws-accounts/cloud-platform-aws/vpc/eks/core/components/cp-1712-1719/terraform.tfstate
+- Reran terraform plan -target=module.starter-pack and got No changes. Your infrastructure matches the configuration. as indicated in the documentation.
 
 Now running terraform plan will show, infrastructure is up-to-date.
 
