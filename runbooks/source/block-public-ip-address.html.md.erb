@@ -1,0 +1,80 @@
+---
+title: Blocking Public IP Address to EKS Clutser
+weight: 9100
+last_reviewed_on: 2024-12-19
+review_in: 6 months
+---
+
+# Blocking Public IP Address from EKS Cluster
+
+## Introduction
+By default, the [network access control list] (ACL) is configured to allow all traffic to flow in and out of the subnets with which it is associated. Currently in our evironment, the public subnets are associated with network ACL with the following default rules:
+
+**Inbound rules**
+| Rule # | Type             | Protocol | Port range | Source    | Allow/Deny |
+|--------|------------------|----------|------------|-----------|------------|
+| 100    | All IPv4 traffic | All      | All        | 0.0.0.0/0 | ALLOW      |
+| *      | All IPv4 traffic | All      | All        | 0.0.0.0/0 | DENY       |
+
+**Outbound rules**
+| Rule number   | Type        | Protocol   | Port range   | Destination     | Allow/Deny  |
+|---------------|-------------|------------|--------------|-----------------|-------------|
+| 100           | All traffic | All        | All          | 0.0.0.0/0       | Allow       |
+| *             | All traffic | All        | All          | 0.0.0.0/0       | Deny        |
+
+The above default rules means all public traffic can hit resources sitting in the subents, including the Network Load Balancer that serves traffic to the nodes on the cluster.
+
+## Adding deny rules to the public network ACL
+If there is a requirement to block traffic from specific a public IP address(es) to be able to hit the cluster (for example in the event of a cyber attack from particular host), we can add deny rules to the public ACL.
+
+The rules can be added by terraform applying the `public-nacl-rules.tf` file [infratructure repository]. The file contains commented out placeholder resources to introduce ingress and egress deny rules.
+
+Steps to add deny rules:
+1. Pull infrastructure repository
+2. Create a new branch
+3. Uncomment the placeholder code and update the `cidr_block` with the IP address (or range) you want to block.
+
+**N.B** The `rule_number` needs to be less than `100` in order for the deny rule to take precedence over the default _Allow All_ rule.
+
+It should look like the following:
+```
+resource "aws_network_acl_rule" "deny_inbound_1" {
+  network_acl_id = module.vpc.public_network_acl_id
+  rule_number    = 10
+  egress         = false
+  protocol       = "-1" # -1 means all protocols
+  rule_action    = "deny"
+  cidr_block     = "##.##.##.##/32"
+  from_port      = 0
+  to_port        = 0
+}
+
+resource "aws_network_acl_rule" "deny_outbound_1" {
+  network_acl_id = module.vpc.aws_network_acl.public[0].id
+  rule_number    = 10
+  egress         = true
+  protocol       = "-1" # -1 means all protocols
+  rule_action    = "deny"
+  cidr_block     = "##.##.##.##/32"
+  from_port      = 0
+  to_port        = 0
+}
+```
+4. Raise a PR and merge. The infrastructure pipelines in Concourse will create the new ACL rules in the public network ACL. You can verify the rules have been created by viewing the public network ACL in the AWS console. It will look like the following:
+
+**Inbound rules**
+| Rule number   | Type        | Protocol   | Port range   | Source          | Allow/Deny  |
+|---------------|-------------|------------|--------------|-----------------|-------------|
+| 10            | All traffic | All        | All          | ##.##.##.##/32   | Deny        |
+| 100           | All traffic | All        | All          | 0.0.0.0/0       | Allow       |
+| *             | All traffic | All        | All          | 0.0.0.0/0       | Deny        |
+
+**Outbound rules**
+| Rule number   | Type        | Protocol   | Port range   | Destination     | Allow/Deny  |
+|---------------|-------------|------------|--------------|-----------------|-------------|
+| 10            | All traffic | All        | All          | ##.##.##.##/32  | Deny        |
+| 100           | All traffic | All        | All          | 0.0.0.0/0       | Allow       |
+| *             | All traffic | All        | All          | 0.0.0.0/0       | Deny        |
+
+[network access control list]: https://docs.aws.amazon.com/vpc/latest/userguide/default-network-acl.html
+[infratructure repository]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/public-nacl-rules.tf
