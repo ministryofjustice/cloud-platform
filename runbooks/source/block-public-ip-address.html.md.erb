@@ -11,12 +11,14 @@ review_in: 6 months
 By default, the [network access control list] is configured to allow all traffic to flow in and out of the subnets with which it is associated. Currently in our evironment, the public subnets are associated with network ACL with the following default rules:
 
 **Inbound rules**
+
 | Rule # | Type             | Protocol | Port range | Source    | Allow/Deny |
 |--------|------------------|----------|------------|-----------|------------|
 | 100    | All IPv4 traffic | All      | All        | 0.0.0.0/0 | ALLOW      |
 | *      | All IPv4 traffic | All      | All        | 0.0.0.0/0 | DENY       |
 
 **Outbound rules**
+
 | Rule number   | Type        | Protocol   | Port range   | Destination     | Allow/Deny  |
 |---------------|-------------|------------|--------------|-----------------|-------------|
 | 100           | All traffic | All        | All          | 0.0.0.0/0       | Allow       |
@@ -37,6 +39,7 @@ Steps to add deny rules:
 **N.B** The `rule_number` needs to be less than `100` in order for the deny rule to take precedence over the default _Allow All_ rule.
 
 It should look like the following:
+
 ```
 resource "aws_network_acl_rule" "deny_inbound_1" {
   network_acl_id = module.vpc.public_network_acl_id
@@ -63,6 +66,7 @@ resource "aws_network_acl_rule" "deny_outbound_1" {
 4. Raise a PR and merge. The infrastructure pipelines in Concourse will create the new ACL rules in the public network ACL. You can verify the rules have been created by viewing the public network ACL in the AWS console. It will look like the following:
 
 **Inbound rules**
+
 | Rule number   | Type        | Protocol   | Port range   | Source          | Allow/Deny  |
 |---------------|-------------|------------|--------------|-----------------|-------------|
 | 10            | All traffic | All        | All          | ##.##.##.##/32   | Deny        |
@@ -70,6 +74,7 @@ resource "aws_network_acl_rule" "deny_outbound_1" {
 | *             | All traffic | All        | All          | 0.0.0.0/0       | Deny        |
 
 **Outbound rules**
+
 | Rule number   | Type        | Protocol   | Port range   | Destination     | Allow/Deny  |
 |---------------|-------------|------------|--------------|-----------------|-------------|
 | 10            | All traffic | All        | All          | ##.##.##.##/32  | Deny        |
