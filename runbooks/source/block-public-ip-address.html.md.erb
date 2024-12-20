@@ -29,9 +29,10 @@ The above default rules means all public traffic can hit resources sitting in th
 ## Adding deny rules to the public network ACL
 If there is a requirement to block traffic from specific a public IP address(es) to be able to hit the cluster (for example in the event of a cyber attack from particular host), we can add deny rules to the public ACL.
 
-The rules can be added by terraform applying the `public-nacl-rules.tf` file [infratructure repository]. The file contains commented out placeholder resources to introduce ingress and egress deny rules.
+The rules can be added by terraform applying the `public-nacl-rules.tf` file in the [infratructure repository]. The file contains commented out placeholder resources to introduce ingress and egress deny rules.
 
 Steps to add deny rules:
+
 1. Pull infrastructure repository
 2. Create a new branch
 3. Uncomment the placeholder code and update the `cidr_block` with the IP address (or range) you want to block.
@@ -63,6 +64,7 @@ resource "aws_network_acl_rule" "deny_outbound_1" {
   to_port        = 0
 }
 ```
+
 4. Raise a PR and merge. The infrastructure pipelines in Concourse will create the new ACL rules in the public network ACL. You can verify the rules have been created by viewing the public network ACL in the AWS console. It will look like the following:
 
 **Inbound rules**
