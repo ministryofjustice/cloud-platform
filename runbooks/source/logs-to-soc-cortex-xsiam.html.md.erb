@@ -1,7 +1,7 @@
 ---
 title: Logs going to SOC Palo Alto Cortex Xsiam
 weight: 9100
-last_reviewed_on: 2024-07-10
+last_reviewed_on: 2025-01-15
 review_in: 6 months
 ---
 
@@ -22,7 +22,7 @@ We are planning to push the following logs in the coming sprints. [Epic found he
 ### Architecture
 We have followed Palo Alto's documentation on implementation to allow [Cortex XSIAM to injest logs from Cloudtrail].
 
-Cloudtrail logs are written to a S3 bucket. The implementation consist of enabling the S3 bucket to trigger event notifications to an SQS queue. An IAM user with access keys has been created to grant Cortex XSIAM to access the SQS queue and recieves these messages. Cortex XSIAM then uses the references in these messages to retrieve the logs from the S3 bucket. The terraform code for this implementation is found in the [cloud-platform-terraform-infrastructure] repository.
+Cloudtrail logs are written to a S3 bucket. The implementation consist of enabling the S3 bucket to trigger event notifications to an SQS queue. An IAM user with access keys has been created to grant Cortex XSIAM to access the SQS queue and receives these messages. Cortex XSIAM then uses the references in these messages to retrieve the logs from the S3 bucket. The terraform code for this implementation is found in the [cloud-platform-terraform-infrastructure] repository.
 
 ## 2. `live-1` VPC FlowLogs
 ### Architecture
@@ -41,7 +41,7 @@ To be implemented
 
 ## Todo
 ### IAM User access keys rotation
-We need put in a mechanism to periodically rotate the IAM User access keys created for Cortex XSIAM to recieve the logs. [Suggestion and issue] for this has been raised.
+We need put in a mechanism to periodically rotate the IAM User access keys created for Cortex XSIAM to receive the logs. [Suggestion and issue] for this has been raised.
 
 [Cortex XSIAM to injest logs from Cloudtrail]: https://docs-cortex.paloaltonetworks.com/r/Cortex-XSIAM/Cortex-XSIAM-Administrator-Guide/Ingest-Audit-Logs-from-AWS-Cloud-Trail
 [Cortex XSIAM to injest VPC flowlogs from S3]: https://docs-cortex.paloaltonetworks.com/r/Cortex-XSIAM/Cortex-XSIAM-Administrator-Guide/Ingest-Network-Flow-Logs-from-Amazon-S3
