@@ -1,6 +1,6 @@
 ---
 title: Custom default-backend
-last_reviewed_on: 2024-10-16
+last_reviewed_on: 2025-1-20
 weight: 9000
 review_in: 3 months
 ---
@@ -42,7 +42,7 @@ service/nginx-errors   ClusterIP   10.0.0.12   <none>        80/TCP    10s
 
 ### 3. Define annotations in your ingress file.
 
-Final step is to use a [Default Backend][default-backend-annotation] annotation in your Ingress. The annotation is: `nginx.ingress.kubernetes.io/default-backend: <svc name>`. The `<svc name>` is a reference to a service inside of the same namespace in which you are applying this annotation. This annotation overrides the global default backend.
+Final step is to use a [Default Backend][default-backend-annotation] annotation in your Ingress. The annotation is: `nginx.ingress.kubernetes.io/default-backend: <svc name>`. The `<svc name>` is a reference to a service inside the same namespace in which you are applying this annotation. This annotation overrides the global default backend.
 
 The default-backend service in the namespace will handle the error responses when both [default-backend][default-backend-annotation] annotation and the [custom-http-errors][custom-http-error-annotation] annotation is set. `Custom-http-errors` annotation can be configured with HTTP status codes that Nginx should be forwarding to the [default-backend][default-backend-annotation].
 
@@ -114,9 +114,9 @@ spec:
 
 ## Serve all errors from your custom default backend
 
-Some teams want applications to serve all errors. It's possible as there is a [fix][fix-from-nginx-ingress] from Nginx-Ingress to cancel out the [global-custom-http-errors][cp-config-custom-http-errors] set to serve cloud platforms custom error page from the default backend, this is done by adding the Ingress annotation and setting an error not used in [global-custom-http-errors][cp-config-custom-http-errors].
+Some teams want applications to serve all errors. It's possible as there is a [fix][fix-from-nginx-ingress] from Nginx-Ingress to cancel out the [global-custom-http-errors][cp-config-custom-http-errors] set to serve cloud platforms custom error page from the default backend. This is done by adding the Ingress annotation and setting an error not used in [global-custom-http-errors][cp-config-custom-http-errors].
 
-If you have [custom-default-backend][customized-default-backend] set up in your namespace, adding the [default-backend][default-backend-annotation] annotation along with [custom-http-errors][custom-http-error-annotation] annotation with an unused error code in [global-custom-http-errors][cp-config-custom-http-errors], will serve custom error page from namespace default-backend service, when the service in the Ingress rule does not have active endpoints.
+If you have [custom-default-backend][customized-default-backend] set up in your namespace, adding the [default-backend][default-backend-annotation] annotation along with [custom-http-errors][custom-http-error-annotation] annotation with an unused error code in [global-custom-http-errors][cp-config-custom-http-errors] will serve custom error page from namespace default-backend service when the service in the Ingress rule does not have active endpoints.
 
 Example Ingress file to set `custom-http-errors: "418"` as annotation, which is not used at [global-custom-http-errors][cp-config-custom-http-errors]:
 
