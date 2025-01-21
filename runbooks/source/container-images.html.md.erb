@@ -1,7 +1,7 @@
 ---
 title: Container Images used by Cluster Components
 weight: 55
-last_reviewed_on: 2024-12-17
+last_reviewed_on: 2025-01-21
 review_in: 3 months
 ---
 
@@ -93,7 +93,7 @@ This depends on several factors, some of them are:
 | 602401143452.dkr.ecr.eu-west-2.amazonaws.com/eks/kube-proxy:v1.29.10-eksbuild.3 | 🟢 | [v1.29.10-eksbuild.3](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html#managing-kube-proxy-images) | [v1.31.1-minimal-eksbuild.2](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html) | n/a
 | docker.io/bitnami/external-dns:0.13.4-debian-11-r14 | 🟠 | v0.15.x | [v0.15.x](https://github.com/kubernetes-sigs/external-dns/releases/tag/v0.15.0) | [v0.15.x](https://github.com/bitnami/charts/blob/main/bitnami/external-dns/Chart.yaml#L11) |
 | registry.k8s.io/autoscaling/cluster-autoscaler:v1.28.5 | 🟢 | [v1.29.4](https://github.com/kubernetes/autoscaler/releases/tag/cluster-autoscaler-1.29.4) | [v1.31.0](https://github.com/kubernetes/autoscaler/releases/tag/cluster-autoscaler-1.31.0) | [9.38.0](https://github.com/kubernetes/autoscaler/releases/tag/cluster-autoscaler-chart-9.38.0) |
-| registry.k8s.io/descheduler/descheduler:v0.27.1 | 🟠 | [v0.29.x](https://github.com/kubernetes-sigs/descheduler?tab=readme-ov-file#%EF%B8%8F--documentation-versions-by-release) | [v0.29.0](https://github.com/kubernetes-sigs/descheduler/releases/tag/v0.29.0) | [0.31.0](https://github.com/kubernetes-sigs/descheduler/releases/tag/descheduler-helm-chart-0.31.0) |
+| registry.k8s.io/descheduler/descheduler:v0.31.0 | 🟢 | [v0.31.x](https://github.com/kubernetes-sigs/descheduler?tab=readme-ov-file#%EF%B8%8F--documentation-versions-by-release) | [v0.31.0](https://github.com/kubernetes-sigs/descheduler/releases/tag/v0.31.0) | [0.32.0](https://github.com/kubernetes-sigs/descheduler/releases/tag/descheduler-helm-chart-0.32.0) |
 | registry.k8s.io/metrics-server/metrics-server:v0.7.1 | 🟢 | [v0.7.2](https://github.com/kubernetes-sigs/metrics-server?tab=readme-ov-file#compatibility-matrix) | [v0.7.2](https://github.com/kubernetes-sigs/metrics-server/releases/tag/v0.7.2) | [3.12.2](https://github.com/kubernetes-sigs/metrics-server/releases/tag/metrics-server-helm-chart-3.12.2) |
 
 #### included with the ebs-cbs-driver in `kube-system`
