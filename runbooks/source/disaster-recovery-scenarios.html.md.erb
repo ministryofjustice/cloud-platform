@@ -197,32 +197,8 @@ velero restore logs velero-allnamespacebackup-00000000000000-00000000000000
 
 ```
 
-### Restore Process Via Kubectl
 
-This process involves creating a cluster with a different name via the Concourse pipeline, renaming the cluster to the same name as the lost cluster, and restoring the cluster.
-
-Change the new cluster's name to the same name as the lost cluster:
-
-```
-kubectl config rename-context new-cluster-name lost-cluster-name
-
-error: cannot rename the context "cp-1501-0913", it's not in /Users/folarin.oyenuga/.kube/config
-```
-
-This attempt failed because the new cluster had not been added to the kubeconfig file.
-
-### Findings
-
-- The restore process was unsuccessful as the infrastructure has moved on from manual creation to doing so
-  via the pipeline.
-
-- The configuration is written in Ruby and not in Go.
-
-- It's better to create a new cluster with the same name as the lost cluster before it begins running.
-
-- Restoring via kubectl, if successful, would require restoring internal and external connections to the newly-renamed one.
-
-### Restoring a Lost Cluster to a New One with a Different Name
+## Restoring a Lost Cluster to a New One with a Different Name
 
 To do this:
     - You need the cluster backup-location of the lost cluster
