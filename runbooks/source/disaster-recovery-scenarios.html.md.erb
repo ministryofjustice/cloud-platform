@@ -112,6 +112,7 @@ deployment.apps/my-deployment-name        1/1       1            1         1m
 ```
 
 It's also possible to restore multiple objects/components with one command:
+
 ```
 velero restore create --from-backup velero-backup-00000000000000 --include-resources component,service --namespace-mappings original-namespace:target-namespace --wait
 ```
@@ -137,7 +138,7 @@ The first sign of this happening is likely to be Pagerduty alarms to the high/lo
 
 ### How this plan is tested:
 
-This way of restoring the whole cluster have been tested with below procedure
+This way of restoring the whole cluster has been tested with below procedure
 
 1. Create cluster using the [script](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/create-cluster.rb)
 2. Deploy [starter pack](https://github.com/ministryofjustice/cloud-platform-terraform-starter-pack) to replicate user namespaces
@@ -196,6 +197,32 @@ velero restore logs velero-allnamespacebackup-00000000000000-00000000000000
 
 ```
 
+### Restore Process Via Kubectl
+
+This process involves creating a cluster with a different name via the Concourse pipeline, renaming the cluster to the same name as the lost cluster, and restoring the cluster.
+
+Change the new cluster's name to the same name as the lost cluster:
+
+```
+kubectl config rename-context new-cluster-name lost-cluster-name
+
+error: cannot rename the context "cp-1501-0913", it's not in /Users/folarin.oyenuga/.kube/config
+```
+
+This attempt failed because the new cluster had not been added to the kubeconfig file.
+
+### Findings
+
+- The restore process was unsuccessful as the infrastructure has moved on from manual creation to doing so
+  via the pipeline.
+
+- The configuration is written in Ruby and not in Go.
+
+- It's better to create a new cluster with the same name as the lost cluster before it begins running.
+
+- Restoring via kubectl, if successful, would require restoring internal and external connections to the newly-renamed one.
+
+
 ### Restoring a Lost Cluster to a New One with a Different Name
 
 To do this:
@@ -206,6 +233,8 @@ To do this:
 Below are the restore steps:
 - unset the backup-location of the new cluster: velero backup-location set --default=false
 - create a .yaml file that contains details of the old cluster's backup-location in this format:
+
+```
 apiVersion: velero.io/v1
 kind: BackupStorageLocation
 metadata:
@@ -218,22 +247,38 @@ metadata:
         prefix: cp-0000-0000 #velero backup-location get (from the old cluster)
     config:
         region: eu-west-2
+```
 
-- kubectl apply -f file-name.yaml
-- velero backup-location set lost-cluster --default=true
-- velero restore create --from-backup velero-allnamespacebackup-timestamp #this refers to the lost cluster's backup name
-- confirm the restore by:
-    confirming the new cluster's default backup-location
+- Execute the config file: 
+
+```
+kubectl apply -f file-name.yaml
+```
+
+- Set the new cluster's default backup-location to the lost cluster's backup-location:
+
+```
+velero backup-location set lost-cluster --default=true
+```
+
+- Restore the lost cluster:
+
+```
+velero restore create --from-backup velero-allnamespacebackup-timestamp --wait
+```
+
+- Confirm the restore by running:
+
 ```
 running velero backup-location get
 ```
 
-    confirm the new cluster now uses the lost cluster's backup name:
+- Run the following command to confirm the new cluster now uses the lost cluster's backup name:
+
 ```
 velero backup get
 ```
 
-This is a makeshift for the time being.
 
 ## Deleted terraform state
 
@@ -287,7 +332,7 @@ Best to do this in a feature branch.
 
 ### Recovering more complex scenarios
 
-There are scenarios, where terraform state is corrupted or terraform state is removed for the whole module.
+There are scenarios where terraform state is corrupted or terraform state is removed for the whole module.
 Executing `terraform state rm module.starter_pack`, will remove all resources in "starter_pack" module from terraform state.
 
 ```
@@ -304,16 +349,23 @@ Access the S3 bucket where the effected terraform state is stored. From the list
 
 #### Recovery Steps:
 
-- Navigate to AWS console > switch region to eu-west-1 (not necessary)> cloud-platform-terraform-state/aws-accounts/cloud-platform-aws/vpc/eks/core/components>your-cluster>terraform.tfstate
+- Navigate to
+
+```
+ AWS console > switch region to eu-west-1 (not necessary)> cloud-platform-terraform-state/aws-accounts/cloud-platform-aws/vpc/eks/core/components>your-cluster>terraform.tfstate
+ ```
 - download the state file:
+
 ```
 aws s3 cp s3://cloud-platform-terraform-state/aws-accounts/cloud-platform-aws/vpc/eks/core/components/your-cluster/terraform.tfstate terraform.tfstate
 ```
 - Upload the terraform.tfstate file back to the bucket:
+
 ```
 aws s3 cp terraform.tfstate s3://cloud-platform-terraform-state/aws-accounts/cloud-platform-aws/vpc/eks/core/components/cp-1712-1719/terraform.tfstate
  ```
-- Reranning the command below will generate the feedback beneath it:
+- Rerunning the command below will generate the feedback beneath it:
+
 ```
 terraform plan -target=module.starter-pack
 
