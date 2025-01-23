@@ -222,7 +222,6 @@ This attempt failed because the new cluster had not been added to the kubeconfig
 
 - Restoring via kubectl, if successful, would require restoring internal and external connections to the newly-renamed one.
 
-
 ### Restoring a Lost Cluster to a New One with a Different Name
 
 To do this:
@@ -249,7 +248,7 @@ metadata:
         region: eu-west-2
 ```
 
-- Execute the config file: 
+- Execute the config file:
 
 ```
 kubectl apply -f file-name.yaml
@@ -278,7 +277,6 @@ running velero backup-location get
 ```
 velero backup get
 ```
-
 
 ## Deleted terraform state
 
