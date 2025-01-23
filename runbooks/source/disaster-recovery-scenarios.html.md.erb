@@ -117,7 +117,6 @@ It's also possible to restore multiple objects/components with one command:
 velero restore create --from-backup velero-backup-00000000000000 --include-resources component,service --namespace-mappings original-namespace:target-namespace --wait
 ```
 
-
 ## Losing the Whole Cluster: Restoring a Lost Cluster to a New One with a Different Name
 
 ### Impact
@@ -146,7 +145,7 @@ To begin with:
     - Lost cluster's backup-location name (it usually comes as `default`)
     - Lost cluster's backup name
 
-Unset the backup-location of the new cluster: 
+Unset the backup-location of the new cluster:
 
 ```
 velero backup-location set --default=false
