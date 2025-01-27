@@ -1,7 +1,7 @@
 ---
 title: Create a Pingdom integration id
 weight: 86
-last_reviewed_on: 2024-07-26
+last_reviewed_on: 2025-01-27
 review_in: 6 months
 ---
 
@@ -9,7 +9,7 @@ review_in: 6 months
 
 The intention of this document is to provide brief instructions on how to create an integration id in Pingdom. For more information on integration ids, please refer to the [Pingdom documentation](https://help.pingdom.com/hc/en-us/articles/207081599-Webhooks-or-Slack-Integration)
 
-Completing the following steps are necessary to support Cloud Platform user requests as detailed [here](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-pingdom-checks.html#adding-slack-notification)
+Completing the following steps is necessary to support Cloud Platform user requests as detailed [here](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-pingdom-checks.html#adding-slack-notification)
 ## How to create integration id (webhook)
 
 This cannot be managed by Terraform and will need to be created manually. To continue any further, it is assumed you have the following:
@@ -24,7 +24,7 @@ To create the webhook, perform the following:
 
   1. Select the target slack channel
   2. Click 'Add Pingdom Integration'
-  3. Locate the newly generated Webhook URL and copy to clipboard. This will look similar to `https://hooks.slack.com/services/xxxxxx/xxxxxx/xxxxx`
+  3. Locate the newly generated Webhook URL and copy to the clipboard. This will look similar to `https://hooks.slack.com/services/xxxxxx/xxxxxx/xxxxx`
 
 - Sign into [Pingdom](https://my.pingdom.com/app)
 - Go to Settings cog in the side menu > `Integrations` > `Add integration`
