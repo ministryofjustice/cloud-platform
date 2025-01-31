@@ -1,0 +1,36 @@
+---
+title: Incident on 2021-09-04 - Pingdom check Prometheus Cloud-Platform - Healthcheck is DOWN
+weight: 18
+---
+
+# Incident on 2021-09-04 - Pingdom check Prometheus Cloud-Platform - Healthcheck is DOWN
+
+- **Key events**
+  - First detected 2021-09-04 22:05
+  - Repaired 2021-09-05 12:16
+  - Incident declared 2021-09-05 12:53
+  - Resolved 2021-09-05 12:27
+
+- **Time to repair**: 5h 16m
+
+- **Time to resolve**: 5h 27m
+
+- **Identified**: Prometheus Pod restarted several times with error `OOMKilled` causing Prometheus Healthcheck to go down
+
+- **Impact**:
+  - The monitoring system of the cluster was not available
+  - All application metrics were lost during that time period
+
+- **Context**:
+  - Timeline: [Timeline](https://docs.google.com/document/d/1t75saWS72NQ6iKAgN79MoXAWMhyBmx-OrUiIaksJARo/edit#heading=h.ltzl2aoulsom) for the incident
+  - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1630842806160700) for the incident.
+
+- **Resolution**:
+  - Increased the memory limit for Prometheus container from 25Gi to 50Gi
+
+- **Review actions**:
+  - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3185) to configure Thanos querier to query data for longer period
+  - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3186) to add an alert to check when prometheus container hit 90% resource limit set
+  - Created a [ticket](https://github.com/ministryofjustice/cloud-platform/issues/3189) to create a grafana dashboard to display queries that take more than 1 minute to complete
+  - Increase the memory limit for Prometheus container to 60Gi[PR #105](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/pull/105)
+  - Test Pagerduty settings for weekends of the Cloud Platform on-call person to receive alarm immediately on the phone when a high priority alert is triggered

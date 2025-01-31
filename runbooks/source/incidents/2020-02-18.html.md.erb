@@ -1,0 +1,31 @@
+---
+title: Incident on 2020-02-18
+weight: 32
+---
+
+# Incident on 2020-02-18
+
+- **Key events**
+  - Fault occurs 2020-02-18 14:13
+  - Incident declared 2020-02-18 14:23
+  - Resolved 2020-02-18 14:59
+
+- **Time to repair**: 0h 36m
+
+- **Time to resolve**: 0h 46m
+
+- **Identified**: Pingdom reported that Prometheus was down (prometheus.cloud-platform.service.justice.gov.uk).
+
+- **Impact**:
+  - The prometheus dashboard was unavailable for everyone, for the whole duration of the incident.
+  - Between 2020-02-18 14:22 and 2020-02-18 14:26, prometheus could not receive metrics.
+
+- **Context**:
+  - Although the Prometheus URL was unreachable, Grafana and Alertmanager were resolving.
+  - There seemed to be an issue preventing requests to reach the prometheus pods.
+  - Disk space and other resources, the usual suspects, were ruled out as the cause.
+  - The domain name amd ingress were both valid.
+  - Slack thread: <https: mojdt.slack.com archives C514ETYJX p1582035803248800>
+
+- **Resolution**:
+    We suspect an intermittent & external networking issue to be the cause of this outage.

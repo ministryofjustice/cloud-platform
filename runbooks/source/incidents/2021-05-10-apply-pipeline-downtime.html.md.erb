@@ -1,0 +1,36 @@
+---
+title: Incident on 2021-05-10 - Apply Pipeline downtime due to accidental destroy of Manager cluster
+weight: 21
+---
+
+# Incident on 2021-05-10 - Apply Pipeline downtime due to accidental destroy of Manager cluster
+
+- **Key events**
+  - First detected 2021-05-10 12:15
+  - Incident not declared, but later agreed it was one
+  - Repaired 2021-05-10 16:48
+  - Resolved 2021-05-11 10:00
+
+- **Time to repair**: 4h 33m
+
+- **Time to resolve**: 4h 45m
+
+- **Identified**: CP team member did 'terraform destroy components', intending it to destroy a test cluster, but it was on Manager cluster by mistake. Was immediately aware of the error.
+
+- **Impact**:
+  - Users couldn't create or change their namespace definitions or AWS resources, due to Concourse being down
+
+- **Context**:
+  - Timeline: [Timeline](https://docs.google.com/document/d/1rrROMuq5D6wajAPZGy3sq_P98ZmvMmaHygWKUgLyTCM/edit#) for the incident
+  - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1620645898320200) for the incident.
+
+- **Resolution**:
+  - Manager cluster was recreated.
+  - During this we encountered a certificate issue with Concourse, so it was restored manually. The terraform had got out of date for the Manager cluster.
+  - Route53 zones were hard-coded and had to be [changed manually](https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/1162/files).
+
+- **Actions following review**:
+  - Spike ways to avoid applying to wrong cluster - see 3 options above. Ticket [#3016](https://github.com/ministryofjustice/cloud-platform/issues/3016)
+  - Try ‘Prevent destroy’ setting on R53 zone - Ticket [#2899](https://github.com/ministryofjustice/cloud-platform/issues/2899)
+  - Disband the cloud-platform-concourse repository. This includes Service accounts, and pipelines. We should split this repository up and move it to the infra/terraform-concourse repos. Ticket [#3017](https://github.com/ministryofjustice/cloud-platform/issues/3017)
+  - Manager needs to use our PSPs instead of eks-privilege - this has already been done.

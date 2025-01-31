@@ -1,0 +1,45 @@
+---
+title: Incident on 2023-02-02 - CJS Dashboard Performance
+weight: 9
+---
+
+# Incident on 2023-02-02 - CJS Dashboard Performance
+
+- **Key events**
+  - First detected: 2023-02-02 10:14
+  - Incident declared: 2023-02-02 10:20
+  - Repaired: 2023-02-02 10:20
+  - Resolved 2023-02-02 11:36
+
+- **Time to repair**: 0h 30m
+
+- **Time to resolve**: 1h 22m
+
+- **Identified**: [CPU-Critical alert](https://moj-digital-tools.pagerduty.com/incidents/Q01V8OZ44WU4EX?utm_campaign=channel&utm_source=slack)
+
+- **Impact**: Cluster is reaching max capacity. Multiple services might be affected.
+
+- **Context**:
+  - 2023-02-02 10:14: [CPU-Critical alert](https://moj-digital-tools.pagerduty.com/incidents/Q01V8OZ44WU4EX?utm_campaign=channel&utm_source=slack)
+  - 2023-02-02 10:21: Cloud Platform Team supporting with CJS deployment and noticed that the CJS team increased the pod count and requested more resources causing the CPU critical alert.
+  - 2023-02-02 10:21 **Incident is declared**.
+  - 2023-02-02 10:22 War room started.
+  - 2023-02-02 10:25 Cloud Platform noticed that the CJS team have 100 replicas for their deployment and many CJS pods started crash looping, this is due to the Descheduler service **RemoveDuplicates** strategy plugin making sure that there is only one pod associated with a ReplicaSet running on the same node. If there are more, those duplicate pods are evicted for better spreading of pods in a cluster.
+  - The live cluster has 60 nodes as desired capacity. As CJS have 100 ReplicaSet for their deployment, Descheduler started terminating the duplicate CJS pods scheduled on the same node. The restart of multiple CJS pods caused the CPU hike.
+  - 2023-02-02 10:30 Cloud Platform team scaled down Descheduler to stop terminating CJS pods.
+  - 2023-02-02 10:37 CJS Dash team planned to roll back a caching change they made around 10 am that appears to have generated the spike.
+  - 2023-02-02 10:38 Decision made to Increase node count to 60 from 80, to support the CJS team with more pods and resources.
+  - 2023-02-02 10:40 Autoscaling group bumped up to 80 - to resolve the CPU critical. Descheduler is scaled down to 0 to accommodate multiple pods on a node.
+  - 2023-02-02 10:44 Resolved status for CPU-Critical high-priority alert.
+  - 2023-02-02 11:30 Performance has steadied.
+  - 2023-02-02 11:36 **Incident is resolved**.
+
+- **Resolution**:
+  - Cloud-platform team scaling down Descheduler to let CJS team have 100 ReplicaSet in their deployment.
+  - CJS Dash team rolled back a change that appears to have generated the spike.
+  - Cloud-Platform team increasing the desired node count to 80.
+
+- **Review actions**:
+  - Create an OPA policy to not allow deployment ReplicaSet greater than an agreed number by the cloud-platform team.
+  - Update the user guide to mention related to OPA policy.
+  - Update the user guide to request teams to speak to the cloud-platform team before if teams are planning to apply deployments which need large resources like pod count, memory and CPU so the cloud-platform team is aware and provides the necessary support.

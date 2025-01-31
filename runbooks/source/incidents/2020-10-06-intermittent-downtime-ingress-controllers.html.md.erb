@@ -1,0 +1,30 @@
+---
+title: Incident on 2020-10-06 - Intermittent "micro-downtimes" on various services using dedicated ingress controllers
+weight: 22
+---
+
+# Incident on 2020-10-06 - Intermittent "micro-downtimes" on various services using dedicated ingress controllers
+
+- **Key events**
+  - First detected 2020-10-06 08:33
+  - Incident declared 2020-10-06 09:07
+  - Repaired 2020-10-06 10:41
+  - Resolved 2020-10-06 17:19
+
+- **Time to repair**: 2h 8m
+
+- **Time to resolve**: 8h 46m
+
+- **Identified**: User reported service problems in #ask-cloud-platform. Confirmed by checking Pingdom
+
+- **Impact**:
+  - Numerous brief and intermittent outages for multiple (but not all) services (production and non-production) which were using dedicated ingress controllers
+
+- **Context**:
+  - Occurred immediately after upgrading live-1 to kubernetes 1.17
+  - 1.17 creates 2 additional SecurityGroupRules per ingress-controller, this took us over a hard AWS limit
+  - Timeline: [Timeline](https://docs.google.com/document/d/108pSsVxt_YJFj2jrY86dIvuuP8g8j5aLFsMdlb1YMeI/edit#heading=h.z8h3a4mkgult) for the incident.
+  - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1601971645475700) for the incident.
+
+- **Resolution**:
+  - Migrate all ingresses back to the default ingress controller

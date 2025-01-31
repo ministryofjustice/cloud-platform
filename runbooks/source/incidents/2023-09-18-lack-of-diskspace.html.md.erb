@@ -1,0 +1,49 @@
+---
+title: Incident on 2023-09-18 - Lack of Disk space on nodes
+weight: 5
+---
+
+# Incident on 2023-09-18 - Lack of Disk space on nodes
+
+- **Key events**
+  - First detected: 2023-09-18 13:42
+  - Incident declared: 2023-09-18 15:12
+  - Repaired: 2023-09-18 17:54
+  - Resolved 2023-09-20 19:18
+
+- **Time to repair**: 4h 12m
+
+- **Time to resolve**: 35h 36m
+
+- **Identified**: User reported that they are seeing [ImagePull errors](https://mojdt.slack.com/archives/C57UPMZLY/p1695042194935169) no space left on device error
+
+- **Impact**: Several nodes are experiencing a lack of disk space within the cluster. The deployments might not be scheduled consistently and may fail.
+
+- **Context**:
+  - 2023-09-18 13:42 Team noticed [RootVolUtilisation-Critical](https://moj-digital-tools.pagerduty.com/incidents/Q0RP1GPOECB97R?utm_campaign=channel&utm_source=slack) in High-priority-alert channel
+  - 2023-09-18 14:03 User reported that they are seeing [ImagePull errors](https://mojdt.slack.com/archives/C57UPMZLY/p1695042194935169) no space left on device error
+  - 2023-09-18 14:27 Team were doing the EKS Module upgrade to 18 and draining the nodes. They were seeing numerous pods in Evicted and ContainerStateUnKnown state
+  - 2023-09-18 15:12 Incident declared. https://mojdt.slack.com/archives/C514ETYJX/p1695046332665969
+  - 2023-09-18 15.26 Compared the disk size allocated in old node and new node and identified that the new node was allocated only 20Gb of disk space
+  - 2023-09-18 15:34 Old default node group uncordoned
+  - 2023-09-18 15:35 New nodes drain started to shift workload back to old nodegroup
+  - 2023-09-18 17:54 Incident repaired
+  - 2023-09-19 10:30 Team started validating the fix and understanding the launch_template changes
+  - 2023-09-20 10:00 Team updated the fix on manager and later on live cluster
+  - 2023-09-20 12:30 Started draining the old node group
+  - 2023-09-20 15:04 There was some increased pod state of “ContainerCreating”
+  - 2023-09-20 15:25 There was increased number of `"failed to assign an IP address to container" eni error`. Checked the CNI logs `Unable to get IP address from CIDR: no free IP available in the prefix` Understood that this might be because of IP Prefix starving and some are freed when draining old nodes.
+  - 2023-09-20 19:18 All nodes drained and No pods are in errored state. The initial issue of disk space issue is resolved
+
+- **Resolution**:
+  - Team identified that the disk space was reduced from 100Gb to 20Gb as part of EKS Module version 18 change
+  - Identified the code changes to launch template and applied the fix
+
+- **Review actions**:
+  - Update runbook to compare launch template changes during EKS module upgrade
+  - Create Test setup to pull images similar to live with different sizes
+  - Update RootVolUtilisation alert runbook to check disk space config
+  - Scale coreDNS dynamically based on the number of nodes
+  - Investigate if we can use ipv6 to solve the IP Prefix starvation problem
+  - Add drift testing to identify when a terraform plan shows a change to the launch template
+  - Setup logging to view cni and ipamd logs and setup alerts to notify when there are errors related to IP Prefix starvation
