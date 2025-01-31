@@ -1,0 +1,38 @@
+---
+title: Incident on 2023-06-06 - User services down
+weight: 9
+---
+
+# Incident on 2023-06-06 - User services down
+
+- **Key events**
+  - First detected: 2023-06-06 10:26
+  - Incident declared: 2023-06-06 11:00
+  - Repaired: 2023-06-06 11:21
+  - Resolved 2023-06-06 11:21
+
+- **Time to repair**: 0h 55m
+
+- **Time to resolve**: 0h 55m
+
+- **Identified**: Several Users reported issues that the production pods are deleted all at once, and receiving pingdom alerts that their application is down for few minutes
+
+- **Impact**: User services were down for few minutes
+
+- **Context**:
+  - 2023-06-06 10:23 - User reported that their production pods are deleted all at once
+  - 2023-06-06 10:30 - Users reported that their services were back up and running.
+  - 2023-06-06 10:30 - Team found that the nodes are being recycled all at a time during the node instance type change
+  - 2023-06-06 10:50 - User reported that the DPS service is down because they couldnot authenticate into the service
+  - 2023-06-06 11:00 - Incident declared
+  - 2023-06-06 11:21 - User reported that the DPS service is back up and running
+  - 2023-06-06 11:21 - Incident repaired
+  - 2023-06-06 13:11 - Incident resolved
+
+- **Resolution**:
+  - When the node instance type is changed, the nodes are recycled all at a time. This caused the pods to be deleted all at once.
+  - Raised a ticket with AWS asking the steps to update the node instance type without causing outage to the services.
+  - The instance type update is performed through terraform, hence the team will have to comeup with a plan and update runbook to perform these changes without downtime.
+
+- **Review actions**:
+  - Add a runbook for the steps to perform when changing the node instance type

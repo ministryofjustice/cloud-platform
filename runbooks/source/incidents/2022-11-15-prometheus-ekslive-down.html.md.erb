@@ -1,0 +1,46 @@
+---
+title: Incident on 2022-11-15 - Prometheus eks-live DOWN
+weight: 12
+---
+
+# Incident on 2022-11-15 - Prometheus eks-live DOWN
+
+- **Key events**
+  - First detected 2022-11-15 16:03
+  - Incident declared: 2022-11-15 16:05
+  - Repaired 2022-11-15 16:30
+  - Resolved 2022-11-15 16:30
+
+- **Time to repair**: 27m
+
+- **Time to resolve**: 27m
+
+- **Identified**:  High Priority Alarms - #347423 Pingdom check Prometheus Cloud-Platform - Healthcheck is DOWN / Resolved: #347424 Pingdom check cloud-platform monitoring Prometheus eks-live is DOWN.
+
+- **Impact**: Prometheus was unavailable for 27 minutes. Not reported at all by users in #ask-cloud-platforms slack channel.
+
+- **Context**:
+  - On the 1st of November 14:49 AWS - notifications sent an email - advising that instance i-087e420c573463c08 (prometheus-operator) would be retired on the 15th of November 2022 at 16:00
+
+  - On the 15th of November 2022 - work being carried out on a Kubernetes upgrade on the "manager" cluster. Cloud-platforms advised in slack in the morning that the instance on "manager" would be retired that very afternoon. It was thought therefore that that this would have little impact on the upgrade work. However the instance was in fact on the "live" cluster - not "manager"
+
+  - The instance was retired by AWS at 16:00, Prometheus went down approx 16:03.
+
+  - Because the node was killed by AWS, and not gracefully by us - it got stuck - the eks node stayed in a status of "not ready", the pod stays as "terminated"
+
+  - Note were users notified in "ask-cloud-platform" slack channel at approx 16:25, once it was determined that it was NOT to do with Kubernetes upgrade work on "manager" and therefore it would indeed be having an impact on the live system.
+
+- **Resolution**:
+
+  - The pod was killed by us at approx 16:12, this therefore made the node go too.
+
+- **Review actions**:
+  - If we had picked up on this retirement in "Live"- we could have recyled the node  gracefully (cordon, drain and kill first), possibly straight way on the 1st of November (well in advance).
+
+  - Therefore we need to find a way of not having these notification buried in our email inbox.
+
+  - First course of action, to ask AWS if there is an recomended alterative way of notifying to our slack channel (an alert). be this by sns to slack or some other method
+
+  - AWS Support Case ID 11297456601 raised
+
+  - AWS advise received - ticket raised to investigate potential solutions: [Implementation of notification of Scheduled Instance Retirements - to Slack. Investigate 2 potential AWS solutions#4264](https://app.zenhub.com/workspaces/cloud-platform-team-5ccb0b8a81f66118c983c189/issues/ministryofjustice/cloud-platform/4264).

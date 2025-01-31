@@ -1,0 +1,36 @@
+---
+title: Incident on 2023-07-21 - VPC CNI not allocating IP addresses
+weight: 8
+---
+
+# Incident on 2023-07-21 - VPC CNI not allocating IP addresses
+
+- **Key events**
+  - First detected: 2023-07-21 08:15
+  - Incident declared: 2023-07-21 09:31
+  - Repaired: 2023-07-21 12:42
+  - Resolved 2023-07-21 12:42
+
+- **Time to repair**: 4h 27m
+
+- **Time to resolve**: 4h 27m
+
+- **Identified**: User reported of seeing issues with new deployments in #ask-cloud-platform
+
+- **Impact**: The service availability for CP applications may be degraded/at increased risk of failure.
+
+- **Context**:
+  - 2023-07-21 08:15 - User reported of seeing issues with new deployments (stuck with ContainerCreating)
+  - 2023-07-21 09:00 - Team started to put together the list of all effected namespaces
+  - 2023-07-21 09:31 - Incident declared
+  - 2023-07-21 09:45 - Team identified that the issue was affected 6 nodes and added new nodes and and began to cordon/drain affected nodes
+  - 2023-07-21 12:35 - Compared cni settings on a 1.23 test cluster with live and found a setting was different
+  - 2023-07-21 12:42 - Set the command to enable Prefix Delegation on the live cluster
+  - 2023-07-21 12:42 - Incident repaired
+  - 2023-07-21 12:42 - Incident resolved
+
+- **Resolution**:
+  - The issue was caused by a missing setting on the live cluster. The team added the setting to the live cluster and the issue was resolved
+
+- **Review actions**:
+  - Add a test/check to ensure the IP address allocation is working as expected [#4669](https://github.com/ministryofjustice/cloud-platform/issues/4669)

@@ -1,0 +1,38 @@
+---
+title: Incident on 2020-09-21 - Some cloud-platform components destroyed
+weight: 24
+---
+
+# Incident on 2020-09-21 - Some cloud-platform components destroyed
+
+- **Key events**
+  - First detected 2020-09-21 18:27
+  - Incident declared 2020-09-21 18:40
+  - Repaired 2020-09-21 19:05
+  - Resolved 2020-09-21 21:41
+
+- **Time to repair**: 0h 38m
+
+- **Time to resolve**: 3h 14m
+
+- **Identified**: Some components of our production kubernetes cluster (live-1) were accidentally deleted, this caused some services running on cloud-platform gone down.
+
+- **Impact**:
+  - Some users could not access services running on the Cloud Platform.
+  - Prometheus/alertmanager/grafana is not accessible.
+  - kibana is not accessible.
+  - Cannot create new certificates.
+
+- **Context**:
+  - Test cluster deletion script triggered to delete a test cluster, kube context incorrectly targeted the live-1 cluster and deleted some cloud-platform components.
+  - Components include default ingress-controller, prometheus-operator, logging, cert-manager, kiam and external-dns. As ingress-controller gone down some users could not access services running on the Cloud Platform.
+  - Formbuilder services not accessible even after ingress-controller is restored.
+  - Timeline: [Timeline](https://docs.google.com/document/d/1nmhFcLkOEmyvN2E7PwUdo8l2O9EDpVx7c8-4d9pMBSg/edit#heading=h.ttkde0ugh32m) for the incident.
+  - Slack thread: [Slack thread](https://mojdt.slack.com/archives/C514ETYJX/p1600710001173700) for the incident.
+
+- **Resolution**:
+  - Team prioritised to restore default ingress controller, ingress-controller has a dependency of external-dns to update route53 records with
+  new NLB and kiam for providing AWSAssumeRole for external-dns, these components (ingress-controller, external-dns and kiam) got restored successfully. Services start to come back up.
+  - Formbuilder services are still pointing to the old NLB (network load balancer before ingress got replaced), reason for this is route53 TXT records was set incorrect owner field, so external-dns couldn't update the new NLB information in the A record. Team fixed the owner information in the TXT record, external DNS updated formbuilder route53 records to point to new NLB. Formbuilder services is up and running.
+  - Team did target apply to restore remaining components.
+  - Apply pipleine run to restore all the certificates, servicemonitors and prometheus-rules from the [environment repository](https://github.com/ministryofjustice/cloud-platform-environments).

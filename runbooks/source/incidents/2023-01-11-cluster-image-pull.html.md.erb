@@ -1,0 +1,63 @@
+---
+title: Incident on 2023-01-11 - Cluster image pull failure due to DockerHub password rotation
+weight: 10
+---
+
+# Incident on 2023-01-11 - Cluster image pull failure due to DockerHub password rotation
+
+- **Key events**
+  - First detected: 2023-01-11 14:22
+  - Incident declared: 2023-01-11 15:17
+  - Repaired: 2023-01-11 15:50
+  - Resolved 2023-01-11 15:51
+
+- **Time to repair**: 1h 28m
+
+- **Time to resolve**: 1h 29m
+
+- **Identified**: Identified: Cloud Platform team member observed failed DockerHub login attempts error at 2023-01-11 14:22:
+
+```
+failed to fetch manifest: Head "https://registry-1.docker.io/v2/ministryofjustice/cloud-platform-tools/manifests/2.1": toomanyrequests: too many failed login attempts for username or IP address
+```
+
+- **Impact**: Concourse and EKS cluster nodes unable to pull images from DockerHub for 1h 28m. `ErrImagePull` error reported by one user in #ask-cloud-platform at 2023-01-11 14:54.
+
+- **Context**:
+  - 2023-01-11 14:22: Cloud Platform team member observed failed DockerHub login attempts error:
+
+```
+failed to fetch manifest: Head "https://registry-1.docker.io/v2/ministryofjustice/cloud-platform-tools/manifests/2.1": toomanyrequests: too many failed login attempts for username or IP address
+```
+
+  - 2023-01-11 14:34: Discovered that cluster DockerHub passwords do match the value stored in LastPass.
+  - 2022-01-11 14:40 Concourse DockerHub password updated in `cloud-platform-infrastructure terraform.tfvars` repository.
+  - 2023-01-11 14:51 Explanation revealed. DockerHub password was changed as part of LastPass remediation activities.
+  - 2023-01-11 14:52 KuberhealtyDaemensetCheck reveals cluster is also unable to pull images [https://mojdt.slack.com/archives/C8QR5FQRX/p1673448593904699](https://mojdt.slack.com/archives/C8QR5FQRX/p1673448593904699)
+
+```
+With error:
+Check execution error: kuberhealthy/daemonset: error when waiting for pod to start: ErrImagePull
+```
+
+  - 2023-01-11 14:53 dockerconfig node update requirement identified
+  - 2023-01-11 14:54 user reports `ErrImagePull` when creating port-forward pods affecting at least two namespaces.
+  - 2023-01-11 14:56 EKS cluster DockerHub password updated in `cloud-platform-infrastructure`
+  - 2023-01-11 15:01 Concourse plan of password update reveals launch-template will be updated, suggesting node recycle.
+  - 2023-01-11 15:02 Decision made to update password in live-2 cluster to determine whether a node recycle will be required
+  - 2023-01-11 15:11 Comms distributed in #cloud-platform-update and #ask-cloud-platform.
+  - 2023-01-11 15:17 Incident is declared.
+  - 2023-01-11 15:17 J Birchall assumes incident lead and scribe roles.
+  - 2023-01-11 15:19 War room started
+  - 2023-01-11 15:28 Confirmation that password update will force node recycles across live & manager clusters.
+  - 2023-01-11 15:36 Decision made to restore previous DockerHub password, to allow the team to manage a clean rotation OOH.
+  - 2023-01-11 15:40 DockerHub password changed back to previous value.
+  - 2023-01-11 15:46 Check-in with reporting user that pod is now deploying - answer is yes.
+  - 2023-01-11 15:50 Cluster image pulling observed to be working again.
+  - 2023-01-11 15:51 Incident is resolved
+  - 2023-01-11 15:51 Noted that live-2 is now set with invalid dockerconfig; no impact on users.
+  - 2023-01-11 16:50 comms distributed in #cloud-platform-update.
+
+- **Resolution**: DockerHub password was restored back to value used by EKS cluster nodes & Concourse to allow an update and graceful recycle of nodes OOH.
+
+- **Review actions**: As part of remediation, we have switched from Dockerhub username and password to Dockerhub token specifically created for Cloud Platform. (Done)

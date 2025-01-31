@@ -1,0 +1,35 @@
+---
+title: Incident on 2022-03-10 - All ingress resources using *.apps.live.cloud-platform urls showing certificate issue
+weight: 14
+---
+
+# Incident on 2022-03-10 - All ingress resources using *.apps.live.cloud-platform urls showing certificate issue
+
+- **Key events**
+  - First detected 2022-03-10 11:48
+  - Incident declared 2022-03-10 11.50
+  - Repaired 2022-03-10 11:56
+  - Resolved 2022-03-10 11.56
+
+- **Time to repair**: 8m
+
+- **Time to resolve**: 8m
+
+- **Identified**: Users reported in #ask-cloud-platform that they are seeing errors for CP domain urls.
+```Hostname/IP does not match certificate's altnames```
+
+- **Impact**: All ingress resources using the *apps.live.cloud-platform.service.justice.gov.uk have mismatched certificates.
+
+- **Context**:
+  - Occurred immediately following a terraform apply to a test cluster
+  - The change amended the default certificate of `live` cluster to `*.apps.yy-1003-0100.cloud-platform.service.justice.gov.uk`.
+  - Timeline: [timeline](https://docs.google.com/document/d/1uBTizAPPlPBWJDI9w6spPsnOmEg0WElG25Rkz_ozAtY/edit?usp=sharing) for the incident
+  - Slack thread: [#ask-cloud-platform](https://mojdt.slack.com/archives/C57UPMZLY/p1646912939256309) for the incident
+
+- **Resolution**:
+  - The immediate repair was to perform an inline edit of the default certificate in `live`. Adding the wildcard dnsNames `*.apps.live`,`*.live`, `*.apps.live-1` and `*.live-1` to the default certificate i.e. reverting the faulty change.
+  - Further investigation followed finding the cause of the incident was actually was due to the environment variable KUBE_CONFIG set to the config path which had `live` context set
+  - The terraform kubectl provider used to apply `kubectl_manifest` resources  uses environment variable `KUBECONFIG` and `KUBE_CONFIG_PATH`. But it has been found that it can also use variable `KUBE_CONFIG` causing the apply of certificate to the wrong cluster.
+
+- **Review actions**:
+  - Ticket raised to configure kubectl provider to use data source [#3589](https://github.com/ministryofjustice/cloud-platform/issues/3589)

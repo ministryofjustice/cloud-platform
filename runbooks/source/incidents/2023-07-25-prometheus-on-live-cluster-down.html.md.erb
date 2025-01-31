@@ -1,0 +1,42 @@
+---
+title: Incident on 2023-07-25 - Prometheus on live cluster DOWN
+weight: 7
+---
+
+# Incident on 2023-07-25 - Prometheus on live cluster DOWN
+
+- **Key events**
+  - First detected: 2023-07-25 14:05
+  - Incident declared: 2023-07-25 15:21
+  - Repaired: 2023-07-25 15:55
+  - Resolved 2023-09-25 15:55
+
+- **Time to repair**: 1h 50m
+
+- **Time to resolve**: 1h 50m
+
+- **Identified**: [PagerDuty High Priority alert from Pingdom that Prometheus - live healthcheck is DOWN](https://mojdt.slack.com/archives/C8PF51AT0/p1690290348206639)
+
+- **Impact**: Prometheus is not Available. The Cloud Platform lose the monitoring for a period of time.
+
+- **Context**:
+  - 2023-07-25 14:05 - PagerDuty High Priority alert from Pingdom that Prometheus - live healthcheck is DOWN. Team acknowledged and checked the state of the Prometheus server. Prometheus errored for Rule evaluation and Exit code 137
+  - 2023-07-25 14:09: Prometheus pod is in terminating state
+  - 2023-07-25 14:17: The node where prometheus is running went to Not Ready state
+  - 2023-07-25 14:22: Drain the monitoring node which moved the prometheus to the another monitoring node
+  - 2023-07-25 14:56: After moving to new node the prometheus restarted just after coming back and put the node to Node Ready State
+  - 2023-07-25 15:11: Comms went to cloud-platform-update on Prometheus was DOWN
+  - 2023-07-25 15:20: Team found that the node memory is spiking to 89% and decided to go for a bigger instance size
+  - 2023-07-25 15:21: Incident declared. https://mojdt.slack.com/archives/C514ETYJX/p1690294889724869
+  - 2023-07-25 15:31: Changed the instance size to `r6i.4xlarge`
+  - 2023-07-25 15:50: Still the Prometheus restarted after running. Team found the recent prometheus pod was terminated with OOMKilled. Increased the memory limits 100Gi
+  - 2023-07-25 16:18: Updated the prometheus container limits:CPU - 12 core and 110 Gi Memory to accommodate the resource need for prometheus
+  - 2023-07-25 16:18: Incident repaired
+  - 2023-07-05 16:18: Incident resolved
+
+- **Resolution**:
+  - Due to increase number of namespaces and prometheus rules, the prometheus server needed more memory. The instance size was not enough to keep the prometheus running.
+  - Updating the node type to double the cpu and memory and increasing the container resource limit of prometheus server resolved the issue
+
+- **Review actions**:
+  - Add alert to monitor the node memory usage and if a pod is using up most of the node memory [#4538](https://github.com/ministryofjustice/cloud-platform/issues/4538)

@@ -1,0 +1,23 @@
+---
+title: Incident on 2020-02-12
+weight: 33
+---
+
+# Incident on 2020-02-12
+
+- **Key events**
+  - Fault occurs 2020-02-12 11:45
+  - Incident declared 2020-02-12 11:51
+  - Resolved 2020-02-12 12:07
+
+- **Time to repair**: 0h 16m
+
+- **Time to resolve**: 0h 22m
+
+- **Identified**: Pingdom reported Concourse (concourse.cloud-platform.service.justice.gov.uk) down.
+
+- **Context**:
+  - One of the engineers was deleting old clusters (he ran `terraform destroy`) and he wasn't fully aware in which _terraform workspace_ was working on. Using `terraform destroy`, EKS nodes/workers were deleted from the manager cluster.
+  - Slack thread: <https: mojdt.slack.com archives C514ETYJX p1581508273080900>
+
+  - **Resolution**: Using terraform (`terraform apply -var-file vars/manager.tfvars` specifically) the cluster nodes where created and the infrastructure aligned? to the desired terraform state

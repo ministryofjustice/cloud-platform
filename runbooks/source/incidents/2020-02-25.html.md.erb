@@ -1,0 +1,31 @@
+---
+title: Incident on 2020-02-25
+weight: 31
+---
+
+# Incident on 2020-02-25
+
+- **Key events**
+  - Fault occurs 2020-02-25 07:32
+  - Team aware 2020-02-25 07:36
+  - Incident declared 2020-02-25 10:58
+  - Resolved 2020-02-25 17:07
+
+- **Time to repair**: 4h 9m
+
+- **Time to resolve**: 7h (during support hours 10:00-17:00)
+
+- **Identified**: During an upgrade, new masters were not coming up correctly (missing calico networking and other pods)
+
+- **Impact**:
+  - Degraded kubernetes API performance (because some API calls were being directed to non-functioning masters)
+  - Increased risk of cluster failure, because we were running on a single master during the incident
+
+- **Context**:
+  - Upgrading from kubernetes 1.13.12 to 1.14.10, kops 1.13.2 to 1.14.1
+  - The first master was replaced fine, but the second didn't have calico and some other essential pods, and was not functioning correctly
+  - Attempting to roll back the upgrade, every new master exhibited the same problem
+  - Slack thread: [https://mojdt.slack.com/archives/C514ETYJX/p1582628309085600](https://mojdt.slack.com/archives/C514ETYJX/p1582628309085600)
+
+- **Resolution**:
+    The `kube-system` namespace has a label, `openpolicyagent.org/webhook: ignore` This label tells the Open Policy Agent (OPA) that pods are allowed to run in this namespace on the master nodes. Somehow, this label got removed, so the OPA was preventing pods from running on the new master nodes, as each one came up, so the new master was unable to launch essential pods such as `calico` and `fluentd`.

@@ -1,0 +1,31 @@
+---
+title: Incident on 2020-08-25 - Connectivity issues with eu-west-2a
+weight: 26
+---
+
+# Incident on 2020-08-25 - Connectivity issues with eu-west-2a
+
+- **Key events**
+  - First detected 2020-08-25 11:01
+  - Incident declared 2020-08-25 11:26
+  - Resolved 2020-08-25 12:11
+
+- **Time to repair**: 0h 45m
+
+- **Time to resolve**: 1h 10m
+
+- **Identified**: The AWS  Availability Zones `eu-west-2a`, which contain some of our kubernetes nodes had an outage. API latency was elevated, some EC2 became unreachable and overall connectivity was unstable.
+
+- **Impact**:
+  - Two kubernetes nodes became unreachable
+  - No new node could be launched in eu-west-2a
+  - Kubernetes had issues talking to some of these nodes, preventing some API calls to succeed (Pods were not terminating)
+  - New pods were not able to pull their Docker images.
+
+- **Context**:
+  - Pods and Nodes sitting in other Availability Zones (b & c) were not impacted
+  - Slack threads: [Issue detected](https://mojdt.slack.com/archives/C514ETYJX/p1598351210195200), [Incident Declared](https://mojdt.slack.com/archives/C514ETYJX/p1598351210195200),
+  - We now have 25 pods in the cluster, instead of 21
+
+- **Resolution**:
+    The incident was mitigated by deploying more 2-4 nodes in healthy Availability Zones, manually deleting the non-responding pods, and terminating the impacted nodes

@@ -1,0 +1,30 @@
+---
+title: Incident on 2020-08-14 - Ingress-controllers crashlooping
+weight: 27
+---
+
+# Incident on 2020-08-14 - Ingress-controllers crashlooping
+
+- **Key events**
+  - First detected 2020-08-14 10:43
+  - Incident declared 2020-08-14 11:01
+  - Resolved 2020-08-14 11:38
+
+- **Time to repair**: 0h 37m
+
+- **Time to resolve**: 0h 55m
+
+- **Identified**: There are 6 replicas of the ingress-controller pod and 2 out of the 6 were crashlooping. A restart of the pods did not resolve the issue. As per a normal runbook process, a recycle of all pods was required. However after restarting pods 4 and 5, they also started to crashloop. The risk was when restarting pods 5 and 6 -  all 6 pods could be down and all ingresses down for the cluster.
+
+- **Impact**:
+  - Increased risk for all ingresses failing in the cluster if all 6 ingress-controller pods are in a crashloop state.
+
+- **Context**:
+  - 2 of the 6 ingress-controller pods crashlooping, after restart of 4 pods, 4 out of 6 pods crashlooping.
+  - Issue was with the leader ingress-controller pod (which was not identified or restarted yet) and exhausting the shared memory.
+    - After a restart of the leader ingress-controller pod, all other pods reverted back to a ready/running state.
+    - Timeline : [https://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/edit#heading=h.z3py6eydx4qu](https://docs.google.com/document/d/1kxKwC1B_pnlPbysS0zotbXMKyZcUDmDtnGbEyIHGvgQ/edit#heading=h.z3py6eydx4qu)
+    - Slack thread: [https://mojdt.slack.com/archives/C514ETYJX/p1597399295031000](https://mojdt.slack.com/archives/C514ETYJX/p1597399295031000),
+
+- **Resolution**:
+    A restart of the leader ingress-controller pod was required so the other pods in the replica-set could connect and get the latest nginx.config file.

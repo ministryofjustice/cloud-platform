@@ -1,0 +1,35 @@
+---
+title: Incident on 2022-07-11 - Slow performance for 25% of ingress traffic
+weight: 13
+---
+
+# Incident on 2022-07-11 - Slow performance for 25% of ingress traffic
+
+- **Key events**
+  - First detected 2022-07-11 09:33
+  - Incident declared 2022-07-11 10:11
+  - Repaired 2022-07-11 16:07
+  - Resolved 2022-07-11 16:07
+
+- **Time to repair**: 6h 27m
+
+- **Time to resolve**: 6h 27m
+
+- **Identified**: Users reported in #ask-cloud-platform they're experiencing slow performance of their applications some of the time.
+
+- **Impact**: Slow performance of 25% of ingress traffic
+
+- **Context**:
+  - Following an AWS incident the day before, one of three network interfaces on the 'default' ingress controllers were experiencing slow performance.
+  - AWS claim, "the health checking subsystem did not correctly detect some of your targets as unhealthy, which resulted in clients timing out when they attempted to connect to one of your Network Load Balancer (NLB) Elastic IP's (EIPs)".
+  - AWS go onto say, "The Networkd Load Balancer (NLB) has a health checking subsystem that checks the health of each target, and if a target is detected as unhealthy it is removed from service. During this issue, the health checking subsystem was unaware of the health status of your the targets in one of the Availability Zones (AZ)".
+  - Timeline: [timeline](https://docs.google.com/document/d/1QR31_9Ga_LdXSzgoFjiemE-jxq5sf59rKj5gAoNTU9E/edit?usp=sharing) for the incident
+  - Slack thread: [#cloud-platform-update](https://mojdt.slack.com/archives/CH6D099DF/p1657531797170269) for the incident
+
+- **Resolution**:
+  - AWS internal components have been restarted. AWS say, "The root cause was a latent software race condition that was triggered when some of the health checking instances were restarted. Since the health checking subsystem was unaware of the targets, it did not return a health check status for a specific Availability Zone (AZ) of the NLB".
+
+  - They (AWS) go onto say, "We restarted the health checking subsystem, which caused it to refresh the list of targets, after this the NLB was recovered in the impacted AZ".
+
+- **Review actions**:
+  - Mitigaton tickets raised following a post-incident review: https://github.com/ministryofjustice/cloud-platform/issues?q=is%3Aissue+is%3Aopen+post-aws-incident

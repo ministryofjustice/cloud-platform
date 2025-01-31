@@ -1,0 +1,32 @@
+---
+title: Incident on 2020-08-04
+weight: 29
+---
+
+# Incident on 2020-08-04
+
+- **Key events**
+  - Fault occurs 2020-08-04 13:30
+  - Fault detected 2020-08-04 18:13
+  - Incident declared 2020-08-05 11:04
+  - Resolved 2020-08-05 16:16
+
+- **Time to repair**: 5h 8m
+
+- **Time to resolve**: 9h 16m (during support hours 10:00-17:00)
+
+- **Identified**: Integration tests failed for cert-manager, apply pipeline failed showing it doesnot have permissions and
+ divergence pipeline shows drift for live-1 components
+
+- **Impact**:
+  - Increased risk for cluster failure because some of the components do not have the correct configuration needed for the `live-1` production cluster
+
+- **Context**:
+  - One of the engineers was creating a test EKS cluster and ran `terraform apply` on EKS components
+  - Without fully aware of the current cluster context, the `terraform apply` for EKS test cluster components has been applied to the `live-1` kops cluster
+  - This has changed the configuration of several resources in the `live-1` cluster
+  - Timeline: [https://docs.google.com/document/d/1VrABxeHLMOnoM4yYoCi9N4N4zRY1SK1hTjrZ9s05zuc/edit?usp=sharing](https://docs.google.com/document/d/1VrABxeHLMOnoM4yYoCi9N4N4zRY1SK1hTjrZ9s05zuc/edit?usp=sharing)
+  - Slack thread: [https://mojdt.slack.com/archives/C514ETYJX/p1596621864015400](https://mojdt.slack.com/archives/C514ETYJX/p1596621864015400),
+
+- **Resolution**:
+    Compare each resource configuration with the terraform state and applied the correct configuration from the code specific to kops cluster
