@@ -1,7 +1,7 @@
 ---
 title: Debugging AWS Console read-only access issues
 weight: 8605
-last_reviewed_on: 2024-08-07
+last_reviewed_on: 2025-02-14
 review_in: 6 months
 ---
 
@@ -20,7 +20,15 @@ Unable to validate tags (Service: AWSSecurityToken; Status Code: 400; Error Code
 The cause of this issue has frequently been identified as a result of a user belonging to enough GitHub teams (or those with especially long names) that result in the total
 length of the Principal Tag exceeding the 256 character limit, as documented [here](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_session-tags.html)
 
-In order to confirm whether this is the cause, request the user to grab a SAML response from their browser session by following the steps provided in [this link](https://docs.aws.amazon.com/IAM/latest/UserGuide/troubleshoot_saml_view-saml-response.html)
+## Mitigation
+
+We now have a service running in the cluster which should alleviate this issue to a degree. [This service](https://github.com/ministryofjustice/cloud-platform-github-teams-filter) works by checking the user's Github team membership against the teams registered via RBAC resources in the Cloud Platform namespaces. Any that aren't registered with the cluster are filtered out, reducing the total character count.
+
+The following debugging steps are those that we have used until now to confirm the teams issue:
+
+## Debugging
+
+In order to confirm whether the character count issue is the cause of the error, request the user to grab a SAML response from their browser session by following the steps provided in [this link](https://docs.aws.amazon.com/IAM/latest/UserGuide/troubleshoot_saml_view-saml-response.html)
 
 Ask the user to provide you with their base64 decoded SAML response, and check the character count for the contents of the `PrincipalTag:GithubTeam` tag.
 
@@ -35,5 +43,3 @@ $ printf ":github-team-1:github-team-2:" | wc -c
 ```
 
 If the character count exceeds 256, you will need to ask the user to review their GitHub team membership, and remove themselves from any teams that are no longer required.
-
-At this time, there is no other workaround for this issue.
