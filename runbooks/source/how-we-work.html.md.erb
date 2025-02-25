@@ -1,8 +1,8 @@
 ---
 title: How We Work
 weight: 10
-last_reviewed_on: 2024-12-16
-review_in: 3 months
+last_reviewed_on: 2025-02-25
+review_in: 6 months
 ---
 
 # <%= current_page.data.title %>
@@ -35,7 +35,7 @@ As with our usual sprint, at the end of the firebreak sprint, we showcase and de
 ## Story
 Stories/Tickets are an item of work and should have enough information that all team members know what is required. When creating a new ticket, please use the appropriate template for a [support request](https://github.com/ministryofjustice/cloud-platform/blob/main/.github/ISSUE_TEMPLATE/cloud-platform-support-request.md) [story](https://github.com/ministryofjustice/cloud-platform/blob/main/.github/ISSUE_TEMPLATE/cloud-platform-story-template.md) or [firebreak story](https://github.com/ministryofjustice/cloud-platform/blob/main/.github/ISSUE_TEMPLATE/cloud-platform-firebreak-template.md).
 
-Stories are estimated with story points based on **complexity** during planning using the fibonacci sequence. Voting is done in the open by show of fingers.
+Stories are estimated with story points based on **complexity** during planning using the fibonacci sequence. Voting is done by everyone entering their scores into the call chat window at the same time, scores are then discussed to reach a consensus.
 
 ### Story points
 
@@ -47,20 +47,32 @@ Stories are estimated with story points based on **complexity** during planning 
 |5 |This is big. I have only a rough idea of how I'd do this.|
 |8+ |This is too big, it will have to be broken down.|
 
+We generally score spikes as a 5, we do not score bugs or support tickets unless they are moved in to general ticketed work.
+
 ## The Board / Tickets
 
-We use a kanban process to manage our backlog of work on this [Github Project board], which aggregates GitHub Issues from the various CP team repositories.
+We use a Scrum process to manage our backlog of work on this [Github Project board], which aggregates GitHub Issues from the various CP team repositories.
 
 During the sprint, the process of getting work done should look like this:
 
 * Assign the topmost ticket (i.e. github issue) of the "This Sprint" column to yourself, and move it to the "In Progress" column
-* Let the team know what you're working on by posting in the `#cloud-platform` slack channel
 * Create a new branch in each affected github repository and make whatever changes are necessary
 * Raise a pull request (PR), and get at least one other CP team member to review your changes (two reviews are required for infrastructure PRs).
 * After your PR has been approved, merge it and, if necessary, apply your changes using terraform or whatever else is required to apply your change to our infrastructure
-* Close the github issue, and move on to the next ticket
+* Move the ticket into review for another team member to review.
+* Once reviewed, move the github issue to done, and move on to the next ticket
+* If you cannot work on a ticket as you are waiting on someone else, move the ticket to blocked and start work or help on another ticket.
 
-### Adding tickets
+### Running out of tickets mid sprint
+
+If there are no more tickets in Todo to pick up:
+
+* Ask in stand up or the team channel if anyone needs any help or pairing, the priority should always be to finish all tickets in sprint before bringing anything else in
+* Do any mandatory learning or use your 10% time
+* Help the support team with their tasks, such as dependabot or document reviews
+* If everything above is done, discuss with the team bringing more work into sprint (do not bring things into sprint without asking)
+
+### Adding tickets to the backlog
 
 Anyone in the team is encouraged to add new tickets at any time. So if you think of something we ought to do, please [raise a ticket](https://github.com/ministryofjustice/cloud-platform/issues/new/choose) for it.
 
@@ -113,12 +125,16 @@ It **is** the Hammer's job to ensure that all queries are handled, and that PRs 
 
 > Anyone can (and should) respond to queries in `#ask-cloud-platform`, and review PRs. You don't have to be the Hammer to help.
 
-#### Backlog Tickets
+#### Sprint Tickets
 
-Working on tickets in the backlog when you're the Hammer is not advised. The constant context switching makes it hard to get significant work done,
+Do not work on tickets in the sprint when you're the Hammer. The constant context switching makes it hard to get significant work done,
 and there is also the risk that questions go unanswered and PRs get blocked waiting for review because you're head down in a problem and don't notice them.
 
-### Support Tickets
+### Secondary Support
+
+The secondary support role is to cover other support work (not covered by the Hammer) and to support the Hammer where needed.
+
+#### Support Tickets
 
 Support tickets are created by users of Cloud Platform for various reasons. These can be anything from
 
@@ -134,7 +150,7 @@ If the ticket involves some investigation work, then this can be assigned to a s
 
 When working on support ticket, ensure that the ticket is updated with the progress and the user is informed.
 
-## Documentation
+#### Documentation
 
 Most of our user-facing documentation is in the [user guide], and documentation for the team is in the [runbooks] site.
 
