@@ -210,7 +210,7 @@ The pipeline may fail due to final snapshot name conflicts. This occurs because 
 **Why This Happens:**
 
 1. When you delete an RDS instance, AWS/Terraform automatically names the final snapshot as `{db-instance-identifier}-finalsnapshot`.
-   
+
    Example: If your DB instance is named `mydb`, the final snapshot becomes `mydb-finalsnapshot`.
 
 2. Conflict Scenario:
@@ -333,7 +333,7 @@ After verifying the new downgraded database works properly, the old one can be d
 
 **Error Message:** `DBSnapshotAlreadyExists`
 
-**Solution:** 
+**Solution:**
 - Delete the conflicting snapshot manually:
 
   ```bash
