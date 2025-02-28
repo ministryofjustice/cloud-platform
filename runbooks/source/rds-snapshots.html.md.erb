@@ -1,7 +1,7 @@
 ---
 title: RDS Snapshot Restoration
 weight: 190
-last_reviewed_on: 2025-02-27
+last_reviewed_on: 2025-02-28
 review_in: 6 months
 ---
 
@@ -86,7 +86,17 @@ aws rds describe-db-snapshots --db-instance-identifier <db-instance-identifier> 
 
 This will list all available snapshots for the specified database along with their creation timestamps.
 
-### 3. Create a Test Database with Sample Data (For Testing)
+### 5. Add SKIP_FILE to Pause Pipeline
+
+**Important:** Before making any changes to the RDS configuration, you must first create a PR to add a SKIP_FILE:
+
+* Create a PR to add an `APPLY_PIPELINE_SKIP_THIS_NAMESPACE` file at the root of the namespace
+* Merged it
+* Update your local repo with the latest changes from main branch
+
+This ensures the pipeline doesn't try to apply changes while you're in the middle of the restoration process.
+
+### 4. Create a Test Database with Sample Data (For Testing)
 
 Before proceeding with any live restoration, it's recommended to test the process:
 
@@ -149,7 +159,7 @@ aws rds create-db-snapshot \
   --db-snapshot-identifier <custom-identifier-with-date>
 ```
 
-### 4. Verify Storage Configuration
+### 5. Verify Storage Configuration
 
 Check the current storage allocation settings for the database:
 
@@ -158,16 +168,6 @@ aws rds describe-db-instances --db-instance-identifier <db-instance-identifier>
 ```
 
 Note the `AllocatedStorage` and `MaxAllocatedStorage` values. By default, these are set to 20GB and 500GB respectively if not explicitly defined in the module.
-
-### 5. Add SKIP_FILE to Pause Pipeline
-
-**Important:** Before making any changes to the RDS configuration, you must first create a PR to add a SKIP_FILE:
-
-* Create a PR to add an `APPLY_PIPELINE_SKIP_THIS_NAMESPACE` file at the root of the namespace
-* Merged it
-* Update your local repo with the latest changes from main branch
-
-This ensures the pipeline doesn't try to apply changes while you're in the middle of the restoration process.
 
 ### 6. Modify the RDS Module for Restoration
 
