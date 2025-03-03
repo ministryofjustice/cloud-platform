@@ -1,0 +1,371 @@
+---
+title: RDS Snapshot Restoration
+weight: 190
+last_reviewed_on: 2025-03-03
+review_in: 6 months
+---
+
+# RDS Snapshots
+
+RDS snapshots have multiple purposes: migrations, backups, etc. When RDS DB instances are created using the [Cloud Platform RDS terraform module](https://github.com/ministryofjustice/cloud-platform-terraform-rds-instance), an IAM user account is created for management purposes. This user can create, delete, copy, and restore RDS snapshots.
+
+This team runbook provides technical guidance for testing and verifying the RDS snapshot restoration process.
+
+## Prerequisites
+
+Before performing an RDS restore from snapshot:
+
+1. Ensure you have AWS CLI access with appropriate permissions
+2. Verify the existence of snapshots for the target database
+3. Identify the correct DB instance identifier
+4. Check any existing snapshots with potential naming conflicts
+
+## Considerations
+- The amount of manual snapshots per AWS account is limited, so it's important to cleanup old snapshots
+- Daily snapshots are provided "out of the box", and **do not count** towards the "Manual Snapshots" total
+- Managing snapshots is the teams' responsibility (as are snapshot restores), so teams are responsible for cleaning up unneeded manual snapshots in order to avoid hitting our AWS account limits
+
+## Restoring live services from an RDS DB snapshot
+If you want to restore your production RDS DB instance from a previous snapshot, either because the database is corrupted or the whole database was deleted, here is the procedure:
+
+### 1. Get the Database Instance Identifier
+
+```bash
+aws rds describe-db-instances --query 'DBInstances[*].[DBInstanceIdentifier]' --output text
+```
+
+Or, alternatively:
+
+```bash
+cloud-platform decode-secret -n <your namespace> -s <the secret storing your RDS details>
+```
+
+Look for a line like this in the output:
+
+```json
+{
+  "rds_instance_address": "cloud-platform-abcdefghij.abcdefghijkl.eu-west-2.rds.amazonaws.com"
+}
+```
+
+The `db-instance-identifier` is the `cloud-platform-abcdefghij` part.
+
+For more detailed information about a specific instance:
+
+```bash
+aws rds describe-db-instances --db-instance-identifier <db-instance-identifier>
+```
+
+Example output will include critical information:
+
+```json
+{
+  "DBInstanceIdentifier": "cloud-platform-klmno12345",
+  "DBInstanceClass": "db.t4g.micro",
+  "Engine": "mysql",
+  "DBInstanceStatus": "available",
+  "MasterUsername": "cpuser123",
+  "DBName": "dbexample123",
+  "Endpoint": {
+    "Address": "cloud-platform-klmno12345.cdwm328dlye6.eu-west-2.rds.amazonaws.com",
+    "Port": 3306,
+    "HostedZoneId": "Z1TTGA775OQIYO"
+  },
+  "AllocatedStorage": 20,
+  "InstanceCreateTime": "2025-02-18T15:32:07.509000+00:00",
+  "PreferredBackupWindow": "03:29-03:59",
+  "BackupRetentionPeriod": 7
+}
+```
+
+### 2. List Available Snapshots
+
+```bash
+aws rds describe-db-snapshots --db-instance-identifier <db-instance-identifier> --query 'DBSnapshots[*].[DBSnapshotIdentifier,SnapshotCreateTime]' --output text
+```
+
+This will list all available snapshots for the specified database along with their creation timestamps.
+
+### 5. Add SKIP_FILE to Pause Pipeline
+
+**Important:** Before making any changes to the RDS configuration, you must first create a PR to add a SKIP_FILE:
+
+* Create a PR to add an `APPLY_PIPELINE_SKIP_THIS_NAMESPACE` file at the root of the namespace
+* Merged it
+* Update your local repo with the latest changes from main branch
+
+This ensures the pipeline doesn't try to apply changes while you're in the middle of the restoration process.
+
+### 4. Create a Test Database with Sample Data (For Testing)
+
+Before proceeding with any live restoration, it's recommended to test the process:
+
+#### 3.1 Seed Test Data Process
+
+1. Create a port-forward pod to establish connection with the RDS database:
+
+   ```bash
+   kubectl -n <namespace> run -it --rm --image=mysql:5.7 mysql-client -- bash
+   ```
+
+2. Connect to the RDS database:
+
+   ```bash
+   mysql -h127.0.0.1 -P3306 -u<username> -p<password>
+   ```
+   Example:
+   ```bash
+   mysql -h127.0.0.1 -P3306 -ucpuser123 -pmysecretpassword
+   ```
+
+3. Select your database:
+
+   ```sql
+   USE <database_name>;
+   ```
+   Example:
+   ```sql
+   USE dbexample123;
+   ```
+
+4. Create a test table:
+
+   ```sql
+   CREATE TABLE IF NOT EXISTS restore_test (
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     info VARCHAR(255)
+   );
+   ```
+
+5. Seed test data:
+
+   ```sql
+   INSERT INTO restore_test (info) VALUES ('Test entry 1'), ('Test entry 2');
+   ```
+
+6. Verify data insertion:
+
+   ```sql
+   SELECT * FROM restore_test;
+   ```
+
+#### 3.2 Create a Manual Snapshot
+
+Before making any changes, create a manual snapshot as a safety measure:
+
+```bash
+aws rds create-db-snapshot \
+  --db-instance-identifier <db-instance-identifier> \
+  --db-snapshot-identifier <custom-identifier-with-date>
+```
+
+### 5. Verify Storage Configuration
+
+Check the current storage allocation settings for the database:
+
+```bash
+aws rds describe-db-instances --db-instance-identifier <db-instance-identifier>
+```
+
+Note the `AllocatedStorage` and `MaxAllocatedStorage` values. By default, these are set to 20GB and 500GB respectively if not explicitly defined in the module.
+
+### 6. Modify the RDS Module for Restoration
+
+Create a PR to modify the RDS module in the `rds.tf` file to include:
+
+```hcl
+module "example_team_rds" {
+  source = "github.com/ministryofjustice/cloud-platform-terraform-rds-instance?ref=5.1"
+  # ... other parameters ...
+  snapshot_identifier = "<your-snapshot-identifier>"
+  # ... other parameters ...
+}
+```
+
+**Important:** When using a snapshot for restoration, do not attempt to change storage parameters at the same time. The RDS instance will adopt the storage configuration from the snapshot.
+
+It is crucial to retain other original settings associated with the DB instance when restoring from the snapshot. Details such as `db-engine-version`, `db-engine`, `rds-family` must be the same as the original instance when the snapshot was taken.
+
+**Do not merge this PR yet** - there are additional steps required first.
+
+### 7. Rename the Current Database Instance Before Merging
+
+As a Cloud Platform team member handling this restoration request:
+
+1. Identify the DB instance identifier provided by the user requesting the restoration
+2. Rename the current database in the AWS console:
+   * Navigate to AWS Console → RDS → Databases
+   * Select the target database
+   * Choose "Modify"
+   * Append `.old` or a similar suffix to the DB instance identifier
+   * Apply the change immediately
+3. Once the DB has been renamed, merge the PR with the RDS changes once approved.
+
+This process preserves the database endpoint and credentials when the new instance is created from the snapshot.
+
+### 8. Handle Final Snapshot Conflicts
+
+The pipeline may fail due to final snapshot name conflicts. This occurs because Terraform attempts to create a final snapshot with the same name during recreation.
+
+**Why This Happens:**
+
+1. When you delete an RDS instance, AWS/Terraform automatically names the final snapshot as `{db-instance-identifier}-finalsnapshot`.
+
+   Example: If your DB instance is named `mydb`, the final snapshot becomes `mydb-finalsnapshot`.
+
+2. Conflict Scenario:
+   - You delete `mydb` → Final snapshot `mydb-finalsnapshot` is created.
+   - Later, you create a new `mydb` instance, modify it, and try to delete it again.
+   - Terraform/AWS attempts to create `mydb-finalsnapshot` again → Conflict.
+
+If the pipeline fails with the error `DBSnapshotAlreadyExists`, execute:
+
+```bash
+aws rds delete-db-snapshot --db-snapshot-identifier <db-instance-identifier>-finalsnapshot
+```
+
+Then rerun the failed pipeline.
+
+## Expected Timeline and Status Changes
+
+**Total downtime:** ~26 minutes from `Deleting` to `Available`. This may vary depending on how much data is being restored.
+
+## Verification After Restoration
+
+Once the new DB instance is restored and available, verify that the data has been successfully restored:
+
+1. Create a port-forward pod to establish connection with the restored RDS database:
+
+   ```bash
+   kubectl -n <namespace> run -it --rm --image=mysql:5.7 mysql-client -- bash
+   ```
+
+2. Connect to the database to verify data restoration:
+
+   ```bash
+   mysql -h $DB_HOST -u $DB_USERNAME -p$DB_PASSWORD $DB_NAME
+   ```
+   Or use a direct connection:
+
+   ```bash
+   mysql -h127.0.0.1 -P3306 -u<username> -p<password>
+   ```
+
+3. Run basic queries to confirm data accessibility:
+
+   ```sql
+   SHOW DATABASES;
+   USE <database_name>;
+   SHOW TABLES;
+   SELECT * FROM restore_test;  # Check if test data is present
+   ```
+
+4. Verify the connection string remains the same:
+
+   ```bash
+   cloud-platform decode-secret -n <your namespace> -s <the secret storing your RDS details>
+   ```
+   Look for the `rds_instance_endpoint` value and confirm it matches the original endpoint.
+
+## Version Downgrade Limitations and Process
+
+### Important: Version Downgrades Cannot Be Done In-Place
+
+AWS does not support downgrading a database to an earlier version on the same instance. For example, if a database has been upgraded from PostgreSQL 16.3 to 17, it cannot be downgraded back to 16.3 using the standard snapshot restoration process outlined above.
+
+### Example of a Failed Downgrade Scenario
+
+The following failed scenario was observed and documented:
+
+1. User had upgraded their RDS from PostgreSQL 16.3 to 17
+2. User wanted to restore back to 16.3 using the process:
+   * Found an older snapshot identifier from before the upgrade
+   * Raised PR with the snapshot identifier
+   * Manually renamed the database in the console
+   * Merged the PR
+
+**What actually happened:**
+* Terraform apply reverted the manual rename
+* Started deleting the database, which also deleted all automatic snapshots
+* First apply pipeline failed with a parameter group error
+* Second attempt failed because the snapshot no longer existed (deleted during first apply)
+
+### Correct Process for Version Downgrades
+
+To properly downgrade an RDS database to a previous version:
+
+1. Take a snapshot of the current database to preserve it (in case restoration is needed later):
+
+   ```bash
+   aws rds create-db-snapshot \
+     --db-instance-identifier <current-db-instance-identifier> \
+     --db-snapshot-identifier <current-version-snapshot-name>
+   ```
+
+2. Create a new database instance with:
+   * A different identifier than the current database
+   * Engine version matching the snapshot you want to restore from
+   * RDS family matching the snapshot you want to restore from
+   * All other configuration parameters consistent with the source of the snapshot
+
+3. In the terraform module:
+
+   ```hcl
+   module "example_team_rds" {
+     source               = "github.com/ministryofjustice/cloud-platform-terraform-rds-instance?ref=5.1"
+     # ... other parameters ...
+     db_instance_identifier = "<new-instance-name>"  # Must be different from current DB
+     db_engine_version      = "16.3"  # Earlier version
+     rds_family             = "postgres16"  # Family matching earlier version
+     snapshot_identifier    = "<old-version-snapshot>"
+     # ... other parameters ...
+   }
+   ```
+   > **Note:** This approach requires a cutover as the new database will have a different endpoint and connection string.
+
+After verifying the new downgraded database works properly, the old one can be deleted if needed.
+
+## Known Issues and Solutions
+
+### Final Snapshot Naming Conflicts
+
+**Issue:** The pipeline fails because it cannot create a final snapshot with the same name as an existing snapshot.
+
+**Error Message:** `DBSnapshotAlreadyExists`
+
+**Solution:**
+- Delete the conflicting snapshot manually:
+
+  ```bash
+  aws rds delete-db-snapshot --db-snapshot-identifier <db-instance-identifier>-finalsnapshot
+  ```
+
+### Engine Version Conflicts
+
+**Issue:** Sometimes the pipeline throws an error: `InvalidParameterCombination: Cannot upgrade mariadb from 10.4.13 to 10.4.8`
+
+**Solution:**
+This will happen if AWS upgraded the minor version automatically and terraform stored the exact db_engine_version in its state.
+
+To fix this, change the `db_engine_version` in your `rds.tf` from `10.4` to the one AWS upgraded to, in this case `10.4.13`, and repeat the previous steps again.
+
+Once the terraform apply is successful, and the new DB instance has been created, revert the changes made for `db_engine_version`.
+
+### Read Replica Issues
+
+**Issue:** If there is an RDS read replica for the DB instance that is being restored, Terraform will throw the error: `Error: cannot elect new source database for replication`
+
+**Solution:**
+Set `count = 0` or comment out the read replica code (and any Kubernetes secrets relating to the read replica) before restoration. After successful restoration, re-enable the DB read replica code by setting `count = 1` or uncommenting the code.
+
+Note that the read replica will have a new database identifier once it is recreated.
+
+## Metrics and Observations
+
+Based on our testing:
+
+- **Downtime:** Expect ~26 minutes of database unavailability. This may vary depending on how much data is being restored.
+- **Connection String:** Remains unchanged after restoration (provided the restore is on the same database instance)
+- **Storage Configuration:** Inherits from the snapshot
+- **Final Snapshots:** May require manual cleanup to prevent pipeline failures
+- **Status Progression:** Follows predictable pattern: `Deleting` → `Creating` → `Modifying` → `Rebooting` → `Backing-up` → `Modifying` → `Available`
