@@ -95,7 +95,7 @@ This is a high-level overview of the components and services which comprise the 
 
 ![Cloud Platform Architecture](images/cloud-platform-architecture-diagram.png)
 
-Source for this diagram: [Architecture Diagram](https://docs.google.com/drawings/d/1QQpTN8i2n3QZwIELTTbnxpTNy83eP0T50nVv_2aLx5g/edit?usp=sharing)
+Source for this diagram: [Architecture Diagram](https://docs.google.com/drawings/d/1LluxEUFieEqLLTLs_6ei5CGbbf70nRyE-JsZqFLJRN4/edit)
 
 Video explanation of the diagram:
 
