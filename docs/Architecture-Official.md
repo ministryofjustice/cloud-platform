@@ -6,7 +6,9 @@ This document is to provide an overview and breakdown of the individual componen
 
 Video explanation of Cloud Platform's design (accessibly by MOJ Digital staff only):
 <a href="https://youtu.be/5qzZkoWgK8k" target="_blank"><img src="images/tech_arch_video.png"></img></a>
+
 <!-- Video source: https://drive.google.com/file/d/1Jm9hPX0cjZ8ZxTDGsUiC6cb56LWkw2Qm/preview -->
+
 [Slides (MOJ Digital only)](https://docs.google.com/presentation/d/1XVRbgJXb5Ehd8EgJ1e4uUw5wEJQlG54WpRIHaTbZZ8I/edit#slide=id.gea5fbe5450_0_128)
 
 ## Principles
@@ -57,25 +59,25 @@ Template Deploy introduced standardization of infrastructure definitions and scr
 
 Web Ops provided:
 
-* CloudFormation templates that defined a standard infrastructure for a typical web app - EC2s with containers, running in a VPC with ELB, ASG, with S3 for assets and RDS backing.
-* Fabric scripts that deployed the config+templates
-* A centralized Jenkins instance, for continuous deployment
+- CloudFormation templates that defined a standard infrastructure for a typical web app - EC2s with containers, running in a VPC with ELB, ASG, with S3 for assets and RDS backing.
+- Fabric scripts that deployed the config+templates
+- A centralized Jenkins instance, for continuous deployment
 
 Service teams:
 
-* recorded config values in a YAML file.
-* deployed either from the command-line or using Jenkins.
+- recorded config values in a YAML file.
+- deployed either from the command-line or using Jenkins.
 
 Web Ops and Service teams shared access to a team's AWS account, or a central one, to operate the service.
 
 Reflections on Template Deploy:
 
-* Shared ownership of the infrastructure makes it hard - both service teams and web ops team have to understand each others' work and coordinate a lot.
-* Not enough rigour - developers shouldn't be shelling into VMs or making changes on the AWS console - deployment should be only with CI/CD, but still allow service teams to operate e.g. restart containers, snapshot a database etc
-* We rolled our own tool, but now there are established tools
-* Cost inefficient - VMs are fixed size, so not used effectively when traffic is low
-* The architecture of services is not very flexible from the standard template, doesn't allow for different architectures or hosting COTS s/w
-* It's a collection of tools, not a platform - there's no central list or view of deployments, needed to manage them centrally
+- Shared ownership of the infrastructure makes it hard - both service teams and web ops team have to understand each others' work and coordinate a lot.
+- Not enough rigour - developers shouldn't be shelling into VMs or making changes on the AWS console - deployment should be only with CI/CD, but still allow service teams to operate e.g. restart containers, snapshot a database etc
+- We rolled our own tool, but now there are established tools
+- Cost inefficient - VMs are fixed size, so not used effectively when traffic is low
+- The architecture of services is not very flexible from the standard template, doesn't allow for different architectures or hosting COTS s/w
+- It's a collection of tools, not a platform - there's no central list or view of deployments, needed to manage them centrally
 
 ### 2018-present Cloud Platform
 
@@ -95,14 +97,14 @@ This is a high-level overview of the components and services which comprise the 
 
 ![Cloud Platform Architecture](images/cloud-platform-architecture-diagram.png)
 
-Source for this diagram: [Architecture Diagram](https://docs.google.com/drawings/d/1QQpTN8i2n3QZwIELTTbnxpTNy83eP0T50nVv_2aLx5g/edit?usp=sharing)
+Source for this diagram: [Architecture Diagram](https://docs.google.com/drawings/d/1LluxEUFieEqLLTLs_6ei5CGbbf70nRyE-JsZqFLJRN4/edit)
 
 Video explanation of the diagram:
 
 <a href="https://youtu.be/B1sFiIrFepM" target="_blank"><img src="images/arch_diagram_video.png"></img></a>
+
 <!-- Video source: https://drive.google.com/file/d/109QZ6H_Z7a11J8CaKpt2PPgwL2Y_7KWT/view?usp=sharing -->
 <!-- Diagram source: https://docs.google.com/drawings/d/159lsApBOcqfLw46VaZUVYDgjSzOruAgY-MHt-q_uN9I/edit?usp=sharing -->
-
 
 ## Components
 
@@ -111,12 +113,12 @@ This section will break-down these components and detail the context in which th
 
 ### Environments repo in GitHub
 
-Each service teams' environment/namespace is defined as a folder in GitHub's 'environments' repo: https://github.com/ministryofjustice/cloud-platform-environments/tree/main/namespaces 
+Each service teams' environment/namespace is defined as a folder in GitHub's 'environments' repo: https://github.com/ministryofjustice/cloud-platform-environments/tree/main/namespaces
 
 Service team creates two groups of files in their environment/namespace folder:
 
-* Namespace Config YAML - defines their Kubernetes 'namespace', where the team will be able to run their app's pods/containers.
-* Terraform - defines AWS resources
+- Namespace Config YAML - defines their Kubernetes 'namespace', where the team will be able to run their app's pods/containers.
+- Terraform - defines AWS resources
 
 The GitHub process flows as follows:
 
@@ -135,11 +137,11 @@ The process starts with the user [pushing some code to GitHub and merged to main
 
 ![Pipeline diagram](images/arch-dia-v1.png)
 
-* Watches the main branch of the [environments repo](https://github.com/ministryofjustice/cloud-platform-environments) for merged changes to tenants' environment folders.
-* Triggers the pipeline in [Concourse](https://concourse.cloud-platform.service.justice.gov.uk/)
-* The Namespace Config YAML gets applied to Kubernetes, typically to create a new namespace.
-* The Terraform files are applied to AWS, which creates or changes AWS resources, e.g. to create an RDS instance.
-* If the pipeline job fails, then Concourse creates a Slack notification in [#lower-priority-alarms](https://mojdt.slack.com/archives/C8QR5FQRX)
+- Watches the main branch of the [environments repo](https://github.com/ministryofjustice/cloud-platform-environments) for merged changes to tenants' environment folders.
+- Triggers the pipeline in [Concourse](https://concourse.cloud-platform.service.justice.gov.uk/)
+- The Namespace Config YAML gets applied to Kubernetes, typically to create a new namespace.
+- The Terraform files are applied to AWS, which creates or changes AWS resources, e.g. to create an RDS instance.
+- If the pipeline job fails, then Concourse creates a Slack notification in [#lower-priority-alarms](https://mojdt.slack.com/archives/C8QR5FQRX)
 
 ### Terraform
 
@@ -155,5 +157,5 @@ Concourse is able to interpret Terraform files and apply the changes to the rele
 
 AWS is where all of our infrastructure is hosted, including:
 
-* Service teams' applications and AWS resources
-* the Cloud Platform itself, including the Kubernetes cluster
+- Service teams' applications and AWS resources
+- the Cloud Platform itself, including the Kubernetes cluster
