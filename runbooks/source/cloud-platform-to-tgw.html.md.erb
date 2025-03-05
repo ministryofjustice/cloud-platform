@@ -1,7 +1,7 @@
 ---
 title: Adding a route to connect to a TGW
 weight: 9000
-last_reviewed_on: 2024-09-03
+last_reviewed_on: 2025-03-04
 review_in: 6 months
 ---
 
@@ -36,8 +36,8 @@ In order to allow the traffic to flow, a new route needs to be added to VPC's ro
 
 Example: The Analytical Platform(AP) wants to access the Cloud Platform's (CP) VPC.
 
- - Both are attached the the TGW
- - The CP route-table should contain a route with the AP VPC's CIDR block as a destination, but with the TGW ID as a target.
+ - Both are attached to the TGW
+ - The CP route-table should contain a route with the AP's VPC CIDR block as a destination, but with the TGW ID as a target.
  - The same needs to be done on the AP's VPC, to route back to CP.
 
 ## Making the change

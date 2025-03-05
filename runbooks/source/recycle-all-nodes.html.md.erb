@@ -1,13 +1,13 @@
 ---
 title: Recycling all the nodes in a cluster
 weight: 255
-last_reviewed_on: 2024-08-16
+last_reviewed_on: 2025-03-04
 review_in: 6 months
 ---
 
 # Recycle-all-nodes
 
-When a launch template is updated, this will cause all of the nodes to recycle. Reasons to update the launch configuration are most likely to revolve around editing the `User data` script, which is ran when a node is booted. Reasons to edit User data include:
+When a launch template is updated, this will cause all the nodes to recycle. Reasons to update the launch configuration are most likely to revolve around editing the `User data` script, which is ran when a node is booted. Reasons to edit User data include:
 
 - Changes to docker auth credentials
 - Changes to `eks-bootstrap-env.sh`
@@ -19,15 +19,15 @@ Avoid letting terraform run EKS-level changes because terraform can start by del
 
 ### High level method
 
-1. Add the new node group with a low number of nodes alongside the existing node groups in code
-1. Drain the old node group using the pipeline and allow the autoscaler to bring in new nodes into the new node group
-1. Once workloads have moved over remove the old node groups from code
+1. Add the new node group with a low number of nodes alongside the existing node groups in code.
+1. Drain the old node group using the pipeline and allow the autoscaler to bring in new nodes into the new node group.
+1. Once workloads have moved over, remove the old node groups from code.
 
-[detailed instructions can be found here](https://runbooks.cloud-platform.service.justice.gov.uk/node-group-changes.html)
+[Detailed instructions can be found here](https://runbooks.cloud-platform.service.justice.gov.uk/node-group-changes.html).
 
 #### Useful commands
 
-[k9s](https://k9scli.io/) is a useful cli tool to get a good overview of the state of the cluster
+[k9s](https://k9scli.io/) is a useful cli tool to get a good overview of the state of the cluster.
 
 - `watch kubectl get nodes --sort-by=.metadata.creationTimestamp`
 
@@ -42,8 +42,8 @@ ip-172-20-106-20.eu-west-2.compute.internal    Ready    <none>   47h     v1.22.1
 ip-172-20-127-1.eu-west-2.compute.internal     Ready    <none>   47h     v1.22.15-eks-fb459a0
 ```
 
-Where nodes have the Status "Ready,SchedulingDisabled" this indicates the nodes which have the old update templates, these are the ones that are cordoned off, whereas those which are "Ready" are the new nodes with the new update template.
+Where nodes have the Status "Ready,SchedulingDisabled", this indicates the nodes which have the old update templates. These are the ones that are cordoned off, whereas those which are "Ready" are the new nodes with the new update template.
 
-When all nodes have been recycled they will all have a status of "Ready".
+When all nodes have been recycled, they will all have a status of "Ready".
 
 This process can take several hours on a cluster of ~60 nodes, depending on how quickly you resolve the gotchas below.
