@@ -1,7 +1,7 @@
 ---
-title: Rotate Git-crypt Key
+title: Git-crypt
 weight: 75
-last_reviewed_on: 2025-03-04
+last_reviewed_on: 2024-09-03
 review_in: 6 months
 ---
 
@@ -13,7 +13,7 @@ We use `git-crypt` for securing secrets committed to `git`. It uses a symmetric 
 
 1. Ask the user (Slack, email, keyserver, etc) for their public key and import it into your keyring:
 
-    ```bash
+    ```
     gpg --import <<EOF
     -----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -33,25 +33,25 @@ We use `git-crypt` for securing secrets committed to `git`. It uses a symmetric 
 
 2. Using KeyID/email trust the key as *"5 = I trust ultimately"*:
 
-```bash
+```
 gpg --edit-key "my-name@digital.justice.gov.uk" trust quit
 ```
 
 3. Create a new branch inside the git repository where user is going to be added:
 
-```bash
+```
 git checkout -b add-alejandro-gpg
 ```
 
 4. Use git-crypt CLI to add the user:
 
-```bash
+```
 git-crypt add-gpg-user my-name@digital.justice.gov.uk
 ```
 
 5. Push the branch and create a PR:
 
-```bash
+```
 git push origin add-alejandro-gpg
 ```
 
@@ -61,7 +61,7 @@ When rotating the `git-crypt` symmetric key, you should follow the steps below:
 
 #### 1. Ensure you have unlocked the repository:
 
-```bash
+```
 git-crypt unlock
 ```
 
@@ -69,7 +69,7 @@ git-crypt unlock
 
 - for every file found, extract its filename minus the suffix, which corresponds to the user's key id
 
-```bash
+```
 ls .git-crypt/keys/default/0/*.gpg | xargs -I{} -- basename {} .gpg > git-crypt-users
 ```
 
@@ -77,31 +77,31 @@ ls .git-crypt/keys/default/0/*.gpg | xargs -I{} -- basename {} .gpg > git-crypt-
 
 - for every currently encrypted file, extract its path, relative to the root of the repository
 
-```bash
+```
 git-crypt status -e | awk '{ print $2; }' > git-crypt-files
 ```
 
 #### 4.  Remove `git-crypt` configuration:
 
-```bash
+```
 rm -rf .git-crypt .git/git-crypt
 ```
 
 #### 5.  Re-initialise `git-crypt`,
 
-```bash
+```
 git-crypt init
 ```
 
 - make sure you have all the users' keys,
 
-```bash
+```
 cat git-crypt-users | xargs -I{} gpg --recv-key {}
 ```
 
 - and add all the users back,
 
-```bash
+```
 cat git-crypt-users | xargs -I{} git-crypt add-gpg-user -n --trusted {}
 ```
 
@@ -109,19 +109,19 @@ cat git-crypt-users | xargs -I{} git-crypt add-gpg-user -n --trusted {}
 
 #### 6.  Re-encrypt all the secrets: the list of secrets was extracted in `git-crypt-files` (see step 2. above). Since the master encryption key is being rotated, all of the secrets that have been encrypted with it *must* be rotated. Once finished, you can add the files to the index
 
-```bash
+```
 cat git-crypt-files | xargs git add
 ```
 
 #### 7. Commit your changes. One way to check that the files in the git index are properly encrypted before you commit your changes is like so:
 
-```bash
+```
 git show :<path-to-file>
 ```
 
 - or after committing (and before you've pushed):
 
-```bash
+```
 git show HEAD:<path-to-file>
 ```
 
