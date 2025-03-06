@@ -1,7 +1,7 @@
 ---
 title: Create Custom Cluster
 weight: 8600
-last_reviewed_on: 2024-11-27
+last_reviewed_on: 2025-03-06
 review_in: 6 months
 ---
 
@@ -12,7 +12,7 @@ In concourse we have the ability to create custom clusters based of whichever br
 First we need to update the pipeline config with our branch, you need to run the following command from the `cloud-platform-terraform-concourse` repo root folder.
 
 ```
-fly -t moj-cp set-pipeline --pipeline custom-cluster  --config pipelines/manager/main/custom-cluster.yaml -v branch_name=migrate-eks-csi
+fly -t manager set-pipeline --pipeline custom-cluster  --config pipelines/manager/main/custom-cluster.yaml -v branch_name=migrate-eks-csi
 ```
 
 From here you can then kick off the build from the concourse UI.
@@ -22,7 +22,7 @@ From here you can then kick off the build from the concourse UI.
 Our delete pipeline allows you to specify the `branch_name` in the config so to do this you run:
 
 ```
-fly -t moj-cp set-pipeline --pipeline delete-cluster --config pipelines/manager/main/delete-cluster.yaml -v branch_name=migrate-eks-csi -v cluster_name=tp-0000-0000
+fly -t manager set-pipeline --pipeline delete-cluster --config pipelines/manager/main/delete-cluster.yaml -v branch_name=migrate-eks-csi -v cluster_name=tp-0000-0000
 ```
 
 You need to pass both `branch_name` and `cluster_name` to the command.
@@ -32,7 +32,7 @@ You need to pass both `branch_name` and `cluster_name` to the command.
 If you need to re-run a plan or apply at any stage after the cluster has been created you can do this by running the following:
 
 ```
-fly -t moj-cp set-pipeline --pipeline custom-cluster  --config pipelines/manager/main/custom-cluster.yaml -v branch_name=migrate-eks-csi -v cluster_name=tp-0000-0000
+fly -t manager set-pipeline --pipeline custom-cluster  --config pipelines/manager/main/custom-cluster.yaml -v branch_name=migrate-eks-csi -v cluster_name=tp-0000-0000
 ```
 
 Then you can select the step in the pipeline that you'd like to re-run.
