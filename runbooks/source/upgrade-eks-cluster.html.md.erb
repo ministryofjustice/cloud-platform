@@ -113,7 +113,14 @@ To ensure that coredns stays up and running during the cluster upgrade replicati
 ```bash
 kubectl scale deployment coredns --replicas=10 -n kube-system
 ```
-> **NOTE:** This is a temporary measure, double check the deployment for the current replicaset, as you will need this for when you scale back after the completion of the upgrade.
+
+#### Scale down Autoscaler and Descheduler
+```bash
+kubectl scale deployment cluster-autoscaler-aws-cluster-autoscaler --replicas=0 -n kube-system
+kubectl scale deployment descheduler --replicas=0 -n kube-system
+```
+
+> **NOTE:** These are temporary measures, double check the deployments for the current replicasets, as you will need this for when you scale back after the completion of the upgrade.
 
 #### Upgrading the control pane
 
@@ -163,6 +170,13 @@ Scale down the coredns pods.
 
 ```bash
 kubectl scale deployment coredns --replicas=3 -n kube-system
+```
+
+Scale up the Autoscaler and Descheduler
+
+```bash
+kubectl scale deployment cluster-autoscaler-aws-cluster-autoscaler --replicas=1 -n kube-system
+kubectl scale deployment descheduler --replicas=1 -n kube-system
 ```
 
 ### Finishing touches
