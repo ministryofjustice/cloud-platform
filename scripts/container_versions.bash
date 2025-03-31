@@ -9,7 +9,6 @@ namespaces=(
   gatekeeper-system
   ingress-controllers
   kube-system
-  kuberhealthy
   kuberos
   logging
   monitoring
