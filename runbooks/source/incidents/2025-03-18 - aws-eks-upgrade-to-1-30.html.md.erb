@@ -1,0 +1,50 @@
+---
+title: Incident on 2025-03-18 - AWS EKS Upgrade to 1.30 Desheduler kill pods on Cordon Nodes
+weight: 1
+---
+
+# Incident on 2025-03-18 - AWS EKS Upgrade to 1.30 Desheduler kill pods on Cordon Nodes
+
+- **Key events**
+  - First detected 22025-03-18 09:36
+  - Incident declared 2025-03-18 10:03
+  - Repaired 2025-03-18 10:40
+  - Resolved 2025-03-20 12:09
+
+- **Time to repair**: 1h 37m
+
+- **Time to resolve**: 2d 1h 29m
+
+- **Identified**: User reported outages on production services
+
+- **Impact**: User workloads were disrupted, causing outages on production services. 
+
+- **Context**:
+2025-03-18 09:36: Users reported that their pods were getting terminated and not automatically restarting in both production and non-production environments. 
+2025-03-18 09:50: Cloud Platform team began investigating the root cause.
+2025-03-18 10:03: Cloud Platform team declared this as an incident.
+2025-03-18 10:15: Initial mitigation efforts began:
+Removed the cordon annotation to allow pods to be rescheduled.
+Deleted some stuck 1.30 version nodes to force recreation.
+2025-03-18 10:40: Pods began recovering, and services were operational.
+2025-03-18 11:13: Raised AWS Production system down Support Ticket (Case ID: 174229643100496).
+2025-03-18 11:34: A new node group with 20 nodes running version 1.30 was added to the live cluster to stabilize workloads and ensure redundancy.
+2025-03-18 11:50: Began cordoning all the old 1.29 nodes to facilitate a smoother upgrade transition and ensure workload stability.
+2025-03-18 12:10: Began draining the old 1.29 nodes to gracefully migrate workloads to the new 1.30 nodes.
+2025-03-18 16:16: All nodes were running version 1.30. The upgrade had been successfully completed on AWS.
+2025-03-18 16:28: Cloud Platform team informed users that all nodes are now running version 1.30 and that cleanup work will be performed on 2025-03-19 morning. The incident will remain open until all cleanup tasks are completed.
+2025-03-20 12:09: The Team Confirmed the incident was resolved and all cleanup tasks were completed.
+
+- **Resolution**:
+  - To mitigate the issue and restore normal operations, the team first removed the cordon annotation to allow pods to be rescheduled
+  - Add a new node group with 20 nodes running version 1.30 was deployed manually, ensuring redundancy and workload distribution.
+  - The team cordoned all old 1.29 nodes to facilitate a smooth transition and prevent scheduling issues.
+  - Finally, the team drained all old 1.29 nodes, gracefully migrating workloads to the newly added 1.30 nodes.
+
+- **Review actions**:
+  - The team then raised an AWS Production System Down Support Ticket to escalate the issue and seek further guidance (Case ID: 174229643100496).
+  - Document a runbook for emergency scaling of a new node group to ensure quick recovery in case of unexpected capacity shortages.
+  - Create a ticket to alert on ASG and Kube nodes imbalance
+  - Spike a ticket into desheduler to review the configuration to understand why it is throwing pods off Cordon nodes and apply a fix where possible
+  - Create a ticket for alert on pending pod count spikes
+  - Got guidance from AWS support to ensure that the team is aware of how to query control-plane logs to identify the root cause of similar issues in the future.
