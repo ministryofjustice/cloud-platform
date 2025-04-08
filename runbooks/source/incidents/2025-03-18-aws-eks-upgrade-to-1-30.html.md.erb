@@ -1,5 +1,5 @@
 ---
-title: Incident on 2025-03-18 - AWS EKS Upgrade to 1.30 Desheduler kill pods on Cordon Nodes
+title: Incident on 2025-03-18 - AWS EKS Upgrade to 1.30 - Desheduler attempted to reschedule all pods on cordoned nodes simultaneously
 weight: 1
 ---
 
@@ -15,27 +15,27 @@ weight: 1
 
 - **Time to resolve**: 2d 1h 29m
 
-- **Identified**: User reported outages on production services
+- **Identified**:
+  - Via automated infrastructure alerts and users reported outages on production services
 
-
-- **Impact**: User workloads were disrupted, causing outages on production services. 
+- **Impact**:
+  - User workloads were disrupted, causing outages on production services.
 
 - **Context**:
-2025-03-18 09:36: Users reported that their pods were getting terminated and not automatically restarting in both production and non-production environments. 
-
-2025-03-18 09:50: Cloud Platform team began investigating the root cause.
-2025-03-18 10:03: Cloud Platform team declared this as an incident.
-2025-03-18 10:15: Initial mitigation efforts began:
-Removed the cordon annotation to allow pods to be rescheduled.
-Deleted some stuck 1.30 version nodes to force recreation.
-2025-03-18 10:40: Pods began recovering, and services were operational.
-2025-03-18 11:13: Raised AWS Production system down Support Ticket (Case ID: 174229643100496).
-2025-03-18 11:34: A new node group with 20 nodes running version 1.30 was added to the live cluster to stabilize workloads and ensure redundancy.
-2025-03-18 11:50: Began cordoning all the old 1.29 nodes to facilitate a smoother upgrade transition and ensure workload stability.
-2025-03-18 12:10: Began draining the old 1.29 nodes to gracefully migrate workloads to the new 1.30 nodes.
-2025-03-18 16:16: All nodes were running version 1.30. The upgrade had been successfully completed on AWS.
-2025-03-18 16:28: Cloud Platform team informed users that all nodes are now running version 1.30 and that cleanup work will be performed on 2025-03-19 morning. The incident will remain open until all cleanup tasks are completed.
-2025-03-20 12:09: The Team Confirmed the incident was resolved and all cleanup tasks were completed.
+  - 2025-03-18 09:36: Users reported that their pods were getting terminated and not automatically restarting in both production and non-production environments.
+  - 2025-03-18 09:50: Cloud Platform team began investigating the root cause.
+  - 2025-03-18 10:03: Cloud Platform team declared this as an incident.
+  - 2025-03-18 10:15: Initial mitigation efforts began:
+    - Removed the cordon annotation to allow pods to be rescheduled.
+    - Deleted some stuck 1.30 version nodes to force recreation.
+  - 2025-03-18 10:40: Pods began recovering, and services were operational.
+  - 2025-03-18 11:13: Raised AWS Production system down Support Ticket (Case ID: 174229643100496).
+  - 2025-03-18 11:34: A new node group with 20 nodes running version 1.30 was added to the live cluster to stabilize workloads and ensure redundancy.
+  - 2025-03-18 11:50: Began cordoning all the old 1.29 nodes to facilitate a smoother upgrade transition and ensure workload stability.
+  - 2025-03-18 12:10: Began draining the old 1.29 nodes to gracefully migrate workloads to the new 1.30 nodes.
+  - 2025-03-18 16:16: All nodes were running version 1.30. The upgrade had been successfully completed on AWS.
+  - 2025-03-18 16:28: Cloud Platform team informed users that all nodes are now running version 1.30 and that cleanup work will be performed on 2025-03-19 morning. The incident will remain open until all cleanup tasks are completed.
+  - 2025-03-20 12:09: The Team Confirmed the incident was resolved and all cleanup tasks were completed.
 
 - **Resolution**:
   - To mitigate the issue and restore normal operations, the team first removed the cordon annotation to allow pods to be rescheduled
