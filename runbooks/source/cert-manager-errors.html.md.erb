@@ -1,0 +1,44 @@
+---
+title: How to Investigate cert-manager Errors
+weight: 9999
+last_reviewed_on: 2025-04-15
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+When there are errors in cert-manager logs, "Cert-Manager [issue] Failed" alerts are sent to the low priority slack channel.
+
+## Troubleshooting
+
+### Invalid Change Batch
+
+> **_NOTE:_** Its important that alerts of this nature are resolved immediately, as if they are left as they are, then when the cert renewal date rolls around, the cert will not be able to renew and the ingress will stop working.
+
+If we see a Cert-Manager ACME Challenge Failed: Route53 InvalidChangeBatch alert in low-priority-alerts, this indicates that cert-manager has failed to cleanup a ACME challenge Route53 TXT record during a previous certificate issuing proces.
+
+You can see errors in the cert-manager namespace by running:
+
+```
+stern cert --include failed
+```
+
+```
+err="failed to change Route 53 record set: InvalidChangeBatch: [RRSet with DNS name _acme-challenge.some.ingress.name.justice.gov.uk., type TXT, SetIdentifier \"xxxxx\" cannot be created because a non multivalue answer rrset exists with the same name and type.]" key="namespace/cert"
+```
+You can then also find corresponding events in the namespace in those logs:
+
+```
+kubectl get events -n [problem-namespace]
+```
+
+```
+LAST SEEN   TYPE      REASON         OBJECT                  MESSAGE
+13m         Warning   PresentError   challenge/cert-xxxxx    Error presenting challenge: failed to change Route 53 record set: InvalidChangeBatch: [RRSet with DNS name _acme-challenge.some.ingress.name.justice.gov.uk., type TXT, SetIdentifier \"xxxxx\" cannot be created because a non multivalue answer rrset exists with the same name and type.]
+```
+
+This is an issue that the team are currently trying to find the source/reason for.
+
+### Current fix
+
+You'll need to manually delete the TXT record in Route53 for the domain in question. Easiest way to do this is to head to Route53 in the AWS console, find the domain in question and delete the TXT record for the ACME challenge.
