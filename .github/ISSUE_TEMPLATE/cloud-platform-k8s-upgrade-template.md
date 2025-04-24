@@ -188,6 +188,10 @@ Update cloud-platform-cli for kubectl version
 Update concourse pipelines to use updated tools-image and cli
 
 ## Issue 16:
+### Add deprecated apis from <upgrade-version> to Gatekeeper
+Following upgrade to EKS <upgrade-version>, create a new [gatekeeper constraint](https://github.com/ministryofjustice/cloud-platform-terraform-gatekeeper/tree/main/resources/constraints) that stops people from using any apis that are now deprecated as a part of the <upgrade-version> upgrade.
+
+## Issue 17:
 ### Update Upgrade runbook and Cluster Upgrade Issue Template
 
 Update the runbook for 
@@ -197,3 +201,5 @@ Update the runbook for
 
 Cluster upgrade Runbook:
 https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-cluster.html
+
+
