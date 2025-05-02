@@ -1,0 +1,76 @@
+---
+title: Identifying and Tagging AWS Resources Missing business-unit
+weight: 9999
+last_reviewed_on: 2025-05-02
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+## Overview
+
+In our AWS account, some resources are missing the mandatory `business-unit` tag. These untagged resources contribute to unallocated spend, which can be identified using AWS Cost Explorer.
+
+You can refer to the [Cost Explorer report](https://us-east-1.console.aws.amazon.com/costmanagement/home#/cost-explorer?chartStyle=GROUP&costAggregate=netUnblendedCost&endDate=2025-02-28&excludeForecasting=false&filter=%5B%7B%22dimension%22:%7B%22id%22:%22TagKey%22,%22displayValue%22:%22Tag%22%7D,%22operator%22:%22INCLUDES%22,%22values%22:%5B%7B%22value%22:%22%22,%22displayValue%22:%22No%20tag%20key:%20business-unit%22%7D%5D,%22growableValue%22:%7B%22value%22:%22business-unit%22,%22displayValue%22:%22business-unit%22%7D%7D,%7B%22dimension%22:%7B%22id%22:%22Service%22,%22displayValue%22:%22Service%22%7D,%22operator%22:%22EXCLUDES%22,%22values%22:%5B%7B%22value%22:%22Tax%22,%22displayValue%22:%22Tax%22%7D,%7B%22value%22:%22Savings%20Plans%20for%20AWS%20Compute%20usage%22,%22displayValue%22:%22Savings%20Plans%20for%20%20Compute%20usage%22%7D,%7B%22value%22:%22AWS%20Support%20(Enterprise)%22,%22displayValue%22:%22Support%20(Enterprise)%22%7D%5D%7D,%7B%22dimension%22:%7B%22id%22:%22CostCategoryName%22,%22displayValue%22:%22Cost%20category%22%7D,%22operator%22:%22INCLUDES%22,%22values%22:%5B%7B%22value%22:%22Cloud%20Platform%22,%22displayValue%22:%22Cloud%20Platform%22%7D%5D,%22growableValue%22:%7B%22value%22:%22Cloud%20Platform%22,%22displayValue%22:%22Cloud%20Platform%22%7D%7D%5D&futureRelativeRange=CUSTOM&granularity=Monthly&groupBy=%5B%22Service%22%5D&historicalRelativeRange=CUSTOM&reportName=New%20cost%20and%20usage%20report&showOnlyUncategorized=false&showOnlyUntagged=false&startDate=2025-02-01&usageAggregate=undefined&useNormalizedUnits=false) to view untagged spend based on missing `business-unit` tags. (You can adjust the date range in the report as needed.)
+
+To maintain accurate cost allocation, we need to identify and tag these resources wherever possible.
+
+Refer to the [MoJ Technical Guidance on tagging requirements](https://technical-guidance.service.justice.gov.uk/documentation/standards/documenting-infrastructure-owners.html) for more information.
+
+>Note: Missing mandatory tagging can sometimes be case by case, depending on the resource and its ownership. This runbook serves as a general guideline for approaching untagged resources.
+
+## Step-by-Step Process
+
+### 1. Identify untagged resources by type
+
+We handle each resource type individually based on the "Service" field in the Cost Explorer report (e.g. ECR, RDS, S3, CloudWatch, etc.).
+
+- Use the AWS Tag Editor to filter for resources missing the `business-unit` tag.  
+  - Example query: [Tag Editor Search](https://eu-west-2.console.aws.amazon.com/resource-groups/tag-editor/find-resources?region=eu-west-2#query=regions:!%28eu-west-2,eu-west-1%29,resourceTypes:!%28%27AWS::KMS::Key%27%29,tagFilters:!%28%28key:business-unit,values:!%28%27%28not%20tagged%29%27%29%29%29,type:TAG_EDITOR_1_0)
+- Search by region and resource type.
+- This will help identify which resources are missing required tags.
+
+> Note: While we primarily use the `eu-west-2` region, some resources may be deployed in `eu-west-1` or even in US regions. Always check carefully across regions to ensure no untagged resources are missed.
+
+Once identified:
+
+- Determine whether the resource belongs to us or to a user.
+- If it belongs to us, update the relevant Terraform code to apply the missing tag.  
+  - (Example ticket: [#6957](https://github.com/ministryofjustice/cloud-platform/issues/6957))
+- If it belongs to a user, contact them and ask them to add the required tag.
+- In some cases, the tag might be missing in our Terraform modules. 
+  - If so, update the module, test it, and bump the module in the `cloud-platform-environment` repository.  
+  - (Example ticket: [#6965](https://github.com/ministryofjustice/cloud-platform/issues/6965))
+
+### 2. Investigate services not visible in Tag Editor
+
+Some services do not appear in Tag Editor (e.g. Amazon Kendra). In such cases:
+
+- Navigate to the service directly in the AWS Console.
+- Manually check each resource to confirm whether the `business-unit` tag is present.
+- Determine ownership (ours or the user's).
+- Either update the code or contact the user to apply the tag.  
+  - (Example ticket: [#6970](https://github.com/ministryofjustice/cloud-platform/issues/6970))
+
+> Note: These services may also be deployed outside our primary `eu-west-2` region. Be sure to check other regions such as eu-west-1 or even US regions if needed.
+
+### 3. Exceptions – organisation-level resources
+
+Some AWS services are inherited from the organisation level and not created directly in our account, so we cannot tag them manually.
+
+Examples include:
+
+- Detective  
+- GuardDuty  
+- Inspector  
+- Config  
+- Security Hub  
+- Cost Explorer
+
+These can remain untagged for now, as they are managed and tagged at the organisation level.
+
+## Summary
+
+- Use Cost Explorer to identify untagged costs based on the `business-unit` tag.
+- Where possible, add the missing tags through Terraform code.
+- Document and track resources that are managed at the organisation level and cannot be tagged at our AWS account level.
