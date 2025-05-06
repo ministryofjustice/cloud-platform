@@ -25,7 +25,7 @@ Refer to the [MoJ Technical Guidance on tagging requirements](https://technical-
 
 We handle each resource type individually based on the "Service" field in the Cost Explorer report (e.g. ECR, RDS, S3, CloudWatch, etc.).
 
-- Use the AWS Tag Editor to filter for resources missing the `business-unit` tag.  
+- Use the AWS Tag Editor to filter for resources missing the `business-unit` tag.
   - Example query: [Tag Editor Search](https://eu-west-2.console.aws.amazon.com/resource-groups/tag-editor/find-resources?region=eu-west-2#query=regions:!%28eu-west-2,eu-west-1%29,resourceTypes:!%28%27AWS::KMS::Key%27%29,tagFilters:!%28%28key:business-unit,values:!%28%27%28not%20tagged%29%27%29%29%29,type:TAG_EDITOR_1_0)
 - Search by region and resource type.
 - This will help identify which resources are missing required tags.
@@ -35,12 +35,21 @@ We handle each resource type individually based on the "Service" field in the Co
 Once identified:
 
 - Determine whether the resource belongs to us or to a user.
+<<<<<<< HEAD
 - If it belongs to us, update the relevant Terraform code to apply the missing tag.  
   - ([Example ticket here](https://github.com/ministryofjustice/cloud-platform/issues/6957))
 - If it belongs to a user, contact them and ask them to add the required tag.
 - In some cases, the tag might be missing in our Terraform modules. 
   - If so, update the module, test it, and bump the module in the `cloud-platform-environment` repository.  
   - ([Example ticket here](https://github.com/ministryofjustice/cloud-platform/issues/6965))
+=======
+- If it belongs to us, update the relevant Terraform code to apply the missing tag.
+  - (Example ticket: [#6957](https://github.com/ministryofjustice/cloud-platform/issues/6957))
+- If it belongs to a user, contact them and ask them to add the required tag.
+- In some cases, the tag might be missing in our Terraform modules.
+  - If so, update the module, test it, and bump the module in the `cloud-platform-environment` repository.
+  - (Example ticket: [#6965](https://github.com/ministryofjustice/cloud-platform/issues/6965))
+>>>>>>> 6eeb0940c68ed3a8338a1bf109f0c2ce32834c06
 
 ### 2. Investigate services not visible in Tag Editor
 
@@ -49,8 +58,13 @@ Some services do not appear in Tag Editor (e.g. Amazon Kendra). In such cases:
 - Navigate to the service directly in the AWS Console.
 - Manually check each resource to confirm whether the `business-unit` tag is present.
 - Determine ownership (ours or the user's).
+<<<<<<< HEAD
 - Either update the code or contact the user to apply the tag.  
   - ([Example ticket here](https://github.com/ministryofjustice/cloud-platform/issues/6970))
+=======
+- Either update the code or contact the user to apply the tag.
+  - (Example ticket: [#6970](https://github.com/ministryofjustice/cloud-platform/issues/6970))
+>>>>>>> 6eeb0940c68ed3a8338a1bf109f0c2ce32834c06
 
 > Note: These services may also be deployed outside our primary `eu-west-2` region. Be sure to check other regions such as eu-west-1 or even US regions if needed.
 
@@ -60,11 +74,11 @@ Some AWS services are inherited from the organisation level and not created dire
 
 Examples include:
 
-- Detective  
-- GuardDuty  
-- Inspector  
-- Config  
-- Security Hub  
+- Detective
+- GuardDuty
+- Inspector
+- Config
+- Security Hub
 - Cost Explorer
 
 These can remain untagged for now, as they are managed and tagged at the organisation level.
