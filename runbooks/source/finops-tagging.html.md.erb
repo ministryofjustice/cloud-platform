@@ -36,11 +36,11 @@ Once identified:
 
 - Determine whether the resource belongs to us or to a user.
 - If it belongs to us, update the relevant Terraform code to apply the missing tag.  
-  - (Example ticket: [#6957](https://github.com/ministryofjustice/cloud-platform/issues/6957))
+  - ([Example ticket here](https://github.com/ministryofjustice/cloud-platform/issues/6957))
 - If it belongs to a user, contact them and ask them to add the required tag.
 - In some cases, the tag might be missing in our Terraform modules. 
   - If so, update the module, test it, and bump the module in the `cloud-platform-environment` repository.  
-  - (Example ticket: [#6965](https://github.com/ministryofjustice/cloud-platform/issues/6965))
+  - ([Example ticket here](https://github.com/ministryofjustice/cloud-platform/issues/6965))
 
 ### 2. Investigate services not visible in Tag Editor
 
@@ -50,7 +50,7 @@ Some services do not appear in Tag Editor (e.g. Amazon Kendra). In such cases:
 - Manually check each resource to confirm whether the `business-unit` tag is present.
 - Determine ownership (ours or the user's).
 - Either update the code or contact the user to apply the tag.  
-  - (Example ticket: [#6970](https://github.com/ministryofjustice/cloud-platform/issues/6970))
+  - ([Example ticket here](https://github.com/ministryofjustice/cloud-platform/issues/6970))
 
 > Note: These services may also be deployed outside our primary `eu-west-2` region. Be sure to check other regions such as eu-west-1 or even US regions if needed.
 
@@ -69,8 +69,17 @@ Examples include:
 
 These can remain untagged for now, as they are managed and tagged at the organisation level.
 
-## Summary
+### 4. Verifying the Change
 
-- Use Cost Explorer to identify untagged costs based on the `business-unit` tag.
-- Where possible, add the missing tags through Terraform code.
-- Document and track resources that are managed at the organisation level and cannot be tagged at our AWS account level.
+Once tagging changes have been applied, you can verify them in two ways and focus your checks on the service which you took action:
+
+- Via Cost Explorer:
+  - Use the same [Cost Explorer report](https://us-east-1.console.aws.amazon.com/costmanagement/home#/cost-explorer?chartStyle=GROUP&costAggregate=netUnblendedCost&endDate=2025-02-28&excludeForecasting=false&filter=%5B%7B%22dimension%22:%7B%22id%22:%22TagKey%22,%22displayValue%22:%22Tag%22%7D,%22operator%22:%22INCLUDES%22,%22values%22:%5B%7B%22value%22:%22%22,%22displayValue%22:%22No%20tag%20key:%20business-unit%22%7D%5D,%22growableValue%22:%7B%22value%22:%22business-unit%22,%22displayValue%22:%22business-unit%22%7D%7D,%7B%22dimension%22:%7B%22id%22:%22Service%22,%22displayValue%22:%22Service%22%7D,%22operator%22:%22EXCLUDES%22,%22values%22:%5B%7B%22value%22:%22Tax%22,%22displayValue%22:%22Tax%22%7D,%7B%22value%22:%22Savings%20Plans%20for%20AWS%20Compute%20usage%22,%22displayValue%22:%22Savings%20Plans%20for%20%20Compute%20usage%22%7D,%7B%22value%22:%22AWS%20Support%20(Enterprise)%22,%22displayValue%22:%22Support%20(Enterprise)%22%7D%5D%7D,%7B%22dimension%22:%7B%22id%22:%22CostCategoryName%22,%22displayValue%22:%22Cost%20category%22%7D,%22operator%22:%22INCLUDES%22,%22values%22:%5B%7B%22value%22:%22Cloud%20Platform%22,%22displayValue%22:%22Cloud%20Platform%22%7D%5D,%22growableValue%22:%7B%22value%22:%22Cloud%20Platform%22,%22displayValue%22:%22Cloud%20Platform%22%7D%7D%5D&futureRelativeRange=CUSTOM&granularity=Monthly&groupBy=%5B%22Service%22%5D&historicalRelativeRange=CUSTOM&reportName=New%20cost%20and%20usage%20report&showOnlyUncategorized=false&showOnlyUntagged=false&startDate=2025-02-01&usageAggregate=undefined&useNormalizedUnits=false) to confirm that the change has taken effect — the untagged cost for that service should now be reduced or even drop to zero.
+  - When a tag is applied during the day, the cost for that day would be split between tagged and untagged entries.
+  - For a clearer view of the impact, check the Cost Explorer report **two days after** the change. 
+      - For example, if the tag was applied on Monday, check the report on **Wednesday** to see the full charges for **Tuesday**.
+
+- Via Tag Editor:
+  - Return to the AWS Tag Editor and filter by region and resource type to confirm that the `business-unit` tag has been applied. This helps ensure that the resource is now properly tagged and visible in your tagging reports.
+
+If untagged cost remains in Cost Explorer, or resources are still showing as untagged in Tag Editor, repeat steps **1–2**: re-check the tagging, investigate ownership, and take appropriate action — such as fixing Terraform code, manually applying the missing tag, or contacting the responsible team — then verify again.
