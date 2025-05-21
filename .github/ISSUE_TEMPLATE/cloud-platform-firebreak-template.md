@@ -2,7 +2,8 @@
 name: Cloud Platform Firebreak story
 about: Create new Cloud Platform Firebreak story
 title: 'FIREBREAK:'
-labels: 'Firebreak'
+labels: Firebreak, support-team
+assignees: ''
 
 ---
 

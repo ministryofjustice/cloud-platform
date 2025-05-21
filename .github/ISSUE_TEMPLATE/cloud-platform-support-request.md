@@ -1,7 +1,10 @@
 ---
 name: Cloud Platform Support Request
-about: This template is for service teams of Cloud Platform to create a new support request
-labels: 'support-team, needs-refining'
+about: This template is for service teams of Cloud Platform to create a new support
+  request
+title: ''
+labels: support-team
+assignees: ''
 
 ---
 
