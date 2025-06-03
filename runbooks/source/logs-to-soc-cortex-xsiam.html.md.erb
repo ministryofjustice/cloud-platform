@@ -40,7 +40,6 @@ We have followed Palo Alto's documentation on implementation to allow [Cortex XS
 Our `live` EKS cluster is configured to send cluster [Control Plane logs to CloudWatch]. These include `API server`, `audit`, `authenticator`, `controller manager`, and `scheduler` logs.
 We have set up AWS Firehose to stream these logs from CloudWatch to Cortex XSIAM. The terraform code for this implementation is found in [firehose.tf] in the `cloud-platform-terraform-infrastructure` repository.
 
-
 ### IAM User access keys rotation
 We need put in a mechanism to periodically rotate the IAM User access keys created for Cortex XSIAM to receive the logs. [Suggestion and issue] for this has been raised.
 
