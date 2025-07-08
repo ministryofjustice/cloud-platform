@@ -1,7 +1,7 @@
 ---
 title: Logs going to SOC Palo Alto Cortex Xsiam
 weight: 9100
-last_reviewed_on: 2025-07-02
+last_reviewed_on: 2025-07-08
 review_in: 6 months
 ---
 
@@ -14,6 +14,7 @@ We are currently pushing the following logs:
 2. `live-1` VPC FlowLogs
 3. Route 53 logs
 4. `live` EKS cluster logs
+5. `live` Application logs
 
 ## 1. Cloudtrail logs
 ### Architecture
@@ -40,6 +41,10 @@ We have followed Palo Alto's documentation on implementation to allow [Cortex XS
 Our `live` EKS cluster is configured to send cluster [Control Plane logs to CloudWatch]. These include `API server`, `audit`, `authenticator`, `controller manager`, and `scheduler` logs.
 We have set up AWS Firehose to stream these logs from CloudWatch to Cortex XSIAM. The terraform code for this implementation is found in [firehose.tf] in the `cloud-platform-terraform-infrastructure` repository.
 
+## 5. `live` Application logs
+### Architecture
+By default, [Cloud Platform collects application logs via Fluentbit], then pushes them to OpenSearch. We have set up an [additional output data pipeline in Fluentbit which also pushes these logs concurrently to a S3 bucket]. From there, it follows the same architectural pattern as pushing CloudTrail logs above, where the logs that are written to the S3 bucket will trigger event notifications to an SQS queue. Cortex XSIAM then uses the references in these messages to retrieve the logs from the S3 bucket. The same IAM user access keys are used here. The terraform code for this implementation is found in the [cloud-platform-terraform-infrastructure] repository.
+
 ### IAM User access keys rotation
 We need put in a mechanism to periodically rotate the IAM User access keys created for Cortex XSIAM to receive the logs. [Suggestion and issue] for this has been raised.
 
@@ -51,3 +56,5 @@ We need put in a mechanism to periodically rotate the IAM User access keys creat
 [firehose.tf]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/account/firehose.tf
 [cloud-platform-terraform-infrastructure]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/account/sqs.tf
 [Suggestion and issue]: https://github.com/ministryofjustice/cloud-platform/issues/5724
+[Cloud Platform collects application logs via Fluentbit]: https://user-guide.cloud-platform.service.justice.gov.uk/documentation/logging-an-app/log-collection-and-storage.html#application-log-collection-and-storage
+[additional output data pipeline in Fluentbit which also pushes these logs concurrently to a S3 bucket]: https://github.com/ministryofjustice/cloud-platform-terraform-logging/pull/164
