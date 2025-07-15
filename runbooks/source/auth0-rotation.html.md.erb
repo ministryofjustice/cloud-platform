@@ -1,13 +1,13 @@
 ---
 title: Credentials rotation for auth0 apps
 weight: 68
-last_reviewed_on: 2024-11-25
+last_reviewed_on: 2025-07-15
 review_in: 6 months
 ---
 
 # <%= current_page.data.title %>
 
-Cloud-Platform team uses [auth0](https://auth0.com) in almost every component requiring authentication (clusters, Prometheus, Kibana, Grafana, etc). To rotate credentials we should we must follow steps below but it is important to keep in mind that users will require to re-authenticate (generate new kubeconfig file)
+Cloud-Platform team uses [auth0](https://auth0.com) in almost every component requiring authentication (clusters, Prometheus, Kibana, Grafana, etc). To rotate credentials, we should follow the steps below, but it is important to keep in mind that users will require to re-authenticate (generate new kubeconfig file)
 
 ## Preparation
 
@@ -75,4 +75,4 @@ $ terraform plan
 $ terraform apply -target=module.monitoring.kubernetes_secret.grafana_secret -target=module.monitoring.helm_release.prometheus_proxy -target=module.monitoring.helm_release.alertmanager_proxy  -target=module.kuberos.helm_release.kuberos -target=module.concourse.kubernetes_secret.concourse_tf_auth0_credentials
 ```
 
-You only need to update the source code file and have your changed merged to main. The [bootstrap pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/bootstrap) will apply your change.
+You only need to update the source code file and have your change merged to main. The [bootstrap pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/bootstrap) will apply your change.

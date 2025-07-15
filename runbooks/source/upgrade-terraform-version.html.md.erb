@@ -1,7 +1,7 @@
 ---
 title: Upgrade Terraform Version
 weight: 54
-last_reviewed_on: 2024-11-25
+last_reviewed_on: 2025-07-15
 review_in: 6 months
 ---
 
@@ -17,7 +17,7 @@ The intention of this document is to provide you with a method to upgrade the Te
 This document was originally written following the Terraform 0.13 to 0.14 upgrade, it's worth noting this was the best course of action for that particular upgrade. Over time this document will evolve and the process of upgrading will improve.
 
 ## How to perform the upgrade - divide and conquer
-As the Cloud Platform team have decided to use a [multi-repository](https://patrickleet.medium.com/mono-repo-or-multi-repo-why-choose-one-when-you-can-have-both-e9c77bd0c668) approach to Terraform modules it means we have a large distributed code base you'll be required to amend. This section of the guide will suggest an approach to break this work down and tackle it section by section. At a high level we have two Terraform state monoliths managed within the same state bucket:
+As the Cloud Platform team have decided to use a [multi-repository](https://patrickleet.medium.com/mono-repo-or-multi-repo-why-choose-one-when-you-can-have-both-e9c77bd0c668) approach to Terraform modules, it means we have a large distributed code base you'll be required to amend. This section of the guide will suggest an approach to break this work down and tackle it section by section. At a high level, we have two Terraform state monoliths managed within the same state bucket:
 
 - Cloud Platform Environments (referred to as "Environments" throughout this document). This holds tenant (user) state, things like a Kubernetes namespace or RDS instance.
 - Cloud Platform Infrastructure (referred to as "Infrastructure" throughout this document). This state represents everything required to build an MoJ Cloud Platform Kubernetes cluster, and it's accompanying components.
@@ -47,7 +47,7 @@ This sounds simple enough but it is vitally important you understand what [chang
 After upgrading to a new version of Terraform you don't want test clusters lying around using the old version. Remove any test clusters before upgrading the Infrastructure state.
 
 ### Environments state files
-The [cloud-platform-environments](https://github.com/ministryofjustice/cloud-platform-environments) repository contains directories for every namespace in the MoJ Cloud Platform, for each namespace there is a single Terraform state file stored in an S3 bucket. As there are so many state files it is recommended to perform the following:
+The [cloud-platform-environments](https://github.com/ministryofjustice/cloud-platform-environments) repository contains directories for every namespace in the MoJ Cloud Platform, for each namespace there is a single Terraform state file stored in an S3 bucket. As there are so many state files, it is recommended to perform the following:
 
 #### Use the "apply" pipeline
 We currently use a [concourse pipeline](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/environments-terraform/jobs/apply-live) to `terraform init/apply` everything in the cloud-platform-environments GitHub repository. This pipeline has a number of environment variables that allow it to communicate with the state bucket and amend the necessary state file. Use this pipeline to make amendments to any state in this repository.
@@ -92,9 +92,9 @@ When the above resources are successfully built:
 - If you're happy with the output of the plan pipeline, merge it into main.
 
 #### Upgrade all non-production namespaces
-When you're happy to begin upgrading users namespaces run the upgrade command against the cloud-platform-environments repository or upgrade all namespaces manually.
+When you're happy to begin upgrading users namespaces, run the upgrade command against the cloud-platform-environments repository or upgrade all namespaces manually.
 
-If you decide to use the tool above then perform the following:
+If you decide to use the tool above, then perform the following:
 
 ```bash
 git clone https://github.com/ministryofjustice/cloud-platform-terraform-upgrade
@@ -144,7 +144,7 @@ aws-accounts
 Because of the structure outlined above, it's best to start at the components layer and work in.
 
 #### Run terraform init/validate
-Using a tool such as tf-switch, switch to your new version and perform the command `terraform init -backend=false`. The output of this command will give you a general idea of what needs to change before your perform the upgrade. the `-backend=false` ensures the state isn't touched.
+Using a tool such as tf-switch, switch to your new version and perform the command `terraform init -backend=false`. The output of this command will give you a general idea of what needs to change before you perform the upgrade. the `-backend=false` ensures the state isn't touched.
 
 #### Upgrade all Terraform modules
 Like the Environments, you need to ensure all Terraform modules will work with the new Terraform version. If there is a syntax change, it's recommended to run the `terraform upgrade` command on all repositories that contain "cloud-platform-terraform". Either perform this manually or:
