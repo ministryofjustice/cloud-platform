@@ -1,7 +1,7 @@
 ---
 title: Resolving no logs in modsec OpenSearch
 weight: 190
-last_reviewed_on: 2024-11-25
+last_reviewed_on: 2025-07-15
 review_in: 6 months
 ---
 
@@ -11,13 +11,13 @@ review_in: 6 months
 
 ## Debugging
 
-The first place to look is in the fluent bit side car logs
+The first place to look is in the fluent bit side car logs:
 
 ```
 stern modsec --container flb-modsec-audit-logs -n ingress-controllers
 ```
 
-This should give you a clue to the issue. Once you resolve this issue. Logs may not immediately come back, this might be because logs are stuck retrying, if this is the case then restart the deployment
+This should give you a clue to the issue. Once you resolve this issue, logs may not immediately come back. This might be because logs are stuck retrying. If this is the case, then restart the deployment:
 
 ```bash
 kubectl rollout restart deployment/nginx-ingress-modsec-controller -n ingress-controllers
