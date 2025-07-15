@@ -1,7 +1,7 @@
 ---
 title: Upgrade EKS addons
 weight: 53
-last_reviewed_on: 2024-12-24
+last_reviewed_on: 2025-07-15
 review_in: 6 months
 ---
 
@@ -43,7 +43,7 @@ If you come across this error, it is possible that the aws ui has incorrectly in
 aws eks describe-addon-versions --kubernetes-version=$K8S_VERSION | jq '.addons[] | select(.addonName==$ADDON_NAME) | .addonVersions[] | select(.compatibilities[] | .defaultVersion==true)'
 ```
 
-this will pull out the default compatible value for the k8s version for your addon.
+This will pull out the default compatible value for the k8s version for your addon.
 
 You can use the helper script to get the most up-to-date available addon versions for each kubernetes cluster version [script here](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/scripts/addons-upgrade.bash)
 

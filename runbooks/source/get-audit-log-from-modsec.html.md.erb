@@ -1,13 +1,13 @@
 ---
 title: Get an audit log from modsec
 weight: 8600
-last_reviewed_on: 2024-11-27
+last_reviewed_on: 2025-07-15
 review_in: 6 months
 ---
 
 # OpenSearch modsec setup
 
-We have introduced an OpenSearch dashboard which collects all modsec logs and has document level security enabled. This means users can only access the logs for the github team they are in [see here for more details](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/networking/modsecurity.html). With this feature in place users can self serve and access their own modsec logs. In the case of a rare error and logs aren't flowing to OpenSearch, then you must use the instructions below to access modsec logs on behalf of the user.
+We have introduced an OpenSearch dashboard which collects all modsec logs and has document-level security enabled. This means users can only access the logs for the github team they are in [see here for more details](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/networking/modsecurity.html). With this feature in place users can self serve and access their own modsec logs. In the case of a rare error and logs aren't flowing to OpenSearch, then you must use the instructions below to access modsec logs on behalf of the user.
 
 ## Get an audit log from modsec (when fluent-bit is not pushing to OpenSearch)
 

@@ -1,14 +1,14 @@
 ---
 title: How to Investigate PrometheusOperatorReconcile Errors
 weight: 218
-last_reviewed_on: 2024-12-18
+last_reviewed_on: 2025-07-15
 review_in: 6 months
 ---
 
 # <%= current_page.data.title %>
 
 When you see a `PrometheusOperatorReconcile` alert in the `#lower-priority-alarms` channel, it means that the Prometheus Operator is unable to reconcile the state of the Prometheus resources in the cluster.
-This means some of the prometheus rules or alerts are having issues and has not applied fine.
+This means some of the prometheus rules or alerts are having issues and have not applied fine.
 
 ## Troubleshooting
 
@@ -28,7 +28,7 @@ annotation \"message\": template: __alert_elasticache-enginecpu-utilisation:1:
 undefined variable \"$clusterId\""
 ```
 
-This could stops Prometheus from sending out alerts to certain channels and stops changes/new ones being created. You may also see an alert
+This could stop Prometheus from sending out alerts to certain channels and stops changes/new ones being created. You may also see an alert
 [PrometheusErrorSendingAlertsToSomeAlertmanagers](https://mojdt.slack.com/archives/C8QR5FQRX/p1718608823815629) if that was the case.
 
 You will need to fix the erroring PrometheusRule.
