@@ -87,7 +87,7 @@ Lock-in: the configuration syntax and other interfaces are the same or similar t
 
 ### Existing install
 
-The 'monitoring' namespace is configured in [components terraform](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components/components.tf#L115-L138) calling the [cloud-platform-terraform-monitoring module](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring). This [installs](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/blob/main/prometheus.tf#L88) the [kube-prometheus-stack Helm chart](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md) / [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) (among other things).
+The 'monitoring' namespace is configured in [components terraform](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components/monitoring.tf) calling the [cloud-platform-terraform-monitoring module](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring). This [installs](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/blob/main/prometheus.tf#L88) the [kube-prometheus-stack Helm chart](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md) / [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) (among other things).
 
 [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) contains a number of things:
 

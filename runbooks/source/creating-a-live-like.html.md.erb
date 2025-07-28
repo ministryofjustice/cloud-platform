@@ -1,7 +1,7 @@
 ---
 title: Creating a live-like Cluster
 weight: 350
-last_reviewed_on: 2025-04-16
+last_reviewed_on: 2025-07-28
 review_in: 6 months
 ---
 
@@ -34,7 +34,7 @@ to the configuration similar to the live cluster.
   * cloudwatch_exporter
   * velero
 
-> To find components that are enabled in live but not in test you can search for `lookup(local.live_workspace, terraform.workspace, false)` in `components.tf`.
+> To find components that are enabled in live but not in test you can search for `lookup(local.live_workspace, terraform.workspace, false)` in the `components` directory.
 
 2. Add the `starter_pack_count = 40` variable to the starter_pack module
 
