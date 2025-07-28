@@ -56,7 +56,6 @@ The Prometheus container has not run smoothly in recent months:
 We also need to address:
 
 - **Management overhead** - Managed cloud services are generally preferred to self-managed because the cost tends to be amortized over a large customer base and be far cheaper than in-house staff. And people with ops skills are at a premium. The management overhead is:
-
   - for each of Prometheus, kube-prometheus
 
 - **High availability** - We have a single instance of Prometheus, simply because we've not got round to choosing and implementing a HA arrangement yet. This risks periods of outage where we don't collect metrics data. Although the impact on the use cases is not likely to be very disruptive, there is some value in fixing this up.
@@ -87,7 +86,7 @@ Lock-in: the configuration syntax and other interfaces are the same or similar t
 
 ### Existing install
 
-The 'monitoring' namespace is configured in [components terraform](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components/components.tf#L115-L138) calling the [cloud-platform-terraform-monitoring module](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring). This [installs](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/blob/main/prometheus.tf#L88) the [kube-prometheus-stack Helm chart](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md) / [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) (among other things).
+The 'monitoring' namespace is configured in [components terraform](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components/monitoring.tf) calling the [cloud-platform-terraform-monitoring module](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring). This [installs](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/blob/main/prometheus.tf#L88) the [kube-prometheus-stack Helm chart](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md) / [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) (among other things).
 
 [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) contains a number of things:
 
