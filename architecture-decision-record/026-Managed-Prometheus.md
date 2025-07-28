@@ -56,7 +56,6 @@ The Prometheus container has not run smoothly in recent months:
 We also need to address:
 
 - **Management overhead** - Managed cloud services are generally preferred to self-managed because the cost tends to be amortized over a large customer base and be far cheaper than in-house staff. And people with ops skills are at a premium. The management overhead is:
-
   - for each of Prometheus, kube-prometheus
 
 - **High availability** - We have a single instance of Prometheus, simply because we've not got round to choosing and implementing a HA arrangement yet. This risks periods of outage where we don't collect metrics data. Although the impact on the use cases is not likely to be very disruptive, there is some value in fixing this up.
