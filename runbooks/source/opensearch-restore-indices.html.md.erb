@@ -30,7 +30,7 @@ To access logs older than 30 days, we need to manually migrate the relevant cold
 
 There are two ways to restore logs from cold storage, depending on the volume of log required.
 
-## Option 1: Restoring Logs via Console
+## Option 1: Restoring Cold Indices to Warm via Console
 If only a few days of logs are needed, you can restore them manually using the OpenSearch UI:
 
 1.	Navigate to: `Index Management` → `Cold Indexes` tab.
@@ -64,7 +64,7 @@ For large restore operations, use the automation method below.
 
 ## Option 2: Restoring Large Volumes of Logs via Concourse Pipeline Automation
 
-For large-scale log restores, we use **Concourse pipeline automation** to restore logs into a separate, non-production OpenSearch cluster to avoid load on the live environment.
+For large-scale log restores, we use **Concourse pipeline automation** to restore logs into a **separate, non-production** OpenSearch cluster to avoid load on the live environment.
 
 ### Overview
 
