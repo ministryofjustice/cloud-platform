@@ -1,7 +1,7 @@
 ---
 title: Leavers Guide
 weight: 9100
-last_reviewed_on: 2025-01-20
+last_reviewed_on: 2025-08-05
 review_in: 6 months
 ---
 
@@ -53,9 +53,15 @@ Only use this bundle to return, Digital MacBook’s and WTP devices. [Leaver Bun
 
     * As per [this File](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf#L243)
 
+* Search for the leavers username in Github - ministryofjustice organisation and delete any such entries,
+  which may include Repos outside of the Cloud Platforms team e.g. dso-infra-azure-ad.
+  For Repos not owned by the Cloud Platforms Team both approval and PR merge
+  will need to be done by a member of the relevant team.
+
 ### Other 3rd Party Accounts access removal
 
 Below are the list of 3rd party accounts that need to be removed when a member leaves the team. Contact [#ask-operations-engineering channel](https://mojdt.slack.com/archives/C01BUKJSZD4) requesting the removal
+"Hi team, please can you close the access for a CP leaver <username> from all the accounts supported by your team, thanks"
 
 1. Request Password Management removal - [1Password](https://1password.com/)
 
@@ -80,6 +86,10 @@ Below are the list of 3rd party accounts that need to be removed when a member l
 9. Remove them from the [PagerDuty support rota](https://moj-digital-tools.pagerduty.com/schedules#PFX6FHX/edit) (if applicable)
 
 10.Remove them from [platforms@digital.justice.gov.uk Google Group](https://groups.google.com/a/digital.justice.gov.uk/g/platforms/members)
+
+The following link from the Operations Engineering legacy page lists the services 'not' supported by the team
+https://cloud-optimisation-and-accountability.justice.gov.uk/documentation/operations-engineering-legacy/operations-engineering-user-guide/quicklinks/we-dont-do-that.html#services-we-don-39-t-manage
+
 
 ## Line manager actions
 
