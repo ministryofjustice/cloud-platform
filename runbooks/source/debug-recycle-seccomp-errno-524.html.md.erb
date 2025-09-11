@@ -11,7 +11,7 @@ review_in: 6 months
 2. SSM into the node.
 3. Run `sudo bash /etc/eks/log-collector-script/eks-log-collector.sh` this will take a few minutes to complete.
 4. From the AWS signin console grab your static keys.
-5. Paste them into the SSM session.
+5. Paste them into the SSM session when the log collector has finished.
 6. Run `aws s3 cp /var/log/$LOGOUTPUT s3://cloud-platform-node-debug`.
 7. Confirm that the debug logs are in the S3 bucket.
 8. Exit the SSM session.
