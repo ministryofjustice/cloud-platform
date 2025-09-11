@@ -1,0 +1,20 @@
+---
+title: Debug and Recycle Node with error loading seccomp filter errno 524
+weight: 60
+last_reviewed_on: 2025-04-16
+review_in: 6 months
+---
+
+# Debug and Recycle Node with error loading seccomp filter errno: 524
+
+1. Identify from OpenSearch which is the node with the [problem](https://app-logs.cloud-platform.service.justice.gov.uk/_dashboards/app/data-explorer/discover#?_a=(discover:(columns:!(_source),isDirty:!f,sort:!()),metadata:(indexPattern:'6c27ca40-6bbe-11ef-8007-3f25c14a7648',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-3h,to:now))&_q=(filters:!(),query:(language:kuery,query:'errno%20524'))).
+2. SSM into the node.
+3. Run `sudo bash /etc/eks/log-collector-script/eks-log-collector.sh` this will take a few minutes to complete.
+4. From the AWS signin console grab your static keys.
+5. Paste them into the SSM session.
+6. Run `aws s3 cp /var/log/$LOGOUTPUT s3://cloud-platform-node-debug`.
+7. Confirm that the debug logs are in the S3 bucket.
+8. Exit the SSM session.
+9. Run `export AWS_SDK_LOAD_CONFIG=1` - this is a temporary fix for the `cloud-platform` cli.
+10. Run `cloud-platform cluster recycle-node -n $NODE`.
+11. You may need to force kill some pods if they've set a disruption budget.
