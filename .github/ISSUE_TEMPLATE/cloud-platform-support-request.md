@@ -1,7 +1,9 @@
 ---
 name: Cloud Platform Support Request
 about: This template is for service teams of Cloud Platform to create a new support request
-labels: 'support-team, needs-triage'
+title: ''
+labels: needs-triage, support-request
+assignees: ''
 
 ---
 
