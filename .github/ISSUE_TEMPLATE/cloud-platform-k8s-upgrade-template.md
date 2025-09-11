@@ -1,7 +1,11 @@
 ---
 name: Cloud Platform Kubernetes Upgrade Template ticket
-about: This template is for Cloud Platform team to create an epic ticket for Kubernetes upgrades
-label: 'EPIC'
+about: This template is for Cloud Platform team to create an epic ticket for Kubernetes
+  upgrades
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 ## Issue 1:
@@ -201,5 +205,3 @@ Update the runbook for
 
 Cluster upgrade Runbook:
 https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-cluster.html
-
-
