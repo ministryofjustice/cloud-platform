@@ -45,6 +45,8 @@ see [ADR-000](000-Record-Architecture-Decisions.md)
 * ✅  [35. Deprecated TLS Versions](035-deprecated-tls-versions.md)
 * ✅  [36. Multi-cluster](036-multi-cluster.md)
 * ❌  [37. Serverless (Lambda/Functions-as-a-Service)](037-serverless.md)
+* 🤔  [38. Split Components Infrastructure](038-038-split-components-infrastructure.md)
+* ✅  [39. AWS Network Firewall](039-AWS-Network-Firewall.md)
 
 ### Statuses:
 
