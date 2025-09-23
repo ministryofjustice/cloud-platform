@@ -39,18 +39,17 @@ This ensures that the Cloud Platform VPC has consistent ingress and egress traff
 ## Consequences
 
 **Pros**
+
 - Provides the required control and inspection of both ingress and egress traffic in the Cloud Platform VPC.
 - Adds built-in AWS threat detection for attacker infrastructure, malware, and botnets.
 
 **Cons**
+
 - Ingress and egress inspection may add latency for workloads, requiring performance testing.
 - Some threat detection rules may cause false positives, requiring a process for tuning.
-
 
 [AWS Network Firewall]: https://aws.amazon.com/network-firewall/
 [create a centralised egress VPC]: https://github.com/ministryofjustice/cloud-platform/issues/7428
 [AttackInfrastructureStrictOrder]: https://docs.aws.amazon.com/network-firewall/latest/developerguide/aws-managed-rule-groups-atd.html
 [MalwareDomainsStrictOrder]: https://docs.aws.amazon.com/network-firewall/latest/developerguide/aws-managed-rule-groups-domain-list.html
 [BotNetCommandAndControlDomainsStrictOrder]: https://docs.aws.amazon.com/network-firewall/latest/developerguide/aws-managed-rule-groups-domain-list.html
-
-
