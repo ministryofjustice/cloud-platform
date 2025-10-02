@@ -43,6 +43,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 
 ## Issue 3:
@@ -61,6 +62,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 
 ## Issue 4:
@@ -79,6 +81,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 ## Issue 5:
 ### Test EKS <upgrade-version> on test cluster
@@ -116,6 +119,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 
 ## Issue 9:
@@ -134,6 +138,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 
 ## Issue 10:
@@ -152,6 +157,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 ## Issue 11:
 ### Review cluster components for upgrading
