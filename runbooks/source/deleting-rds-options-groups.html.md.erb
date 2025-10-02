@@ -1,0 +1,50 @@
+---
+title: Deleting RDS Option Group Error
+weight: 100
+last_reviewed_on: 2025-10-01
+review_in: 6 months
+---
+
+# Deleting RDS Option Group Error
+
+This runbook describes how to resolve an issue deleting AWS RDS option groups when using our RDS module.
+
+## Problem Description
+
+When a user attempts to delete an option group that was created alongside an RDS instance, they encounter an error stating that the option group is still in use.
+
+This issue manifests in the following scenarios.
+
+### Scenario 1: Deleting Option Group *Before* RDS Instance
+
+When attempting to delete the `aws_db_option_group` resource before removing the RDS instance, the deletion fails because the option group is actively being used by the database (as expected).
+
+### Scenario 2: Deleting Option Group *After* RDS Instance
+
+Even when the RDS instance is deleted first, attempting to delete the `aws_db_option_group` resource fails. This occurs because AWS automatically creates snapshots when an RDS instance is deleted, and these snapshots retain a reference to the original option group.
+
+## Resolution Steps
+
+### For Scenario 1:
+- **Modify the Database Configuration**
+   - Go to the AWS RDS console and locate the option group that is experiencing the deletion issue. Find the database that is using this option group and click **'Modify'**.
+
+- **Change the Option Group**
+   - Scroll down to the **'Option group'** section and change the option group from the users custom option group to the **'default'** option group.
+
+- **Apply Changes Immediately**
+   - When prompted for when to apply the changes, select **'Apply immediately'**. This ensures the change takes effect without waiting for the next maintenance window.
+
+- **Complete the Deletion**
+   - Once the modification is complete and the database is no longer using the users custom option group, they can delete the `aws_db_option_group` resource via a PR.
+
+### For Scenario 2: 
+- **Identify Snapshots**
+   - Before attempting to delete the option group, go to the AWS RDS console, search for the users option group, and identify any snapshots that may be referencing it.
+
+- **Delete the Referenced Snapshots** 
+   - If any snapshots are found to be referencing the option group, they must be deleted before the option group can be removed.
+
+- **Complete the Deletion**
+   - Once all references to the option group have been removed for the user, they can delete the `aws_db_option_group` resource via a PR.
+
