@@ -38,13 +38,12 @@ Even when the RDS instance is deleted first, attempting to delete the `aws_db_op
 - **Complete the Deletion**
    - Once the modification is complete and the database is no longer using the users custom option group, they can delete the `aws_db_option_group` resource via a PR.
 
-### For Scenario 2: 
+### For Scenario 2:
 - **Identify Snapshots**
    - Before attempting to delete the option group, go to the AWS RDS console, search for the users option group, and identify any snapshots that may be referencing it.
 
-- **Delete the Referenced Snapshots** 
+- **Delete the Referenced Snapshots**
    - If any snapshots are found to be referencing the option group, they must be deleted before the option group can be removed.
 
 - **Complete the Deletion**
    - Once all references to the option group have been removed for the user, they can delete the `aws_db_option_group` resource via a PR.
-
