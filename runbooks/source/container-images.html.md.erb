@@ -1,7 +1,7 @@
 ---
 title: Container Images used by Cluster Components
 weight: 55
-last_reviewed_on: 2025-07-28
+last_reviewed_on: 2025-10-03
 review_in: 6 months
 ---
 
@@ -51,7 +51,7 @@ This depends on several factors, some of them are:
 ## calico-apiserver
 | container image | urgency | latest version for k8s 1.31 | latest version available | latest helm chart |
 |-|-|-|-|-|
-| docker.io/calico/apiserver:v3.28.1 | 🟠 | [v3.29.0](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#kubernetes-requirements) |[v3.30.2](https://github.com/projectcalico/calico/releases/tag/v3.30.2) | [v1.38.4](https://github.com/tigera/operator/releases/tag/v1.38.4) |
+| docker.io/calico/apiserver:v3.29.6 | 🟢 | [v3.30.3](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#kubernetes-requirements) |[v3.30.3](https://github.com/projectcalico/calico/releases/tag/v3.30.3) | [v1.38.6](https://github.com/tigera/operator/releases/tag/v1.38.6) |
 
 ## calico-system
 
@@ -59,11 +59,11 @@ _Calico Kubernetes compatibility guidance [here](https://docs.tigera.io/calico/l
 
 | container image | urgency | latest version for k8s 1.31 | latest version available | latest helm chart |
 |-|-|-|-|-|
-| docker.io/calico/csi| 🟠 | [v3.30.2](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#kubernetes-requirements) |[v3.30.2](https://github.com/projectcalico/calico/releases/tag/v3.30.2) | [v1.38.4](https://github.com/tigera/operator/releases/tag/v1.38.4) |
-| docker.io/calico/kube-controllers | 🟠 | [v3.29.0](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#kubernetes-requirements) |[v3.30.2](https://github.com/projectcalico/calico/releases/tag/v3.30.2) | [v1.38.4](https://github.com/tigera/operator/releases/tag/v1.38.4) |
-| docker.io/calico/node-driver-registrar | 🟠 | [v3.29.0](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#kubernetes-requirements) |[v3.30.2](https://github.com/projectcalico/calico/releases/tag/v3.30.2) | [v1.38.4](https://github.com/tigera/operator/releases/tag/v1.38.4) |
-| docker.io/calico/node | 🟠 | [v3.30.2](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#kubernetes-requirements) |[v3.30.2](https://github.com/projectcalico/calico/releases/tag/v3.30.2) | [v1.38.4](https://github.com/tigera/operator/releases/tag/v1.38.4) |
-| docker.io/calico/typha | 🟠 | [v3.30.2](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#kubernetes-requirements) |[v3.30.2](https://github.com/projectcalico/calico/releases/tag/v3.30.2) | [v1.38.4](https://github.com/tigera/operator/releases/tag/v1.38.4) |
+| docker.io/calico/csi:v3.29.6| 🟢 | [v3.30.3](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#kubernetes-requirements) |[v3.30.3](https://github.com/projectcalico/calico/releases/tag/v3.30.3) | [v1.38.4](https://github.com/tigera/operator/releases/tag/v1.38.6) |
+| docker.io/calico/kube-controllers:v3.29.6 | 🟢 | [v3.30.3](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#kubernetes-requirements) |[v3.30.3](https://github.com/projectcalico/calico/releases/tag/v3.30.3) | [v1.38.4](https://github.com/tigera/operator/releases/tag/v1.38.6) |
+| docker.io/calico/node-driver-registrar:v3.29.6 | 🟢 | [v3.30.3](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#kubernetes-requirements) |[v3.30.3](https://github.com/projectcalico/calico/releases/tag/v3.30.3) | [v1.38.4](https://github.com/tigera/operator/releases/tag/v1.38.6) |
+| docker.io/calico/node:v3.29.6 | 🟢 | [v3.30.3](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#kubernetes-requirements) |[v3.30.3](https://github.com/projectcalico/calico/releases/tag/v3.30.3) | [v1.38.4](https://github.com/tigera/operator/releases/tag/v1.38.6) |
+| docker.io/calico/typha:v3.29.6 | 🟢 | [v3.30.3](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#kubernetes-requirements) |[v3.30.3](https://github.com/projectcalico/calico/releases/tag/v3.30.3) | [v1.38.4](https://github.com/tigera/operator/releases/tag/v1.38.6) |
 
 ## cert-manager
 | container image | urgency | latest version for k8s 1.31 | latest version available | latest helm chart |
@@ -141,7 +141,7 @@ _Calico Kubernetes compatibility guidance [here](https://docs.tigera.io/calico/l
 
 | container image | urgency | latest version for k8s 1.31 | latest version available | latest helm chart |
 |-|-|-|-|-|
-| quay.io/tigera/operator:v1.34.3 | 🟠 | v1.36.1 | [v1.36.12](https://github.com/tigera/operator/releases/tag/v1.36.12) | [3.30.2](https://github.com/projectcalico/calico/tree/master/charts/tigera-operator)
+| quay.io/tigera/operator:v1.36.14 | 🟠 | v1.38.6 | [v1.38.6](https://github.com/tigera/operator/releases/tag/v1.38.6) | [3.30.3](https://github.com/projectcalico/calico/tree/master/charts/tigera-operator)
 
 ## trivy-system
 | container image | urgency | latest version for k8s 1.31 | latest version available | latest helm chart |
