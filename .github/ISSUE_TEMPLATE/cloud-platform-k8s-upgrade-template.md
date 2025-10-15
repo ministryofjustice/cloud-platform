@@ -1,7 +1,10 @@
 ---
 name: Cloud Platform Kubernetes Upgrade Template ticket
 about: This template is for Cloud Platform team to create an epic ticket for Kubernetes upgrades
-label: 'EPIC'
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 ## Issue 1:
@@ -40,6 +43,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 
 ## Issue 3:
@@ -58,6 +62,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 
 ## Issue 4:
@@ -76,6 +81,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 ## Issue 5:
 ### Test EKS <upgrade-version> on test cluster
@@ -113,6 +119,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 
 ## Issue 9:
@@ -131,6 +138,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 
 ## Issue 10:
@@ -149,6 +157,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 ## Issue 11:
 ### Review cluster components for upgrading
@@ -184,7 +193,7 @@ Following upgrade to EKS <upgrade-version>, there will be a number of cleanup ac
 
 Update user guide / runbook references to EKS version
 Update tools-image for kubectl version
-Update cloud-platform-cli for kubectl version 
+Update cloud-platform-cli for kubectl version
 Update concourse pipelines to use updated tools-image and cli
 
 ## Issue 16:
@@ -194,12 +203,10 @@ Following upgrade to EKS <upgrade-version>, create a new [gatekeeper constraint]
 ## Issue 17:
 ### Update Upgrade runbook and Cluster Upgrade Issue Template
 
-Update the runbook for 
+Update the runbook for
 - any changes needed in the steps to perform the upgrade
 - any lessons learnt that could be useful for next upgrade
 - any changes to the [upgrade issue template](https://github.com/ministryofjustice/cloud-platform/blob/main/.github/ISSUE_TEMPLATE/cloud-platform-k8s-upgrade-template.md)
 
 Cluster upgrade Runbook:
 https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-cluster.html
-
-

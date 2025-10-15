@@ -1,7 +1,7 @@
 ---
 title: Leavers Guide
 weight: 9100
-last_reviewed_on: 2025-01-20
+last_reviewed_on: 2025-08-05
 review_in: 6 months
 ---
 
@@ -13,22 +13,17 @@ When CP team members leave, follow this guide, and log completion in a ticket.
 
 ### Digital Services
 
-#### Google account closure
-  This has to be ordered in advance of them leaving, by creating a ServiceNow order [Return device for Digital Mac & WTP users](https://mojprod.service-now.com/moj_sp?id=sc_cat_item&sys_id=a1f163211bb1a8507b10ca286e4bcb7a)
-
-  This is not just about returning their Mac - it will do the important step of closing their Google account.
+#### Equipment Return (including MacBook) and Accounts Closure
+Only use this bundle to return, Digital MacBook’s and WTP devices. [Leaver Bundle – Digital
+](https://mojprod.service-now.com/moj_sp?id=sc_cat_item_guide&table=sc_cat_item&sys_id=61565d171b900510f58d206fe54bcbfa)
 
   This is usually raised by the line manager for civil servants.
 
-  * Note - Include details in the ServiceNow request to transfer the leaver's Google Drive to someone in their team.
+  * Note - It is no longer possible to transfer a leaver's documents, etc. to another person as part of the leaver's process please transfer any documents to a suitable place before they leave.
 
   * Note - If the leaver has created any slack apps, these will need to be transferred to someone else in the team.
 
   Contact #digital-it-forum channel for any queries
-
-#### MOJ Digital VPN removal
-  Create a ServiceNow order: [Digital VPN add/remove](https://mojprod.service-now.com/moj_sp?id=sc_cat_item&sys_id=6860adc01b8b6818f58d206fe54bcbe3)
-  This is usually raised by the line manager for civil servants.
 
 #### Slack account deactivation
 
@@ -58,9 +53,17 @@ When CP team members leave, follow this guide, and log completion in a ticket.
 
     * As per [this File](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf#L243)
 
+* Search for the leavers username in Github - ministryofjustice organisation and delete any such entries,
+  which may include Repos outside of the Cloud Platforms team e.g. dso-infra-azure-ad.
+
+  Please note, for Repos not owned by the Cloud Platforms Team both approval and PR merge
+  will need to be done by a member of the relevant team.
+
 ### Other 3rd Party Accounts access removal
 
 Below are the list of 3rd party accounts that need to be removed when a member leaves the team. Contact [#ask-operations-engineering channel](https://mojdt.slack.com/archives/C01BUKJSZD4) requesting the removal
+
+"Hi team, please can you close the access for a CP leaver <username> from all the accounts supported by your team, thanks"
 
 1. Request Password Management removal - [1Password](https://1password.com/)
 
@@ -85,6 +88,10 @@ Below are the list of 3rd party accounts that need to be removed when a member l
 9. Remove them from the [PagerDuty support rota](https://moj-digital-tools.pagerduty.com/schedules#PFX6FHX/edit) (if applicable)
 
 10.Remove them from [platforms@digital.justice.gov.uk Google Group](https://groups.google.com/a/digital.justice.gov.uk/g/platforms/members)
+
+The following link from the Operations Engineering legacy page lists the services 'not' supported by the team
+
+(https://cloud-optimisation-and-accountability.justice.gov.uk/documentation/operations-engineering-legacy/operations-engineering-user-guide/quicklinks/we-dont-do-that.html#services-we-don-39-t-manage)
 
 ## Line manager actions
 

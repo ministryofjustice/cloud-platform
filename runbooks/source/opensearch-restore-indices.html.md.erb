@@ -1,0 +1,141 @@
+---
+title: OpenSearch Log Restore Runbook
+weight: 190
+last_reviewed_on: 2025-08-01
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+This runbook explains how to restore cold indices logs in OpenSearch as part of our Index State Management (ISM) policy.
+
+## Log Availability in OpenSearch
+Our OpenSearch Index State Management (ISM) policy is configured as follows:
+
+```
+Hot to Warm: after 1 day
+Warm to Cold: after 30 days
+Cold to Delete: after 366 days
+```
+
+### What does this mean
+
+Logs stored in hot and warm indices are fully visible in the OpenSearch console. As a result, logs from the past 30 days are available by default.
+
+However, cold indices are not searchable in the console - this is expected behavior. Logs are stored in cold storage for long-term retention and cost efficiency.
+
+To access logs older than 30 days, we need to manually migrate the relevant cold indices back to the warm tier, which makes them searchable again.
+
+There are two ways to restore logs from cold storage, depending on the volume of log required.
+
+## Option 1: Restoring Cold Indices to Warm via Console
+If only a few days of logs are needed, you can restore them manually using the OpenSearch UI:
+
+1.	Navigate to: `Index Management` → `Cold Indexes` tab.
+2.	Find the required index, and click `Move to warm`.
+
+    ![opensearch move cold index to warm 1](./images/opensearch-log-console-restore-1.png)
+
+3. Click `Move index`
+
+    ![opensearch move cold index to warm 2](./images/opensearch-log-console-restore-2.png)
+
+4. After log investigation is complete and the logs are no longer needed, move the warm index back to cold from the `Warm Indexes` tab.
+
+    ![opensearch move cold index to warm 3](./images/opensearch-log-console-restore-3.png)
+
+5. Choose `Calculate from timestamp field` , select `@timestamp`, then click `Move index`.
+
+    ![opensearch move cold index to warm 4](./images/opensearch-log-console-restore-4.png)
+
+This method is suitable for restoring small batches of logs or ad-hoc investigations.
+
+## Caution with Large Restore
+Restoring large numbers of cold indices:
+
+- Adds load to the OpenSearch cluster
+- Increases hot instance resource usage
+- May impact live OpenSearch cluster performance for other users
+
+For large restore operations, use the automation method below.
+
+## Option 2: Restoring Large Volumes of Logs via Concourse Pipeline Automation
+
+For large-scale log restores, we use **Concourse pipeline automation** to restore logs into a **separate, non-production** OpenSearch cluster to avoid load on the live environment.
+
+### Overview
+
+We maintain **two pipelines**:
+
+#### Snapshot Creation on the Live OpenSearch [pipeline](https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/opensearch.yaml#L164)
+
+- Reads from a maintained source index file in S3
+- Migrates cold indices to warm.
+- Takes snapshots to an S3 snapshot repository.
+- Tags completed snapshots with a `snapshot-taken-` prefix.
+- Moves indices back to cold.
+
+#### Snapshot Restore on a Separate OpenSearch [pipeline](https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/opensearch.yaml#L192)
+
+- Restores the snapshots using the same source list.
+- Skips indices already marked as restored.
+- Sets replicas to `0` for speed and cost-efficiency.
+- Waits for shard recovery and green index health.
+- Moves the index to the warm tier.
+
+## Usage Guide
+
+Taking OpenSearch snapshots can take **30+ minutes per index** depending on shard size and data volume. Follow this process:
+
+1. Prepare the restore OpenSearch if needed
+2. On the **restore OpenSearch**, perform the following setup (if not already done):
+    - Update the cluster name (but not domain ARN) [here](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/b7ea4300b4183e2701ae100e3a3e0a5469404962/terraform/aws-accounts/cloud-platform-aws/account/app-opensearch-snapshot-s3.tf#L4)
+    - In Security roles, add the following IAM user to the `all_access` role:
+
+        ```
+        arn:aws:iam::754256621582:user/cloud-platform/manager-concourse
+        ```
+    - Register the S3 snapshot repository:
+
+        ```
+        curl -XPUT -L \
+          --user "$AWS_ACCESS_KEY_ID:$AWS_SECRET_ACCESS_KEY" \
+          -H "x-amz-security-token: $AWS_SESSION_TOKEN" \
+          -H "Content-Type: application/json" \
+          --aws-sigv4 "aws:amz:eu-west-2:es" \
+          <new-restore-opensearch-endpoint>/_snapshot/cp-live-app-logs-snapshot-s3-repository \
+          -d '{
+              "type": "s3",
+              "settings": {
+                  "bucket": "cp-live-app-logs-snapshot-s3-repository",
+                  "region": "eu-west-2",
+                  "role_arn": "arn:aws:iam::754256621582:role/cp-live-app-logs-snapshot-s3-role"
+              }
+        }'
+        ```
+3. Update the S3 source index list and cleanup the restored tracking file before running the snapshot pipeline.
+
+    ```
+    s3://cloud-platform-concourse-environments-live-reports/opensearch-snapshots/source-index-list.txt
+    s3://cloud-platform-concourse-environments-live-reports/opensearch-snapshots/snapshot-restored.txt
+    ```
+
+4. Update the restore OpenSearch endpoint [here](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/scripts/opensearch/snapshots/restore_snapshots/restore_snapshot.sh#L13) if needed
+5. Unpause the `live-opensearch-takes-snapshot`  and `separate-opensearch-restores-snapshot` pipeline
+
+    ```
+    fly -t manager unpause-job -j opensearch/live-opensearch-takes-snapshot
+    fly -t manager unpause-job -j opensearch/separate-opensearch-restores-snapshot
+    ```
+
+6. Trigger `live-opensearch-takes-snapshot` on Concourse.
+7. Wait for some batch of snapshots to complete.
+8.  Trigger `separate-opensearch-restores-snapshot` on Concourse.
+9.  Pause the pipelines once the restore is complete:
+
+    ```
+    fly -t manager pause-job -j opensearch/live-opensearch-takes-snapshot
+    fly -t manager pause-job -j opensearch/separate-opensearch-restores-snapshot
+    ```
+
+10. After log investigation is complete and the logs are no longer needed, clean up any temporary resources (e.g., snapshots, restored indices in the restore cluster, and snapshot tracking files on S3).
