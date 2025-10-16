@@ -18,6 +18,7 @@ jobs:
           args: --verbose --no-progress **/*.md **/*.html **/*.erb --accept 200,429,405,403,400,301,302,401
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        continue-on-error: true
 
       - name: Create Issue From File
         if: env.lychee_exit_code != 0
