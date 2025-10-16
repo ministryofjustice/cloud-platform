@@ -36,3 +36,5 @@ https://aws.amazon.com/SAML/Attributes/PrincipalTag:GithubTeam
 https://drive.google.com/file/d/109QZ6H_Z7a11J8CaKpt2PPgwL2Y_7KWT/view?usp=sharing
 https://drive.google.com/file/d/1Jm9hPX0cjZ8ZxTDGsUiC6cb56LWkw2Qm/preview
 https://drive.google.com/file/d/109QZ6H_Z7a11J8CaKpt2PPgwL2Y_7KWT/view?usp=sharing
+https://api.github.com/credentials/revoke
+^https?://github\.com/ministryofjustice/cloud-platform-security-issues

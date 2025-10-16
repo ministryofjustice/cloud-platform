@@ -30,10 +30,6 @@ When you start working on upgrading any cloud-platform-components ticket:
 
 - You have [docker] installed
 
-### Setup environment
-
-Setup the environment variables listed in [example.env.create-cluster] in the [cloud-platform-infrastructure repo].
-
 ### Create test cluster
 
 Run the `create-cluster` concourse job to create a test cluster.
@@ -130,7 +126,6 @@ cloud-platform environment bump-module --module certmanager --module-version 0.5
 [cloud-platform-environments-repo]: https://github.com/ministryofjustice/cloud-platform-environments
 [cloud-platform-infrastructure plan pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-plan-infra-live/
 [cloud-platform-infrastructure apply pipeline]: https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-apply-infra-live
-[example.env.create-cluster]: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/example.env.create-cluster
 [AWS CLI]: https://aws.amazon.com/cli/
 [docker]: https://www.docker.com/
 [tools image]: https://github.com/ministryofjustice/cloud-platform-tools-image
