@@ -28,4 +28,4 @@ jobs:
         with:
           title: Link Checker Report
           content-filepath: ./lychee/out.md
-          labels: documentation
+          labels: documentation, needs-refining
