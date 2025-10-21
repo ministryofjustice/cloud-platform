@@ -1,0 +1,61 @@
+---
+title: Incident on 2025-10-13 - RDS t4g instances unavailable
+weight: 1
+---
+
+# Incident on 2025-10-13 - RDS t4g instances unavailable
+
+- **Key events**
+  - First detected 2025-10-13 08:59
+  - Incident declared 2025-10-13 10:27
+  - Repaired 2025-10-13 17:38
+  - Resolved 2025-10-13 18:56
+
+- **Identified**:
+
+Via User
+
+- **Background**:
+
+On the morning  of Monday 13 October we received reports of RDS instances failing to start due to an error from AWS when starting  instances that had been stopped overnight:
+
+> “Insufficient instance capacity for instance type db.t4g.micro in availability zone eu-west-2b; putting database instance into stopping”
+
+- **Impact**:
+
+RDS instances of t4g class. Of the affected instances were used for pre-production environments, e.g. Staging, development, test, etc. Development teams were impacted by their instances being in an unavailable state.
+
+- **Context**:
+
+Confirmed the issue via the AWS console
+
+Declared an incident via an announcement in #cloud-platform update
+
+Started re-starting
+
+Raised an issue with AWS at 10:29
+
+Disabled the RDS auto start/stop at 16:42
+
+Continued to restart instances, with some coming back up
+
+All instances back up at 17:38
+
+- **Resolution**:
+
+* All instances back up at 17:38
+* AWS confirmed capacity is back at 18:56
+
+- **Review actions**:
+
+Can we detect a recurrence of this issue? Unknown, create a ticket to investigate potential ways to spot and alert. Maybe not worth the effort for such a rare event. Maybe create a concourse job or an OpenSearch alert
+
+Could we react differently?
+
+No, took a bit of time between the first message in #ask and declaring an incident
+
+Do we need dev databases to be multi-AZ? Look into this, make multi-az the default. Can we enable / permit single AZ RDS instances?
+
+Can teams use containerised DBs?
+
+Write some comms describing the incident with reasons we can’t / couldn’t do anything about it before / after the fact
