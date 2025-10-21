@@ -1,0 +1,58 @@
+---
+title: Dependabot changes
+weight: 702
+last_reviewed_on: 2025-10-21
+review_in: 12 months
+---
+
+# Dependabot changes
+
+This runbook describes the steps to take when a Dependabot PR is opened.
+
+## Prerequisites
+
+- Familiarity with Git and GitHub
+- Access to the repository where the PR is opened
+- Understanding of the changes proposed by Dependabot
+- Knowledge of the project's testing and deployment processes
+
+## Steps
+
+1. **Review the PR**: Open the Dependabot PR and review the changes proposed. Check for:
+   - The version bump and its implications
+   - Any breaking changes or deprecations in the new version
+   - Compatibility with existing code
+   - If this is a GitHub action version bump make sure its using the SHA and not a tag or branch name.
+
+2. **Check for security advisories**: If the PR is related to a security update, review the associated security advisory to understand the vulnerability being addressed.
+
+3. **Run tests**: Ensure that all automated tests pass with the new dependency version. This may involve:
+   - Running unit tests
+   - Running integration tests
+   - Running end-to-end tests
+
+4. **Manual testing**: If applicable, perform manual testing to ensure that the application behaves as expected with the updated dependency.
+
+5. **Merging the PR**: If all tests pass and you are satisfied with the changes:
+   - Merge the PR using the appropriate method (e.g., squash and merge, rebase and merge).
+   - Ensure that the PR is merged into the correct branch (e.g., main).
+
+6. **Post-merge actions**:
+  [!important] Once merged into main some repositories will require extra steps to deploy the changes into production image:
+  
+  ***Golang repositories scripts***
+    - cloud-platform-cli: 
+      - you will need to create a new release to trigger the build and deployment process.
+    - cloud-platform-hammer-bot: 
+      - you will need to create a new release to trigger the build and deployment process.
+    - cloud-platform-custom-error-pages:
+      - you will need to create a new release.
+      - update the release version in the ingress-controller module and create a new release.
+      - update the ingress module in the infrastructure repository and push the change through the pipeline to update live.
+    - cloud-platform-automation:
+      - you will need to create a new release for the changes.
+      - once the release is done, you will need to update the release version in the pipelines where these scripts are used.
+    - cloud-platform-go-get-module:
+      - you will need to create a new release to trigger the build and deployment process.
+    - check-terraform-modules-are-latest:
+      - once merged to main these changes will be automatically take effect as the action pulls from main.
