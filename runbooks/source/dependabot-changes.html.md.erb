@@ -39,11 +39,11 @@ This runbook describes the steps to take when a Dependabot PR is opened.
 
 6. **Post-merge actions**:
   [!important] Once merged into main some repositories will require extra steps to deploy the changes into production image:
-  
+
   ***Golang repositories scripts***
-    - cloud-platform-cli: 
+    - cloud-platform-cli:
       - you will need to create a new release to trigger the build and deployment process.
-    - cloud-platform-hammer-bot: 
+    - cloud-platform-hammer-bot:
       - you will need to create a new release to trigger the build and deployment process.
     - cloud-platform-custom-error-pages:
       - you will need to create a new release.
