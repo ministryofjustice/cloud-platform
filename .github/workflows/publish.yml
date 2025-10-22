@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ministryofjustice/tech-docs-github-pages-publisher:4148e6d8fcd5dd625d31fadbca49fcbfe8f432b8 # v6.1.0
+      image: ministryofjustice/tech-docs-github-pages-publisher:v4.0.0
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
