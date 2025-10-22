@@ -10,10 +10,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/ministryofjustice/tech-docs-github-pages-publisher:v6.1.0
+      image: ghcr.io/ministryofjustice/tech-docs-github-pages-publisher:v3.0.2 
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2 # cant upgrade until tech-docs-github-pages-publisher image is updated
+      - name: Compile Markdown to HTML and create artifact
+        run: |
+          cd runbooks; /scripts/deploy.sh false
       - name: Install rsync
         run: |
           apk update && apk add rsync
