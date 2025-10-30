@@ -1,7 +1,7 @@
 ---
 title: Onboarding into the Cloud Platform Team
 weight: 9000
-last_reviewed_on: 2025-10-07
+last_reviewed_on: 2025-10-30
 review_in: 6 months
 ---
 
@@ -52,7 +52,6 @@ review_in: 6 months
 
 ## Access
 
-* Access to required Cloud Platform AWS account(s)
 * Protect against accidentally pushing secrets to GitHub, using [git-secrets]
 
 ```bash
@@ -61,11 +60,13 @@ git secrets --install ~/.git-templates/git-secrets
 git config --global init.templateDir ~/.git-templates/git-secrets
 ```
 
-* Github access - (to be done by new starter)
+* Github access
+  * New starter to login using [SSO](https://github.com/orgs/ministryofjustice/sso)
   * Explain github for RBAC
+  * Add to [WebOps](https://github.com/orgs/ministryofjustice/teams/webops) and [cloud-platform-engineers](https://github.com/orgs/ministryofjustice/teams/cloud-platform-engineers) team
 * Invite as an admin on [justice-cloud-platform - Auth0](https://auth0.com/docs/authenticate/login)
   * (Switch to 'justice-cloud-platform tenant, then use the drop-down and select "Invite an admin")
-* New starter github user to be added to MOJ github organisation and WebOps team
+* Access to required Cloud Platform AWS account(s) via AWS SSO
 * Add to [MoJ 1Password](https://ministryofjustice.1password.eu/)
 * Authenticate to live cluster
   * Add User to [EKS Admins group](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/cluster.tf)
@@ -76,6 +77,6 @@ git config --global init.templateDir ~/.git-templates/git-secrets
 * Add GPG key to git-crypt repositories
   * [environments repo](https://github.com/ministryofjustice/cloud-platform-environments)
   * [infrastructure repo](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/.git-crypt/keys/default/0)
+  * Instructions can be found in this [runbook](rotate-git-crypt-key.html)
 
 [git-secrets]: https://github.com/awslabs/git-secrets
-*Set up access to AWS via SSO
