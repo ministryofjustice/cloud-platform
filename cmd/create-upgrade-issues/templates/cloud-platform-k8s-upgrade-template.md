@@ -1,12 +1,3 @@
----
-name: Cloud Platform Kubernetes Upgrade Template ticket
-about: This template is for Cloud Platform team to create an epic ticket for Kubernetes upgrades
-title: ''
-labels: ''
-assignees: ''
-
----
-
 ## Issue 1:
 ### Planning upgrade to EKS <upgrade-version>
 
@@ -43,7 +34,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
-- [guardduty-agent](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 
 ## Issue 3:
@@ -62,7 +53,7 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
-- [guardduty-agent](https://docs.aws.amazon.com/guardduty/latest/ug/prereq-runtime-monitoring-eks-support.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 
 ## Issue 4:
@@ -81,37 +72,19 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
-- [guardduty-agent](https://docs.aws.amazon.com/guardduty/latest/ug/prereq-runtime-monitoring-eks-support.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 ## Issue 5:
-### Update guardduty-agent to latest supported release for current EKS version
-Check for the latest supported addon release for the current EKS version and update the clusters
-[Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
-
-Production Clusters Checklist:
-
-- [ ] live-2
-- [ ] manager
-- [ ] live
-
-See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/eks-add-ons.html) documentation for more information about addons, or find the latest versions for these EKS add-ons directly:
-
-- [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
-- [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
-- [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
-- [guardduty-agent](https://docs.aws.amazon.com/guardduty/latest/ug/prereq-runtime-monitoring-eks-support.html)
-
-## Issue 6:
 ### Test EKS <upgrade-version> on test cluster
 
 Follow instructions from Upgrade runbook: https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-cluster.html#upgrade-eks-cluster
 
-## Issue 7:
+## Issue 6:
 ### Test EKS <upgrade-version> on live-like cluster
 
 Follow instructions from creating a live like cluster runbook: https://runbooks.cloud-platform.service.justice.gov.uk/creating-a-live-like.html#creating-a-live-like-cluster
 
-## Issue 8:
+## Issue 7:
 ### EKS: Upgrade Production clusters to Kubernetes <upgrade-version>
 https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-cluster.html
 
@@ -121,7 +94,7 @@ Production Clusters Checklist:
 - [ ] manager
 - [ ] live
 
-## Issue 9:
+## Issue 8:
 ### Update vpc-cni to latest supported release for upgraded EKS version
 Check for the latest supported addon version for the upgraded EKS version and update the clusters
 [Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
@@ -137,10 +110,10 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
-- [guardduty-agent](https://docs.aws.amazon.com/guardduty/latest/ug/prereq-runtime-monitoring-eks-support.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 
-## Issue 10:
+## Issue 9:
 ### Update kube-proxy to latest supported release for upgraded EKS version
 Check for the latest supported addon version for the upgraded EKS version and update the clusters
 [Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
@@ -156,10 +129,10 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
-- [guardduty-agent](https://docs.aws.amazon.com/guardduty/latest/ug/prereq-runtime-monitoring-eks-support.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 
-## Issue 11:
+## Issue 10:
 ### Update core-dns to latest supported release for upgraded EKS version
 Check for the latest supported addon version for the upgraded EKS version and update the clusters
 [Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
@@ -175,33 +148,15 @@ See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/ek
 - [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 - [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
 - [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
-- [guardduty-agent](https://docs.aws.amazon.com/guardduty/latest/ug/prereq-runtime-monitoring-eks-support.html)
+- [runtime-monitoring](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
-## Issue 12:
-### Update guardduty-agent to latest supported release for upgraded EKS version
-Check for the latest supported addon version for the upgraded EKS version and update the clusters
-[Runbook link](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html#listing-available-eks-upgrades)
-
-Production Clusters Checklist:
-
-- [ ] live-2
-- [ ] manager
-- [ ] live
-
-See the [Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/eks-add-ons.html) documentation for more information about addons, or find the latest versions for these EKS add-ons directly:
-
-- [coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
-- [kube-proxy](https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html)
-- [vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
-- [guardduty-agent](https://docs.aws.amazon.com/guardduty/latest/ug/prereq-runtime-monitoring-eks-support.html)
-
-## Issue 13:
+## Issue 11:
 ### Review cluster components for upgrading
 https://runbooks.cloud-platform.service.justice.gov.uk/container-images.html#container-images-used-by-cluster-components
 
 Review the compatibility matrix for all cluster components and verify if the image is compatible with the upgraded Kubernetes version
 
-## Issue 14:
+## Issue 12:
 ### Review and upgrade kube-state-metrics for the upgraded EKS version <upgrade-version>
 https://runbooks.cloud-platform.service.justice.gov.uk/container-images.html#container-images-used-by-cluster-components
 
@@ -209,21 +164,21 @@ https://github.com/kubernetes/kube-state-metrics?tab=readme-ov-file#compatibilit
 
 Review the compatibility matrix of kube-state-metrics and verify if the image is compatible with the upgraded Kubernetes version. If the version is a mismatch, check if the whole kube-prometheus-chart needs updating to get the default version of kube-state-metrics from the chart-> values. Otherwise, pin the kube-state-metrics image to match the Kubernetes version.
 
-## Issue 15:
+## Issue 13:
 ### Upgrade cluster autoscaler for EKS version <upgrade-version>
 The Cloud Platform EKS Cluster is in Kubernetes version <upgrade-version>. Hence upgrade the cluster-autoscaler to match the Kubernetes version.
 
 https://github.com/kubernetes/autoscaler/tree/master/charts/cluster-autoscaler
 https://github.com/ministryofjustice/cloud-platform-terraform-cluster-autoscaler
 
-## Issue 16:
+## Issue 14:
 ### Upgrade cluster descheduler for EKS version <upgrade-version>
 The Cloud Platform EKS Cluster is in Kubernetes version <upgrade-version>. Hence upgrade the descheduler to match the Kubernetes version.
 
 https://github.com/kubernetes-sigs/descheduler?tab=readme-ov-file#%EF%B8%8F--documentation-versions-by-release
 https://github.com/ministryofjustice/cloud-platform-terraform-descheduler
 
-## Issue 17:
+## Issue 15:
 ### Post EKS version <upgrade-version> Cleanup
 Following upgrade to EKS <upgrade-version>, there will be a number of cleanup activities that need addressing:
 
@@ -232,11 +187,11 @@ Update tools-image for kubectl version
 Update cloud-platform-cli for kubectl version
 Update concourse pipelines to use updated tools-image and cli
 
-## Issue 18:
+## Issue 16:
 ### Add deprecated apis from <upgrade-version> to Gatekeeper
 Following upgrade to EKS <upgrade-version>, create a new [gatekeeper constraint](https://github.com/ministryofjustice/cloud-platform-terraform-gatekeeper/tree/main/resources/constraints) that stops people from using any apis that are now deprecated as a part of the <upgrade-version> upgrade.
 
-## Issue 19:
+## Issue 17:
 ### Update Upgrade runbook and Cluster Upgrade Issue Template
 
 Update the runbook for

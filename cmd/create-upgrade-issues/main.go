@@ -1,38 +1,25 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
+	"ministryofjustice/cloud-platform/cmd/create-upgrade-issues/utils"
 	"os"
-	"strconv"
-	"strings"
 
 	"github.com/google/go-github/v68/github"
-	"github.com/jferrl/go-githubauth"
-	"golang.org/x/oauth2"
 )
 
-// GitHubAccess contains GitHub access information
-type GitHubAccess struct {
-	RepoOwner   string
-	RepoName    string
-	IssueNumber int
-}
-
 var (
-	key       = flag.String("key", os.Getenv("GHPKEY"), "GitHub App private key")
-	appid     = flag.String("appid", os.Getenv("GHAID"), "GitHub App ID")
-	installid = flag.String("installid", os.Getenv("GHIID"), "GitHub Installation ID")
-	ghAccess  GitHubAccess
+	upgradeVersion = flag.String("upgrade-version", "", "the target EKS upgrade version")
+	ghAccess       utils.GitHubAccess
 )
 
 func main() {
-	flag.StringVar(&ghAccess.RepoOwner, "owner", "ministryofjustice", "the repository to create issues")
-	flag.StringVar(&ghAccess.RepoName, "repo", "cloud-platform", "the repository to create issues")
-	flag.IntVar(&ghAccess.IssueNumber, "issue", 0, "the issue number to create issues")
-	upgradeVersion := flag.String("upgrade-version", "", "the target EKS upgrade version")
-
+	flag.StringVar(&ghAccess.RepoOwner, "owner", "", "the repository owner")
+	flag.StringVar(&ghAccess.RepoName, "repo", "", "the repository where to create issues")
+	flag.StringVar(&ghAccess.Key, "key", os.Getenv("GHPKEY"), "GitHub App private key")
+	flag.StringVar(&ghAccess.AppID, "appid", os.Getenv("GHAID"), "GitHub App ID")
+	flag.StringVar(&ghAccess.InstallID, "installid", os.Getenv("GHIID"), "GitHub Installation ID")
 	flag.Parse()
 
 	if *upgradeVersion == "" {
@@ -40,21 +27,76 @@ func main() {
 		os.Exit(1)
 	}
 
-	client, err := AppClient(*key, *appid, *installid)
+	if ghAccess.RepoOwner == "" {
+		fmt.Println("Error: you must specify the repository owner")
+		os.Exit(1)
+	}
+
+	if ghAccess.RepoName == "" {
+		fmt.Println("Error: you must specify the repository name")
+		os.Exit(1)
+	}
+
+	if ghAccess.Key == "" {
+		fmt.Println("Error: GitHub App private key is required (set GHPKEY env var or use -key flag)")
+		os.Exit(1)
+	}
+
+	if ghAccess.AppID == "" {
+		fmt.Println("Error: GitHub App ID is required (set GHAID env var or use -appid flag)")
+		os.Exit(1)
+	}
+
+	if ghAccess.InstallID == "" {
+		fmt.Println("Error: GitHub Installation ID is required (set GHIID env var or use -installid flag)")
+		os.Exit(1)
+	}
+
+	// Create issue titles with the parsed upgrade version
+	issueTitles := []utils.Issues{
+		// List of issue titles with their corresponding integers for assiging labels when issues are created
+		{Title: "Planning upgrade to EKS " + *upgradeVersion, Int: 1},
+		{Title: "Update vpc-cni to latest supported release for current EKS version", Int: 2},
+		{Title: "Update kube-proxy to latest supported release for current EKS version", Int: 3},
+		{Title: "Update core-dns to latest supported release for current EKS version", Int: 4},
+		{Title: "Test EKS " + *upgradeVersion + " on test cluster", Int: 5},
+		{Title: "Test EKS " + *upgradeVersion + " on live-like cluster", Int: 6},
+		{Title: "EKS: Upgrade Production clusters to Kubernetes " + *upgradeVersion, Int: 7},
+		{Title: "Update vpc-cni to latest supported release for upgraded EKS version", Int: 8},
+		{Title: "Update kube-proxy to latest supported release for upgraded EKS version", Int: 9},
+		{Title: "Update core-dns to latest supported release for upgraded EKS version", Int: 10},
+		{Title: "Review cluster components for upgrading", Int: 11},
+		{Title: "Review and upgrade kube-state-metrics for the upgraded EKS version " + *upgradeVersion, Int: 12},
+		{Title: "Upgrade cluster autoscaler for EKS version " + *upgradeVersion, Int: 13},
+		{Title: "Upgrade cluster descheduler for EKS version " + *upgradeVersion, Int: 14},
+		{Title: "Post EKS version " + *upgradeVersion + " Cleanup", Int: 15},
+		{Title: "Add deprecated apis from " + *upgradeVersion + " to Gatekeeper", Int: 16},
+		{Title: "Update Upgrade runbook and Cluster Upgrade Issue Template", Int: 17},
+	}
+
+	client, err := utils.AppClient(ghAccess.Key, ghAccess.AppID, ghAccess.InstallID)
 	if err != nil {
 		fmt.Println("Error creating GitHub client:", err)
 		os.Exit(1)
 	}
-	ctx := context.Background()
 
-	// Fetch the issue contents from GitHub
-	issueContent, _, err := client.Issues.Get(ctx, ghAccess.RepoOwner, ghAccess.RepoName, ghAccess.IssueNumber)
+	// Ensure all required labels exist with proper colors
+	fmt.Println("Creating/updating labels...")
+	err = utils.EnsureLabelsExist(client, ghAccess.RepoOwner, ghAccess.RepoName, *upgradeVersion)
 	if err != nil {
-		fmt.Println("Error fetching issue template:", err)
+		fmt.Println("Error creating/updating labels:", err)
 		os.Exit(1)
 	}
 
-	ms, err := CreateMilestone(client, ghAccess.RepoOwner, ghAccess.RepoName, &github.Milestone{
+	// Read the issue contents from local file
+	issueContentBytes, err := os.ReadFile("templates/cloud-platform-k8s-upgrade-template.md")
+	if err != nil {
+		fmt.Println("Error reading issue template file:", err)
+		os.Exit(1)
+	}
+	issueContentStr := string(issueContentBytes)
+
+	ms, err := utils.CreateMilestone(client, ghAccess.RepoOwner, ghAccess.RepoName, &github.Milestone{
 		Title:       github.Ptr("Kubernetes " + *upgradeVersion + " upgrade"),
 		Description: github.Ptr(*upgradeVersion + " upgrade for kubernetes"),
 		State:       github.Ptr("open"),
@@ -64,84 +106,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	issues := ParseIssue(*issueContent.Body, *upgradeVersion)
-	for _, issue := range issues {
-		err := CreateIssue(client, ghAccess, issue, ghAccess.IssueNumber, *upgradeVersion, ms.GetNumber())
+	issues := utils.ParseIssue(issueContentStr, *upgradeVersion)
+	fmt.Printf("Parsed %d issues from template\n", len(issues))
+
+	for i, issue := range issues {
+		fmt.Printf("Creating issue %d/%d...\n", i+1, len(issues))
+		err := utils.CreateIssue(client, ghAccess, issue, *upgradeVersion, ms.GetNumber(), issueTitles)
 		if err != nil {
-			fmt.Println("Error creating issue:", err)
+			fmt.Printf("Error creating issue %d: %v\n", i+1, err)
 			os.Exit(1)
 		}
-	}
-}
-
-func AppClient(key, appid, installid string) (*github.Client, error) {
-	privateKey := []byte(key)
-
-	appIDInt, err := strconv.ParseInt(appid, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("error converting app ID to int64: %w", err)
+		fmt.Printf("Successfully created issue %d\n", i+1)
 	}
 
-	installIDInt, err := strconv.ParseInt(installid, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("error converting installation ID to int64: %w", err)
-	}
-
-	appTokenSource, err := githubauth.NewApplicationTokenSource(appIDInt, privateKey)
-	if err != nil {
-		return nil, fmt.Errorf("error creating application token source: %w", err)
-	}
-
-	installationTokenSource := githubauth.NewInstallationTokenSource(installIDInt, appTokenSource)
-
-	oauthHttpClient := oauth2.NewClient(context.Background(), installationTokenSource)
-
-	client := github.NewClient(oauthHttpClient)
-	return client, nil
-}
-
-// ParseIssue parses the given issue and returns a slice of issues
-func ParseIssue(issue string, upgradeVersion string) []string {
-	var issues []string
-	sections := strings.Split(issue, "## Issue")
-
-	for _, section := range sections {
-		if section != "" {
-			lines := strings.Split(strings.TrimSpace(section), "\n")
-			title := strings.TrimSpace(lines[0])
-			body := strings.TrimSpace(strings.Join(lines[1:], "\n"))
-			body = strings.ReplaceAll(body, "<upgrade-version>", upgradeVersion)
-			issues = append(issues, fmt.Sprintf("## %s\n%s", title, body))
-		}
-	}
-	return issues
-}
-
-// CreateIssue creates a GitHub issue
-func CreateIssue(client *github.Client, ghAccess GitHubAccess, issue string, templateIssueNumber int, upgradeVersion string, milestone int) error {
-	issueParts := strings.SplitN(issue, "\n", 3)
-	title := strings.TrimSpace(strings.TrimPrefix(issueParts[1], "###"))
-	body := strings.TrimSpace(issueParts[2])
-
-	// Append the body with the template issue number
-	body = fmt.Sprintf("%s\n\n Related to: #%d", body, templateIssueNumber)
-	label := "eks-" + upgradeVersion + "-upgrade"
-
-	issueRequest := &github.IssueRequest{
-		Title:     &title,
-		Body:      &body,
-		Labels:    &[]string{label},
-		Milestone: &milestone,
-	}
-	_, _, err := client.Issues.Create(context.Background(), ghAccess.RepoOwner, ghAccess.RepoName, issueRequest)
-	return err
-}
-
-func CreateMilestone(client *github.Client, owner, repo string, milestone *github.Milestone) (*github.Milestone, error) {
-	ctx := context.Background()
-	milestone, _, err := client.Issues.CreateMilestone(ctx, owner, repo, milestone)
-	if err != nil {
-		return nil, fmt.Errorf("error creating milestone: %w", err)
-	}
-	return milestone, nil
+	fmt.Println("All issues created successfully!")
 }
