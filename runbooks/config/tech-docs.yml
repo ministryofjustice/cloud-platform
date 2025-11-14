@@ -8,7 +8,7 @@ service_link: /
 
 # Links to show on right-hand-side of header
 header_links:
-  'Feedback / Report a problem': 'mailto:platforms+runbooks@digital.justice.gov.uk?subject=Runbooks+feedback'
+  "Feedback / Report a problem": "mailto:platforms+runbooks@digital.justice.gov.uk?subject=Runbooks+feedback"
 
   Documentation: /
   GitHub: https://github.com/ministryofjustice/cloud-platform/tree/main/runbooks
@@ -38,4 +38,4 @@ github_repo: ministryofjustice/cloud-platform
 github_branch: "main/runbooks"
 
 owner_slack_workspace: mojdt
-default_owner_slack: '#cloud-platform-notify'
+default_owner_slack: "#cloud-platform-notify"
