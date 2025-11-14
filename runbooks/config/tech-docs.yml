@@ -38,4 +38,4 @@ github_repo: ministryofjustice/cloud-platform
 github_branch: "main/runbooks"
 
 owner_slack_workspace: mojdt
-default_owner_slack: '#cloud-platform'
+default_owner_slack: '#cloud-platform-notify'
