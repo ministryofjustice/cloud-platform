@@ -1,6 +1,6 @@
 module ministryofjustice/cloud-platform/cmd/create-upgrade-issues
 
-go 1.24.2
+go 1.25
 
 require (
 	github.com/google/go-github/v68 v68.0.0
