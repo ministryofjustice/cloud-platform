@@ -1,4 +1,4 @@
-name: Tets publish runbooks
+name: Test publish runbooks
 on:
   workflow_dispatch:
   push:
