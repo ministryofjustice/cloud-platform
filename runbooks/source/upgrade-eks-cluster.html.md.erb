@@ -1,7 +1,7 @@
 ---
 title: Upgrade EKS cluster
 weight: 53
-last_reviewed_on: 2025-07-15
+last_reviewed_on: 2025-11-17
 review_in: 6 months
 ---
 
@@ -37,15 +37,15 @@ Before you begin, there are a few pre-requisites:
 
 ## Creating Cluster Upgrade GitHub Issues
 
-In order to help maintain a clear process for steps to follow in carrying out a cluster upgrade, we have an [issue template](https://github.com/ministryofjustice/cloud-platform/blob/main/.github/ISSUE_TEMPLATE/cloud-platform-k8s-upgrade-template.md) which is used by [this script](https://github.com/ministryofjustice/cloud-platform/blob/main/cmd/create-upgrade-issues/main.go) to create individual issues for each step of the upgrade process. As you work through these issues, its helpful to review and update the template where necessary to ensure it remains relevant for future upgrades.
+In order to help maintain a clear process for steps to follow in carrying out a cluster upgrade, we have an [issue template](https://github.com/ministryofjustice/cloud-platform/blob/main/cmd/create-upgrade-issues/template/cloud-platform-k8s-upgrade-template.md) which is used by [this script](https://github.com/ministryofjustice/cloud-platform/blob/main/cmd/create-upgrade-issues/main.go) to create individual issues for each step of the upgrade process. As you work through these issues, its helpful to review and update the template where necessary to ensure it remains relevant for future upgrades.
 
 steps:
-1. create a new issue in the [cloud-platform](https://github.com/ministryofjustice/cloud-platform/issues/new?template=cloud-platform-k8s-upgrade-template.md) repository using the template
-2. run the script to create the upgrade issues remember to get the Cloud Platform Actions application Private Key, App ID and Installation ID these can be found in 1Password and in the `cloud-platform-actions` application settings.
-
-``` bash
-go run main.go --issue <template issue number> --upgrade-version <version>
-```
+1. Go to the Kubernetes Upgrade Issues Action in the [cloud-platform repo](https://github.com/ministryofjustice/cloud-platform/actions/workflows/k8s-upgrade-tickets.yaml)
+2. Click on "Run workflow"
+3. Enter the required inputs:
+   - Cluster name (e.g. eks-live)
+   - Target Kubernetes version (e.g. 1.24)
+4. Click "Run workflow" to create the issues.
 
 ## Upgrade Steps
 
