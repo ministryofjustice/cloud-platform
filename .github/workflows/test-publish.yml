@@ -1,0 +1,37 @@
+name: Test publish runbooks
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "dependencies"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: ministryofjustice/tech-docs-github-pages-publisher:v3.0.2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2 # cant upgrade until tech-docs-github-pages-publisher image is updated
+      - name: Compile Markdown to HTML and create artifact
+        run: |
+          cd runbooks; /scripts/deploy.sh false
+      - name: Install rsync
+        run: |
+          apk update && apk add rsync
+          which rsync
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@6c2d9db40f9296374acc17b90404b6e8864128c8 #v4.7.3
+        with:
+          token: ${{ secrets.PUBLISHING_GIT_TOKEN }}
+          git-config-name: cloud-platform-moj
+          git-config-email: platforms@digital.justice.gov.uk
+          repository-name: ministryofjustice/cloud-platform-runbooks
+          branch: gh-pages # The branch the action should deploy to.
+          folder: runbooks/docs # The folder the action should deploy.
+          clean: true
+          dry-run: true
+          clean-exclude: |
+            CNAME
+            License
+            README.md
