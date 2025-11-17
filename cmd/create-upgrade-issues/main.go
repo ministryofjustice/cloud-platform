@@ -12,6 +12,7 @@ import (
 var (
 	upgradeVersion = flag.String("upgrade-version", "", "the target EKS upgrade version")
 	ghAccess       utils.GitHubAccess
+	template       string
 )
 
 func main() {
@@ -20,6 +21,7 @@ func main() {
 	flag.StringVar(&ghAccess.Key, "key", os.Getenv("GHPKEY"), "GitHub App private key")
 	flag.StringVar(&ghAccess.AppID, "appid", os.Getenv("GHAID"), "GitHub App ID")
 	flag.StringVar(&ghAccess.InstallID, "installid", os.Getenv("GHIID"), "GitHub Installation ID")
+	flag.StringVar(&template, "tmp", "template/cloud-platform-k8s-upgrade-template.md", "path to the issue template file")
 	flag.Parse()
 
 	if *upgradeVersion == "" {
@@ -89,7 +91,7 @@ func main() {
 	}
 
 	// Read the issue contents from local file
-	issueContentBytes, err := os.ReadFile("templates/cloud-platform-k8s-upgrade-template.md")
+	issueContentBytes, err := os.ReadFile(template)
 	if err != nil {
 		fmt.Println("Error reading issue template file:", err)
 		os.Exit(1)
