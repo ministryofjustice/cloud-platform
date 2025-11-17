@@ -5,7 +5,6 @@ on:
     tags:
       - "dependencies"
 
-
 jobs:
   build:
     runs-on: ubuntu-latest
