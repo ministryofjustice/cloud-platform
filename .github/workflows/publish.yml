@@ -13,7 +13,7 @@ jobs:
       image: ministryofjustice/tech-docs-github-pages-publisher:v3.0.2 
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2 # cant upgrade until tech-docs-github-pages-publisher image is updated
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v4.2.2 # cant upgrade until tech-docs-github-pages-publisher image is updated
       - name: Compile Markdown to HTML and create artifact
         run: |
           cd runbooks; /scripts/deploy.sh false
