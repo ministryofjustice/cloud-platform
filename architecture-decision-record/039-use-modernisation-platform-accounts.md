@@ -20,7 +20,7 @@ We will use an AWS account per live and non-live clusters (as per ADR 36 Multi C
 
 ## Consequences
 
- - We will use the Modernisation Platform security baselines
- - We will use the Modernisation Platform SSO for engineer access
- - We will use the Modernisation deployment pipelines where possible
- - We will use other Modernisation provided services where possible
+- We will use the Modernisation Platform security baselines
+- We will use the Modernisation Platform SSO for engineer access
+- We will use the Modernisation deployment pipelines where possible
+- We will use other Modernisation provided services where possible

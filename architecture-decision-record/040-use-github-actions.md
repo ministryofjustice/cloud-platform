@@ -18,8 +18,7 @@ We will switch to using GitHub Actions for our deployment pipelines.
 
 ## Consequences
 
- - We will decomission our Concourse pipelines once the move to Modernisation Platform has been completed
- - We will decomission our management cluster once the move to Modernisation Platform has been completed
- - We will use the Modernisation Platform pipelines where possible
- - We will create new GitHub Actions in a our repositories where appropriate
- 
+- We will decomission our Concourse pipelines once the move to Modernisation Platform has been completed
+- We will decomission our management cluster once the move to Modernisation Platform has been completed
+- We will use the Modernisation Platform pipelines where possible
+- We will create new GitHub Actions in a our repositories where appropriate

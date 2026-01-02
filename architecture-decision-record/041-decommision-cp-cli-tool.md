@@ -16,6 +16,5 @@ We will decommission the CLI Tool.
 
 ## Consequences
 
- - We will build new functionality to replace the existing tool
- - We will follow existing patterns where possible, eg Modernisation Platform use GitHub Actions to generate user files
- 
+- We will build new functionality to replace the existing tool
+- We will follow existing patterns where possible, eg Modernisation Platform use GitHub Actions to generate user files
