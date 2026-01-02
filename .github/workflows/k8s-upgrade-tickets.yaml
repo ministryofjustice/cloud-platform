@@ -1,0 +1,35 @@
+name: "Kubernetes Upgrade Issues"
+
+on:
+  workflow_dispatch:
+    inputs:
+      upgrade-version:
+        description: 'The target EKS upgrade version (e.g., 1.32)'
+        required: true
+
+env:
+  GHPKEY: ${{ secrets.CLOUD_PLATFORM_ACTION_PRIVATE_KEY }}
+  GHAID: ${{ secrets.CLOUD_PLATFORM_ACTION_APP_ID }}
+  GHIID: ${{ secrets.CLOUD_PLATFORM_ACTION_INSTALLATION_ID }}
+  template: "template/cloud-platform-k8s-upgrade-template.md"
+jobs: 
+  create-upgrade-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Set up Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+        with:
+          go-version: '1.25'
+
+      - name: Install Dependencies
+        run: |
+          cd cmd/create-upgrade-issues
+          go mod tidy
+
+      - name: Run Creation of Upgrade Issues
+        run:  |
+          cd cmd/create-upgrade-issues
+          go run main.go -upgrade-version ${{ github.event.inputs.upgrade-version }} -owner ${{ github.event.repository.owner.login }} -repo ${{ github.event.repository.name }} -tmp ${{ env.template }}

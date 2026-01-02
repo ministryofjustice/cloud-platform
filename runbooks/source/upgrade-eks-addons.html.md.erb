@@ -1,13 +1,13 @@
 ---
 title: Upgrade EKS addons
 weight: 53
-last_reviewed_on: 2025-07-15
+last_reviewed_on: 2025-11-12
 review_in: 6 months
 ---
 
 # Upgrade EKS addons
 
-We have 3 addons managed through cloud-platform-terraform-eks-add-ons [module](https://github.com/ministryofjustice/cloud-platform-terraform-eks-add-ons).
+We have 4 addons managed through cloud-platform-terraform-eks-add-ons [module](https://github.com/ministryofjustice/cloud-platform-terraform-eks-add-ons).
 
 Before every EKS major version upgrade, check and upgrade if the addons versions don't match the EKS major version the cluster is currently on.
 
@@ -20,6 +20,8 @@ The following addons are managed through cloud-platform-terraform-eks-add-ons mo
 [managing-coredns](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
 
 [managing-vpc-cni](https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html)
+
+[guardduty-agent](https://docs.aws.amazon.com/guardduty/latest/ug/how-does-runtime-monitoring-work.html)
 
 ## Listing available EKS upgrades
 

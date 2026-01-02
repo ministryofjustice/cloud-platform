@@ -52,8 +52,8 @@ see [ADR-000](000-Record-Architecture-Decisions.md)
 
 ### Statuses:
 
-* Proposed: 🤔
-* Accepted: ✅
-* Rejected: ❌
-* Superseded: ⌛️
-* Amended: ♻️
+- Proposed: 🤔
+- Accepted: ✅
+- Rejected: ❌
+- Superseded: ⌛️
+- Amended: ♻️

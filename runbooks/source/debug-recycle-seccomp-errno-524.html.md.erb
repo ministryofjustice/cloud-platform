@@ -1,0 +1,22 @@
+---
+title: Debug and Recycle Node with error loading seccomp filter errno 524
+weight: 60
+last_reviewed_on: 2025-09-11
+review_in: 6 months
+---
+
+# Debug and Recycle Node with error loading seccomp filter errno: 524
+
+1. Identify from OpenSearch which is the node with the [problem](https://app-logs.cloud-platform.service.justice.gov.uk/_dashboards/app/data-explorer/discover#?_a=(discover:(columns:!(_source),isDirty:!f,sort:!()),metadata:(indexPattern:'6c27ca40-6bbe-11ef-8007-3f25c14a7648',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-3h,to:now))&_q=(filters:!(),query:(language:kuery,query:'errno%20524'))).
+2. SSM into the node.
+3. Run `sudo bash /etc/eks/log-collector-script/eks-log-collector.sh` this will take a few minutes to complete.
+4. Confirm the bpf limit by running `sudo cat /proc/sys/net/core/bpf_jit_limit`.
+5. Get the current bpg number by running `sudo cat /proc/vmallocinfo | grep bpf_jit | awk '{s+=$2} END {print s}'` record these in a slack message attached to the alarm.
+6. From the AWS signin console grab your static keys.
+7. Paste them into the SSM session when the log collector has finished.
+8. Run `aws s3 cp /var/log/$LOGOUTPUT s3://cloud-platform-node-debug`.
+9. Confirm that the debug logs are in the S3 bucket.
+10. Exit the SSM session.
+11. Run `export AWS_SDK_LOAD_CONFIG=1` - this is a temporary fix for the `cloud-platform` cli.
+12. Run `cloud-platform cluster recycle-node -n $NODE`.
+13. You may need to force kill some pods if they've set a disruption budget.
