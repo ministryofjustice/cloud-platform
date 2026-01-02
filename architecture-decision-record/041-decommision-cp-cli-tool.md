@@ -1,4 +1,4 @@
-# 36. Decommission the Cloud Platform CLI Tool
+# 41. Decommission the Cloud Platform CLI Tool
 
 Date: 2026-01-02
 

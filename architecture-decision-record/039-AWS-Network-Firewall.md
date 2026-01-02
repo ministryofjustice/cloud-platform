@@ -1,4 +1,4 @@
-# 38. AWS Network Firewall
+# 39. AWS Network Firewall
 
 Date: 2025-09-16
 

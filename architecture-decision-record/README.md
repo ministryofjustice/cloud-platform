@@ -45,10 +45,11 @@ see [ADR-000](000-Record-Architecture-Decisions.md)
 - ✅ [35. Deprecated TLS Versions](035-deprecated-tls-versions.md)
 - ✅ [36. Multi-cluster](036-multi-cluster.md)
 - ❌ [37. Serverless (Lambda/Functions-as-a-Service)](037-serverless.md)
-- 🤔 [38. Split components infrastructure](038-split-components-infrastructure.md)
-- ✅ [39. Use Modernisation Platform accounts](039-use-modernisation-platform-accounts.md)
-- ✅ [40. Use GitHub Actions](040-use-github-actions.md)
-- ✅ [41. Use Modernisation Platform accounts](041-decommission-cp-cli-tool.md)
+- 🤔 [38. Split Components Infrastructure](038-split-components-infrastructure.md)
+- ✅ [39. AWS Network Firewall](039-AWS-Network-Firewall.md)
+- ✅ [40. Use Modernisation Platform accounts](040-use-modernisation-platform-accounts.md)
+- ✅ [41. Use GitHub Actions](041-use-github-actions.md)
+- ✅ [42. Use Modernisation Platform accounts](042-decommission-cp-cli-tool.md)
 
 ### Statuses:
 
