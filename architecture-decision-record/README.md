@@ -45,6 +45,10 @@ see [ADR-000](000-Record-Architecture-Decisions.md)
 * ✅  [35. Deprecated TLS Versions](035-deprecated-tls-versions.md)
 * ✅  [36. Multi-cluster](036-multi-cluster.md)
 * ❌  [37. Serverless (Lambda/Functions-as-a-Service)](037-serverless.md)
+* 🤔  [38. Split components infrastructure](038-split-components-infrastructure.md)
+* ✅  [39. Use Modernisation Platform accounts](039-use-modernisation-platform-accounts.md)
+* ✅  [40. Use GitHub Actions](040-use-github-actions.md)
+* ✅  [41. Use Modernisation Platform accounts](041-decommission-cp-cli-tool.md)
 
 ### Statuses:
 
