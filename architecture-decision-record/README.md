@@ -47,9 +47,9 @@ see [ADR-000](000-Record-Architecture-Decisions.md)
 - ❌ [37. Serverless (Lambda/Functions-as-a-Service)](037-serverless.md)
 - 🤔 [38. Split Components Infrastructure](038-split-components-infrastructure.md)
 - ✅ [39. AWS Network Firewall](039-AWS-Network-Firewall.md)
-- ✅ [40. Use Modernisation Platform accounts](040-use-modernisation-platform-accounts.md)
-- ✅ [41. Use GitHub Actions](041-use-github-actions.md)
-- ✅ [42. Use Modernisation Platform accounts](042-decommission-cp-cli-tool.md)
+- ✅ [40. Use GitHub Actions](040-use-github-actions.md)
+- ✅ [41. Decommission CLI Tool](041-decommission-cp-cli-tool.md)
+- ✅ [42. Use Modernisation Platform accounts](042-use-modernisation-platform-accounts.md)
 
 ### Statuses:
 
