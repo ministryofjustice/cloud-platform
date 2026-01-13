@@ -1,7 +1,7 @@
 ---
 title: Create Development Cluster
 weight: 8600
-last_reviewed_on: 2026-01-02
+last_reviewed_on: 2026-01-13
 review_in: 6 months
 ---
 
@@ -13,8 +13,9 @@ review_in: 6 months
 2. Click on the `Run workflow` button.
 3. Select the action - `deploy`.
 4. If you wish to specify a custom cluster name, enter it in the `cluster_name` field. If you leave this as the default, a name will be generated for you in the format `cp-DDMM-HHMM`.
-5. Click the green `Run workflow` button to start the process.
-6. You can find your cluster name in the Set Cluster Name job once the workflow has started.
+5. If you wish to deploy from a certain branch, enter the branch name (max 12 characters, this will truncate to this if over 12 characters).
+6. Click the green `Run workflow` button to start the process.
+7. You can find your cluster name in the Set Cluster Name job once the workflow has started.
 
 ## Destroying your cluster
 
@@ -22,12 +23,12 @@ review_in: 6 months
 2. Click on the `Run workflow` button.
 3. Select the action - `destroy`.
 4. Enter your cluster name in the `cluster_name` field.
-5. Click the green `Run workflow` button to start the process.
+5. Enter the branch name you used to create the cluster if not `main`.
+6. Click the green `Run workflow` button to start the process.
 
-# Amending the cluster with Terraform
+# Amending the cluster with Terraform locally
+
 1. Clone the [Modernisation Platform Environements repository](https://github.com/ministryofjustice/modernisation-platform-environments).
-2. Run the [dev-cluster-files.sh](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform-non-live/scripts/dev-cluster-files.sh) script, passing in your cluster name as an argument.
-3. This will create Terraform in `terraform/environments/cloud-platform-non-live/tmp/` for your cluster.
+2. Navigate to the relevant Cloud Platform environments Terraform folder.
+3. Select the correct Terraform workspace, this is your cluster name.
 4. Make any changes you need to the Terraform files and run the Terraform locally.
-5. Note: If you run the deploy cluster workflow again passing in your cluster name it will overwrite any changes you have made locally.
-6. The tmp folder can be deleted when you are finished with your cluster.
