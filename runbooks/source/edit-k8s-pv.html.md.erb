@@ -1,0 +1,105 @@
+---
+title: Expanding a PersistentVolumeClaim (PVC) for a StatefulSet
+weight: 8600
+last_reviewed_on: 2026-01-22
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+## Overview
+This runbook explains how to increase the size of a PersistentVolumeClaim (PVC) used by a StatefulSet when the workload runs out of disk space.
+
+
+## Preconditions
+- StorageClass supports volume expansion (`allowVolumeExpansion: true`)
+- PVC is in `Bound` state
+- Access to the Kubernetes cluster with sufficient privileges
+
+## Step 1: Identify the PVC
+
+List PVCs in the namespace:
+
+```
+kubectl get pvc -n <namespace>
+```
+
+Identify which PVC is attached to the pod:
+
+```
+kubectl describe pod <pod-name> -n <namespace> | grep -A15 Volumes:
+```
+
+You could also check free space metrics in grafana for the postgres volume to verify out of space.
+
+## Step 2: Edit the PVC to increase size
+
+Edit the pvc:
+
+```
+kubectl edit pvc <pvc-name> -n <namespace>
+```
+
+Increase the requested storage:
+
+```
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Gi ## increase the requested storage
+  storageClassName: gp3
+```
+
+Save and wait for the volume expansion to complete. You can verify it by:
+
+```
+kubectl get pvc <pvc-name> -n <namespace>
+```
+
+## Step 3: Restart pods to pick up resized filesystem
+
+Restart the StatefulSet:
+
+```
+kubectl rollout restart sts <statefulset-name> -n <namespace>
+```
+
+## Step 4: Verify StatefulSet PVC retention policy
+
+Before deleting a StatefulSet, ensure PVCs will be retained:
+
+```
+kubectl get sts <statefulset-name> -n <namespace> -oyaml
+```
+
+Verify the StatefulSet has policy to `Retain`:
+
+```
+spec:
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+```
+
+
+## Step 5: Delete StatefulSet (PVC retained)
+⚠️ Do not delete the PVC. Just to delete the StatefulSet and recreate it in next step.
+
+```
+kubectl delete sts <statefulset-name> -n <namespace>
+```
+
+
+Verify PVC still exists:
+
+```
+kubectl get pvc -n <namespace>
+```
+
+## Step 6: Update resource module and re-apply infra pipeline
+
+We need to recreate the StatefulSet via Terraform, and we should update the resource module to bump the PVC size and create a new infra PR to let terraform to create the StatefulSet.
+
+The StatefulSet will reattach to teh existing PVC.
