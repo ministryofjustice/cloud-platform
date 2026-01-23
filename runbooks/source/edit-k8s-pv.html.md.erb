@@ -10,7 +10,6 @@ review_in: 6 months
 ## Overview
 This runbook explains how to increase the size of a PersistentVolumeClaim (PVC) used by a StatefulSet when the workload runs out of disk space.
 
-
 ## Preconditions
 - StorageClass supports volume expansion (`allowVolumeExpansion: true`)
 - PVC is in `Bound` state
@@ -83,14 +82,12 @@ spec:
     whenScaled: Retain
 ```
 
-
 ## Step 5: Delete StatefulSet (PVC retained)
 ⚠️ Do not delete the PVC. Just to delete the StatefulSet and recreate it in next step.
 
 ```
 kubectl delete sts <statefulset-name> -n <namespace>
 ```
-
 
 Verify PVC still exists:
 
