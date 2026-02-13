@@ -19,7 +19,7 @@ We have been allocated the following CIDR ranges from the MoJ Networking team:
 10.195.0.0/16
 ```
 
-These are recoreded in the MoJ IPAM solution.  More details can be found [here](https://justiceuk.sharepoint.com/:f:/r/sites/CloudPlatform/Shared%20Documents/Cloud%20Platform/CIDR%20Range%20allocations?csf=1&web=1&e=FOyrbd)
+These are recoreded in the MoJ IPAM solution. More details can be found [here](https://justiceuk.sharepoint.com/:f:/r/sites/CloudPlatform/Shared%20Documents/Cloud%20Platform/CIDR%20Range%20allocations?csf=1&web=1&e=FOyrbd)
 
 ## Consequences
 
