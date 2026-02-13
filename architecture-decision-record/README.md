@@ -50,6 +50,7 @@ see [ADR-000](000-Record-Architecture-Decisions.md)
 - ✅ [40. Use GitHub Actions](040-use-github-actions.md)
 - ✅ [41. Decommission CLI Tool](041-decommission-cp-cli-tool.md)
 - ✅ [42. Use Modernisation Platform accounts](042-use-modernisation-platform-accounts.md)
+- ✅ [43. New Cloud Platform CIDR ranges](043-new-cidr-ranges.md)
 
 ### Statuses:
 
