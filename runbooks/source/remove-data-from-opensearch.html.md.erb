@@ -1,7 +1,7 @@
 ---
 title: Remove data from OpenSearch
 weight: 190
-last_reviewed_on: 2025-11-24
+last_reviewed_on: 2026-02-17
 review_in: 6 months
 ---
 
@@ -35,6 +35,21 @@ Although it is possible to delete a whole index with a curator job, this guide w
 Cloud Platform team members have access to the required IAM permissions to carry out the following commands from work devices. You'll just need to authenticate as usual with `aws sso login`.
 
 We'll be making use of `curl` and [AWS Sigv4](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_sigv.html) to authenticate our requests to OpenSearch. You can take a look at this [guide](https://code.dblock.org/2022/07/11/making-sigv4-authenticated-requests-to-managed-opensearch.html) on how to build `curl` requests. Alternatively, you can install [awscurl](https://formulae.brew.sh/formula/awscurl), which provides a wrapper around `curl` that handles the signing for you. We'll use this for snippets below.
+
+## Ensure the indices are in hot storage before deleting
+
+Documents can only be deleted from indices that are in **hot** storage.
+
+By default, only the most recent day of logs (i.e. today’s index) remains in the hot tier. Older indices are automatically moved to warm and then cold storage as part of the lifecycle policy.
+
+Once an index has moved to warm or cold storage, it becomes read-only and `_delete_by_query` operations will fail.
+
+Before running any delete command, make sure the relevant indices have been restored to the hot tier.
+
+Follow the steps here to restore indices:
+[Restore OpenSearch indices to hot storage](/opensearch-restore-indices.html)
+
+> ⚠️ If you plan to restore multiple indices, ensure there is enough available capacity in the hot tier before proceeding.
 
 ## Build your query
 
@@ -77,27 +92,52 @@ awscurl --service es \
 
 Once the result of the search query exactly fits what you want to delete, carry on to the next step.
 
-## Delete by query
+## Removing specific logs filtered by namespace and time range
 
-A `POST` request against the `_delete_by_query` endpoint will delete all documents matching the query in the request's body.
+If we need to remove logs for a specific namespace within a defined time window, we can use a `_delete_by_query` request with a `range` filter on `@timestamp`.
 
-If we want to delete all logs from the `my-namespace-production` from 01/02/2021:
+In the example below:
+
+- `gte` (greater than or equal to) defines the start of the time window (inclusive)
+- `lte` (less than or equal to) defines the end of the time window (inclusive)
+
+Make sure you carefully adjust both timestamps before running the command.
 
 ```
 awscurl --service es \
-  --region eu-west-2 \
-  -XPOST "https://search-cp-live-app-logs-jywwr7het3xzoh5t7ajar4ho3m.eu-west-2.es.amazonaws.com/live_kubernetes_cluster-2025.02.01/_delete_by_query" \
-  -H 'Content-Type: application/json' \
+--region eu-west-2 \
+  -XPOST "https://search-cp-live-app-logs-jywwr7het3xzoh5t7ajar4ho3m.eu-west-2.es.amazonaws.com/live_kubernetes_cluster-*/_delete_by_query" \
+  -H "Content-Type: application/json" \
   -d '{
-    "query": {
-      "match": {
-        "kubernetes.namespace_name.keyword": "my-namespace-production"
-      }
+  "query": {
+    "bool": {
+      "must": [],
+      "filter": [
+        {
+          "match_phrase": {
+            "kubernetes.namespace_name.keyword": "my-namespace-production"
+          }
+        },
+        {
+          "range": {
+            "@timestamp": {
+              "gte": "2026-01-07T00:00:00.000Z",
+              "lte": "2026-01-09T00:00:00.000Z",
+              "format": "strict_date_optional_time"
+            }
+          }
+        }
+      ],
+      "should": [],
+      "must_not": []
     }
-  }'
+  }
+} '
 ```
 
 Here again, `.keyword` is essential.
+
+> ⚠️ If a data leak has occurred, it is often safer to delete all logs for the affected namespace during the impacted period rather than attempting to target individual log lines. This reduces the risk of leaving sensitive data behind due to an incomplete query.
 
 ## Removing specific logs filtered by phrase
 
@@ -184,35 +224,3 @@ If you have complex search patterns used in OpenSearch which you want to delete,
  - Copy and paste the object which mentions `"query": {` to the above curl command and modify dates as needed
 
 > If you are searching for phrases which contain single-quote characters, those will need special handling when adding the phrases to the query
-
-## ----- THE BELOW SECTION REQUIRES A REWRITE FOR OPENSEARCH -----
-
-### Deleting documents stored in warm storage
-
-The documents can only be deleted from indices that are in hot storage. Currently past 14 days data are in hot storage.
-Once the indices are moved to warm/cold storage, you cannot delete particular documents as they are set as read-only.
-You can move the indices from warm to hot storage and then delete the documents. Follow the steps below to perform this operation.
-
-Go to kibana -> [Dev Tools](https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/dev_tools#/console)
-
-For example, if you want to delete the index `live_kubernetes_ingress-2023.03.02`, run the following command
-
-```bash
-POST _ultrawarm/migration/live_kubernetes_ingress-2023.03.02/_hot
-```
-
-This will move the index to hot storage. You can check the status of the migration using the following command
-
-```bash
-GET _ultrawarm/migration/live_kubernetes_ingress-2023.03.02
-```
-
-Once the migration is complete, you can delete the documents using the procedure mentioned at the [beginning of this runbook](/remove-data-from-opensearch.html#delete-by-query).
-
-Once the documents are deleted, you can move the indices back to warm storage using the following command
-
-```bash
-POST _ultrawarm/migration/live_kubernetes_ingress-2023.03.02/_warm
-```
-
-**NOTE:** If you are planning to move a lot of warm indices to hot, make sure you have enough storage in hot storage.
