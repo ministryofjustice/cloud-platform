@@ -31,7 +31,7 @@ File structure for AWS credentials and config files should look like this:
   |
   | > credentials
   | > config
-``` 
+```
 
  - You can get the necessary information to setup your SSO credentials from [Cloud Platform Accounts](https://d-9c6710dd7f.awsapps.com/start/#) page.
  - Click on the account you want to connect to, then click on `Access keys` for the role you want to assume (e.g. `platform-engineer-admin` for the cloud-platform-development account).
@@ -41,7 +41,7 @@ File structure for AWS credentials and config files should look like this:
 ```
 [profile cp-dev] #this can be any name you want, but it's good practice to use a name that reflects the account and role you are connecting to
 sso_session = <name of your sso session you setup in credentials file>
-sso_account_id = <account id  of  the account you want to connect to>
+sso_account_id = <account id of the account you want to connect to>
 sso_role_name = <name of the role you want to assume>
 region = eu-west-2
 output = <your-preferred-output-format> #this is optional
@@ -60,17 +60,16 @@ aws sso login --profile cp-dev
 
 This will open a browser window where you can login with your SSO credentials. Once you have logged in, you will be able to get the temporary credentials to connect to the cluster.
 
-
 **Connect to the cluster**
 
-To connect to the cluster, you can use the `aws eks update-kubeconfig` command to update your kubeconfig file with the necessary information to connect to the cluster. 
+To connect to the cluster, you can use the `aws eks update-kubeconfig` command to update your kubeconfig file with the necessary information to connect to the cluster.
 For example, to connect to the cloud-platform-development cluster, you can run the following command:
 
 ```
 aws eks update-kubeconfig --region eu-west-2 --name cp-dev-cluster --profile cp-dev
 ```
 
-This will update your kubeconfig file with the necessary information to connect to the cluster. You can then use the `kubectl` CLI to connect to the cluster. 
+This will update your kubeconfig file with the necessary information to connect to the cluster. You can then use the `kubectl` CLI to connect to the cluster.
 For example, you can run
 
 ```
