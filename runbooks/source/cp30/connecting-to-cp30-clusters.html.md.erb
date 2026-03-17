@@ -1,0 +1,78 @@
+---
+title: Connecting to CP30 clusters
+weight: 35
+last_reviewed_on: 2026-03-16
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+This guide describes how to connect to CP30 clusters.
+
+**Prerequisites**
+
+- You have access to the [Cloud Platform Accounts](https://d-9c6710dd7f.awsapps.com/start/#):
+  - cloud-platform-development
+  - cloud-platform-preproduction
+  - cloud-platform-nonlive
+  - cloud-platform-live
+- You have the AWS CLI installed, to configure your credentials and to assume the necessary roles.
+- You have the `kubectl` CLI installed, to connect to the clusters.
+
+**Steps**
+
+**Set up SSO credentials**
+
+First, to be able to connect to the clusters, you need to set up your SSO credentials.
+File structure for AWS credentials and config files should look like this:
+
+```
+.aws
+  |
+  | > credentials
+  | > config
+``` 
+
+ - You can get the necessary information to setup your SSO credentials from [Cloud Platform Accounts](https://d-9c6710dd7f.awsapps.com/start/#) page.
+ - Click on the account you want to connect to, then click on `Access keys` for the role you want to assume (e.g. `platform-engineer-admin` for the cloud-platform-development account).
+ - Follow `Option 2: Add a profile to your AWS credentials file` to setup your SSO credentials adding them to your AWS credentials file.
+ - In the conig file you need to add a profile for the role you want to assume, for example:
+
+```
+[profile cp-dev] #this can be any name you want, but it's good practice to use a name that reflects the account and role you are connecting to
+sso_session = <name of your sso session you setup in credentials file>
+sso_account_id = <account id  of  the account you want to connect to>
+sso_role_name = <name of the role you want to assume>
+region = eu-west-2
+output = <your-preferred-output-format> #this is optional
+```
+ - Once you have your credentials and config file setup, you can follow the instruction provided by AWS to setup your sso configure [cli-configure-sso-configure](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html#cli-configure-sso-configure)
+
+**SSO login**
+
+Now that your sso credentials are setup, you can use the `aws` CLI to assume the necessary role and get the temporary credentials to connect to the cluster.
+For example, to connect to the cloud-platform-development cluster, you can run the following command:
+
+```
+export AWS_PROFILE=cp-dev
+aws sso login --profile cp-dev
+```
+
+This will open a browser window where you can login with your SSO credentials. Once you have logged in, you will be able to get the temporary credentials to connect to the cluster.
+
+
+**Connect to the cluster**
+
+To connect to the cluster, you can use the `aws eks update-kubeconfig` command to update your kubeconfig file with the necessary information to connect to the cluster. 
+For example, to connect to the cloud-platform-development cluster, you can run the following command:
+
+```
+aws eks update-kubeconfig --region eu-west-2 --name cp-dev-cluster --profile cp-dev
+```
+
+This will update your kubeconfig file with the necessary information to connect to the cluster. You can then use the `kubectl` CLI to connect to the cluster. 
+For example, you can run
+
+```
+kubectl get nodes
+```
