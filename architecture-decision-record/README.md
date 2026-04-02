@@ -53,6 +53,7 @@ see [ADR-000](000-Record-Architecture-Decisions.md)
 - ✅ [43. New Cloud Platform CIDR ranges](043-new-cidr-ranges.md)
 - ✅ [44. New Platform Name](044-naming-container-platform.md)
 - ✅ [45. Use a Private EKS Endpoint](045-use-a-private-eks-endpoint.md)
+- ✅ [46. Use ECR for all User Images](046-use-ecr-for-all-user-images.md)
 
 ### Statuses:
 
