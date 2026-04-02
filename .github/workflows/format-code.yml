@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, edited, reopened, synchronize]
 
+permissions:
+  contents: write
+  security-events: write # needed for SARIF upload
+
 jobs:
   format-code:
     uses: ministryofjustice/modernisation-platform-github-actions/format-code@5b44b387694dfa249cfa2dcf289ca871abe9e3e2 #v5.0.1
