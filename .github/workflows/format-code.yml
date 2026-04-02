@@ -6,9 +6,11 @@ on:
 
 jobs:
   format-code:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - uses: ministryofjustice/github-actions/code-formatter@db1a54895bf5fb975c60af47e5a3aab96505ca3e  # v18.6.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    uses: ministryofjustice/modernisation-platform-github-actions/format-code@5b44b387694dfa249cfa2dcf289ca871abe9e3e2 #v5.0.1
+
+  commit-fixes:
+    uses: ministryofjustice/modernisation-platform-github-actions/signed-commit@5b44b387694dfa249cfa2dcf289ca871abe9e3e2 #v5.0.1
+    with:
+      github_token: ${{ secrets.GITHUB_TOKEN }}
+      pr_title: "GitHub Actions Code Formatter workflow"
+      pr_body: "This pull request includes updates from the GitHub Actions Code Formatter workflow. Please review the changes and merge if everything looks good."
