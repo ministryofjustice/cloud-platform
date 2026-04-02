@@ -4,9 +4,9 @@ on:
   pull_request:
     types: [opened, edited, reopened, synchronize]
 
-permissions:
-  contents: write
-  security-events: write # needed for SARIF upload
+# permissions:
+#   contents: write
+#   security-events: write # needed for SARIF upload
 
 jobs:
   format-code:
@@ -15,12 +15,12 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: ministryofjustice/modernisation-platform-github-actions/format-code@5b44b387694dfa249cfa2dcf289ca871abe9e3e2 #v5.0.1
 
-  commit-fixes:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - uses: ministryofjustice/modernisation-platform-github-actions/signed-commit@5b44b387694dfa249cfa2dcf289ca871abe9e3e2 #v5.0.1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          pr_title: "GitHub Actions Code Formatter workflow"
-          pr_body: "This pull request includes updates from the GitHub Actions Code Formatter workflow. Please review the changes and merge if everything looks good."
+  # commit-fixes:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+  #     - uses: ministryofjustice/modernisation-platform-github-actions/signed-commit@5b44b387694dfa249cfa2dcf289ca871abe9e3e2 #v5.0.1
+  #       with:
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
+  #         pr_title: "GitHub Actions Code Formatter workflow"
+  #         pr_body: "This pull request includes updates from the GitHub Actions Code Formatter workflow. Please review the changes and merge if everything looks good."
