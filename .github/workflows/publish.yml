@@ -37,7 +37,7 @@ jobs:
           rsync -av --delete --exclude CNAME --exclude License --exclude README.md runbooks/docs/ pages/
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@0252fc4ba7626f0298f0cf00902a25c6afc77fa8 # v3
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
         with:
           path: pages
 
