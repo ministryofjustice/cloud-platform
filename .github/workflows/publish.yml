@@ -17,7 +17,7 @@ jobs:
       group: github-pages
       cancel-in-progress: false
     container:
-      image: ministryofjustice/tech-docs-github-pages-publisher:v6.2.0
+      image: ghcr.io/ministryofjustice/tech-docs-github-pages-publisher@sha256:8b00235edfa4d1248e3cdd08c022d5f398c7f4abb3315b6078f1e876214a171e # v6.2.0
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2 # cant upgrade until tech-docs-github-pages-publisher image is updated
