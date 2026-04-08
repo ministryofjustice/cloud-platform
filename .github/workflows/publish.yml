@@ -26,7 +26,7 @@ jobs:
       #     cd runbooks; /scripts/deploy.sh false
       - name: Install rsync
         run: |
-          apk update && apk add rsync
+          apk update && apk add rsync tar
           which rsync
 
       - name: Configure Pages
