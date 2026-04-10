@@ -1,0 +1,113 @@
+---
+title: Incident on 2026-03-30 - ingress-nginx upgrade
+weight: 1
+---
+
+# Incident on 22026-03-30 - multiple incidents during ingress-nginx upgrade
+
+- **Key events**
+  - First detected 2026-03-30 08:56
+  - Incident declared 2026-03-30 09:14
+  - Repaired 2026-03-30 09:43
+  - Resolved 2026-03-30 14:39
+
+- **Identified**:
+  
+  Via messages in the HMPPS Auth team slack channel
+
+- **Background**:
+
+  On 30th March 2026 the Cloud Platform team deployed an updated version of the ingress-nginx component, this component includes the Modsecurity Web Application Firewall and associated OWASP Core Ruleset WAF rules.
+
+  During the deployment users in HMPPS experienced 'false-positive' WAF rejections of requests to the HMPPS Auth application and raised incidents with the MoJ service desk.
+
+- **Impact**:
+
+  Users across HMPPS were unable to authenticate successfully and were therefore unable to access their line of business applications.
+
+  Due to the nature of one of the false-positives it is possible that users in other parts of the MoJ would also have been unable to access applications running on the Cloud Platform.
+
+- **Context**:
+
+- **Resolution**:
+
+  * The Cloud Platform team conducted a rollback of the ingress-nginx deployment to allow for an investigation by both Vloud Platform and HMPPS engineers and to apply appropriate mitigations for these false positives
+
+  * HMPPS deployed a mitigations for their local false positive
+
+  * Cloud Platform team applied an interim global exclusion to mititgate issues caused by the `posthog` cookie
+
+- **Review actions**:
+
+  Sould there be a requirement to update ingress-nginx Cloud Platform will re-iterate the need for service teams to make use of the opportunities Cloud Platform provides to test workloads with new versions of the component before they are deployed to production/live environments.
+
+### Summary
+On 30th March 2026 the Cloud Platform team deployed an updated version of the ingress-nginx component used to route traffic from the internet to services running on the platform. This component includes the Modsecurity Web Application Firewall and associated OWASP Core Ruleset WAF rules. 
+
+Shortly after the component was deployed, we saw messages in slack between HMPPS teams which indicated they were seeing elevated levels of Modsecurity blocking requests which was making some services in HMPPS effectively unavailable for their users. 
+
+HMPPS developers had identified some CRS rules which were blocking requests. 
+
+The Cloud Platform team decided to rollback the deployment of ingress-nginx to allow teams time and space to investigate the issue and implement mitigations. 
+
+Cloud Platform implemented a global mitigation for a MoJ wide issue while HMPPS developers mitigated an issue with an HMPPS application. 
+
+The ingress-nginx component was redeployed in the afternoon of 30th March successfully with these mitigations in place.
+
+### **Timeline**
+
+| Timestamp          | Note |
+| -----------------: | :--  |
+| 2026-03-12 14:06 | Cloud Platform made a beta ingress available for teams to test against using the new Modsecurity version and updated Core ruleset and begin working with some teams to smoke test the component |
+| 2026-03-13 11:16 | Cloud Platform notify service teams of the availability of the beta of the upcoming ingress-nginx version |
+| 2026-03-23 07:22 | Cloud Platform deploy the release candidate of the ingress-nginx component to the non-production ingresses used in the platform |
+| 2026-03-23 07:30 | Cloud Platform publish a summary of the changes in Modsecurity and the CRS with links to a GitHub comparison between the two versions and a more detailed set of our findings |
+| 2026-03-30 07:11| Cloud Platform begin the deployment of the updated ingress-nginx component to the three production ingresses |
+| 2026-03-30 08:56 | Cloud Platform team notice messages in the #hmpps-auth-audit-registers slack channel which indicate unexpected blocking of requests by Modsecurity |
+| 2026-03-30 09:14| Cloud Platform team begin a rollback of the Modsecurity enabled ingress-nginx ingress and communicate with the HMPPS developers investigating the incident and the wider Cloud Platform user base |
+| 2026-03-30 09:22 | HMPPS developers apply an exclusion to their Modsecurity configuration to exclude rules which are blocking traffic to HMPPS Auth |
+| 2026-03-30 09:43 | The rollback of the ingress-nginx component has completed |
+| 2026-03-30 09:49 | HMPPS developers confirm they are no longer seeing elevated levels of request blocking by Modsecurity |
+| 2026-03-30 10:09 | HMPPS publish initial findings of which CRS rules were triggering the blocking |
+| 2026-03-30 11:23 | Using information from HMPPS and reported by LAA during their testing Cloud Platform create a temporary global exclusion for the rule being triggered by a posthog cookie |
+| 2026-03-30 12:00 | After review of the incident and Modsecurity logs Cloud Platform determine that with HMPPS local exclusions and our global exclusion that redeploying the update is safe |
+| 2026-03-30 12:32 | Cloud Platform communicate their intention to redeploy the updated ingress-nginx ingress at 14:00 |
+| 2026-03-30 14:00 | Cloud Platform team complete the rollout of the Modsecurity enabled ingress-nginx component |
+| 2026-03-30 14:39 | HMPPS developers confirm that the redeployment has not resulted in a recurrence of the issues seen during the morning deployment |
+| 2026-03-30 14:41 | Cloud Platform confirm the deployment has been completed |
+| | |
+
+### Causes 
+
+Version 1.14.3 of ingress-nginx included a new version of the Modsecurity WAF component and the OWASP Core ruleset. Together these included improvements in the detection of potentially malicious traffic which were aimed at improving security for users of the component. 
+
+We haven’t identified the specific change in the WAF rules which resulted in each of these payloads being blocked. One issue was identified in testing, however the mitigation put in place was insufficient due to the nature of the issue.
+
+Two false positive detections were identified as contributing to the issues reported by HMPPS users.
+
+1. The contents of a cookie used by the `posthog` analytics service
+2. An `Expect` header in requests sent to the HMPPS Auth service
+
+The second issue was not identified in testing by the service teams affected. It’s not yet clear why the issue wasn’t identified in advance. 
+
+### Resolution and recovery 
+
+The ingress-nginx update was rolled back. 
+
+CRS rule exclusions were added by HMPPS to prevent their services from being disrupted by the false-positive detections. 
+
+A temporary exclusion was added globally, across all services running on Cloud Platform, to prevent the rule triggered by the posthog cookie contents from blocking requests.  
+
+With these exclusions in place the ingress-nginx update was redeployed 
+
+### Corrective and preventative measures 
+
+The posthog cookie identified as a source of request blocking was rescoped so it was not included in future requests to all *.justice.gov.uk services, however there was insufficient time between this change being made and the deployment of the updated CRS rules to allow for the cookie to expire or be replaced on all clients (users web browsers). 
+
+A temporary exclusion was added globally to the ingress-nginx configuration to exclude this rule from blocking requests. This exclusion will be removed when the posthog cookie has been expired from sufficient users' browsers. 
+
+### Future Actions 
+
+Cloud Platform will re-iterate the need for service teams to use the non-production ingress controllers for their dev and test workloads so that they can identify issues with future updates to Modsecurity and the CRS.  
+
+Cloud Platform 3.0 will contain separate clusters for production and non-production workloads so non-production workloads will have to use the non-production ingress traffic routing, therefore mitigation for this type of issue will be part of the design. 
