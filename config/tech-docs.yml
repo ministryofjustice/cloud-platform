@@ -8,10 +8,10 @@ service_link: /
 
 # Links to show on right-hand-side of header
 header_links:
-  "Feedback / Report a problem": "mailto:platforms+runbooks@digital.justice.gov.uk?subject=Runbooks+feedback"
+  "Feedback / Report a problem": 'https://www.smartsurvey.co.uk/t/CloudPlatformfeedbacksurvey/'
 
   Documentation: /
-  GitHub: https://github.com/ministryofjustice/cloud-platform/tree/main/runbooks
+  GitHub: https://github.com/ministryofjustice/cloud-platform
 
 # Enables search functionality. This indexes pages only and is not recommended for single-page sites.
 enable_search: true
@@ -35,7 +35,7 @@ prevent_indexing: true
 
 show_contribution_banner: true
 github_repo: ministryofjustice/cloud-platform
-github_branch: "main/runbooks"
+github_branch: "main"
 
 owner_slack_workspace: mojdt
 default_owner_slack: "#cloud-platform-notify"
