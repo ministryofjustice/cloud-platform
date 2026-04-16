@@ -54,7 +54,7 @@ jobs:
             echo '3.1.0' > .ruby-version && chmod 755 .ruby-version
           fi
 
-      - uses: ruby/setup-ruby@v1
+      - uses: ruby/setup-ruby@e65c17d16e57e481586a6a5a0282698790062f92   #v1.300.0
 
       - name: Install dependencies
         if: steps.branch-exists.outputs.result == '0'
@@ -69,7 +69,7 @@ jobs:
           fi
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3.1.2 # v3.1.2
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
         with:
           terraform_version: "${{ inputs.terraform-version }}"
           terraform_wrapper: false
