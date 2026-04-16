@@ -1,180 +1,183 @@
-name: "Code-Formatter"
-description: "Format Ruby, Terraform, YAML/YML, Python, Markdown, JSON and html.md.erb files within a PR"
-inputs:
-  ignore-files:
-    description: "Files to ignore"
-    required: false
-    default: ""
-  terraform-version:
-    description: "Version of Terraform to use for formatting"
-    required: false
-    default: "latest"
-runs:
-  using: "composite"
-  steps:
-    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-      with:
-        repository: ${{ github.repository }}
+name: Code-Formatter
 
-    - name: Check branch exists and is not a fork
-      id: branch-exists
-      shell: bash
-      env:
-        HEAD_REF: ${{ github.head_ref }}
-      run: |
-        git fetch origin
-        branch_name="$HEAD_REF"
-        echo "branch_name=$branch_name" >> $GITHUB_ENV
-        if git rev-parse --verify "origin/$branch_name" &>/dev/null; then
-          echo "result=0" >> $GITHUB_OUTPUT
-        else
-          echo "Warning: Cannot code-format a forked branch or cannot find branch: $branch_name"
-          echo "result=1" >> $GITHUB_OUTPUT
-        fi
+on:
+  workflow_call:
+    inputs:
+      ignore-files:
+        description: "Files to ignore"
+        required: false
+        default: ""
+        type: string
+      terraform-version:
+        description: "Version of Terraform to use for formatting"
+        required: false
+        default: "latest"
+        type: string
 
-    - name: Setup Ruby version file
-      shell: bash
-      env:
-        HEAD_REF: ${{ github.head_ref }}
-        BRANCH_EXISTS: ${{ steps.branch-exists.outputs.result }}
-      run: |
-        if [[ "$BRANCH_EXISTS" == "0" ]]; then
-          git switch "$HEAD_REF"
-          if [ ! -f .ruby-version ] && [ ! -f .tool-versions ]; then
-            ruby_ver=$(grep -m1 'ruby "' Gemfile 2>/dev/null | sed "s/[^0-9.]*//g")
-            [ -z "$ruby_ver" ] && [ -f Gemfile.lock ] && \
-              ruby_ver=$(tail -5 Gemfile.lock | grep ruby | sed "s/[^0-9.]*//g")
-            echo "${ruby_ver:-3.1.0}" > .ruby-version && chmod 755 .ruby-version
+jobs:
+  format-code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          repository: ${{ github.repository }}
+
+      - name: Check branch exists and is not a fork
+        id: branch-exists
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          git fetch origin
+          branch_name="$HEAD_REF"
+          echo "branch_name=$branch_name" >> $GITHUB_ENV
+          if git rev-parse --verify "origin/$branch_name" &>/dev/null; then
+            echo "result=0" >> $GITHUB_OUTPUT
+          else
+            echo "Warning: Cannot code-format a forked branch or cannot find branch: $branch_name"
+            echo "result=1" >> $GITHUB_OUTPUT
           fi
-        else
-          echo '3.1.0' > .ruby-version && chmod 755 .ruby-version
-        fi
 
-    - uses: ruby/setup-ruby@v1
+      - name: Setup Ruby version file
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BRANCH_EXISTS: ${{ steps.branch-exists.outputs.result }}
+        run: |
+          if [[ "$BRANCH_EXISTS" == "0" ]]; then
+            git switch "$HEAD_REF"
+            if [ ! -f .ruby-version ] && [ ! -f .tool-versions ]; then
+              ruby_ver=$(grep -m1 'ruby "' Gemfile 2>/dev/null | sed "s/[^0-9.]*//g")
+              [ -z "$ruby_ver" ] && [ -f Gemfile.lock ] && \
+                ruby_ver=$(tail -5 Gemfile.lock | grep ruby | sed "s/[^0-9.]*//g")
+              echo "${ruby_ver:-3.1.0}" > .ruby-version && chmod 755 .ruby-version
+            fi
+          else
+            echo '3.1.0' > .ruby-version && chmod 755 .ruby-version
+          fi
 
-    - name: Install dependencies
-      if: steps.branch-exists.outputs.result == '0'
-      shell: bash
-      run: |
-        npm install --location=global prettier
-        pipx install autopep8
-        if [ -f Gemfile ]; then
-          grep -q standardrb Gemfile || bundle add standardrb
-          grep -q erb_lint Gemfile || bundle add erb_lint
-        else
-          bundle init && bundle add standardrb && bundle add erb_lint
-        fi
+      - uses: ruby/setup-ruby@v1
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3.1.2 # v3.1.2
-      with:
-        terraform_version: "${{ inputs.terraform-version }}"
-        terraform_wrapper: false
+      - name: Install dependencies
+        if: steps.branch-exists.outputs.result == '0'
+        run: |
+          npm install --location=global prettier
+          pipx install autopep8
+          if [ -f Gemfile ]; then
+            grep -q standardrb Gemfile || bundle add standardrb
+            grep -q erb_lint Gemfile || bundle add erb_lint
+          else
+            bundle init && bundle add standardrb && bundle add erb_lint
+          fi
 
-    - name: Format changed files
-      if: steps.branch-exists.outputs.result == '0'
-      shell: bash
-      env:
-        HEAD_REF: ${{ github.head_ref }}
-        BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        IGNORE_FILES: ${{ inputs.ignore-files }}
-      run: |
-        git fetch origin $GITHUB_BASE_REF --depth=50
-        git fetch origin "$HEAD_REF" --depth=50
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3.1.2 # v3.1.2
+        with:
+          terraform_version: "${{ inputs.terraform-version }}"
+          terraform_wrapper: false
 
-        mapfile -t modified_files < <(git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT \
-          "$BASE_SHA" "$HEAD_SHA")
+      - name: Format changed files
+        if: steps.branch-exists.outputs.result == '0'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          IGNORE_FILES: ${{ inputs.ignore-files }}
+        run: |
+          git fetch origin $GITHUB_BASE_REF --depth=50
+          git fetch origin "$HEAD_REF" --depth=50
 
-        if [ -n "$IGNORE_FILES" ]; then
-          IFS=',' read -ra ignore_list <<< "$IGNORE_FILES"
-          filtered=()
-          for file in "${modified_files[@]}"; do
-            fname=$(basename "$file")
-            for ignore in "${ignore_list[@]}"; do
-              [[ "$fname" == "$ignore" ]] && continue 2
+          mapfile -t modified_files < <(git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT \
+            "$BASE_SHA" "$HEAD_SHA")
+
+          if [ -n "$IGNORE_FILES" ]; then
+            IFS=',' read -ra ignore_list <<< "$IGNORE_FILES"
+            filtered=()
+            for file in "${modified_files[@]}"; do
+              fname=$(basename "$file")
+              for ignore in "${ignore_list[@]}"; do
+                [[ "$fname" == "$ignore" ]] && continue 2
+              done
+              filtered+=("$file")
             done
-            filtered+=("$file")
+            modified_files=("${filtered[@]}")
+          fi
+
+          for file in "${modified_files[@]}"; do
+            [ -z "$file" ] && continue
+            echo "Checking file: $file"
+            case "$file" in
+              *".github"*)
+                echo "Cannot format .github/workflow files." ;;
+              *".py")
+                ~/.local/bin/autopep8 --in-place "$file" ;;
+              *".rb")
+                bundle exec standardrb --fix "$file" ;;
+              *".tf"|*".tfvars")
+                terraform fmt "$file" ;;
+              *".html.md.erb")
+                bundle exec erblint -a "$file" ;;
+              *".yaml"|*".yml"|*".md"|*".html.md"|*".json")
+                npx prettier --print-width=150 --write "$file" ;;
+            esac
           done
-          modified_files=("${filtered[@]}")
-        fi
 
-        for file in "${modified_files[@]}"; do
-          [ -z "$file" ] && continue
-          echo "Checking file: $file"
-          case "$file" in
-            *".github"*)
-              echo "Cannot format .github/workflow files." ;;
-            *".py")
-              ~/.local/bin/autopep8 --in-place "$file" ;;
-            *".rb")
-              bundle exec standardrb --fix "$file" ;;
-            *".tf"|*".tfvars")
-              terraform fmt "$file" ;;
-            *".html.md.erb")
-              bundle exec erblint -a "$file" ;;
-            *".yaml"|*".yml"|*".md"|*".html.md"|*".json")
-              npx prettier --print-width=150 --write "$file" ;;
-          esac
-        done
+      - name: Commit formatted changes
+        if: steps.branch-exists.outputs.result == '0'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          rm -f Gemfile Gemfile.lock package-lock.json package.json .ruby-version
+          rm -rf node_modules namespaces
 
-    - name: Commit formatted changes
-      if: steps.branch-exists.outputs.result == '0'
-      shell: bash
-      run: |
-        rm -f Gemfile Gemfile.lock package-lock.json package.json .ruby-version
-        rm -rf node_modules namespaces
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git ls-files --deleted -z | git update-index --assume-unchanged -z --stdin
 
-        git config user.name 'github-actions[bot]'
-        git config user.email 'github-actions[bot]@users.noreply.github.com'
-        git ls-files --deleted -z | git update-index --assume-unchanged -z --stdin
+          if [ -z "$(git status --porcelain=1 --untracked-files=no)" ]; then
+            echo "Finished: no Code Formatter changes."
+            exit 0
+          fi
 
-        if [ -z "$(git status --porcelain=1 --untracked-files=no)" ]; then
-          echo "Finished: no Code Formatter changes."
-          exit 0
-        fi
+          git add --ignore-removal .
+          git diff --staged --name-only > changed_files.txt
+          echo "Files amended by formatter:" && cat changed_files.txt
 
-        git add --ignore-removal .
-        git diff --staged --name-only > changed_files.txt
-        echo "Files amended by formatter:" && cat changed_files.txt
+          commit_oid=$(git rev-parse HEAD)
+          repo_owner="${GITHUB_REPOSITORY%%/*}"
+          repo_name="${GITHUB_REPOSITORY##*/}"
 
-        commit_oid=$(git rev-parse HEAD)
-        repo_owner="${GITHUB_REPOSITORY%%/*}"
-        repo_name="${GITHUB_REPOSITORY##*/}"
+          files_for_commit='{"additions": []}'
+          while IFS= read -r file; do
+            [ -f "$file" ] || continue
+            base64_content=$(base64 -w 0 < "$file")
+            files_for_commit=$(echo "$files_for_commit" | jq --arg path "$file" --arg content "$base64_content" \
+              '.additions += [{"path": $path, "contents": $content}]')
+          done < changed_files.txt
 
-        files_for_commit='{"additions": []}'
-        while IFS= read -r file; do
-          [ -f "$file" ] || continue
-          base64_content=$(base64 -w 0 < "$file")
-          files_for_commit=$(echo "$files_for_commit" | jq --arg path "$file" --arg content "$base64_content" \
-            '.additions += [{"path": $path, "contents": $content}]')
-        done < changed_files.txt
+          mutation_payload=$(jq -n \
+            --arg branch_name "$branch_name" \
+            --arg commit_oid "$commit_oid" \
+            --arg repo_owner "$repo_owner" \
+            --arg repo_name "$repo_name" \
+            --argjson fileChanges "$files_for_commit" \
+            '{
+              query: "mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }",
+              variables: { input: {
+                branch: { repositoryNameWithOwner: "\($repo_owner)/\($repo_name)", branchName: $branch_name },
+                message: { headline: "Commit changes made by code formatters" },
+                fileChanges: $fileChanges,
+                expectedHeadOid: $commit_oid
+              }}
+            }')
 
-        mutation_payload=$(jq -n \
-          --arg branch_name "$branch_name" \
-          --arg commit_oid "$commit_oid" \
-          --arg repo_owner "$repo_owner" \
-          --arg repo_name "$repo_name" \
-          --argjson fileChanges "$files_for_commit" \
-          '{
-            query: "mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }",
-            variables: { input: {
-              branch: { repositoryNameWithOwner: "\($repo_owner)/\($repo_name)", branchName: $branch_name },
-              message: { headline: "Commit changes made by code formatters" },
-              fileChanges: $fileChanges,
-              expectedHeadOid: $commit_oid
-            }}
-          }')
+          RESPONSE=$(curl -s -X POST \
+            -H "Authorization: bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$mutation_payload" https://api.github.com/graphql)
 
-        RESPONSE=$(curl -s -X POST \
-          -H "Authorization: bearer $GITHUB_TOKEN" \
-          -H "Content-Type: application/json" \
-          -d "$mutation_payload" https://api.github.com/graphql)
-
-        COMMIT_OID=$(echo "$RESPONSE" | jq -r ".data.createCommitOnBranch.commit.oid")
-        if [ "$COMMIT_OID" != "null" ]; then
-          echo "Commit successfully created with OID: $COMMIT_OID"
-          echo "Finished: Code Formatter changes applied."
-        else
-          echo "Error creating commit: $RESPONSE" && exit 1
-        fi
+          COMMIT_OID=$(echo "$RESPONSE" | jq -r ".data.createCommitOnBranch.commit.oid")
+          if [ "$COMMIT_OID" != "null" ]; then
+            echo "Commit successfully created with OID: $COMMIT_OID"
+            echo "Finished: Code Formatter changes applied."
+          else
+            echo "Error creating commit: $RESPONSE" && exit 1
+          fi
