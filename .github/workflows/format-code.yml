@@ -8,5 +8,5 @@ on:
 
 jobs:
   format-code:
-    uses: ./.github/workflows/code-formatter/actions.yml
+    uses: ./.github/workflows/formater-actions.yml
     secrets: inherit
