@@ -82,8 +82,8 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           IGNORE_FILES: ${{ inputs.ignore-files }}
         run: |
-          git fetch origin $GITHUB_BASE_REF --depth=50
-          git fetch origin "$HEAD_REF" --depth=50
+          git fetch origin "$BASE_SHA" --depth=1
+          git fetch origin "$HEAD_SHA" --depth=1
 
           mapfile -t modified_files < <(git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT \
             "$BASE_SHA" "$HEAD_SHA")
