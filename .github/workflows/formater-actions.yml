@@ -27,9 +27,9 @@ jobs:
         env:
           HEAD_REF: ${{ github.head_ref }}
         run: |
-          git fetch origin
           branch_name="$HEAD_REF"
           echo "branch_name=$branch_name" >> $GITHUB_ENV
+          git fetch origin "refs/heads/$branch_name:refs/remotes/origin/$branch_name" 2>/dev/null || true
           if git rev-parse --verify "origin/$branch_name" &>/dev/null; then
             echo "result=0" >> $GITHUB_OUTPUT
           else
