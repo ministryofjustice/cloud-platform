@@ -1,0 +1,56 @@
+---
+title: RDS Data Loss Recovery
+weight: 100
+last_reviewed_on: 2026-04-20
+review_in: 6 months
+---
+
+# RDS Data Loss Recovery
+
+If the `snapshot_identifer` paramter is removed from a previously restored database, the database is deleted and a new blank database is created. This is recoverable as long as `skip_final_snapshot` was not set to `true` for that database.
+
+These instructions have only been tested in this use-case, but may also work in other data-loss scenarios. Instructions below are based on the database being deleted because of removal of the `snapshot_identifer` paramter.
+
+Where possible these steps should be carried out by the `cloud-platform` and application teams together.
+
+## Restoration Process
+
+### 1. Confirm that the data really has gone
+
+Connect to the database and check that it really has been replaced with an empty database.
+
+### 2. Identify the snapshot
+
+Go into the AWS console, look for the snapshot created when the apply happened with removal of the `snapshot_identifer` paramter. This will show up as a Manual snapshot as it was created by terraform action rather than AWS automatic backups.
+
+The snapshot should be named like `cloud-platform-37062b9a30121c9a-finalsnapshot`
+
+### 3. Set skip_final_snapshot
+
+In order to restore, `skip_final_snapshot` must be set otherwise Terraform tries to take a snapshot with the same name and fails. Raise a new PR with the following paramter:
+
+```
+  skip_final_snapshot = true
+```
+
+### 4. Restore from the snapshot
+
+Raise a new PR with the following parameters:
+
+```
+  snapshot_identifier = "<snapshot name>"
+```
+
+### 5. Check the restored data
+
+Connect to the database and check that it has been recovered.
+
+### 6. Remove the skip_final_snapshot setting
+
+Raise a new PR with the following paramter:
+
+```
+  skip_final_snapshot = false
+```
+
+
