@@ -25,20 +25,27 @@ Go into the AWS console, look for the snapshot created when the apply happened w
 
 The snapshot should be named like `cloud-platform-37062b9a30121c9a-finalsnapshot`
 
-### 3. Restore from the snapshot
+### 3. Set skip_final_snapshot
+
+In order to restore, `skip_final_snapshot` must be set otherwise Terraform tries to take a snapshot with the same name and fails. Raise a new PR with the following paramter:
+
+```
+  skip_final_snapshot = true
+```
+
+### 4. Restore from the snapshot
 
 Raise a new PR with the following parameters:
 
 ```
   snapshot_identifier = "<snapshot name>"
-  skip_final_snapshot = true
 ```
 
-### 4. Check the restored data
+### 5. Check the restored data
 
 Connect to the database and check that it has been recovered.
 
-### 5. Remove the skip_final_snapshot setting
+### 6. Remove the skip_final_snapshot setting
 
 Raise a new PR with the following paramter:
 
