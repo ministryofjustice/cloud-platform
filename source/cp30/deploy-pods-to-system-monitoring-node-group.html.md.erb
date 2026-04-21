@@ -1,0 +1,53 @@
+---
+title: Deploying pods to system and monitoring node groups
+weight: 35
+last_reviewed_on: 2026-04-21
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+This guide describes how to deploy pods to system and monitoring node groups in CP30 clusters.
+
+**Node labels and taints**
+
+System and monitoring node groups have specific labels and taints that prevent regular workloads from being scheduled on them. To deploy pods to these node groups, you need to use the node selector to choose the correct label and add tolerations to your pod specifications.
+
+The System and Monitoring node groups have the following labels and taints:
+
+- Labels:
+  - `"cloud-platform.justice.gov.uk/[system/monitoring]-ng" = "true"`
+  - `"container-platform.justice.gov.uk/[system/monitoring]-ng" = "true"`
+
+- Taints:
+  - `key: [system/monitoring]-node`
+  - `operator: Equal`
+  - `value: "true"`
+  - `effect: NoSchedule`
+
+We are currently using both cloud-platform and container-platform labels to ensure that old modules still work while we transition to the new labels on migrated modules. Once all modules are updated, we will remove the `cloud-platform` label and only use the `container-platform` label instead.
+
+**Example**
+
+The yaml configuration for the module would look similar to the below example:
+
+```
+nodeSelector:
+  container-platform.justice.gov.uk/system-ng: 'true'
+tolerations:
+  - key: system-node
+    operator: Equal
+    value: "true"
+    effect: NoSchedule
+```
+
+[Example of Karpenter selecting nodes](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster/eks-cluster.tf#L213-L219)
+
+> **_NOTE:_** 
+
+> If you do not include the node selector but include the tolerations, pods will be scheduled in the default node group.
+
+> If you do not include the tolerations but include the node selector, pods will not be scheduled at all and show 0 ready as it is unable to deploy without the correct tolerations.
+
+
+  
