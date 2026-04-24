@@ -19,6 +19,7 @@ jobs:
       - uses: ministryofjustice/modernisation-platform-github-actions/format-code@5b44b387694dfa249cfa2dcf289ca871abe9e3e2 #v5.0.1
 
   commit-fixes:
+    needs: format-code
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
