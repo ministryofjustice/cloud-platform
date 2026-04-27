@@ -1,0 +1,65 @@
+---
+title: Create a Documentation Site
+weight: 35
+last_reviewed_on: 2026-04-27
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+This guide explains how to create a new documentation site hosted on the Container Platform domain.
+
+#### 1. Create a repository from the template
+
+Create a new GitHub repository using the [template-documentation-site](https://github.com/ministryofjustice/template-documentation-site) template.
+
+#### 2. Update the content
+
+Add the documentation pages under the `source/` directory. The main index page is `source/index.html.md.erb`.
+
+Changes can be previewed locally by running:
+
+```bash
+make preview
+```
+
+#### 3. Set the site URL
+
+Once a name has been decided, update the `host` field in `config/tech-docs.yml` to the URL the site will be served from.
+
+For example:
+
+```yaml
+host: https://user-guide.development.container-platform.service.justice.gov.uk
+```
+
+See the [container-platform-user-guide](https://github.com/ministryofjustice/container-platform-user-guide/blob/main/config/tech-docs.yml#L2) for a working example.
+
+#### 4. Create a CNAME record in Route53
+
+A CNAME record must be created in the target hosted zone in AWS, pointing the subdomain at `ministryofjustice.github.io`.
+
+For example:
+
+| Name | Type | Value |
+|---|---|---|
+| `user-guide.development.container-platform.service.justice.gov.uk` | CNAME | `ministryofjustice.github.io` |
+
+#### 5. Configure GitHub Pages
+
+In the repository, go to **Settings → Pages** and:
+
+1. Set the **Custom domain** to the full URL (e.g. `user-guide.development.container-platform.service.justice.gov.uk`)
+2. Wait for the **DNS check** to show as successful
+3. Once the DNS check passes, tick **Enforce HTTPS**
+4. The site may take a few minutes to become available
+
+> **Note:** If the site does not load on the desktop, verify it is up and running with HTTPS using curl:
+>
+> ```bash
+> curl -I https://user-guide.development.container-platform.service.justice.gov.uk
+> ```
+>
+> A `200` response confirms the site is live. 
+> 
+> Alternatively, try on a different device using a different network (e.g. mobile data), as DNS caching may cause a delay on the local machine.
