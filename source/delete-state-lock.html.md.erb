@@ -1,7 +1,7 @@
 ---
 title: Delete terraform state lock
 weight: 199
-last_reviewed_on: 2025-03-17
+last_reviewed_on: 2026-05-11
 review_in: 6 months
 ---
 
@@ -38,6 +38,8 @@ PREFIX=cloud-platform-terraform-state/cloud-platform-environments
 for key in "${PREFIX}/live-1.cloud-platform.service.justice.gov.uk/${NAMESPACE}/terraform.tfstate-md5" "${PREFIX}/live-1.cloud-platform.service.justice.gov.uk/${NAMESPACE}/terraform.tfstate"; do
   json='{"LockID":{"S":"'${key}'"}}'
 
+  echo $json
+
   aws dynamodb delete-item \
     --region eu-west-1 \
     --table-name cloud-platform-environments-terraform-lock \
@@ -54,10 +56,14 @@ Invoke it like this:
 ## AWS Console method
 
 1. Go to the [dynamodb] page of the AWS web console (NB: the relevant table is in the `eu-west-1` region)
-2. Click on the [cloud-platform-environments-terraform-lock] table, and then the `Items` tab
-3. Click `Add filter`
-4. Enter `LockID` as the filter attribute, and change `String, =` to `String, contains` as the filter criteria
-5. Enter the namespace name as the string value to match, and click `Start search`
+2. Click on the [cloud-platform-environments-terraform-lock] table
+3. Click `Explore table items`
+4. Expand the `Filters` section and set
+    - `Atttribute name` = `LockID`
+    - `Condition` = `Contains`
+    - `Type` = `String`
+    - `Value` =  `<Namespace Name`>
+5. Hit Run
 
 When you find the relevant lock records, delete them. Terraform will recreate any missing records the next time it tries to acquire the lock for that terraform state file.
 
