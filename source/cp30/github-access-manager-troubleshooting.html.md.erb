@@ -1,0 +1,165 @@
+---
+title: GitHub Access Manager Troubleshooting
+weight: 35
+last_reviewed_on: 2026-05-27
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+This guide covers common issues encountered when managing Container Platform repositories with the [container-platform-github-access](https://github.com/ministryofjustice/container-platform-github-access) Terraform repo.
+
+**403 Resource Not Accessible by Integration**
+
+Cause: The GitHub App does not have access to the repo you are trying to manage.
+
+Fix:
+
+1. Go to [container-platform-github-access > Settings > GitHub Apps](https://github.com/ministryofjustice/container-platform-github-access/settings/installations)
+2. Click Configure on "Container Platform Access"
+3. Authenticate when prompted
+4. Under "Repository access", add the repo
+
+The app is scoped to specific repos, not all org repos. Only add repos that the Container Platform team owns.
+
+**Terraform tries to destroy repos not in config**
+
+Cause: Someone imported repos into state (e.g. via `terraform import` locally) without merging the matching Terraform config.
+
+Fix:
+
+- If the code PR exists: merge it first so config matches state
+- If the repos should not be managed: use a `removed` block in a PR:
+
+```hcl
+removed {
+  from = module.github_repositories["repo-name"]
+
+  lifecycle {
+    destroy = false
+  }
+}
+```
+
+Prevention: Always use import blocks in code (in `imports.tf`) instead of running `terraform import` locally. This ensures state and config are updated in the same apply.
+
+**for_each unknown key error**
+
+Cause: Using a resource ID in `for_each` that Terraform cannot resolve at plan time (e.g. `module.github_team.id` before the team exists).
+
+Fix: Split into two PRs:
+
+1. First PR: create the team
+2. Second PR: reference the team ID in `for_each`
+
+This only applies when the team is brand new. Once it exists in state, the ID is known.
+
+**Dependabot 403 on import**
+
+Cause: The GitHub App cannot read/write dependabot settings on a repo it does not have access to.
+
+Fix:
+
+- Add the repo to the app's installation scope, or
+- Skip the dependabot import block (it will be created as a new resource on apply)
+
+If the create also fails with 403, the app genuinely does not have access to that repo.
+
+**Dependabot PRs failing with missing secrets**
+
+Cause: Dependabot PRs run in a restricted context where repository secrets are not accessible. The CI workflow uses `actions/create-github-app-token` which requires `CLIENT_ID` and `APP_PRIVATE_KEY`.
+
+Fix: Add the same secrets as Dependabot secrets in the repo:
+
+1. Go to Settings > Secrets and variables > Dependabot
+2. Add `CLIENT_ID` with the same value as the Actions secret
+3. Add `APP_PRIVATE_KEY` with the full PEM file contents
+
+**Compliance badge not updating**
+
+Cause: The compliance checker runs on a schedule and GitHub caches badge images.
+
+Fix:
+
+1. Verify the team hierarchy:
+
+    ```
+    gh api "orgs/ministryofjustice/teams/container-platform" \
+      --jq '{name, parent: .parent.name}'
+    ```
+
+2. Verify team has admin access:
+
+    ```
+    gh api "repos/ministryofjustice/REPO_NAME/teams" \
+      --jq '.[] | "\(.slug) (\(.permission))"'
+    ```
+
+3. Check `webops` has admin (currently required):
+
+    ```
+    gh api "repos/ministryofjustice/REPO_NAME/teams" \
+      --jq '.[] | select(.slug == "webops") | .permission'
+    ```
+
+4. If all settings are correct but the badge still shows the old status, purge the cached image:
+
+    ```
+    curl -s "https://github.com/ministryofjustice/REPO_NAME" \
+      | grep -o 'https://camo.githubusercontent.com/[^"]*badge[^"]*'
+    curl -X PURGE "CAMO_URL_FROM_ABOVE"
+    ```
+
+5. Hard-refresh the repo page (Cmd+Shift+R)
+
+6. If the compliance report itself has not updated, ask Connor in `#github-community` to trigger a manual refresh
+
+**Commits must have verified signatures**
+
+Cause: The branch protection ruleset requires all commits to be signed. Unsigned or unverified commits will block merging.
+
+Fix: The committer needs to configure commit signing:
+
+```
+# Generate a GPG key (if not already done)
+gpg --full-generate-key
+# Choose: RSA, 4096 bits, set an expiry, enter name and email (must match GitHub email)
+
+# Get the key ID
+gpg --list-secret-keys --keyid-format=long
+# Look for: rsa4096/XXXXXXXXXXXXXXXX
+
+# Export and add to GitHub
+gpg --armor --export XXXXXXXXXXXXXXXX
+# Copy output to: GitHub > Settings > SSH and GPG keys > New GPG key
+
+# Configure Git
+git config --global user.signingkey XXXXXXXXXXXXXXXX
+git config --global commit.gpgsign true
+```
+
+If a PR already has unsigned commits, re-sign them all:
+
+```
+git rebase --exec 'git commit --amend --no-edit -S' main
+git push --force-with-lease
+```
+
+**Merge conflicts after a colleague's PR merges**
+
+Cause: Multiple PRs editing `github-repositories.tf` or `data.tf` concurrently.
+
+Fix: Rebase your branch:
+
+```
+git checkout main && git pull origin main
+git checkout your-branch && git rebase main
+git add . && git rebase --continue
+git push origin your-branch --force
+```
+
+**State checksum mismatch**
+
+Cause: The S3 state file checksum does not match the DynamoDB digest. This can happen if the backend was recently migrated from `dynamodb_table` to `use_lockfile = true` and an older branch still references the DynamoDB config.
+
+Fix: Rebase the branch onto `main` to pick up the current backend configuration, then re-run the pipeline.
