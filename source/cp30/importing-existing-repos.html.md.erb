@@ -1,0 +1,248 @@
+---
+title: Importing Existing Repositories
+weight: 35
+last_reviewed_on: 2026-05-29
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+This runbook explains :
+
+- The prerequisites for importing an existing repository
+- How to grant team access
+- How to import existing repositories into Terraform state safely
+
+#### Before you start
+
+1. Ensure signed commits is enabled or follow [these steps](https://github.com/ministryofjustice/container-platform-github-access/blob/main/README.md#contributing) to do so if you have not
+2. Create a feature branch
+3. Ensure the repository has been added to the GitHub app as one of those the app has permissions to so that a 403 error never surfaces during the import operation. For more details, check [the Troubleshooting runbook](https://github.com/ministryofjustice/container-platform-github-access/blob/main/runbooks/troubleshooting.md#403-resource-not-accessible-by-integration)
+
+#### Importing Existing Repos
+
+##### Important
+
+> ⚠️ Never import a repository without first checking its current settings.
+>
+> Terraform will overwrite anything that does not match your configuration.
+> Missing a setting could break a live site, remove team access,
+> or destroy rulesets.
+
+#### Step 1: Query the Repo's Current Settings
+
+```bash
+##### Basic repository settings
+gh api "repos/ministryofjustice/REPO_NAME" --jq '{
+  description,
+  visibility,
+  has_wiki,
+  has_projects,
+  has_issues,
+  has_discussions,
+  homepage_url,
+  is_template,
+  allow_auto_merge,
+  allow_squash_merge,
+  allow_merge_commit,
+  allow_rebase_merge,
+  delete_branch_on_merge,
+  web_commit_signoff_required
+}'
+
+##### Team access
+gh api "repos/ministryofjustice/REPO_NAME/teams" \
+  --jq '.[] | "\(.slug) (id: \(.id), permission: \(.permission))"'
+
+##### Branch protection rulesets
+gh api "repos/ministryofjustice/REPO_NAME/rulesets" \
+  --jq '.[] | {name, enforcement, target}'
+
+##### Pages config (if applicable)
+gh api "repos/ministryofjustice/REPO_NAME/pages" 2>/dev/null \
+  --jq '{cname: .cname, build_type: .build_type}'
+
+##### Check if dependabot security updates are enabled
+gh api "repos/ministryofjustice/REPO_NAME/automated-security-fixes" 2>/dev/null
+```
+
+#### Step 2: Write Config That Matches Reality
+
+Add the repository to the `github-repositories.tf` with settings that match what the API returned.
+
+#### Repository behaviour and access
+
+Repositories are defined in `github-repositories.tf`
+in `local.github_repositories`.
+
+Example:
+
+```hcl
+container_platform_my_new_repo = {
+  name         = "container-platform-my-new-repo"
+  description  = "Repository for ..."
+  has_projects = true
+
+  access = {
+    admins  = [data.github_team.cloud_platform_engineers.id]
+    pushers = [data.github_team.all_org_members.id]
+  }
+}
+```
+
+Common options already used in this repository:
+
+- `visibility` (`public` or `private`, defaults to `public`)
+- `has_discussions`
+- `pages_enabled`
+- `pages_configuration = { cname = "..." }`
+
+- Full list of supported repository feature flags/defaults:
+  - [modules/github/repository/variables.tf](https://github.com/ministryofjustice/container-platform-github-access/blob/main/modules/github/repository/variables.tf)
+
+- Resource implementation details (rulesets, security, access bindings):
+  - [modules/github/repository/main.tf](https://github.com/ministryofjustice/container-platform-github-access/blob/main/modules/github/repository/main.tf)
+
+#### Team data sources
+
+Teams are defined as `data "github_team"` blocks in [`data.tf`](https://github.com/ministryofjustice/container-platform-github-access/blob/main/data.tf)
+
+Commonly used teams:
+
+- `data.github_team.cloud_platform_engineers.id`
+- `data.github_team.all_org_members.id`
+
+If a new team is needed, add a `data "github_team"` block in [`data.tf`](https://github.com/ministryofjustice/container-platform-github-access/blob/main/data.tf) first.
+
+Pay special attention to:
+
+- **`description`**: use the exact current description
+- **`homepage_url`**: don't drop it if one exists
+- **`is_template`**: if it's a template, set this to `true`
+- **`visibility`**: `public`, `private`, or `internal`
+- **`pages_enabled`** / **`pages_configuration`**: if the repository has GitHub Pages
+- **`has_wiki`**, **`has_projects`**, **`has_discussions`**: match current values
+
+Example:
+
+```hcl
+container_platform_terraform_gatekeeper = {
+  name         = "container-platform-terraform-gatekeeper"
+  description  = "Gatekeeper Terraform module for the Container Platform"
+  has_projects = true
+
+  access = {
+    admins  = [module.github_team.id, data.github_team.cloud_platform_engineers.id]
+    pushers = [data.github_team.all_org_members.id]
+  }
+}
+```
+
+Things the module defaults handle (you only need to set if different from defaults):
+
+- `visibility` defaults to `"public"`
+- `has_projects` defaults to `false`
+- `has_discussions` defaults to `false`
+- `pages_enabled` defaults to `false`
+- `use_template` defaults to `false`
+- `is_template` defaults to `false`
+
+> [!NOTE]
+> Existing repositories will have `use_template` default to `false` in the module call.
+> Do not set `use_template = true` for repositories that already exist.
+> This will cause an error.
+
+#### Step 3: Create Import Blocks
+
+Create `imports.tf` with import blocks for resources that already exist on GitHub:
+
+```hcl
+# Always import the repository itself
+import {
+  to = module.github_repositories["REPO_KEY"].github_repository.this
+  id = "REPO_NAME"
+}
+
+# Import dependabot if the app has access (check for 403 first)
+import {
+  to = module.github_repositories["REPO_KEY"].github_repository_dependabot_security_updates.this
+  id = "REPO_NAME"
+}
+
+# Import each team that ALREADY has access
+# Only import teams that exist on the repository AND are in your config
+import {
+  to = module.github_repositories["REPO_KEY"].github_team_repository.admin["TEAM_ID"]
+  id = "TEAM_ID:REPO_NAME"
+}
+```
+Example can be found [here](https://github.com/ministryofjustice/container-platform-github-access/pull/21/changes#diff-1e6881931c66fb75c555120ae6ae5f2fbc97391a935cb0da2e26e2eeee6adebcR1-R6)
+
+#### Step 4: Review the Plan
+
+Before merging, check the Terraform plan output carefully:
+
+- `~` (update): verify every change is intentional
+- `+` (create): new resources like rulesets and team access are expected
+- `-` (destroy): red flag unless you're deliberately removing something
+- Template block removal (`- template {}`): cosmetic and safe
+
+Watch for these dangerous changes:
+
+- Description being overwritten
+- `homepage_url` being set to `null`
+- `pages` block being removed
+- `is_template` changing from `true` to `false`
+- Rulesets being rewritten or deleted
+
+
+##### Open a PR
+
+1. Commit changes with a clear message
+2. Open a PR describing:
+   - repository added or changed
+   - access model (admin/push teams)
+
+The CI workflow will run `terraform plan` automatically on the PR.
+
+#### Step 5: Clean Up
+
+After the apply succeeds, delete `imports.tf` in a follow-up PR.
+
+Import blocks are only needed for the initial import.
+
+##### Common Pitfalls
+
+1. **Importing repositories the app doesn't have access to**
+   - You'll get 403 errors.
+   - Only import repositories in the GitHub App's installation scope.
+   - Click **Configure** on the [Container Platform Access](https://github.com/ministryofjustice/container-platform-github-access/blob/main/runbooks/troubleshooting.md#403-resource-not-accessible-by-integration) github app, authenticate, search for the repository you intend importing then add it
+
+2. **Importing repositories owned by other teams**
+   - Don't manage repositories that belong to other teams.
+   - Example: `template-repository` is an org-level repository, not a container-platform repository.
+
+3. **Importing to state before merging code**
+   - If you run `terraform import` locally, the resource is in remote state immediately.
+   - If anyone else runs a plan/apply before your code is merged, Terraform will try to destroy those resources.
+
+4. **Not checking for existing rulesets**
+   - The module creates a new ruleset called `main`.
+   - If the repository already has a different ruleset, it won't be managed and will coexist.
+   - Check if the existing one conflicts.
+
+#### Troubleshooting
+
+- **`terraform plan` shows "will be created" for an existing repository**
+  - The repository has not been imported into state.
+
+- **Error about template on existing repository**
+  - Ensure `use_template` is not set to `true` for repositories that already exist.
+
+- **GitHub repository access not applied**
+  - Check `access` keys reference valid `data.github_team` data sources in [`data.tf`](https://github.com/ministryofjustice/container-platform-github-access/blob/main/data.tf).
+
+- **Auth errors during plan/apply**
+  - Locally: ensure `TF_VAR_github_token` is exported.
+  - CI: check that `CLIENT_ID` and `APP_PRIVATE_KEY` repository secrets are set correctly.
+
