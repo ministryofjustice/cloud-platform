@@ -1,6 +1,6 @@
 # 49. Use Cluster Accounts for Resources
 
-Date: 2026-06-06
+Date: 2026-06-05
 
 ## Status
 
