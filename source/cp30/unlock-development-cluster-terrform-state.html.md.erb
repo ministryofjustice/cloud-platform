@@ -1,0 +1,41 @@
+---
+title: Unlock Development Cluster Terraform State
+weight: 10
+last_reviewed_on: 2026-06-11
+review_in: 6 months
+---
+
+# Workflow to Unlock Development Cluster Terraform State
+
+## Issue 
+
+A state lock may prevent destruction of a development cluster, e.g.:
+
+```
+Error: Error acquiring the state lock
+│ 
+│ Error message: operation error S3: PutObject, https response error
+│ StatusCode: 412, RequestID: XXX, HostID: YYY,
+│ api error PreconditionFailed: At least one of the pre-conditions you
+│ specified did not hold
+│ Lock Info:
+│   ID:        9dc214a6-95d5-6428-11aa-50cb0e86a491
+│   Path:      modernisation-platform-terraform-state/environments/members/cloud-platform/network/cp-lock-deletion-test/terraform.tfstate
+│   Operation: OperationTypeApply
+│   Who:       runner@runnervm3jyl0
+│   Version:   1.14.3
+│   Created:   2026-06-11 08:37:52.240995696 +0000 UTC
+```
+
+## Unlock Workflow
+
+Use the [Force Unlock Terraform State](https://github.com/ministryofjustice/cloud-platform-github-workflows/actions/workflows/cluster-state-unlock.yml) workflow to remove the lock.
+
+### Parameters
+
+| Parameter                | Description                                                                 |
+|-------------------------|-----------------------------------------------------------------------------|
+| cluster_name            | Name of the cluster workspace to force unlock                               |
+| lock_id                 | Specific lock ID to unlock                                                  |
+| terraform_env_location | Terraform environment location to force unlock; one of:<ul><li>network</li><li>cluster</li><li>cluster-core</li><li>cluster-components</li></ul> |
+
