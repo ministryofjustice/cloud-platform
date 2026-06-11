@@ -1,1 +1,27 @@
+---
+title: EKS Auto Mode in CP3
+weight: 10
+last_reviewed_on: 2026-06-17
+review_in: 6 months
+---
 
+# EKS Auto Mode
+
+## Overview
+
+EKS Auto Mode is a feature that implements automatic scaling and management capabilities for Amazon Elastic Kubernetes Service (EKS) clusters within the Cloud Platform. This feature is part of the CP30 Components & Addons initiative, focusing on improving cluster scaling capabilities. See ticket [#8274](https://github.com/ministryofjustice/cloud-platform/issues/8274)
+
+## EKS Auto Mode Managed Components
+
+At time of writing, EKS Auto Mode manages:
+
+- Karpenter, for auto-scaling the compute of your cluster
+- AWS Load Balancer Controller to allow you to easily expose Kubernetes services via automated Elastic Load Balancer integration
+- VPC CNI
+- Cluster DNS
+- kube-proxy
+- EBS CSI
+- EKS Pod Identity Agent
+- EKS Node Monitoring Agent
+
+See the [AWS EKS Auto Mode documentation](https://docs.aws.amazon.com/eks/latest/best-practices/automode.html) for the latest features.
