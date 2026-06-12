@@ -1,0 +1,120 @@
+---
+title: ElastiCache create failed - insufficient AZ capacity
+weight: 101
+last_reviewed_on: 2026-06-12
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+This runbook describes how to diagnose and resolve ElastiCache replication group creation failures caused by insufficient capacity in an availability zone.
+
+## Problem Description
+
+A user's ElastiCache cluster fails to create, and the apply pipeline reports an unhelpful error like this:
+
+```
+Error: waiting for ElastiCache Replication Group (arn:aws:elasticache:eu-west-2:000000000000:replicationgroup:cp-021049a595fe1050) create: unexpected state 'create-failed', wanted target 'available'. last error: %!s(<nil>)
+```
+
+Terraform surfaces no reason for the failure (`last error: %!s(<nil>)`). A common cause is that AWS has run out of capacity for the requested node type in one of the availability zones (error code `InsufficientCacheClusterCapacity`).
+
+By default, the [ElastiCache module](https://github.com/ministryofjustice/cloud-platform-terraform-elasticache-cluster) places cache clusters in the first `number_cache_clusters` AZs **alphabetically**, so `eu-west-2a` is always used unless the user overrides placement. A capacity shortage in a single AZ can therefore affect every new cluster using the defaults.
+
+The failed replication group is **not** recorded in the Terraform state, so it is left orphaned in the AWS account and will block a rerun until it is deleted.
+
+## Detecting which AZ is out of capacity
+
+### Via the AWS console
+
+1. Log in to the affected account and switch to the region from the error message (e.g. `eu-west-2`).
+2. Go to **ElastiCache** and open **Events** in the left-hand navigation.
+3. Filter the events around the time of the failed apply. Look for events with source type **Cache cluster** whose source IDs match the replication group's members (e.g. `cp-021049a595fe1050-001`, `cp-021049a595fe1050-002`).
+4. A capacity failure event message includes `InsufficientCacheClusterCapacity` and names the availability zone that could not satisfy the request.
+5. If the event message does not name the AZ, open the replication group under **Redis OSS caches**, look at which member node is in `create-failed` status, and note its configured availability zone.
+
+### Via the AWS CLI
+
+Look at recent events for the replication group and its member cache clusters (`--duration` is in minutes, max 14 days):
+
+```bash
+aws elasticache describe-events \
+  --source-type replication-group \
+  --source-identifier cp-021049a595fe1050 \
+  --duration 1440
+
+aws elasticache describe-events \
+  --source-type cache-cluster \
+  --duration 1440
+```
+
+Look for `InsufficientCacheClusterCapacity` in the event messages; the message names the affected AZ.
+
+To cross-reference which member failed and which AZ it was placed in:
+
+```bash
+aws elasticache describe-cache-clusters \
+  --show-cache-node-info \
+  --query "CacheClusters[?starts_with(CacheClusterId, 'cp-021049a595fe1050')].{Id:CacheClusterId,Status:CacheClusterStatus,AZ:PreferredAvailabilityZone}" \
+  --output table
+```
+
+Members in `create-failed` status in the same AZ confirm which zone is out of capacity.
+
+## Resolution Steps
+
+### 1. Communicate with the affected user
+
+Tell the user which AZ is out of capacity and ask them to pin their cluster to the unaffected AZs using the module's `preferred_cache_cluster_azs` variable, e.g. if `eu-west-2a` is affected:
+
+```hcl
+preferred_cache_cluster_azs = ["eu-west-2b", "eu-west-2c"]
+```
+
+The list length must equal `number_cache_clusters` (the module default is 2). If the user runs 3 cache clusters, an unaffected AZ must be repeated, e.g. `["eu-west-2b", "eu-west-2c", "eu-west-2b"]`.
+
+The user should raise a PR with this change.
+
+> **NOTE**: if more than one AZ is affected, the shortage cannot be bypassed with AZ placement alone, as there are only 3 AZs in the `eu-west-2` region. The following workarounds have been validated with AWS Premium Support:
+>
+> - **Retry the request**: On-Demand capacity shifts frequently as AWS adds capacity and other customers release nodes, so waiting a few minutes and rerunning the apply can succeed. There is no way to get an ETA from AWS for when capacity will return.
+> - **Switch node type**: capacity shortages are per node type per AZ, driven by customer demand at that moment, so a different `node_type` (e.g. the next size up, or a different instance family) often provisions successfully in the affected AZs. The node type can be scaled back later.
+> - **Reduce the number of nodes per request**: smaller requests are easier to satisfy. Less relevant with the module default of 2 cache clusters, but worth considering for larger clusters.
+> - **Single-AZ placement (last resort, not for production)**: `preferred_cache_cluster_azs` accepts repeated AZs (e.g. `["eu-west-2b", "eu-west-2b"]`), which provisions all cache clusters in the one healthy AZ. This sacrifices AZ fault tolerance and should only be used as a temporary measure for non-production workloads.
+>
+> AWS also recommends submitting the request **without specifying any AZs** so AWS can place nodes wherever capacity exists, but this is not currently possible with our module: it always sets `preferred_cache_cluster_azs` (the user's value, or the first N AZs alphabetically as a fallback).
+>
+> **Reserved nodes do not help**: AWS confirmed reserved nodes are purely a billing discount and do *not* guarantee capacity or prevent `InsufficientCacheClusterCapacity` errors.
+>
+> See [ElastiCache error messages](https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/ErrorMessages.html) and [troubleshooting cluster creation failures](https://repost.aws/knowledge-center/elasticache-troubleshoot-cluster-failure).
+
+### 2. Delete the orphaned replication group
+
+The on-call engineer must delete the failed replication group before the apply is rerun, otherwise the recreate will fail with a naming conflict (the `cp-` identifier is derived from a `random_id` already held in state).
+
+Via the CLI:
+
+```bash
+aws elasticache delete-replication-group \
+  --replication-group-id cp-021049a595fe1050 \
+  --no-retain-primary-cluster
+```
+
+Or via the console: select the replication group, choose **Delete**, select **No** for the final backup (the cluster never became available, so there is no data to back up), and type the cluster name to confirm.
+
+Wait until the replication group has disappeared:
+
+```bash
+aws elasticache describe-replication-groups \
+  --replication-group-id cp-021049a595fe1050
+```
+
+This returns `ReplicationGroupNotFoundFault` once the deletion is complete.
+
+### 3. Rerun the failed plan/apply
+
+Rerun the failed pipeline job for the user's namespace. With the user's `preferred_cache_cluster_azs` PR merged, the replication group will be recreated in the unaffected AZs.
+
+### 4. Check the plan, then merge
+
+If the user's PR was raised after the failed apply, review the plan output on the PR: it should show the replication group being created (not modified) with the expected `preferred_cache_cluster_azs`. Once the plan looks correct, merge the PR and confirm the apply completes and the replication group reaches `available`.
