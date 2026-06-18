@@ -31,12 +31,31 @@ This runbook explains :
 
 #### Step 1: Query the Repo's Current Settings
 
-```bash
-##### Set Repo Name
-REPO_NAME=<my-repo-name>
+Save the following script as `repo_settings.sh`. This script will output the current settings of the repository:
 
-##### Basic repository settings
-gh api "repos/ministryofjustice/$REPO_NAME" --jq '{
+```bash
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+export GH_PAGER=cat
+
+if [ "$#" -ne 1 ]; then
+  echo "Missing parameter: $0 <repo-name>"
+  exit 1
+fi
+
+REPO_NAME="$1"
+ORG="ministryofjustice"
+REPO="$ORG/$REPO_NAME"
+
+echo "======================================="
+echo "Repository: $REPO"
+echo "======================================="
+
+echo
+echo "===== Basic repository settings ====="
+gh api "repos/$REPO" --jq '{
   description,
   visibility,
   has_wiki,
@@ -53,20 +72,37 @@ gh api "repos/ministryofjustice/$REPO_NAME" --jq '{
   web_commit_signoff_required
 }'
 
-##### Team access
-gh api "repos/ministryofjustice/$REPO_NAME/teams" \
+echo
+echo "===== Team access ====="
+gh api "repos/$REPO/teams" \
   --jq '.[] | "\(.slug) (id: \(.id), permission: \(.permission))"'
 
-##### Branch protection rulesets
-gh api "repos/ministryofjustice/$REPO_NAME/rulesets" \
+echo
+echo "===== Branch protection rulesets ====="
+gh api "repos/$REPO/rulesets" \
   --jq '.[] | {name, enforcement, target}'
 
-##### Pages config (if applicable)
-gh api "repos/ministryofjustice/$REPO_NAME/pages" 2>/dev/null \
-  --jq '{cname: .cname, build_type: .build_type}'
+echo
+echo "===== Pages config (if applicable) ====="
+if ! gh api "repos/$REPO/pages" --jq '{cname: .cname, build_type: .build_type}' 2>/dev/null; then
+  echo "No GitHub Pages configuration"
+fi
 
-##### Check if dependabot security updates are enabled
-gh api "repos/ministryofjustice/$REPO_NAME/automated-security-fixes" 2>/dev/null
+echo
+echo "===== Dependabot security updates ====="
+if ! gh api "repos/$REPO/automated-security-fixes" 2>/dev/null; then
+  echo "Dependabot security updates not enabled or not accessible"
+fi
+
+echo
+echo "======================================="
+echo "Done"
+```
+
+Running the script:
+
+```
+repo_settings.sh <repo-name>
 ```
 
 #### Step 2: Write Config That Matches Reality
