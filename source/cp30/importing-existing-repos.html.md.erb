@@ -32,8 +32,11 @@ This runbook explains :
 #### Step 1: Query the Repo's Current Settings
 
 ```bash
+##### Set Repo Name
+REPO_NAME=<my-repo-name>
+
 ##### Basic repository settings
-gh api "repos/ministryofjustice/REPO_NAME" --jq '{
+gh api "repos/ministryofjustice/$REPO_NAME" --jq '{
   description,
   visibility,
   has_wiki,
@@ -51,19 +54,19 @@ gh api "repos/ministryofjustice/REPO_NAME" --jq '{
 }'
 
 ##### Team access
-gh api "repos/ministryofjustice/REPO_NAME/teams" \
+gh api "repos/ministryofjustice/$REPO_NAME/teams" \
   --jq '.[] | "\(.slug) (id: \(.id), permission: \(.permission))"'
 
 ##### Branch protection rulesets
-gh api "repos/ministryofjustice/REPO_NAME/rulesets" \
+gh api "repos/ministryofjustice/$REPO_NAME/rulesets" \
   --jq '.[] | {name, enforcement, target}'
 
 ##### Pages config (if applicable)
-gh api "repos/ministryofjustice/REPO_NAME/pages" 2>/dev/null \
+gh api "repos/ministryofjustice/$REPO_NAME/pages" 2>/dev/null \
   --jq '{cname: .cname, build_type: .build_type}'
 
 ##### Check if dependabot security updates are enabled
-gh api "repos/ministryofjustice/REPO_NAME/automated-security-fixes" 2>/dev/null
+gh api "repos/ministryofjustice/$REPO_NAME/automated-security-fixes" 2>/dev/null
 ```
 
 #### Step 2: Write Config That Matches Reality
