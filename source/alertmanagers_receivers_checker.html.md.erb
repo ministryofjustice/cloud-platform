@@ -1,0 +1,183 @@
+---
+title: Alertmanager Receivers Checker
+weight: 86
+last_reviewed_on: 2026-06-19
+review_in: 12 months
+---
+
+# <%= current_page.data.title %>
+
+### alertmanager_receivers_checker.bash runbook
+script is in the cloud-platform repository, located in `scripts/alertmanager_receivers_checker.bash`
+
+## Purpose
+
+`alertmanager_receivers_checker.bash` validates commented Slack webhook receiver blocks in `terraform.tfvars`.
+
+For each commented receiver block, the script:
+
+1. Extracts `severity`, `webhook`, and `channel`.
+2. Sends a test message to the Slack webhook.
+3. Checks the HTTP response body returned by Slack.
+4. Uncomments that receiver block in `terraform.tfvars` only if the response body is exactly `ok`.
+
+This is intended to help restore working Alertmanager Slack receivers without manually uncommenting each block.
+
+## Files
+
+- `alertmanager_receivers_checker.bash`: the validation and uncommenting script.
+- `terraform.tfvars`: source of the commented Slack receiver blocks and the file the script mutates.
+
+## Expected input format
+
+The script expects commented blocks in `terraform.tfvars` in this shape:
+
+```hcl
+# {
+#   severity = "warning"
+#   webhook  = "https://hooks.slack.com/services/..."
+#   channel  = "#cloud-platform-alerts"
+# },
+```
+
+> [!WARNING]
+> Do not comment out the `alertmanager_slack_receivers = [` line or the closing `]`.
+
+The block must remain commented with leading `#` markers or the script will not detect it as a candidate.
+Any comments that need to been added inside the block such as # Private, #Achived, etc add to the end of the line like this:
+
+```hcl
+# {
+#   severity = "warning"
+#   webhook  = "https://hooks.slack.com/services/..."
+#   channel  = "#cloud-platform-alerts" # Private
+# },
+```
+
+If the channel name has been changed, dont comment out the channel name, and add a new line with latest channel as the script will pick this up and break the output for channel names that dont need to be changed. 
+
+```hcl
+{
+  severity = "warning"
+  webhook  = "https://hooks.slack.com/services/..."
+#  channel  = "#cloud-platform-alerts" 
+  channel  = "#cloud-platform-alerts-new"
+},
+```
+
+Instead add the new channel name and then add the note to the end of the line like this:
+
+```hcl
+{
+  severity = "warning"
+  webhook  = "https://hooks.slack.com/services/..."
+  channel  = "#cloud-platform-alerts-new" # Archived, channel name changed from #cloud-platform-alerts
+},
+```
+
+## Prerequisites
+
+- macOS or another environment with `bash`, `curl`, and `perl` available.
+- `terraform.tfvars` present in the same directory as the script.
+- Valid Slack incoming webhook URLs in the commented receiver blocks.
+- A clean backup or git diff available before running, because the script edits `terraform.tfvars` in place.
+
+## How to run
+
+Run from the same directory that contains `terraform.tfvars`:
+
+```bash
+bash alertmanager_receivers_checker.bash
+```
+
+To preview candidate blocks without sending Slack requests or editing `terraform.tfvars`:
+
+```bash
+bash alertmanager_receivers_checker.bash --dry-run
+```
+
+## What success looks like
+
+For each receiver block, the script prints:
+
+- the webhook URL
+- the channel
+- the severity
+- the raw Slack response body
+
+If Slack returns `ok`, the script then prints a line like:
+
+```text
+Detected ok response for #cloud-platform-alerts. Uncommenting lines 15-19 in terraform.tfvars
+```
+
+At that point, the matching block is uncommented in place inside `terraform.tfvars`.
+
+In dry-run mode, the script prints:
+
+```text
+Dry run: would test webhook and uncomment lines 15-19 in terraform.tfvars if the response is ok
+```
+
+In that case, no Slack requests are sent and no file changes are made.
+
+## What non-success looks like
+
+If Slack returns anything other than `ok`, the block remains commented.
+
+Examples:
+
+- `no_team`: webhook points at a workspace or channel setup that Slack does not accept.
+- `no_service`: webhook is invalid, removed, or malformed.
+- empty output: curl failed before receiving a usable response.
+
+The script does not currently fail fast or produce a summary exit code based on those cases; it just prints the response and moves to the next block.
+
+## After you run it
+
+Inspect the resulting changes:
+
+The receivers that were left commented will need to be reviewed and fixed manually, this will include updating the webhook URL. Once the webhook URL is updated, you can run the script again to test and uncomment the block.
+
+## Operational notes
+
+- The script mutates `terraform.tfvars` directly.
+- The uncomment logic removes the leading `#` only within the matched block lines.
+- The script does not validate Terraform syntax after editing.
+- The script uses the local filename `terraform.tfvars`; if you rename that file, the script must be updated.
+
+## Troubleshooting
+
+### Script says `terraform.tfvars` is missing
+
+the script expects to be run from the same directory that contains `terraform.tfvars`. If you see this error, check your current working directory and confirm that `terraform.tfvars` is present.
+
+
+### Script runs but nothing is uncommented
+
+Check the printed Slack response body.
+
+Only a literal `ok` causes uncommenting in the current implementation.
+
+### A receiver block is skipped
+
+Confirm the block is still fully commented and still contains all three fields:
+
+- `severity`
+- `webhook`
+- `channel`
+
+### Need to test without editing the file
+
+Use dry-run mode:
+
+```bash
+bash alertmanager_receivers_checker.bash --dry-run
+```
+
+That previews the candidate blocks locally and does not send Slack test messages or modify `terraform.tfvars`.
+
+## Current behavior summary
+
+Current implementation detail: despite earlier discussion about `no_team` and `no_service`, the script in its present form uncomments a block only when Slack responds with `ok`.
+
