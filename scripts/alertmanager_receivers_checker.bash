@@ -15,10 +15,10 @@ current_block_start=""
 
 usage() {
   cat <<'EOF'
-Usage: bash slack_webhook_test.bash [--dry-run]
+Usage: bash alertmanager_receivers_checker.bash [--dry-run]
 
 Options:
-  --dry-run  Print the blocks that would be uncommented without editing terraform.tfvars.
+  --dry-run  Does not call Slack. Just print the blocks that would be uncommented without editing terraform.tfvars.
   --help     Show this help text.
 EOF
 }
