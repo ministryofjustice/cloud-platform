@@ -235,10 +235,11 @@ Watch for these dangerous changes:
 - Rulesets being rewritten or deleted
 
 Note that these three come out in the plan for some repos and can be ignored:
+
 ```
-          - include_all_branches = false -> null
-          - owner                = "ministryofjustice" -> null
-          - repository           = "container-platform-terraform-template" -> null
+  - include_all_branches = false -> null
+  - owner                = "ministryofjustice" -> null
+  - repository           = "container-platform-terraform-template" -> null
 ```
 
 ##### Open a PR
@@ -279,7 +280,7 @@ Import blocks are only needed for the initial import.
 #### Troubleshooting
 
 - **Applying a template to an existing repository does nothing.**
-  - See [Known Provider Bug With Repository Templates](github-access-mananger-troubleshooting-html#known-provider-bug-with-repository-templates)
+  - See [Known Provider Bug With Repository Templates](github-access-manager-troubleshooting.html#known-provider-bug-with-repository-templates)
 
 - **`terraform plan` shows "will be created" for an existing repository**
   - The repository has not been imported into state.
