@@ -96,7 +96,7 @@ for i in "${!webhooks[@]}"; do
   fi
 
   response=$(curl -sS -X POST -H 'Content-type: application/json' \
-    --data "{\"text\":\"CP Alert manager test for channel $channel with severity $sev\"}" \
+    --data "{\"text\":\"The Cloud Platform team is testing the Alertmanager receivers for this channel is still valid.\"}" \
     "$webhook" || true)
 
   echo "$response"
