@@ -163,3 +163,9 @@ git push origin your-branch --force
 Cause: The S3 state file checksum does not match the DynamoDB digest. This can happen if the backend was recently migrated from `dynamodb_table` to `use_lockfile = true` and an older branch still references the DynamoDB config.
 
 Fix: Rebase the branch onto `main` to pick up the current backend configuration, then re-run the pipeline.
+
+### Known Provider Bug With Repository Templates
+
+In the `terraform-provider-github` provider there is a known bug where the template is only used for creation of new repositories. Applying a template to an existing repository does nothing.
+
+See this bug [Github Repository Template is also "applied" to existing repositories](https://github.com/integrations/terraform-provider-github/issues/2090) for the latest status.
