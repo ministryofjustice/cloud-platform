@@ -7,7 +7,7 @@ review_in: 6 months
 
 # Adding a New Business Unit
 
-## 1. Request Accounts Created in Modernisation Platform
+### 1. Request Accounts Created in Modernisation Platform
 
 The accounts should be member accounts and should include both non-live and live environments.
 
@@ -21,45 +21,75 @@ and
 
 [Modernisation Platform new account guide](https://user-guide.modernisation-platform.service.justice.gov.uk/user-guide/creating-environments.html)
 
-## 2. Add to the CP accounts.json
+### Steps 2 - 6 Raise in one PR but do not merge until step 7 is complete.
+
+### 2. Add to the CP accounts.json
 
 Add the account to the [terraform/environments/cloud-platform/accounts.json](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/accounts.json) file in the Modernisation Platform Environments repo.
 
-## 3. Create the Terraform Workspace
+### 3. Create the Terraform Workspace
 
 The Terraform workspace will automatically be created in the `container-platform-bu` application folder.
 However, we run Terraform from the `cloud-platform` application folder, so we need to create the workspace there.
 
 This should be done using the [generate-account-workspaces.sh](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/generate-account-workspaces.sh) script. This ensures workspaces are created for all of the accounts in the `accounts.json` file.
 
-## 4. Add Root Subdomain
+Use AWS credentials for the `platform-engineer-admin` role in the `cloud-platform-development` account. (It just needs a role which has state access to `cloud-platform`.)
+
+### 4. Add Root Subdomain
 
 In the `cloud-platform` root folder, add the subdomain for the business unit to the [environment configuration](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/environment-configuration.tf#L2).
 
-## 5. Add BU to Skip Plan Evaluator
+### 5. Add BU to Skip Plan Evaluator
 
 Add the new accounts to the [skip plan evaluator file](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/.github/config/skip-plan-evaluator-workspaces.json) in the MPE config folder.
 
-## 6. Add the VPC CIDR
+### 6. Add the VPC CIDR
 
 Add the allocated VPC CIDR to the `vpc_cidr` block in [network locals](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/network/locals.tf#L17).
 
-## 7. RAM Share MP TGW to New Accounts
+### 7. RAM Share MP TGW to New Accounts
 
 See code example [here](https://github.com/ministryofjustice/modernisation-platform/blob/main/terraform/environments/core-network-services/ram.tf#L16).
 
-## 8. Add New Accounts to TGW Routes
+Raise the PR with the Modernisation Platform team. Merge before continuing to the next step.
+
+PR example [here](https://github.com/ministryofjustice/modernisation-platform/pull/13439)
+
+### 8. Merge the Modernisation Environments Repository PR
+
+Merge the PR and deploy to the new cluster environments. Note cluster plan will fail as the plan as the VPC have not yet been built. Cluster-core apply will fail with a Route53 hosted zone error.
+
+See example PR [here](https://github.com/ministryofjustice/modernisation-platform-environments/pull/17400/changes), this will need MP approval as well.
+
+### 9. Tag the new TGW attachments
+
+In the `core-network-services` MP account, find the newly created TGW attachments, they will be the ones without `Name` tags.  You can identify which one is which from the "Resource owner ID".
+
+When you identify them, add the `Name` tag, the name should be the same as the account name, e.g. `container-platform-bu-nonlive` and `container-platform-bu-live`.  You will need an MP engineer to do this.
+
+Note down the TGW ID for the next step.
+
+### 10. Add New TGW attachments to TGW Route Tables in MP
 
 See code example [here](https://github.com/ministryofjustice/modernisation-platform/blob/main/terraform/environments/core-network-services/container_platform_tgw_connections.tf#L4).
 
-## 9. Apply Workflows to Build Out Clusters
+See PR example [here]https://github.com/ministryofjustice/modernisation-platform/pull/13440)
 
-Apply the cloud-platform and container-platform workflows.
+Get approval and merge PR.
 
-## 10. Add Route 53 Records for the New BU Subdomain
+### 11. Add Route 53 Records for the New BU Subdomain
 
 See code example [here](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/route53.tf#L66).
 
-## 11. Add the New BU to External DNS
+Find out the Route53 hosted zone NS records from each of the new business unit accounts and add them to the route53.tf file.
+
+### 12. Add the New BU to External DNS
 
 See code example [here](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/external-dns.tf#L18).
+
+### 13. Apply Workflows to Build Out Clusters
+
+PR example [here](https://github.com/ministryofjustice/modernisation-platform-environments/pull/17412)
+
+Approve and merge the PR. Then apply the cloud-platform and container-platform workflows.
