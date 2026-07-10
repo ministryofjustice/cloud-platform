@@ -1,0 +1,84 @@
+---
+title: API Gateway
+weight: 14
+last_reviewed_on: 2026-03-16
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+### Repositories:
+- [container-platform-terraform-gateway-api](https://github.com/ministryofjustice/container-platform-terraform-gateway-api)
+- [container-platform-terraform-envoy-gateway](https://github.com/ministryofjustice/container-platform-terraform-envoy-gateway)
+- [container-platform-terraform-external-dns](https://github.com/ministryofjustice/container-platform-terraform-external-dns)
+- [container-platform-terraform-cert-manager](https://github.com/ministryofjustice/container-platform-terraform-cert-manager)
+
+### What is the API Gateway?
+
+The API Gateway is the platform's standard ingress layer for exposing services over HTTP and HTTPS.
+
+It combines Kubernetes Gateway API resources with Envoy data plane instances to provide consistent routing, TLS termination, and safer service exposure patterns across clusters.
+
+The supporting infrastructure and controller components are managed through Terraform so configuration is repeatable between environments.
+
+### How API Gateway Works
+
+The API Gateway provides a single entry point for traffic coming into the platform and routes requests to the correct service inside the cluster.
+
+At a high level, the flow is:
+
+1. A user sends a request to a public hostname.
+2. External-DNS keeps that hostname pointed at the load balancer created for Envoy.
+3. Envoy Gateway receives the request and evaluates Gateway API resources (for example, `Gateway` and `HTTPRoute`) to decide where to send it.
+4. The request is forwarded to the matching Kubernetes `Service` in the target namespace.
+5. The service sends traffic to healthy application pods.
+
+TLS certificates are issued and renewed by cert-manager, so HTTPS is terminated securely at the gateway.
+
+This model gives teams a consistent, declarative way to publish services while keeping routing, TLS, and DNS management centralised.
+
+
+### Envoy
+
+The Envoy component deploys and manages only the Envoy system in the cluster.
+
+The [container-platform-terraform-envoy-gateway](https://github.com/ministryofjustice/container-platform-terraform-envoy-gateway) repository provisions and configures the Envoy Gateway deployment.
+
+In practice, Envoy is responsible for:
+
+1. Accepting inbound HTTP/HTTPS requests.
+2. Matching requests to configured routes.
+3. Forwarding requests to the correct Kubernetes services.
+4. Returning upstream responses to clients.
+
+### Gateway
+
+The Gateway API defines how teams publish applications using Kubernetes-native resources such as `Gateway`, `HTTPRoute`, and related policy objects.
+
+The [container-platform-terraform-gateway-api](https://github.com/ministryofjustice/container-platform-terraform-gateway-api) repository manages installation and baseline configuration for these Gateway API components so routing behaviour is consistent across clusters.
+
+The Gateway component is also responsible for deploying the external load balancer used to receive inbound traffic.
+
+This gives service teams a declarative interface for traffic management while the platform team controls shared guardrails and defaults.
+
+### Cert-Manager
+
+cert-manager automates certificate lifecycle management for gateway hostnames, including issuance and renewal.
+
+The [container-platform-terraform-cert-manager](https://github.com/ministryofjustice/container-platform-terraform-cert-manager) repository manages the cert-manager installation and related cluster configuration used by the gateway stack.
+
+By integrating cert-manager with Gateway resources, HTTPS can be enabled without manual certificate handling for each service.
+
+### External-DNS
+
+External-DNS keeps DNS records aligned with gateway endpoints so public hostnames resolve to the correct load balancer.
+
+The [container-platform-terraform-external-dns](https://github.com/ministryofjustice/container-platform-terraform-external-dns) repository provisions and configures External-DNS for this automation.
+
+When gateway endpoints or host definitions change, External-DNS updates records automatically, reducing manual DNS operations and drift.
+
+### Dependencies
+
+<div style="background-color: #000000; padding: 1rem; border-radius: 0.5rem;">
+	<img src="../images/dependency_map.svg" alt="API Gateway Dependencies">
+</div>
