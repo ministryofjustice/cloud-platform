@@ -172,3 +172,9 @@ Note: Turning off these rules completely will reduce the effectiveness of ModSec
 
 [false-positive]: https://coreruleset.org/docs/concepts/false_positives_tuning/
 [common-rule-issue]: https://stackoverflow.com/questions/33989273/modsecurity-excessive-false-positives/34027786#34027786
+
+## Annotation Check Fails For Internal Repository
+
+User PRs in `cloud-platform-environments` can fail with a HTTP 404 in the `annotation-check` if a repository is Internal.
+
+Check with the user if the repository really needs to be Internal. If so, grant access to the **Cloud Platform Actions** GitHub App. Go to [cloud-platform-environments/settings/installations](https://github.com/ministryofjustice/cloud-platform-environments/settings/installations), select Configure next to the Cloud Platform Actions app, select the user repository that access is needed to and check that at least Read access is selcted, and hit Update Access.
