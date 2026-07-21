@@ -1,31 +1,19 @@
 ---
-title: API Gateway
+title: Gateway API
 weight: 14
-last_reviewed_on: 2026-03-16
+last_reviewed_on: 2026-07-20
 review_in: 6 months
 ---
 
 # <%= current_page.data.title %>
 
-### Repositories:
-- [container-platform-terraform-gateway-api](https://github.com/ministryofjustice/container-platform-terraform-gateway-api)
-- [container-platform-terraform-envoy-gateway](https://github.com/ministryofjustice/container-platform-terraform-envoy-gateway)
-- [container-platform-terraform-external-dns](https://github.com/ministryofjustice/container-platform-terraform-external-dns)
-- [container-platform-terraform-cert-manager](https://github.com/ministryofjustice/container-platform-terraform-cert-manager)
+### Overview
 
-### What is the API Gateway?
+The Gateway API is the platform's standard ingress layer for exposing services over HTTP and HTTPS.
 
-The API Gateway is the platform's standard ingress layer for exposing services over HTTP and HTTPS.
+#### How it works
 
-It combines Kubernetes Gateway API resources with Envoy data plane instances to provide consistent routing, TLS termination, and safer service exposure patterns across clusters.
-
-The supporting infrastructure and controller components are managed through Terraform so configuration is repeatable between environments.
-
-### How API Gateway Works
-
-The API Gateway provides a single entry point for traffic coming into the platform and routes requests to the correct service inside the cluster.
-
-At a high level, the flow is:
+The Gateway API provides a single entry point for traffic and routes requests to services inside the cluster:
 
 1. A user sends a request to a public hostname.
 2. External-DNS keeps that hostname pointed at the load balancer created for Envoy.
@@ -33,52 +21,132 @@ At a high level, the flow is:
 4. The request is forwarded to the matching Kubernetes `Service` in the target namespace.
 5. The service sends traffic to healthy application pods.
 
-TLS certificates are issued and renewed by cert-manager, so HTTPS is terminated securely at the gateway.
+TLS certificates are issued and renewed by cert-manager, so HTTPS is terminated securely at the gateway. This model gives teams a consistent, declarative way to publish services while keeping routing, TLS, and DNS management centralised.
 
-This model gives teams a consistent, declarative way to publish services while keeping routing, TLS, and DNS management centralised.
+### Gateway API Resources
 
+#### GatewayClass
 
-### Envoy
+A `GatewayClass` is a cluster-scoped resource that names the Gateway implementation and its controller. It is the starting point for all Gateway API resources on the platform.
 
-The Envoy component deploys and manages only the Envoy system in the cluster.
+#### EnvoyProxy
 
-The [container-platform-terraform-envoy-gateway](https://github.com/ministryofjustice/container-platform-terraform-envoy-gateway) repository provisions and configures the Envoy Gateway deployment.
+An `EnvoyProxy` resource is a cluster-scoped resource that configures the Envoy proxy's behavior, settings, and dynamic modules (such as plugins like Coraza WAF). It controls logging, metrics, and data plane options.
 
-In practice, Envoy is responsible for:
+#### Gateway 
 
-1. Accepting inbound HTTP/HTTPS requests.
-2. Matching requests to configured routes.
-3. Forwarding requests to the correct Kubernetes services.
-4. Returning upstream responses to clients.
+The platform provides a single shared `Gateway` resource for teams to attach their `HTTPRoute` resources to via a ListenerSet.
 
-### Gateway
+You can bind listeners directly to a Gateway, or use `ListenerSet` resources to extend it without modifying the shared resource.
 
-The Gateway API defines how teams publish applications using Kubernetes-native resources such as `Gateway`, `HTTPRoute`, and related policy objects.
+By default, port 80 is attached directly to the Gateway, and port 443 is attached via a `ListenerSet` resource.
 
-The [container-platform-terraform-gateway-api](https://github.com/ministryofjustice/container-platform-terraform-gateway-api) repository manages installation and baseline configuration for these Gateway API components so routing behaviour is consistent across clusters.
+The `Gateway` is configured to allow `HTTPRoute` resources from tenant namespaces to attach to it.
 
-The Gateway component is also responsible for deploying the external load balancer used to receive inbound traffic.
+| Port | Protocol | Attachment Method | Purpose |
+|------|----------|-------------------|---------|
+| 80 | HTTP | Direct | Attached directly to the Gateway resource |
+| 443 | HTTPS | ListenerSet | Attached via a `ListenerSet` resource |
 
-This gives service teams a declarative interface for traffic management while the platform team controls shared guardrails and defaults.
+#### ListenerSets
 
-### Cert-Manager
+`ListenerSet` is a resource that allows additional listeners to be attached to an existing `Gateway` without modifying it directly. It attaches to an existing `Gateway` by reference, enabling teams to extend shared gateways with new hostnames or protocols in a controlled way.
 
-cert-manager automates certificate lifecycle management for gateway hostnames, including issuance and renewal.
+This helps to prevent conflicts between teams and allows the platform team to manage the shared `Gateway` resource while still allowing teams to extend it with their own listeners.
+
+#### HTTPRoute
+
+An `HTTPRoute` is the primary resource teams create to expose a service. It defines hostnames, path matching rules, and the backend `Service` to forward traffic to.
+
+`HTTPRoute` resources are created in the team's own namespace. They attach to the shared `Gateway` using a `parentRefs` entry:
+
+```yaml
+spec:
+  parentRefs:
+    - name: <gateway-name>
+      namespace: <gateway-namespace>
+      sectionName: https
+  hostnames:
+    - my-service.example.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: my-service
+          port: 8080
+```
+
+Hostnames must be within the platform's allowed domain. External-DNS will automatically create a DNS record for any hostname declared in an `HTTPRoute`.
+
+If the hostname on a HTTPRoute does not intersect with the wildcard hostname on the shared Gateway, the route will not be able to attach, and traffic will not be routed correctly. 
+
+### Platform Implementation
+
+The Gateway API is implemented and managed through a set of Terraform modules:
+
+| Module | Purpose | Repository |
+|--------|---------|-----------|
+| Gateway API | Installs and configures Gateway API resources (GatewayClass, baseline Gateway) and external load balancer | [container-platform-terraform-gateway-api](https://github.com/ministryofjustice/container-platform-terraform-gateway-api) |
+| Envoy Gateway | Installs Gateway API CRDs and configures the Envoy controller deployment | [container-platform-terraform-envoy-gateway](https://github.com/ministryofjustice/container-platform-terraform-envoy-gateway) |
+| Cert-Manager | Manages certificate lifecycle and Let's Encrypt integration | [container-platform-terraform-cert-manager](https://github.com/ministryofjustice/container-platform-terraform-cert-manager) |
+| External-DNS | Watches Gateway API resources and syncs hostnames to Route53 | [container-platform-terraform-external-dns](https://github.com/ministryofjustice/container-platform-terraform-external-dns) |
+
+### How It Works Together
+
+#### Namespace Topology and Resource Model
+
+The shared Gateway and ListenerSet resources live in the `envoy-gateway-system` namespace, managed by the platform team. Teams create HTTPRoute resources in their own team namespaces and attach them to the shared Gateway using `parentRefs`. No ReferenceGrant is required as the Gateway is configured to allow routes from all namespaces.
+
+![Gateway API Topology](../images/gateway-api-resource-model-detailed.drawio.svg)
+
+#### Cert-Manager and TLS Termination
+
+Certificates are issued and renewed by cert-manager, so HTTPS is terminated securely at the gateway. A shared ClusterIssuer is available that implements Let's Encrypt.
 
 The [container-platform-terraform-cert-manager](https://github.com/ministryofjustice/container-platform-terraform-cert-manager) repository manages the cert-manager installation and related cluster configuration used by the gateway stack.
 
-By integrating cert-manager with Gateway resources, HTTPS can be enabled without manual certificate handling for each service.
+Cluster-wide wildcard certificates are provisioned by the ListenerSet for the shared Gateway, and are used to terminate TLS for all hostnames that match the wildcard. This means that teams do not need to create their own Certificate resources for each hostname, as the shared wildcard certificate will be used automatically, provided their hostname falls within the wildcard domain.
+  
+This is achieved by using a cert-manager annotation `cert-manager.io/cluster-issuer: letsencrypt-production` on the ListenerSet in combination with the TLS configuration to request a wildcard certificate for the shared Gateway. The ACME challenge validation is done through DNS records managed by External-DNS.
 
-### External-DNS
+```yaml
+  listeners:
+    - name: https
+      protocol: HTTPS
+      port: 443
+      hostname: "*.${cluster_base_domain}" 
+      # e.g. *.octo-nonlive.container-platform.justice.gov.uk
+
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - group: ""
+            kind: Secret
+            name: default-certificate
+      allowedRoutes:
+        namespaces:
+          from: All
+        kinds:
+          - group: gateway.networking.k8s.io
+            kind: HTTPRoute
+```
+
+#### DNS and External-DNS Integration
 
 External-DNS keeps DNS records aligned with gateway endpoints so public hostnames resolve to the correct load balancer.
 
 The [container-platform-terraform-external-dns](https://github.com/ministryofjustice/container-platform-terraform-external-dns) repository provisions and configures External-DNS for this automation.
 
+External-DNS is configured to watch for `HTTPRoute` resources and automatically create DNS records (A records) for any hostnames declared in the route. It also interacts with cert-manager to create temporary DNS records (TXT records) that are needed for the ACME challenge when issuing certificates.
+
 When gateway endpoints or host definitions change, External-DNS updates records automatically, reducing manual DNS operations and drift.
 
-### Dependencies
+### Getting Started
 
-<div style="background-color: #000000; padding: 1rem; border-radius: 0.5rem;">
-	<img src="../images/dependency_map.svg" alt="API Gateway Dependencies">
-</div>
+#### Example: Exposing a Service
+
+There is a user guide for teams to expose a service over HTTPS using the Gateway API. It includes a minimal working YAML example showing a `Gateway`, `HTTPRoute`.
+
+[Exposing a Service over HTTPS using Gateway API](https://user-guide.development.container-platform.service.justice.gov.uk/documentation/getting-started/gateway-api-httproute.html)
