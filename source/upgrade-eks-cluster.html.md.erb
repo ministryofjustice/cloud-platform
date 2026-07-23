@@ -7,17 +7,7 @@ review_in: 6 months
 
 # Upgrade EKS cluster
 
-The Cloud Platform EKS cluster upgrade involves upgrading any of the below:
-
-- Upgrade EKS Terraform Module
-- Upgrade EKS version (Control Plane and Node Groups)
-- Upgrade addon(s)
-- Upgrade AMI version
-
-The Cloud Platform EKS clusters are created using the official [terraform-aws-eks](https://github.com/terraform-aws-modules/terraform-aws-eks) module.
-The EKS version and addons are currently independent of the version of the terraform-aws-eks module.
-Therefore, it will not always require an upgrade of the terraform-aws-eks module and/or the addons whenever there is an upgrade of the EKS version.
-Please check the changelogs for the terraform-aws-eks module, the EKS version and the addons when planning an upgrade.
+This page covers the steps required to follow when carrying out and EKS version upgrade.
 
 ## Pre-requisites
 
@@ -27,7 +17,7 @@ Before you begin, there are a few pre-requisites:
 
 - You have the [AWS CLI](https://aws.amazon.com/cli/) profile `moj-cp` with suitable credentials.
 
-- You have terraform and docker installed
+- You have `terraform`, `docker` and the Concourse `fly` CLI installed.
 
 - Review the changelog of the [Kubernetes release](https://kubernetes.io/releases/) and the [EKS release](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html) you are planning to upgrade to.
 
@@ -47,7 +37,7 @@ steps:
 
 3. Enter the required inputs:
 
-   - Target Kubernetes version (e.g. 1.24)
+   - Target Kubernetes version (e.g. `1.34`)
 
 4. Click "Run workflow" to create the issues.
 
@@ -58,11 +48,10 @@ steps:
 The following areas need to be looked into to determine if there's any additional preparation work to do:
 
 * Kubernetes API Deprecations/Removals
-* EKS module
 * EKS addons
-* Components
+* Cluster Components
 
-Tools:
+#### Deprecated/Removed Kubernetes APIs
 
 For Kubernetes API deprecations or removals you can use [kubent](https://github.com/doitintl/kube-no-trouble) and [pluto](https://github.com/FairwindsOps/pluto) to scan the cluster and find if there are any resources impacted in upcoming releases.
 
@@ -74,24 +63,32 @@ over to CloudWatch > Log groups > /aws/eks/[cluster-name] and view the `kube-api
 
 Users will need to be notified if their resources are affected by API deprecations or removals.
 
-### Preparing for upgrade
+#### EKS addons
+
+For guidance on EKS addon upgrades, refer to this [runbook](https://runbooks.cloud-platform.service.justice.gov.uk/upgrade-eks-addons.html).
+
+#### Cluster Components
+
+The generated GitHub issues cover component upgrade steps.
+
+###Preparing for upgrade
 
 Communication is an important part of the upgrade procedure, make sure to update `#ask-cloud-platform` and `#cloud-platform-update` when commencing the upgrade. Create a thread in `#cloud-platform` to keep the team updated on the current status of the upgrade.
 
 Pause the following pipelines:
 
-* bootstrap
-* infrastructure-live
-* infrastructure-live-2
-* infrastructure-manager
+* `bootstrap`
+* `infrastructure-live`
+* `infrastructure-live-2`
+* `infrastructure-manager`
 
-> **IMPORTANT:** Add a Pull Request to pause the Dependabot action in the infrastructure repository before pausing as you do not want any changes going through concourse after unpausing the pipeline.
+Notify the Cloud Platform team in `#cloud-platform` that the upgrade is commencing and that the pipelines have been paused.
 
 Update `cluster.tf` in `cloud-platform-infrastructure` with the version of Kubernetes you are upgrading to.
 
 Run a `tf plan` against the cluster your upgrading to check to see if everything is expected, the only changes should be to resources relating to the the version upgrade.
 
-> **IMPORTANT:** Do not run `tf apply` this will most likely time out and fail. Upgrades are manually carried out through the AWS Console.
+> **IMPORTANT:** Do NOT run `tf apply` as this will, at best, certainly time out and fail, and leaves us in a position where we have no control over node group upgrades. EKS Upgrades steps are manually carried out through the AWS Console.
 
 ### Monitoring the upgrade
 
@@ -101,18 +98,11 @@ Before you start the upgrade it is useful to have a few monitoring resources up 
 
 * nodes - see nodes recycling and coming up with new version
 * events - check to see if there are any errors
-* pods - you can use vim style searching to see pods in `Error` state.
+* pods - you can use vim style searching to see pods in `Error`, `Pending`, `ContainerCreating` states.
 
 You may refer to [Monitoring with K9s](/monitor-eks-cluster.html#monitoring-with-k9s) section for more details.
+[This](https://app-logs.cloud-platform.service.justice.gov.uk/_dashboards/app/discover#/?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-15d,to:now))&_a=(columns:!(_source),filters:!(),index:'6c27ca40-6bbe-11ef-8007-3f25c14a7648',interval:auto,query:(language:kuery,query:'%22failed%20to%20assign%20an%20IP%20address%20to%20container%22'),sort:!())) OpenSearch dashboard is used to monitor the IP assignment for pods when they are rescheduled. If there is a spike in errors then there could be a starvation of IP addresses while scheduling pods.
 
-When a node group version changes, this will cause all of the nodes to recycle. When AWS recycles the nodes, it will not evict pods if it will break the PDB.
-This will cause the node to stall the update and the nodes will **not** continue to recycle.
-
-[This] (https://eu-west-2.console.aws.amazon.com/cloudwatch/home?region=eu-west-2#dashboards/dashboard/cloud-platform-eks-live-pdb-eviction-status) CloudWatch Dashboard is used to monitor the pod eviction stauts for live cluster.
-
-To rectify this, run the script mentioned in [Recycle-all-nodes Gotchas](/recycle-all-nodes.html#gotchas) section.
-
-[This](https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/discover#/?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-15d,to:now))&_a=(columns:!(_source),filters:!(),index:'1f29f240-00eb-11ec-8a38-954e9fb3b0ba',interval:auto,query:(language:kuery,query:'%22failed%20to%20assign%20an%20IP%20address%20to%20container%22'),sort:!())) kibana dashboard is used to monitor the IP assignment for pods when they are rescheduled. If there is a spike in errors then the could be a starvation of IP address while scheduling pods.
 
 ### Starting the upgrade
 
@@ -120,47 +110,50 @@ As with preparing for the upgrade communication is really important, keep the th
 
 #### Increasing coredns pods
 
-To ensure that coredns stays up and running during the cluster upgrade replications should be scaled up to 10. This can be done with the following command:
+Consider scaling up the coredns replicas by a couple of pods to help ensure consistent DNS resolution during the upgrade process.
 
 ```bash
-kubectl scale deployment coredns --replicas=10 -n kube-system
+kubectl scale deployment coredns --replicas=x -n kube-system
 ```
 
-#### Scale down Autoscaler and Descheduler
+#### Scale down Descheduler deployment
 ```bash
-kubectl scale deployment cluster-autoscaler-aws-cluster-autoscaler --replicas=0 -n kube-system
 kubectl scale deployment descheduler --replicas=0 -n kube-system
 ```
 
 > **NOTE:** These are temporary measures, double check the deployments for the current replicasets, as you will need this for when you scale back after the completion of the upgrade.
 
-#### Upgrading the control pane
+### Upgrading the control pane
 
 Log in to the AWS console and select the EKS cluster we're going to upgrade.
 
 In the top right corner there should be a button called `Upgrade now`, click that and ensure the correct Kubernetes version is selected then press `Update`.
 
-Control pane updates usually take 10 minutes to run.
+Control pane updates usually take ~10 minutes to complete.
 
-#### Upgrading the monitoring node group
+### Upgrading cluster node groups
+
+As with control plane, for an EKS upgrade we handover the node group upgrade to AWS, using their graceful rolling update strategy. 
+
+> **NOTE:**This does not apply for node group recycles, for which we use the cordon-and-drain Concourse pipeline. See [this runbook](https://runbooks.cloud-platform.service.justice.gov.uk/node-group-changes.html#making-changes-to-eks-node-groups-instances-types-or-launch-templates) for guidance on how to recycle node groups.
+
+### Setup eviction monitoring pipeline
+
+Since we are using the rolling update strategy for node groups, we need to monitor for any stuck pod evictions that may occur during the upgrade process (for example due to bad PDB configurations). 
+
+We have a Concourse pipeline to monitor for pod evictions, and cleanly drain pods from nodes that are being upgraded. If you fail to run this pipeline during a node group upgrade, the upgrade will fail out and rollback. This is bad. See the associated [Concourse README](https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/disabled/README-stuck-evictions-monitor.md) for instructions on setting up the pipeline.
+
+### Upgrading the cluster node groups
 
 From the cluster control panel select `Compute` tab.
 
-Select `Upgrade now` next to the monitoring node group.
+Select `Upgrade now` next to the target node group (ie `monitoring`, `thanos`, `containment`, `default` depending on the cluster).
 
-For update strategy select "Force update"
-
-Click `Update`
-
-#### Upgrading the default node group
-
-From the cluster control panel select `Compute` tab.
-
-Select `Upgrade now` next to the default node group.
-
-For update strategy select "Force update"
+For update strategy select "Rolling update"
 
 Click `Update`
+
+Repeat the above steps for each node group in the cluster.
 
 Once the upgrade has completed notify the Slack channels.
 
@@ -176,18 +169,17 @@ Unpause the following pipelines in this order and check to make sure no changes 
 
 If there are no changes for terraform shown in each pipeline then the PR can be merged in.
 
-Unpause the bootstrap pipeline.
+Unpause the bootstrap pipeline. If there is any output in the eviction monitoring pipeline you're interested in reviewing, copy this output before unpausing the bootstrap pipeline, as the bootstrap pipeline will delete the eviction monitoring pipeline.
 
 Scale down the coredns pods.
 
 ```bash
-kubectl scale deployment coredns --replicas=3 -n kube-system
+kubectl scale deployment coredns --replicas=x -n kube-system
 ```
 
-Scale up the Autoscaler and Descheduler
+Scale up Descheduler deployment
 
 ```bash
-kubectl scale deployment cluster-autoscaler-aws-cluster-autoscaler --replicas=1 -n kube-system
 kubectl scale deployment descheduler --replicas=1 -n kube-system
 ```
 
