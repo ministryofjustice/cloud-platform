@@ -1,13 +1,13 @@
 ---
 title: Upgrade EKS cluster
 weight: 53
-last_reviewed_on: 2025-11-17
+last_reviewed_on: 2026-07-23
 review_in: 6 months
 ---
 
 # Upgrade EKS cluster
 
-This page covers the steps required to follow when carrying out and EKS version upgrade.
+This page covers the steps required to follow when carrying out an EKS version upgrade.
 
 ## Pre-requisites
 
@@ -153,6 +153,8 @@ For update strategy select "Rolling update"
 
 Click `Update`
 
+> **NOTE:** We generally start with `monitoring` node group first, and then each additional node group, leaving `default` node group to last.
+
 Repeat the above steps for each node group in the cluster.
 
 Once the upgrade has completed notify the Slack channels.
@@ -163,13 +165,13 @@ Create a new pull request in the `cloud-platform-infrastructure` repo with the u
 
 Unpause the following pipelines in this order and check to make sure no changes are present:
 
-1. infrastructure-live-2
-2. infrastructure-manager
-3. infrastructure-live
+1. `infrastructure-live-2`
+2. `infrastructure-manager`
+3. `infrastructure-live`
 
 If there are no changes for terraform shown in each pipeline then the PR can be merged in.
 
-Unpause the bootstrap pipeline. If there is any output in the eviction monitoring pipeline you're interested in reviewing, copy this output before unpausing the bootstrap pipeline, as the bootstrap pipeline will delete the eviction monitoring pipeline.
+Unpause the bootstrap pipeline. If there is any output in the eviction monitoring pipeline you're interested in reviewing, copy this output before unpausing bootstrap, as the next cycle will delete the eviction monitoring pipeline.
 
 Scale down the coredns pods.
 
