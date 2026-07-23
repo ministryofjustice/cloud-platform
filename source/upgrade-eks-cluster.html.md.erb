@@ -101,8 +101,8 @@ Before you start the upgrade it is useful to have a few monitoring resources up 
 * pods - you can use vim style searching to see pods in `Error`, `Pending`, `ContainerCreating` states.
 
 You may refer to [Monitoring with K9s](/monitor-eks-cluster.html#monitoring-with-k9s) section for more details.
+[This](https://app-logs.cloud-platform.service.justice.gov.uk/_dashboards/app/discover#/?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-15d,to:now))&_a=(columns:!(_source),filters:!(),index:'6c27ca40-6bbe-11ef-8007-3f25c14a7648',interval:auto,query:(language:kuery,query:'%22failed%20to%20assign%20an%20IP%20address%20to%20container%22'),sort:!())) OpenSearch dashboard is used to monitor the IP assignment for pods when they are rescheduled. If there is a spike in errors then there could be a starvation of IP addresses while scheduling pods.
 
-[This](https://kibana.cloud-platform.service.justice.gov.uk/_plugin/kibana/app/discover#/?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-15d,to:now))&_a=(columns:!(_source),filters:!(),index:'1f29f240-00eb-11ec-8a38-954e9fb3b0ba',interval:auto,query:(language:kuery,query:'%22failed%20to%20assign%20an%20IP%20address%20to%20container%22'),sort:!())) kibana dashboard is used to monitor the IP assignment for pods when they are rescheduled. If there is a spike in errors then there could be a starvation of IP addresses while scheduling pods.
 
 ### Starting the upgrade
 
