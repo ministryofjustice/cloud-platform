@@ -10,7 +10,8 @@ There is one	[default_nodeclass](https://github.com/ministryofjustice/modernisat
 - Pod CIDR nodes: Secondary CIDR subnets (100.64.x.x) tagged with SubnetType: "pod-private"
 - Security Groups: Tagged with aws:eks:cluster-name: "{cluster_name}"
 - Metadata Tags: Default application and business-unit classifications:
-```
+
+```YAML
       tags:
         application: "moj-container-platform"
         business-unit: "platforms"
@@ -35,14 +36,32 @@ There are two NodePools, both defined using the default NodeClass
 ``"container-platform.justice.gov.uk/system-ng": "true"``
 Plus a `NoSchedule` taint: `system-node` with value `true`
 
-To schedule system workload in the system pool add YAML:
-```
+To schedule system workload in the system pool add:
+
+```YAML
 tolerations:
   - key: system-node
     operator: Equal
     value: "true"
     effect: NoSchedule
 ```
+
+## Limits
+
+## Consolidation / Disruptiuon
+
+Both nodepools use Karpenter's consolidation to optimize costs:
+
+```YAML
+disruption:
+  consolidationPolicy: WhenEmptyOrUnderutilized
+  consolidateAfter: 60s
+```
+
+What this means:
+- When: Nodes are consolidated when empty or < 50% utilized
+- Delay: 60 second grace period before termination to allow pod rescheduling
+- Impact: May briefly spike pod evictions; workloads should have PodDisruptionBudgets
 
 ## Investigating NodePool Issues
 
@@ -73,3 +92,24 @@ kubectl describe nodepool <BU or Cluster Name>-system-nodepool
 | Pods stuck pending | NodePool has reached CPU or node limits. | Review limits in `nodepools.tf` and increase them if workload growth is sustained. | 
 | Nodes failing to launch | Insufficient capacity in the target Availability Zones. | Verify Availability Zone capacity and review Karpenter logs. | 
 | Unschedulable due to taints | System pods are attempting to schedule onto the default NodePool. | Ensure workloads include a `system-node: true` toleration where required. |
+
+## FAQ
+
+**Q: Can I manually scale nodepools?**
+A: No. Karpenter manages scaling automatically. Use limits: to set bounds.
+
+**Q: How do I monitor node consolidation activity?**
+A: Watch the nodes with the following commands:
+```bash
+kubectl get nodes -w -l container-platform.justice.gov.uk/default-ng
+kubectl get nodes -w -l container-platform.justice.gov.uk/system-ng
+```
+
+**Q: How do I reserve capacity for a specific application?**
+A: Use node affinity/nodeSelector labels combined with Karpenter limits: to reserve nodes.
+
+**Q: What happens during node consolidation?**
+A: Karpenter cordons the node, drains pods (respecting PodDisruptionBudgets), then terminates it. Total duration: ~2 minutes per node.
+
+**Q: Can I add other tolerations and taints to control workloads?**
+A: See Kuberbetes [labels-annotations-taints](https://kubernetes.io/docs/reference/labels-annotations-taints/#topologykubernetesioregion) documentation.
