@@ -1,18 +1,18 @@
 ---
-title: Nodepools and NodeClass in CP3
+title: NodePools and NodeClass in CP3
 weight: 10
 last_reviewed_on: 2026-07-24
 review_in: 6 months
 ---
 
-# Nodepools and NodeClass
+# NodePools and NodeClass
 
 ## Overview
 
-Workloads are scheduled onto nodes according to the [nodepool.tf](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf) definitions. This contains 2 NodePools and one NodeClass. See [ticket 8315](https://github.com/ministryofjustice/cloud-platform/issues/8315) for the inital implementation. 
+Workloads are scheduled onto nodes according to the [nodepools.tf](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf) definitions. This contains 2 NodePools and one NodeClass. See [ticket 8315](https://github.com/ministryofjustice/cloud-platform/issues/8315) for the initial implementation. 
 
 ## NodeClass
-There is one	[default_nodeclass](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf#L7) called **\<BU or CLuster Name\>-nodeclass** containing the shared configuration for both nodepools. This defines:
+There is one [default_nodeclass](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf#L7) called **\<BU or Cluster Name\>-nodeclass** containing the shared configuration for both NodePools. This defines:
 
 - IAM Role: Node execution role (via local.node_role_name)
   - Network Configuration: 
@@ -28,7 +28,7 @@ There is one	[default_nodeclass](https://github.com/ministryofjustice/modernisat
 ```
 
 ## NodePools
-Nodepools define the instance requirements for nodes including the following, along with disruption / consoloidation configuration:
+NodePools define the instance requirements for nodes including the following, along with disruption / consolidation configuration:
 
 `capacity-type` Purchasing model used for the node capacity.
 `arch` CPU architecture.
@@ -58,9 +58,14 @@ tolerations:
 
 ## Limits
 
-## Consolidation / Disruptiuon
+Initially the limits per NodePool are set to
 
-Both nodepools use Karpenter's consolidation to optimize costs:
+ - default_nodepool: `50`
+ - system_nodepool: `10`
+
+## Consolidation / Disruption
+
+Both NodePools use Karpenter's consolidation to optimize costs:
 
 ```YAML
 disruption:
@@ -122,4 +127,4 @@ A: Use node affinity/nodeSelector labels combined with Karpenter limits: to rese
 A: Karpenter cordons the node, drains pods (respecting PodDisruptionBudgets), then terminates it. Total duration: ~2 minutes per node.
 
 **Q: Can I add other tolerations and taints to control workloads?**
-A: See Kuberbetes [labels-annotations-taints](https://kubernetes.io/docs/reference/labels-annotations-taints/#topologykubernetesioregion) documentation.
+A: See Kubernetes [labels-annotations-taints](https://kubernetes.io/docs/reference/labels-annotations-taints/#topologykubernetesioregion) documentation.
