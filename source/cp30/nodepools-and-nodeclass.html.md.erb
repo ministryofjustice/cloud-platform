@@ -1,0 +1,130 @@
+---
+title: NodePools and NodeClass in CP3
+weight: 10
+last_reviewed_on: 2026-07-24
+review_in: 6 months
+---
+
+# NodePools and NodeClass
+
+## Overview
+
+Workloads are scheduled onto nodes according to the [nodepools.tf](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf) definitions. This contains 2 NodePools and one NodeClass. See [ticket 8315](https://github.com/ministryofjustice/cloud-platform/issues/8315) for the initial implementation. 
+
+## NodeClass
+There is one [default_nodeclass](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf#L7) called **\<BU or Cluster Name\>-nodeclass** containing the shared configuration for both NodePools. This defines:
+
+- IAM Role: Node execution role (via local.node_role_name)
+  - Network Configuration: 
+  - Primary CIDR nodes: Private subnets tagged with SubnetType: "Private"
+- Pod CIDR nodes: Secondary CIDR subnets (100.64.x.x) tagged with SubnetType: "pod-private"
+- Security Groups: Tagged with aws:eks:cluster-name: "{cluster_name}"
+- Metadata Tags: Default application and business-unit classifications:
+
+```YAML
+      tags:
+        application: "moj-container-platform"
+        business-unit: "platforms"
+```
+
+## NodePools
+NodePools define the instance requirements for nodes including the following, along with disruption / consolidation configuration:
+
+`capacity-type` Purchasing model used for the node capacity.
+`arch` CPU architecture.
+`instance-category` Restricts nodes to particular EC2 instance families.
+`instance-generation` Minimum generation of EC2 instance.
+`zone` Availability zone.
+`instance-size` Restricts nodes to particular EC2 instance sizes.
+
+There are two NodePools, both defined using the default NodeClass
+
+1. A [default_nodepool](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf#L44) called **\<BU or Cluster Name\>-default-nodepool** for general application workloads. It has labels including `Terraform`, ` Cluster` and `Domain` plus:
+``"container-platform.justice.gov.uk/default-ng": "true"``
+ 
+2. A [system_nodepool](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf#L93)called **\<BU or Cluster Name\>-system-nodepool** for cluster system workloads. It has labels including `Terraform`, ` Cluster` and `Domain` plus:
+``"container-platform.justice.gov.uk/system-ng": "true"``
+Plus a `NoSchedule` taint: `system-node` with value `true`
+
+To schedule system workload in the system pool add:
+
+```YAML
+tolerations:
+  - key: system-node
+    operator: Equal
+    value: "true"
+    effect: NoSchedule
+```
+
+## Limits
+
+Initially the limits per NodePool are set to
+
+ - default_nodepool: `50`
+ - system_nodepool: `10`
+
+## Consolidation / Disruption
+
+Both NodePools use Karpenter's consolidation to optimize costs:
+
+```YAML
+disruption:
+  consolidationPolicy: WhenEmptyOrUnderutilized
+  consolidateAfter: 60s
+```
+
+What this means:
+- When: Nodes are consolidated when empty or < 50% utilized
+- Delay: 60 second grace period before termination to allow pod rescheduling
+- Impact: May briefly spike pod evictions; workloads should have PodDisruptionBudgets
+
+## Investigating NodePool Issues
+
+### Pod Failed to Schedule
+
+**Symptom:** Pods remain in a `Pending` state with **"Insufficient resources"** or **"Unschedulable"** events.
+
+#### Diagnosis
+
+```bash
+# Get the NodePool names
+kubectl get nodepools
+
+# Check NodePool status
+kubectl get nodepools -o yaml
+
+# Check active nodes
+kubectl get nodes -l container-platform.justice.gov.uk/default-ng=true
+kubectl get nodes -l container-platform.justice.gov.uk/system-ng=true
+
+# Check NodePool limits
+kubectl describe nodepool <BU or Cluster Name>-default-nodepool
+kubectl describe nodepool <BU or Cluster Name>-system-nodepool
+```
+
+| Issue | Root Cause | Solution | 
+|---------|------------|------------| 
+| Pods stuck pending | NodePool has reached CPU or node limits. | Review limits in `nodepools.tf` and increase them if workload growth is sustained. | 
+| Nodes failing to launch | Insufficient capacity in the target Availability Zones. | Verify Availability Zone capacity and review Karpenter logs. | 
+| Unschedulable due to taints | System pods are attempting to schedule onto the default NodePool. | Ensure workloads include a `system-node: true` toleration where required. |
+
+## FAQ
+
+**Q: Can I manually scale nodepools?**
+A: No. Karpenter manages scaling automatically. Use limits: to set bounds.
+
+**Q: How do I monitor node consolidation activity?**
+A: Watch the nodes with the following commands:
+```bash
+kubectl get nodes -w -l container-platform.justice.gov.uk/default-ng
+kubectl get nodes -w -l container-platform.justice.gov.uk/system-ng
+```
+
+**Q: How do I reserve capacity for a specific application?**
+A: Use node affinity/nodeSelector labels combined with Karpenter limits: to reserve nodes.
+
+**Q: What happens during node consolidation?**
+A: Karpenter cordons the node, drains pods (respecting PodDisruptionBudgets), then terminates it. Total duration: ~2 minutes per node.
+
+**Q: Can I add other tolerations and taints to control workloads?**
+A: See Kubernetes [labels-annotations-taints](https://kubernetes.io/docs/reference/labels-annotations-taints/#topologykubernetesioregion) documentation.
