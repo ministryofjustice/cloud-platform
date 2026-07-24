@@ -1,0 +1,37 @@
+## Scaling
+
+## Nodepools and NodeClass
+Workloads are scheduled onto nodes according to the [nodepool.tf](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf) definitions. This contains: 
+
+## NodeClass
+There is one	[default_nodeclass](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf#L7) called **\<BU or CLuster Name\>-nodeclass** containing the shared configuration for both nodepools. This defines:
+
+- IAM Role: Node execution role (via local.node_role_name)
+  - Network Configuration: 
+  - Primary CIDR nodes: Private subnets tagged with SubnetType: "Private"
+- Pod CIDR nodes: Secondary CIDR subnets (100.64.x.x) tagged with SubnetType: "pod-private"
+- Security Groups: Tagged with aws:eks:cluster-name: "{cluster_name}"
+- Metadata Tags: Default application and business-unit classifications:
+```
+      tags:
+        application: "moj-container-platform"
+        business-unit: "platforms"
+```
+
+## NodePools
+Nodepools define the instance requirements for nodes including the following, along with disruption / consoloidation configuration:
+
+`capacity-type` Purchasing model used for the node capacity.
+`arch` CPU architecture.
+`instance-category` Restricts nodes to particular EC2 instance families.
+`instance-generation` Minimum generation of EC2 instance.
+`zone` Availability zone.
+`instance-size` Restricts nodes to particular EC2 instance sizes.
+
+There are two NodePools, both defined using the default NodeClass
+
+1. A [default_nodepool](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf#L44) called **\<BU or Cluster Name\>-default-nodepool** for general application workloads. It has labels including `Terraform`, ` Cluster` and `Domain` plus:
+``"container-platform.justice.gov.uk/default-ng": "true"``
+ 
+2. A [system_nodepool](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf#L93)called **\<BU or Cluster Name\>-system-nodepool** for cluster system workloads. It has labels including `Terraform`, ` Cluster` and `Domain` plus:
+``"container-platform.justice.gov.uk/system-ng": "true"``
