@@ -30,20 +30,23 @@ There is one [default_nodeclass](https://github.com/ministryofjustice/modernisat
 ## NodePools
 NodePools define the instance requirements for nodes including the following, along with disruption / consolidation configuration:
 
-`capacity-type` Purchasing model used for the node capacity.
-`arch` CPU architecture.
-`instance-category` Restricts nodes to particular EC2 instance families.
-`instance-generation` Minimum generation of EC2 instance.
-`zone` Availability zone.
-`instance-size` Restricts nodes to particular EC2 instance sizes.
+- `capacity-type` Purchasing model used for the node capacity.
+- `arch` CPU architecture.
+- `instance-category` Restricts nodes to particular EC2 instance families.
+- `instance-generation` Minimum generation of EC2 instance.
+- `zone` Availability zone.
+- `instance-size` Restricts nodes to particular EC2 instance sizes.
 
 There are two NodePools, both defined using the default NodeClass
 
 1. A [default_nodepool](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf#L44) called **\<BU or Cluster Name\>-default-nodepool** for general application workloads. It has labels including `Terraform`, ` Cluster` and `Domain` plus:
+
 ``"container-platform.justice.gov.uk/default-ng": "true"``
  
-2. A [system_nodepool](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf#L93)called **\<BU or Cluster Name\>-system-nodepool** for cluster system workloads. It has labels including `Terraform`, ` Cluster` and `Domain` plus:
+2. A [system_nodepool](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf#L93) called **\<BU or Cluster Name\>-system-nodepool** for cluster system workloads. It has labels including `Terraform`, ` Cluster` and `Domain` plus:
+
 ``"container-platform.justice.gov.uk/system-ng": "true"``
+
 Plus a `NoSchedule` taint: `system-node` with value `true`
 
 To schedule system workload in the system pool add:
@@ -74,9 +77,10 @@ disruption:
 ```
 
 What this means:
-- When: Nodes are consolidated when empty or < 50% utilized
-- Delay: 60 second grace period before termination to allow pod rescheduling
-- Impact: May briefly spike pod evictions; workloads should have PodDisruptionBudgets
+
+- **When:** Nodes are consolidated when empty or < 50% utilized
+- **Delay:** 60 second grace period before termination to allow pod rescheduling
+- **Impact:** May briefly spike pod evictions; workloads should have PodDisruptionBudgets
 
 ## Investigating NodePool Issues
 
@@ -111,20 +115,26 @@ kubectl describe nodepool <BU or Cluster Name>-system-nodepool
 ## FAQ
 
 **Q: Can I manually scale nodepools?**
+
 A: No. Karpenter manages scaling automatically. Use limits: to set bounds.
 
 **Q: How do I monitor node consolidation activity?**
+
 A: Watch the nodes with the following commands:
+
 ```bash
 kubectl get nodes -w -l container-platform.justice.gov.uk/default-ng
 kubectl get nodes -w -l container-platform.justice.gov.uk/system-ng
 ```
 
 **Q: How do I reserve capacity for a specific application?**
+
 A: Use node affinity/nodeSelector labels combined with Karpenter limits: to reserve nodes.
 
 **Q: What happens during node consolidation?**
+
 A: Karpenter cordons the node, drains pods (respecting PodDisruptionBudgets), then terminates it. Total duration: ~2 minutes per node.
 
 **Q: Can I add other tolerations and taints to control workloads?**
+
 A: See Kubernetes [labels-annotations-taints](https://kubernetes.io/docs/reference/labels-annotations-taints/#topologykubernetesioregion) documentation.
