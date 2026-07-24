@@ -1,0 +1,25 @@
+# Network Troubleshooting
+
+## Pods Unable to Get IP Addresses
+**Symptom: Pod stuck in ContainerCreating state**
+
+Check Pod CIDR Availability:
+```bash
+aws ec2 describe-subnets --filters "Name=tag:SubnetType,Values=pod-private" \
+  --query 'Subnets[].{Subnet:CidrBlock,AZ:AvailabilityZone,Available:AvailableIpAddressCount}'
+```
+This should show some pods `Available` in each AZ
+
+## Inter-Node Pod Communication Failures
+
+Verify security group configuration:
+```bash
+# Find pod security group
+kubectl get nodes -o wide
+aws ec2 describe-instances --instance-ids <node-id> \
+  --query 'Reservations[0].Instances[0].SecurityGroups'
+
+# Verify inbound/outbound rules allow pod CIDR traffic
+aws ec2 describe-security-groups --group-ids <sg-id>
+```
+Pod security groups are automatically selected via tags defined in the NodeClass.
