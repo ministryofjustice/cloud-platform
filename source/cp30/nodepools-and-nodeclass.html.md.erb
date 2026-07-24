@@ -43,3 +43,33 @@ tolerations:
     value: "true"
     effect: NoSchedule
 ```
+
+## Investigating NodePool Issues
+
+### Pod Failed to Schedule
+
+**Symptom:** Pods remain in a `Pending` state with **"Insufficient resources"** or **"Unschedulable"** events.
+
+#### Diagnosis
+
+```bash
+# Get the NodePool names
+kubectl get nodepools
+
+# Check NodePool status
+kubectl get nodepools -o yaml
+
+# Check active nodes
+kubectl get nodes -l container-platform.justice.gov.uk/default-ng=true
+kubectl get nodes -l container-platform.justice.gov.uk/system-ng=true
+
+# Check NodePool limits
+kubectl describe nodepool <BU or Cluster Name>-default-nodepool
+kubectl describe nodepool <BU or Cluster Name>-system-nodepool
+```
+
+| Issue | Root Cause | Solution | 
+|---------|------------|------------| 
+| Pods stuck pending | NodePool has reached CPU or node limits. | Review limits in `nodepools.tf` and increase them if workload growth is sustained. | 
+| Nodes failing to launch | Insufficient capacity in the target Availability Zones. | Verify Availability Zone capacity and review Karpenter logs. | 
+| Unschedulable due to taints | System pods are attempting to schedule onto the default NodePool. | Ensure workloads include a `system-node: true` toleration where required. |
