@@ -1,5 +1,3 @@
-## Scaling
-
 ## Nodepools and NodeClass
 Workloads are scheduled onto nodes according to the [nodepool.tf](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf) definitions. This contains: 
 
@@ -35,3 +33,13 @@ There are two NodePools, both defined using the default NodeClass
  
 2. A [system_nodepool](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf#L93)called **\<BU or Cluster Name\>-system-nodepool** for cluster system workloads. It has labels including `Terraform`, ` Cluster` and `Domain` plus:
 ``"container-platform.justice.gov.uk/system-ng": "true"``
+Plus a `NoSchedule` taint: `system-node` with value `true`
+
+To schedule system workload in the system pool add YAML:
+```
+tolerations:
+  - key: system-node
+    operator: Equal
+    value: "true"
+    effect: NoSchedule
+```
