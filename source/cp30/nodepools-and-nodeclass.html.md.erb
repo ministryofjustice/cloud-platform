@@ -9,7 +9,7 @@ review_in: 6 months
 
 ## Overview
 
-Workloads are scheduled onto nodes according to the [nodepool.tf](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf) definitions. This contains: 
+Workloads are scheduled onto nodes according to the [nodepool.tf](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf) definitions. This contains 2 NodePools and one NodeClass. See [ticket 8315](https://github.com/ministryofjustice/cloud-platform/issues/8315) for the inital implementation. 
 
 ## NodeClass
 There is one	[default_nodeclass](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/cluster-core/nodepools.tf#L7) called **\<BU or CLuster Name\>-nodeclass** containing the shared configuration for both nodepools. This defines:
