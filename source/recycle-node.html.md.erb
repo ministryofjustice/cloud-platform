@@ -1,7 +1,7 @@
 ---
 title: Manually run recycle node command
 weight: 250
-last_reviewed_on: 2025-07-15
+last_reviewed_on: 2026-07-28
 review_in: 6 months
 ---
 
@@ -15,7 +15,13 @@ The [recycle-node pipeline][recyclenode-pipeline-definition] runs every day on t
 * Terminating the node
 * Ensure the cluster is healthy with the same set of nodes before the process started
 
-To recycle to oldest node on the cluster in your current context:
+Before running the CLI `recycle-node` command, as well as usual profile and context setup, you'll need to run the following export command in your shell:
+
+```
+export AWS_SDK_LOAD_CONFIG=1
+```
+
+To recycle the oldest node on the cluster in your current context:
 
     cloud-platform cluster recycle-node --oldest
 
