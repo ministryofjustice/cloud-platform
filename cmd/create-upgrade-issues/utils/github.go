@@ -66,11 +66,11 @@ func CreateIssue(client *github.Client, ghAccess GitHubAccess, issue string, upg
 		if issue.Title == title {
 			found = true
 			switch issue.Int {
-			case 1, 2, 3, 4, 5, 6:
+			case 1, 2, 3, 4, 5, 6, 7:
 				labels = append(labels, "eks-"+upgradeVersion+"-upgrade", "eks-pre-upgrade")
-			case 7:
+			case 8:
 				labels = append(labels, "eks-"+upgradeVersion+"-upgrade")
-			case 8, 9, 11, 12, 13, 14, 15, 16:
+			case 9, 10, 11, 12, 13, 14, 15, 16, 17, 18:
 				labels = append(labels, "eks-"+upgradeVersion+"-upgrade", "eks-post-upgrade")
 			default:
 				fmt.Println("This issue isnt listed please add to Issues struct via variable issuesTitles, default label added:", title)
