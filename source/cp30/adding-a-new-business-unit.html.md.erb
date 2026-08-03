@@ -9,10 +9,10 @@ review_in: 6 months
 
 Use this checklist to onboard a new business unit (BU).
 
->[!NOTE] \
-> Step 3 can be in 1 PR \
-> Steps 2 - 7 can be in 1 PR \
-> Steps 10 and 11 can be in 1 PR  
+>*NOTE* <br>
+>Step 3 can be in 1 PR <br>
+>Steps 2 - 7 can be in 1 PR <br>
+>Steps 10 and 11 can be in 1 PR  
 
 **Step 1: Request Accounts Created in Modernisation Platform**
 
@@ -29,13 +29,13 @@ MP Account Request Example [modernisation-platform #13641](https://github.com/mi
 
 Once MP have confirmed the AWS accounts have been created in Step 1, share the MP TGW and the VPC Endpoints Route53 Profile to the new accounts.
 
-Code example: \
-RAM Share for MP TGW: [ram.tf](https://github.com/ministryofjustice/modernisation-platform/blob/main/terraform/environments/core-network-services/ram.tf#L16)\
+Code example: <br>
+RAM Share for MP TGW: [ram.tf](https://github.com/ministryofjustice/modernisation-platform/blob/main/terraform/environments/core-network-services/ram.tf#L16) <br>
 RAM Share for VPC Endpoints Route53 Profile: [vpc-endpoints.tf.tf](https://github.com/ministryofjustice/modernisation-platform/blob/main/terraform/environments/core-network-services/vpc-endpoints.tf#L4)
 
 Raise the PR with the Modernisation Platform team and merge it before moving to the next step. You can raise the changes in a single PR.
 
-PR example for MP TGW RAM Share: [modernisation-platform#13655](https://github.com/ministryofjustice/modernisation-platform/pull/13655)\
+PR example for MP TGW RAM Share: [modernisation-platform#13655](https://github.com/ministryofjustice/modernisation-platform/pull/13655) <br>
 PR example for MP VPC Endpoints Route53 RAM Share: [modernisation-platform#13516](https://github.com/ministryofjustice/modernisation-platform/pull/13516)
 
 
@@ -51,7 +51,7 @@ Use [generate-account-workspaces.sh](https://github.com/ministryofjustice/modern
 
 Use AWS credentials for the `platform-engineer-admin` role in the `cloud-platform-development` account (any role with state access to `cloud-platform` is sufficient).
 
->[!TIP] \
+>*TIP* <br>
 >Use the flag `--dry-run` on the script to show what changes would be done to the Terraform workspaces. The script scans the `cloud-platform` root and all subdirectories for `*.tf` files and assumes a workspace needs to exist against that directory.
 
 **Step 5: Add Root Subdomain**
