@@ -7,15 +7,16 @@
 | 100.64.0.0/10 | /10  | Pod IPs                              | RFC6598, not externally routable    |
 | 172.20.0.0/16 | /16  | Existing Cloud Platform Cluster      | Routable                            |
 
-## Platform and Shared Infrastructure (10.195.0.0/16, lower range)
+## Platform and Shared Infrastructure (10.195.0.0/16)
 
 | VPC                            | CIDR          | Mask | Addresses | Purpose                                           |
 | :----------------------------- | :------------ | :--- | --------: | :------------------------------------------------ |
-| Hub cluster (Cloud Platform) | 10.195.0.0/20 | /20 | 4,096 | Argo CD, KRO, OpenSearch — ~250 pods, few nodes |
-| Hub preproduction | 10.195.16.0/20 | /20 | 4,096 | Preproduction Hub |
-| Dev clusters (shared) | 10.195.32.0/20 | /20 | 4,096 | Up to 10 CP engineer dev clusters sharing one VPC |
+| Hub live (cloud-platform-live) | 10.195.0.0/20 | /20 | 4,096 | Argo CD, KRO, OpenSearch — ~250 pods, few nodes |
+| Hub nonlive (cloud-platform-nonlive) | 10.195.192.0/20 | /20 | 4,096 | Argo CD, KRO, OpenSearch — ~250 pods, few nodes |
+| Hub preproduction (cloud-platform-preproduction) | 10.195.16.0/20 | /20 | 4,096 | Preproduction Hub |
+| Dev clusters (shared, cloud-platform-development) | 10.195.32.0/20 | /20 | 4,096 | Up to 10 CP engineer dev clusters sharing one VPC |
 
-### BU Non-Live Clusters (10.195.0.0/16, upper range)
+### BU Non-Live Clusters (10.195.0.0/16)
 
 | VPC           | CIDR            | Mask | Addresses | Assigned BU |
 | :------------ | :-------------- | :--- | --------: | :---------- |
@@ -28,7 +29,8 @@
 | BU-7 non-live | 10.195.144.0/20 | /20 | 4,096 | CICA |
 | BU-8 non-live | 10.195.160.0/20 | /20 | 4,096 | OPG |
 | BU-9 non-live | 10.195.176.0/20 | /20 | 4,096 | Unassigned |
-| Free | 10.195.192.0/18 | /18 | 16,384 | Unassigned |
+| Free | 10.195.208.0/18 | /20 | 4,096 | Unassigned |
+| Free | 10.195.224.0/19 | /18 | 8,190 | Unassigned |
 
 ### BU Live Clusters (10.41.0.0/16)
 
@@ -53,10 +55,10 @@ Each EKS cluster receives a /16 from the RFC6598 range for pod IPs.
 
 | Cluster                  | Secondary CIDR | Pod IPs  | Notes                                              |
 | :-------------------- | :------------- | -------: | :------------------------------------------------- |
-| Hub cluster | 100.64.0.0/16 | 65,536 | ~250 pods; included for configuration consistency. |
+| Hub live | 100.64.0.0/16 | 65,536 | ~250 pods; included for configuration consistency. |
 | Hub preproduction | 100.65.0.0/16 | 65,536 | ~250 pods; included for configuration consistency. |
 | Dev clusters (shared) | 100.66.0.0/16 | 65,536 | Shared across up to 10 dev clusters |
-| Free | 100.67.0.0/16 | 65,536 | Kept free for future platform use |
+| Hub nonlive | 100.67.0.0/16 | 65,536 | ~250 pods; included for configuration consistency. |
 | BU-1 non-live | 100.68.0.0/16 | 65,536 | OCTO |
 | BU-2 non-live | 100.69.0.0/16 | 65,536 | HMPPS |
 | BU-3 non-live | 100.70.0.0/16 | 65,536 | LAA |
