@@ -55,10 +55,10 @@ Each EKS cluster receives a /16 from the RFC6598 range for pod IPs.
 
 | Cluster                  | Secondary CIDR | Pod IPs  | Notes                                              |
 | :-------------------- | :------------- | -------: | :------------------------------------------------- |
-| Hub cluster | 100.64.0.0/16 | 65,536 | ~250 pods; included for configuration consistency. |
+| Hub live | 100.64.0.0/16 | 65,536 | ~250 pods; included for configuration consistency. |
 | Hub preproduction | 100.65.0.0/16 | 65,536 | ~250 pods; included for configuration consistency. |
 | Dev clusters (shared) | 100.66.0.0/16 | 65,536 | Shared across up to 10 dev clusters |
-| Free | 100.67.0.0/16 | 65,536 | Kept free for future platform use |
+| Hub nonlive | 100.67.0.0/16 | 65,536 | ~250 pods; included for configuration consistency. |
 | BU-1 non-live | 100.68.0.0/16 | 65,536 | OCTO |
 | BU-2 non-live | 100.69.0.0/16 | 65,536 | HMPPS |
 | BU-3 non-live | 100.70.0.0/16 | 65,536 | LAA |
