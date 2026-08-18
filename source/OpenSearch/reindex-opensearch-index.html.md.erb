@@ -1,0 +1,223 @@
+---
+title: Reindex OpenSearch Index
+weight: 8765
+last_reviewed_on: 2026-07-11
+review_in: 12 months
+---
+
+# <%= current_page.data.title %>
+
+## Background
+
+A index of the `live_kubernetes_ingress` has failed to migrate from Hot to Warm storage. This is due to the index being too large to migrate in a single operation. The index needs to be reindexed into a new index with a smaller shard size.
+
+The Error will be seen in the OpenSearch Policy managed indexes job `Action info`
+
+example: 
+
+```json
+{
+    "cause": "Rejecting migration request for index [live_kubernetes_ingress-2026.07.29] because the shard size [127 GiB] exceeds the warm migration shard size limit of [100 GiB]. To avoid migration failures, reindex your data to reduce shard sizes, then migrate it to UltraWarm storage.",
+    "message": "Failed to start warm migration [index=live_kubernetes_ingress-2026.07.29]"
+}
+```
+
+From the example above to shard limit set by AWS is 100 GIB, this is the limit for a single shard, if the index has 5 shards then the total index size can be 500 GIB. The `live_kubernetes_ingress` index has 4 primary shards and 1 replica shard, the total index size is 1002.9 GIB, with the primary shards being 508.3 GIB, which is over the limit of 100 GIB per shard.
+
+To solve this issue we will need to reindex the `live_kubernetes_ingress` index into a new index with a smaller shard size, this will allow the index to be migrated to warm storage.
+
+The recommended shard size is between 30 and 50 GIB, this will allow the index to be migrated to warm storage without any issues.
+
+you can use the following formula to calculate the shard size:
+
+```
+shard size = total index size / number of primary shards
+```
+
+So for the example above to allow us to migrate the index to warm storage, we would need 20 primary shards
+
+``` 
+1002.9 GIB / 20 primary shards = 50.15 GIB per shard 
+```
+
+If the shard count is going to be greater then 30 then the following approach for reindexing shouldnt be used. instead follow this approach here [Reindex OpenSearch Index Based on Timestamp](OpenSearch/reindex-opensearch-index-based-on-timestamp)
+
+## Steps for reindexing
+
+
+### Step 1: Create a new index
+
+```html
+PUT live_kubernetes_ingress-<date>-reindexed
+  {
+    "settings": {
+      "number_of_shards": 20,
+      "number_of_replicas": 0,
+      "refresh_interval": "-1"
+    }
+  }
+```
+
+inputs:
+- `<date>` - the date of the index you want to reindex, this is the date in the index name `live_kubernetes_ingress-<date>`
+- `settings`
+  - `number_of_shards` - the number of primary shards you want to create for the new index, this should be set to a value that will result in a shard size between 30 and 50 GIB, you can use the formula above to calculate the number of primary shards needed.
+  - `number_of_replicas` - the number of replica shards you want to create for the new index, this should be set to 0, as we will be reindexing the data from the old index to the new index, and we don't want to create any replicas until the reindexing is complete.
+  - `refresh_interval` - the refresh interval for the new index, this should be set to -1, as we don't want to refresh the index until the reindexing is complete.
+
+
+command output example:
+
+```json
+{
+    "acknowledged": true,
+    "shards_acknowledged": true,
+    "index": "live_kubernetes_ingress-<date>-reindexed"
+}
+```
+
+
+### Step 2: Reindex the data from the old index to the new index
+
+```html
+POST _reindex?wait_for_completion=false&scroll=1h
+  {
+    "source": {
+      "index": "live_kubernetes_ingress-<date>",
+      "size": 3000
+    },
+    "dest": {
+      "index": "live_kubernetes_ingress-<date>-reindexed"
+    }
+  }
+```
+
+inputs:
+- `wait_for_completion` - this should be set to false, as we don't want to wait for the reindexing to complete before returning a response, this will allow us to monitor the progress of the reindexing using the task API.
+- `scroll` - this should be set to 1h, as we want to keep the scroll context alive for 1 hour, this will allow us to reindex large indexes without running into scroll context timeouts.
+- `source`
+  - `index` - the name of the index you want to reindex, this should be set to the name of the old index you want to reindex.
+  - `size` - the number of documents to reindex in each batch, this should be set to a value that will allow the reindexing to complete in a reasonable amount of time, you can adjust this value based on the size of the index and the performance of your OpenSearch cluster.
+- `dest`
+  - `index` - the name of the new index you want to reindex the data to, this should be set to the name of the new index you created in step 1.
+
+
+command output example:
+
+```json
+{
+    "task": "task_id"
+}
+```
+
+
+### Step 3: Monitor the progress of the reindexing
+
+```html
+GET _tasks/<task_id>
+```
+
+inputs:
+- `task_id` - the ID of the reindexing task, this should be set to the value returned by the `_reindex` API when `wait_for_completion` is set to false.
+
+command output example:
+
+```json
+{
+    "completed": false,
+    "task": {
+        "node": "node_id",
+        "id": task_id,
+        "type": "transport",
+        "action": "indices:data/write/reindex",
+        "status": {
+            "total": 1000000,
+            "updated": 0,
+            "created": 500000,
+            "deleted": 0,
+            "batches": 167,
+            "version_conflicts": 0,
+            "noops": 0,
+            "retries": {
+                "bulk": 0,
+                "search": 0
+            },
+            "throttled_millis": 0,
+            "requests_per_second": -1.0,
+            "canceled": false
+        }
+    }
+}
+```
+
+
+### Step 4: Once completed, validate the new index has the same number of documents as the old index
+
+```html
+GET _cat/indices/live_kubernetes_ingress-<date>*?v&h=index,docs.count,store.size
+```
+
+command output example:
+
+```text
+index                                      docs.count  store.size
+live_kubernetes_ingress-<date>             1000000     1002.9gb
+live_kubernetes_ingress-<date>-reindexed   1000000     1002.9gb
+```
+
+
+### Step 5: Re-enable replica and refresh interval on the new index
+
+```html
+PUT live_kubernetes_ingress-<date>-reindexed/_settings
+{
+"number_of_replicas": 1,
+"refresh_interval": "1s"
+}
+```
+
+The `number_of_replicas` should be set to 1, as we want to create a replica of the new index, and the `refresh_interval` should be set to 1s, as we want to refresh the index every second.
+The index will state will be yellow until the replica is created, once the replica is created the index state will be green. You will need to wait for the index state to be green before proceeding to the next step.
+
+
+### Step 6: Attach ISM policy to the new index if required
+
+```html
+POST _plugins/_ism/add/live_kubernetes_ingress-<date>-reindexed
+{
+"policy_id": "hot-warm-cold-delete"
+}
+```
+
+
+### Step 7: Delete the old index (only after confirming doc counts match)
+
+```html
+DELETE live_kubernetes_ingress-<date>
+```
+
+### Step 8: Migrate the new index to warm storage
+
+```html
+POST _ultrawarm/migration/live_kubernetes_ingress-<date>-reindexed/_warm
+```
+
+This will trigger the migration of the new index to warm storage, you can monitor the progress of the migration using the ISM policy managed indexes job `Action info` or with the status command. 
+
+```html
+GET _ultrawarm/migration/live_kubernetes_ingress-<date>-reindexed/_status
+```
+
+It will take some time for the migration to complete, depending on the size of the index and the performance of your OpenSearch cluster.
+
+Our policy is set to migrate to warm storage after 1 day, and to cold storage after 30 days. If the index you reindexed is older than 1 day it only needs to be migrated to warm storage, if the index is older than 30 days, once it has been migrated to warm storage, you can trigger the migration to cold storage.
+
+```html
+POST _ultrawarm/migration/live_kubernetes_ingress-<date>-reindexed/_cold
+{
+  "timestamp_field": "@timestamp"
+}
+```
+
+
+[cloud-platform]: https://github.com/ministryofjustice/cloud-platform
