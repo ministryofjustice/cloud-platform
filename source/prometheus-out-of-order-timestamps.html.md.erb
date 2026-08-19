@@ -1,0 +1,132 @@
+---
+title: How to Investigate PrometheusOutOfOrderTimestamps
+weight: 219
+last_reviewed_on: 2026-08-19
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+When you see a `PrometheusOutOfOrderTimestamps` alert in the `#lower-priority-alarms` channel, it means Prometheus has dropped samples because it received a timestamp that is older than the latest timestamp it already has for the same time series.
+
+Prometheus' time series database is append-only. Once a series has a sample for `t=10`, Prometheus cannot ingest a sample for an earlier time, such as `t=9`, for that same series.
+
+This is normally caused by one scrape target exporting duplicate series or an exporter setting explicit timestamps. A small number of dropped samples is usually not urgent, but the affected target should be identified so the owning team can fix noisy or broken metrics.
+
+## Example alert payload
+
+```yaml
+alertname: PrometheusOutOfOrderTimestamps
+clusterName: live
+container: prometheus
+endpoint: http-web
+instance: 172.20.140.164:9090
+job: prometheus-operator-kube-p-prometheus
+namespace: monitoring
+pod: prometheus-prometheus-operator-kube-p-prometheus-2
+prometheus: monitoring/prometheus-operator-kube-p-prometheus
+service: prometheus-operator-kube-p-prometheus
+severity: warning
+```
+
+## Troubleshooting
+
+### Check recent warnings
+
+Use `stern` to check recent Prometheus warnings from the last 30 minutes. `stern` writes to `stderr`, so make sure to redirect it before grepping. Alternatively, [you can use OpenSearch to search for the same warnings][opensearch-out-of-order-warnings].
+
+```bash
+stern -n monitoring 'prometheus-prometheus-operator-kube-p-prometheus-[0-2]' --since 30m 2>&1 | rg 'out-of-order'
+```
+
+The warning should include the scrape pool and target that are dropping samples. Use these labels to identify the source of the problem. The `num_dropped` field indicates how many samples were dropped.
+
+The output may look something like this
+
+```
+> stern -n monitoring 'prometheus-prometheus-operator-kube-p-prometheus-[0-2]' --since 30m 2>&1 | rg 'out-of-order'
+
+prometheus-prometheus-operator-kube-p-prometheus-2 prometheus \
+  time=2026-08-14T13:27:53.239Z level=WARN source=scrape.go:1881 \
+  msg="Error on ingesting out-of-order samples" component="scrape manager" \
+  scrape_pool=serviceMonitor/example-namespace/pr-400-foo-bar-service-monitor/0 \
+  target=http://172.20.137.251:8081/actuator/prometheus num_dropped=29
+
+prometheus-prometheus-operator-kube-p-prometheus-2 prometheus \
+  time=2026-08-14T13:29:23.239Z level=WARN source=scrape.go:1881 \
+  msg="Error on ingesting out-of-order samples" component="scrape manager" \
+  scrape_pool=serviceMonitor/example-namespace/pr-400-foo-bar-service-monitor/0 \
+  target=http://172.20.137.251:8081/actuator/prometheus num_dropped=27
+
+prometheus-prometheus-operator-kube-p-prometheus-2 prometheus \
+  time=2026-08-14T13:30:51.021Z level=WARN source=scrape.go:1881 \
+  msg="Error on ingesting out-of-order samples" component="scrape manager" \
+  scrape_pool=serviceMonitor/example-namespace/pr-413-foo-bar-service-monitor/0 \
+  target=http://172.20.221.172:8081/actuator/prometheus num_dropped=161
+```
+
+From the output above we can identify that the `pr-400-foo-bar-service-monitor` and `pr-413-foo-bar-service-monitor` ServiceMonitors in `example-namespace` are dropping samples.
+
+We can inspect one of these ServiceMonitors to see if there is a misconfiguration.
+
+```
+> kubectl get servicemonitor -n example-namespace
+
+kubectl get servicemonitor -n example-namespace
+NAME                                     AGE
+pr-413-foo-bar-service-monitor           133d
+pr-400-foo-bar-service-monitor           14d
+
+> kubectl describe servicemonitor pr-413-foo-bar-service-monitor
+Name:         pr-413-foo-bar-service-monitor
+Namespace:    example-namespace
+Labels:       app.kubernetes.io/managed-by=Helm
+Annotations:  meta.helm.sh/release-name: pr-413
+              meta.helm.sh/release-namespace: example-namespace
+API Version:  monitoring.coreos.com/v1
+Kind:         ServiceMonitor
+Metadata:
+  Creation Timestamp:  2026-04-08T14:46:12Z
+  Generation:          1
+  Resource Version:    1234567890
+  UID:                 00000000-0000-0000-0000-000000000000
+Spec:
+  Endpoints:
+    Interval:  15s
+    Path:      /actuator/prometheus
+    Port:      management
+    Relabelings:
+      Action:  replace
+      Source Labels:
+        __meta_kubernetes_pod_label_app_kubernetes_io_name
+      Target Label:  container
+  Selector:
+Events:  <none>
+```
+
+In this example, `Selector:` is empty, so the ServiceMonitor may select more services than intended.
+
+## Common Causes
+
+### Service selector too broad
+If the ServiceMonitor selector is too broad, it may select multiple pods that export the same metrics. This can cause Prometheus to receive duplicate series with out-of-order timestamps.
+
+For example, if a ServiceMonitor has no selector, that means it will select all services in the namespace. If multiple services export the same metrics, Prometheus will receive duplicate series.
+
+You can check for this specific issue with the following command:
+
+```bash
+kubectl get servicemonitors -n example-namespace -o json \
+  | jq -r '.items[]
+  | select(.spec.selector == {})
+  | [.metadata.name, .metadata.creationTimestamp]
+  | @tsv'
+```
+
+## Resolution
+
+If the target is in a user namespace, contact the owning team to fix the issue. The owning team should check the target's metrics endpoint to ensure it is not exporting duplicate series or setting explicit timestamps.
+
+Once the target stops emitting out of order samples, the alert should resolve automatically.
+
+[opensearch-out-of-order-warnings]: https://app-logs.cloud-platform.service.justice.gov.uk/_dashboards/app/data-explorer/discover#?_a=(discover:(columns:!(_source),isDirty:!f,sort:!()),metadata:(indexPattern:bb90f230-0d2e-11ef-bf63-53113938c53a,view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-1h,to:now))&_q=(filters:!(),query:(language:kuery,query:'kubernetes.namespace_name:%20%22monitoring%22%0AAND%20(%0A%20%20log:%20%22out-of-order%20samples%22%0A)'))
