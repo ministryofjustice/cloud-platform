@@ -6,6 +6,11 @@ Cloud Platform.
 To understand why we are recording decisions and how we are doing it, please
 see [ADR-000](000-Record-Architecture-Decisions.md)
 
+> **Container Platform 3.0 (CP30):** decisions for the EKS-based platform are
+> recorded separately, under [`cp30/`](cp30/), using an independent `ADR-NNN`
+> numbering sequence. The table of contents below covers the original Cloud
+> Platform (CP2) decisions.
+
 ## Table of contents
 
 - ✅ [0. Record Architecture Decisions](000-Record-Architecture-Decisions.md)
