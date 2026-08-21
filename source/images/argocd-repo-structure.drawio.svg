@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="640" viewBox="0 0 1200 640" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#1565c0"/>
+    </marker>
+  </defs>
+  <style>
+    .title { font-size: 21px; font-weight: bold; fill: #102a43; }
+    .subtitle { font-size: 13px; fill: #486581; }
+    .panelh { font-size: 14px; font-weight: bold; fill: #0d3c78; }
+    .mono { font-family: "Courier New", monospace; font-size: 11px; fill: #2d3748; }
+    .monokey { font-family: "Courier New", monospace; font-size: 11px; font-weight: bold; fill: #1b5e20; }
+    .boxh { font-size: 12.5px; font-weight: bold; fill: #0d3c78; }
+    .small { font-size: 10.5px; fill: #52606d; }
+    .flow { font-size: 11px; font-weight: bold; fill: #1565c0; }
+  </style>
+
+  <text x="600" y="32" text-anchor="middle" class="title">GitOps repository structure — what good looks like</text>
+  <text x="600" y="52" text-anchor="middle" class="subtitle">How a product in container-platform-environments maps to ArgoCD ApplicationSets and to resources on a spoke cluster</text>
+
+  <!-- Panel A: repo -->
+  <rect x="30" y="74" width="400" height="548" rx="10" fill="#f7f9fc" stroke="#90a4ae" stroke-width="1.3"/>
+  <text x="45" y="96" class="panelh">1. Source repo (container-platform-environments)</text>
+
+  <text x="45" y="120" class="mono">container-platform-environments/</text>
+  <text x="45" y="135" class="mono">├─ charts/</text>
+  <text x="45" y="150" class="monokey">│  └─ app-baseline/         (baseline chart)</text>
+  <text x="45" y="165" class="mono">│     └─ templates/</text>
+  <text x="45" y="180" class="mono">│        ├─ namespace.yaml</text>
+  <text x="45" y="195" class="mono">│        ├─ rolebinding.yaml</text>
+  <text x="45" y="210" class="mono">│        └─ networkpolicy.yaml</text>
+  <text x="45" y="225" class="mono">└─ namespaces/</text>
+  <text x="45" y="240" class="mono">   └─ octo/                 (business unit)</text>
+  <text x="45" y="255" class="mono">      └─ helloworld/         (product)</text>
+  <text x="45" y="270" class="monokey">         ├─ product.yaml     (envs + access)</text>
+  <text x="45" y="285" class="mono">         ├─ helloworld-api/   (service)</text>
+  <text x="45" y="300" class="mono">         │  └─ deployment/</text>
+  <text x="45" y="315" class="mono">         │     ├─ Chart.yaml</text>
+  <text x="45" y="330" class="mono">         │     ├─ templates/</text>
+  <text x="45" y="345" class="mono">         │     │  ├─ deployment.yaml</text>
+  <text x="45" y="360" class="mono">         │     │  ├─ service.yaml</text>
+  <text x="45" y="375" class="mono">         │     │  └─ httproute.yaml</text>
+  <text x="45" y="390" class="monokey">         │     └─ values/</text>
+  <text x="45" y="405" class="monokey">         │        ├─ nonlive/</text>
+  <text x="45" y="420" class="mono">         │        │  ├─ dev.yaml</text>
+  <text x="45" y="435" class="mono">         │        │  └─ staging.yaml</text>
+  <text x="45" y="450" class="monokey">         │        └─ live/</text>
+  <text x="45" y="465" class="mono">         │           └─ prod.yaml</text>
+  <text x="45" y="480" class="mono">         └─ helloworld-frontend/ (service)</text>
+  <text x="45" y="495" class="mono">            └─ deployment/  (same shape)</text>
+  <text x="45" y="524" class="small">Every business unit and product follows this</text>
+  <text x="45" y="539" class="small">same layout. Highlighted paths drive the two</text>
+  <text x="45" y="554" class="small">ApplicationSets on the right.</text>
+
+  <!-- Panel B: hub ArgoCD -->
+  <rect x="455" y="74" width="340" height="548" rx="10" fill="#eef4fb" stroke="#1565c0" stroke-width="1.3"/>
+  <text x="470" y="96" class="panelh">2. Hub ArgoCD (per business unit)</text>
+
+  <rect x="470" y="112" width="310" height="150" rx="6" fill="#ffffff" stroke="#1565c0" stroke-width="1.2"/>
+  <text x="480" y="133" class="boxh">Baseline ApplicationSet</text>
+  <text x="480" y="152" class="small">generator: git-file-generator</text>
+  <text x="480" y="169" class="small">reads: namespaces/&lt;bu&gt;/*/product.yaml</text>
+  <text x="480" y="186" class="small">renders chart: charts/app-baseline</text>
+  <text x="480" y="207" class="small">creates, per environment:</text>
+  <text x="480" y="224" class="small">• Namespace</text>
+  <text x="480" y="240" class="small">• RoleBinding (from access:)</text>
+  <text x="480" y="256" class="small">• default-deny NetworkPolicy</text>
+
+  <rect x="470" y="278" width="310" height="170" rx="6" fill="#ffffff" stroke="#1565c0" stroke-width="1.2"/>
+  <text x="480" y="299" class="boxh">Workload ApplicationSet</text>
+  <text x="480" y="318" class="small">generator: git-directory-generator</text>
+  <text x="480" y="335" class="small">reads each values file under</text>
+  <text x="480" y="351" class="small">&lt;product&gt;/&lt;service&gt;/deployment/values/&lt;tier&gt;/</text>
+  <text x="480" y="372" class="small">renders that service's deployment chart</text>
+  <text x="480" y="388" class="small">with the selected tier values file</text>
+  <text x="480" y="409" class="small">creates workload objects:</text>
+  <text x="480" y="426" class="small">• Deployment, Service</text>
+  <text x="480" y="442" class="small">• HTTPRoute, HPA, ConfigMap…</text>
+
+  <rect x="470" y="464" width="310" height="92" rx="6" fill="#ffffff" stroke="#1565c0" stroke-width="1.2"/>
+  <text x="480" y="485" class="boxh">AppProject (e.g. octo-nonlive)</text>
+  <text x="480" y="504" class="small">Scopes what those Applications may do:</text>
+  <text x="480" y="521" class="small">allowed source repo, and the destination</text>
+  <text x="480" y="537" class="small">cluster and namespaces they can deploy to.</text>
+
+  <!-- Panel C: spoke result -->
+  <rect x="820" y="74" width="350" height="548" rx="10" fill="#f1f8f1" stroke="#2e7d32" stroke-width="1.3"/>
+  <text x="835" y="96" class="panelh" fill="#1b5e20">3. Result on the spoke (octo-nonlive)</text>
+
+  <rect x="835" y="112" width="320" height="180" rx="6" fill="#ffffff" stroke="#2e7d32" stroke-width="1.2"/>
+  <text x="845" y="133" class="boxh" fill="#1b5e20">namespace: helloworld-dev</text>
+  <text x="845" y="155" class="small">baseline (from product.yaml):</text>
+  <text x="845" y="172" class="small">• RoleBinding: cloud-platform → edit</text>
+  <text x="845" y="188" class="small">• default-deny NetworkPolicy</text>
+  <text x="845" y="213" class="small">workloads (from values/nonlive/dev.yaml):</text>
+  <text x="845" y="230" class="small">• helloworld-api: Deployment + Service</text>
+  <text x="845" y="246" class="small">• helloworld-frontend: Deployment + Service</text>
+  <text x="845" y="262" class="small">• HTTPRoute exposes the service</text>
+  <text x="845" y="281" class="small">Namespace isolated from other products.</text>
+
+  <rect x="835" y="308" width="320" height="92" rx="6" fill="#ffffff" stroke="#2e7d32" stroke-width="1.2"/>
+  <text x="845" y="329" class="boxh" fill="#1b5e20">namespace: helloworld-staging</text>
+  <text x="845" y="350" class="small">Same baseline and workloads, rendered</text>
+  <text x="845" y="366" class="small">from values/nonlive/staging.yaml, in its</text>
+  <text x="845" y="382" class="small">own isolated namespace on the same spoke.</text>
+
+  <rect x="835" y="416" width="320" height="140" rx="6" fill="#ffffff" stroke="#90a4ae" stroke-width="1.1"/>
+  <text x="845" y="437" class="boxh">product.yaml maps environments to</text>
+  <text x="845" y="453" class="boxh">a cluster and namespace</text>
+  <text x="845" y="475" class="small">dev → octo-nonlive / helloworld-dev</text>
+  <text x="845" y="491" class="small">staging → octo-nonlive / helloworld-staging</text>
+  <text x="845" y="507" class="small">prod → octo-live / helloworld-prod</text>
+  <text x="845" y="531" class="small">The live tier (prod) is deployed by the</text>
+  <text x="845" y="546" class="small">separate LIVE hub, never the nonlive hub.</text>
+
+  <!-- Flow arrows between panels -->
+  <path d="M433,345 L452,345" fill="none" stroke="#1565c0" stroke-width="2" marker-end="url(#arrow2)"/>
+  <text x="442" y="345" text-anchor="middle" class="flow" transform="rotate(-90 442 345)">reads from Git</text>
+  <path d="M798,345 L817,345" fill="none" stroke="#1565c0" stroke-width="2" marker-end="url(#arrow2)"/>
+  <text x="807" y="345" text-anchor="middle" class="flow" transform="rotate(-90 807 345)">renders &amp; deploys</text>
+</svg>

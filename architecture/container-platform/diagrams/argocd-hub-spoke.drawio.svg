@@ -1,0 +1,197 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="940" viewBox="0 0 1200 940" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#37474f"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#2e7d32"/>
+    </marker>
+  </defs>
+  <style>
+    .title { font-size: 22px; font-weight: bold; fill: #102a43; }
+    .subtitle { font-size: 13px; fill: #486581; }
+    .acct { font-size: 13px; font-weight: bold; fill: #b1361e; }
+    .hub { font-size: 14px; font-weight: bold; fill: #0d3c78; }
+    .spoke { font-size: 13px; font-weight: bold; fill: #1b5e20; }
+    .lbl { font-size: 11px; fill: #37474f; }
+    .lblg { font-size: 11px; fill: #2e7d32; }
+    .small { font-size: 10.5px; fill: #52606d; }
+    .tier { font-size: 12px; font-weight: bold; fill: #334e68; }
+  </style>
+
+  <!-- Title -->
+  <text x="600" y="34" text-anchor="middle" class="title">Container Platform 3 — ArgoCD GitOps hub &amp; spoke</text>
+  <text x="600" y="54" text-anchor="middle" class="subtitle">Separate nonlive and live ArgoCD instances deploy to same-tier spoke clusters across AWS accounts</text>
+
+  <!-- GitOps source -->
+  <rect x="450" y="74" width="300" height="60" rx="8" fill="#263238" stroke="#102027" stroke-width="1.5"/>
+  <text x="600" y="99" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="bold">GitHub (GitOps source of truth)</text>
+  <text x="600" y="118" text-anchor="middle" fill="#cfd8dc" font-size="11">ministryofjustice/container-platform-environments</text>
+
+  <!-- Hub account boundary -->
+  <rect x="60" y="170" width="1080" height="180" rx="10" fill="#eef4fb" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="80" y="192" class="acct">Hub account (management plane)</text>
+
+  <!-- Nonlive hub -->
+  <rect x="120" y="210" width="440" height="120" rx="8" fill="#ffffff" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="340" y="234" text-anchor="middle" class="hub">cloud-platform-nonlive</text>
+  <text x="340" y="253" text-anchor="middle" class="lbl">EKS cluster + EKS-managed ArgoCD capability</text>
+  <text x="340" y="271" text-anchor="middle" class="small">Runs in AWS-managed infrastructure (not on worker nodes)</text>
+  <text x="340" y="289" text-anchor="middle" class="small">Capability role: cloud-platform-nonlive-argocd-capability</text>
+  <text x="340" y="311" text-anchor="middle" fill="#1565c0" font-size="11" font-weight="bold">NONLIVE hub — manages nonlive spokes only</text>
+
+  <!-- Live hub -->
+  <rect x="640" y="210" width="440" height="120" rx="8" fill="#ffffff" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="860" y="234" text-anchor="middle" class="hub">cloud-platform-live</text>
+  <text x="860" y="253" text-anchor="middle" class="lbl">EKS cluster + EKS-managed ArgoCD capability</text>
+  <text x="860" y="271" text-anchor="middle" class="small">Runs in AWS-managed infrastructure (not on worker nodes)</text>
+  <text x="860" y="289" text-anchor="middle" class="small">Capability role: cloud-platform-live-argocd-capability</text>
+  <text x="860" y="311" text-anchor="middle" fill="#1565c0" font-size="11" font-weight="bold">LIVE hub — manages live spokes only</text>
+
+  <!-- Git to hubs -->
+  <path d="M540,134 C440,160 380,180 340,208" fill="none" stroke="#37474f" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M660,134 C760,160 820,180 860,208" fill="none" stroke="#37474f" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="392" y="166" class="lbl">git pull via CodeConnections</text>
+  <text x="700" y="166" class="lbl">git pull via CodeConnections</text>
+
+  <!-- Deploy arrows hub -> spoke tier -->
+  <path d="M340,330 L340,430" fill="none" stroke="#2e7d32" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <path d="M860,330 L860,430" fill="none" stroke="#2e7d32" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <text x="352" y="368" class="lblg" font-weight="bold">deploy Applications</text>
+  <text x="352" y="384" class="lblg">hub's capability role uses each spoke's</text>
+  <text x="352" y="400" class="lblg">EKS access entry (argocd-hub RBAC)</text>
+  <text x="872" y="368" class="lblg" font-weight="bold">deploy Applications</text>
+  <text x="872" y="384" class="lblg">hub's capability role uses each spoke's</text>
+  <text x="872" y="400" class="lblg">EKS access entry (argocd-hub RBAC)</text>
+
+  <!-- Tier isolation marker -->
+  <path d="M560,270 L640,270" fill="none" stroke="#c62828" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <line x1="588" y1="258" x2="612" y2="282" stroke="#c62828" stroke-width="2"/>
+  <line x1="612" y1="258" x2="588" y2="282" stroke="#c62828" stroke-width="2"/>
+  <text x="600" y="252" text-anchor="middle" fill="#c62828" font-size="10.5" font-weight="bold">tier isolation</text>
+
+  <!-- Nonlive spoke tier -->
+  <rect x="60" y="430" width="520" height="270" rx="10" fill="#f1f8f1" stroke="#2e7d32" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="80" y="452" class="tier">Business-unit spoke accounts — NONLIVE tier</text>
+
+  <!-- Live spoke tier -->
+  <rect x="620" y="430" width="520" height="270" rx="10" fill="#f1f8f1" stroke="#2e7d32" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="640" y="452" class="tier">Business-unit spoke accounts — LIVE tier</text>
+
+  <!-- Nonlive spoke: octo-nonlive -->
+  <rect x="78" y="466" width="158" height="216" rx="6" fill="#ffffff" stroke="#2e7d32" stroke-width="1.3"/>
+  <text x="157" y="487" text-anchor="middle" class="spoke">octo-nonlive</text>
+  <text x="157" y="505" text-anchor="middle" class="small">EKS spoke cluster</text>
+  <text x="157" y="520" text-anchor="middle" class="small">No ArgoCD runs here</text>
+  <rect x="92" y="530" width="130" height="66" rx="4" fill="#e8f5e9" stroke="#a5d6a7"/>
+  <text x="157" y="551" text-anchor="middle" class="small">team namespaces</text>
+  <text x="157" y="566" text-anchor="middle" class="small">+ workloads</text>
+  <text x="157" y="581" text-anchor="middle" class="small">(synced from Git)</text>
+  <text x="157" y="613" text-anchor="middle" class="small">Hub connects via an</text>
+  <text x="157" y="628" text-anchor="middle" class="small">EKS access entry mapped</text>
+  <text x="157" y="643" text-anchor="middle" class="small">to the argocd-hub</text>
+  <text x="157" y="658" text-anchor="middle" class="small">RBAC group</text>
+
+  <!-- Nonlive spoke: laa-nonlive -->
+  <rect x="243" y="466" width="158" height="216" rx="6" fill="#ffffff" stroke="#2e7d32" stroke-width="1.3"/>
+  <text x="322" y="487" text-anchor="middle" class="spoke">laa-nonlive</text>
+  <text x="322" y="505" text-anchor="middle" class="small">EKS spoke cluster</text>
+  <text x="322" y="520" text-anchor="middle" class="small">No ArgoCD runs here</text>
+  <rect x="257" y="530" width="130" height="66" rx="4" fill="#e8f5e9" stroke="#a5d6a7"/>
+  <text x="322" y="551" text-anchor="middle" class="small">team namespaces</text>
+  <text x="322" y="566" text-anchor="middle" class="small">+ workloads</text>
+  <text x="322" y="581" text-anchor="middle" class="small">(synced from Git)</text>
+  <text x="322" y="613" text-anchor="middle" class="small">Hub connects via an</text>
+  <text x="322" y="628" text-anchor="middle" class="small">EKS access entry mapped</text>
+  <text x="322" y="643" text-anchor="middle" class="small">to the argocd-hub</text>
+  <text x="322" y="658" text-anchor="middle" class="small">RBAC group</text>
+
+  <!-- Nonlive spoke: hmpps-nonlive -->
+  <rect x="408" y="466" width="158" height="216" rx="6" fill="#ffffff" stroke="#2e7d32" stroke-width="1.3"/>
+  <text x="487" y="487" text-anchor="middle" class="spoke">hmpps-nonlive</text>
+  <text x="487" y="505" text-anchor="middle" class="small">EKS spoke cluster</text>
+  <text x="487" y="520" text-anchor="middle" class="small">No ArgoCD runs here</text>
+  <rect x="422" y="530" width="130" height="66" rx="4" fill="#e8f5e9" stroke="#a5d6a7"/>
+  <text x="487" y="551" text-anchor="middle" class="small">team namespaces</text>
+  <text x="487" y="566" text-anchor="middle" class="small">+ workloads</text>
+  <text x="487" y="581" text-anchor="middle" class="small">(synced from Git)</text>
+  <text x="487" y="613" text-anchor="middle" class="small">Hub connects via an</text>
+  <text x="487" y="628" text-anchor="middle" class="small">EKS access entry mapped</text>
+  <text x="487" y="643" text-anchor="middle" class="small">to the argocd-hub</text>
+  <text x="487" y="658" text-anchor="middle" class="small">RBAC group</text>
+
+  <!-- Live spoke: octo-live -->
+  <rect x="638" y="466" width="158" height="216" rx="6" fill="#ffffff" stroke="#2e7d32" stroke-width="1.3"/>
+  <text x="717" y="487" text-anchor="middle" class="spoke">octo-live</text>
+  <text x="717" y="505" text-anchor="middle" class="small">EKS spoke cluster</text>
+  <text x="717" y="520" text-anchor="middle" class="small">No ArgoCD runs here</text>
+  <rect x="652" y="530" width="130" height="66" rx="4" fill="#e8f5e9" stroke="#a5d6a7"/>
+  <text x="717" y="551" text-anchor="middle" class="small">team namespaces</text>
+  <text x="717" y="566" text-anchor="middle" class="small">+ workloads</text>
+  <text x="717" y="581" text-anchor="middle" class="small">(synced from Git)</text>
+  <text x="717" y="613" text-anchor="middle" class="small">Hub connects via an</text>
+  <text x="717" y="628" text-anchor="middle" class="small">EKS access entry mapped</text>
+  <text x="717" y="643" text-anchor="middle" class="small">to the argocd-hub</text>
+  <text x="717" y="658" text-anchor="middle" class="small">RBAC group</text>
+
+  <!-- Live spoke: laa-live -->
+  <rect x="803" y="466" width="158" height="216" rx="6" fill="#ffffff" stroke="#2e7d32" stroke-width="1.3"/>
+  <text x="882" y="487" text-anchor="middle" class="spoke">laa-live</text>
+  <text x="882" y="505" text-anchor="middle" class="small">EKS spoke cluster</text>
+  <text x="882" y="520" text-anchor="middle" class="small">No ArgoCD runs here</text>
+  <rect x="817" y="530" width="130" height="66" rx="4" fill="#e8f5e9" stroke="#a5d6a7"/>
+  <text x="882" y="551" text-anchor="middle" class="small">team namespaces</text>
+  <text x="882" y="566" text-anchor="middle" class="small">+ workloads</text>
+  <text x="882" y="581" text-anchor="middle" class="small">(synced from Git)</text>
+  <text x="882" y="613" text-anchor="middle" class="small">Hub connects via an</text>
+  <text x="882" y="628" text-anchor="middle" class="small">EKS access entry mapped</text>
+  <text x="882" y="643" text-anchor="middle" class="small">to the argocd-hub</text>
+  <text x="882" y="658" text-anchor="middle" class="small">RBAC group</text>
+
+  <!-- Live spoke: hmpps-live -->
+  <rect x="968" y="466" width="158" height="216" rx="6" fill="#ffffff" stroke="#2e7d32" stroke-width="1.3"/>
+  <text x="1047" y="487" text-anchor="middle" class="spoke">hmpps-live</text>
+  <text x="1047" y="505" text-anchor="middle" class="small">EKS spoke cluster</text>
+  <text x="1047" y="520" text-anchor="middle" class="small">No ArgoCD runs here</text>
+  <rect x="982" y="530" width="130" height="66" rx="4" fill="#e8f5e9" stroke="#a5d6a7"/>
+  <text x="1047" y="551" text-anchor="middle" class="small">team namespaces</text>
+  <text x="1047" y="566" text-anchor="middle" class="small">+ workloads</text>
+  <text x="1047" y="581" text-anchor="middle" class="small">(synced from Git)</text>
+  <text x="1047" y="613" text-anchor="middle" class="small">Hub connects via an</text>
+  <text x="1047" y="628" text-anchor="middle" class="small">EKS access entry mapped</text>
+  <text x="1047" y="643" text-anchor="middle" class="small">to the argocd-hub</text>
+  <text x="1047" y="658" text-anchor="middle" class="small">RBAC group</text>
+
+  <!-- Dev account -->
+  <rect x="60" y="730" width="760" height="180" rx="10" fill="#fff8e1" stroke="#f9a825" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="80" y="752" class="acct">Development account — ephemeral hub/spoke pairs</text>
+
+  <rect x="110" y="772" width="290" height="110" rx="8" fill="#ffffff" stroke="#1565c0" stroke-width="1.3"/>
+  <text x="255" y="798" text-anchor="middle" class="hub">cp-1708-2235-hub</text>
+  <text x="255" y="817" text-anchor="middle" class="small">enable_argocd = true</text>
+  <text x="255" y="834" text-anchor="middle" class="small">EKS-managed ArgoCD capability</text>
+  <text x="255" y="855" text-anchor="middle" class="small">role: cp-1708-2235-hub-argocd-capability</text>
+
+  <rect x="480" y="772" width="290" height="110" rx="8" fill="#ffffff" stroke="#2e7d32" stroke-width="1.3"/>
+  <text x="625" y="798" text-anchor="middle" class="spoke">cp-1708-2235-spoke</text>
+  <text x="625" y="817" text-anchor="middle" class="small">self-registers by "-hub"/"-spoke"</text>
+  <text x="625" y="834" text-anchor="middle" class="small">naming convention (same account)</text>
+  <text x="625" y="855" text-anchor="middle" class="small">access entry mapped to argocd-hub</text>
+
+  <path d="M400,827 L478,827" fill="none" stroke="#2e7d32" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <text x="439" y="818" text-anchor="middle" class="lblg">deploy</text>
+
+  <!-- Legend -->
+  <rect x="840" y="730" width="300" height="180" rx="10" fill="#ffffff" stroke="#90a4ae" stroke-width="1.2"/>
+  <text x="856" y="752" font-size="13" font-weight="bold" fill="#334e68">Key points</text>
+  <text x="856" y="774" class="small">• Two independent ArgoCD instances: nonlive</text>
+  <text x="866" y="789" class="small">and live, each on its own hub cluster.</text>
+  <text x="856" y="808" class="small">• Hub authenticates to spokes as its</text>
+  <text x="866" y="823" class="small">capability role via EKS access entries.</text>
+  <text x="856" y="842" class="small">• No VPC peering / TGW for GitOps traffic;</text>
+  <text x="866" y="857" class="small">cross-account access is native to EKS.</text>
+  <text x="856" y="876" class="small">• Spoke RBAC is least-privilege: cluster</text>
+  <text x="866" y="891" class="small">read + scoped workload write only.</text>
+  <text x="856" y="905" class="small">• A hub only registers spokes in its own tier.</text>
+
+</svg>
