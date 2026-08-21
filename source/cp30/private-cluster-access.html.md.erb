@@ -1,0 +1,194 @@
+---
+title: Accessing private cluster endpoints
+weight: 16
+last_reviewed_on: 2026-08-21
+review_in: 6 months
+---
+# <%= current_page.data.title %>
+### Overview
+By default, CP30 cluster API endpoints are reachable over the public internet, and engineers connect to them as described in [Connecting to CP30 clusters](connecting-to-cp30-clusters). A cluster can instead be switched to a **private-only** endpoint, where the Kubernetes API is not reachable from the internet at all.
+
+When a cluster is private, engineers reach the API through an **SSM Session Manager relay**: a small EC2 instance inside the cluster VPC that AWS Systems Manager port-forwards to. There is no VPN, no bastion with open SSH, and no inbound ports on the relay. Every connection is authenticated with your AWS IAM Identity Center identity and recorded in AWS CloudTrail.
+
+Both behaviours are driven by a single feature flag, `private_endpoint_mode`, so a cluster can never end up private with no way to reach it, or running a relay it does not need.
+
+> As of the last review date above, `private_endpoint_mode` is `false` in every environment, so all clusters keep their public endpoint and no relay is deployed. Nothing changes until the flag is turned on for a VPC.
+### How it works
+`private_endpoint_mode` controls two things that live in two different Terraform components with separate state:
+
+- the EKS API endpoint setting, in the `cluster` component
+- whether the SSM relay is deployed, in the `network` component
+
+To keep them from drifting, the flag has a single owner. The `network` component holds the value and publishes it as a tag on the VPC it manages. The `cluster` component reads that tag back off the VPC it already looks up. Both settings therefore come from one value.
+
+This follows the pipeline order rather than fighting it:
+```
+root → network → cluster → cluster-base → cluster-core → cluster-components
+```
+`network` runs first, so when the flag is switched on the relay is created **before** the cluster closes off public access.
+
+#### The flag, per VPC
+`terraform/environments/cloud-platform/network/locals.tf`:
+```hcl
+private_endpoint_mode = lookup({
+  cloud-platform-development   = false
+  cloud-platform-preproduction = false
+  cloud-platform-nonlive       = false
+  cloud-platform-live          = false
+}, local.cp_vpc_name, false)
+```
+Business unit spoke VPCs are not listed and default to `false` until they are explicitly opted in.
+
+#### Published as a VPC tag
+`terraform/environments/cloud-platform/network/vpc.tf`:
+```hcl
+tags = merge({
+  Terraform               = "true"
+  "private-endpoint-mode" = tostring(local.private_endpoint_mode)
+}, local.tags)
+```
+
+#### Read back by the cluster
+`terraform/environments/cloud-platform/cluster/locals.tf`:
+```hcl
+private_endpoint_mode = lookup(data.aws_vpc.selected.tags, "private-endpoint-mode", "false") == "true"
+```
+`terraform/environments/cloud-platform/cluster/eks-cluster.tf`:
+```hcl
+endpoint_private_access = true
+endpoint_public_access  = !local.private_endpoint_mode
+```
+### Enabling private endpoint mode
+1. Edit the map in `network/locals.tf` and set the target VPC to `true`.
+2. Raise a PR. The plan should show the relay resources being created in the `network` component and `endpoint_public_access` flipping to `false` in the `cluster` component.
+3. On merge, the pipeline applies `network` first (relay created), then `cluster` (endpoint made private) in the same run.
+
+Once applied, the public endpoint is gone and all API access is through the relay, as described in [Connecting through the relay](#connecting-through-the-relay) below.
+
+#### What gets created
+All resources are gated on the flag and named after the VPC (`local.cp_vpc_name`):
+
+| Resource | Detail |
+|---|---|
+| `aws_instance.ssm_relay` | `t3.micro`, Amazon Linux 2023, in a private subnet. IMDSv2 required, root volume encrypted, EBS optimized. `Name` tag `ssm-relay-<vpc>` |
+| `aws_security_group.ssm_relay` | No inbound. Outbound `443` (SSM endpoints and EKS API) and `53` TCP/UDP (DNS) only |
+| `aws_iam_role.ssm_relay` | Named `ssm-relay-<vpc>`, with the `AmazonSSMManagedInstanceCore` managed policy attached |
+| `aws_iam_instance_profile.ssm_relay` | Named `ssm-relay-<vpc>` |
+
+The relay has no inbound rules because SSM works entirely over outbound connections from the instance to the Systems Manager service.
+### Connecting through the relay
+This is the procedure engineers follow once a cluster is private.
+
+#### Prerequisites (one-time)
+Install locally:
+
+| Tool | Check |
+|---|---|
+| AWS CLI v2 | `aws --version` |
+| Session Manager plugin | `session-manager-plugin --version` |
+| kubectl | `kubectl version --client` |
+
+The [Session Manager plugin install guide](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html) covers each operating system. You also need AWS access via IAM Identity Center with permission to start SSM sessions (`ssm:StartSession`) and to obtain an EKS token for the cluster.
+
+Values you will need:
+
+| Placeholder | Meaning |
+|---|---|
+| `<profile>` | Your AWS CLI SSO profile |
+| `<region>` | Cluster region (`eu-west-2`) |
+| `<cluster>` | EKS cluster name |
+| `<account-id>` | AWS account ID |
+| `<eks-api-fqdn>` | Cluster API hostname, e.g. `<id>.gr7.<region>.eks.amazonaws.com` |
+
+Get the API hostname with (then remove the leading `https://`):
+```bash
+aws eks describe-cluster --profile <profile> --region <region> \
+  --name <cluster> --query "cluster.endpoint" --output text
+```
+You will use **two terminals**: one to hold the tunnel open, one to run `kubectl`.
+
+#### Step 1 — Authenticate
+```bash
+aws sso login --profile <profile>
+aws sts get-caller-identity --profile <profile>
+```
+
+#### Step 2 — Locate the relay instance
+Look the relay up by its `Name` tag, so a replaced instance with a new ID is still found:
+```bash
+RELAY_ID=$(aws ec2 describe-instances --profile <profile> --region <region> \
+  --filters "Name=tag:Name,Values=ssm-relay-<vpc>" \
+            "Name=instance-state-name,Values=running" \
+  --query "Reservations[].Instances[].InstanceId" --output text)
+echo "$RELAY_ID"
+```
+Confirm it is registered with SSM (expect `Online`):
+```bash
+aws ssm describe-instance-information --profile <profile> --region <region> \
+  --filters "Key=InstanceIds,Values=$RELAY_ID" \
+  --query "InstanceInformationList[].PingStatus" --output text
+```
+
+#### Step 3 — Start the port-forwarding session (Terminal 1)
+Leave this terminal open while you work:
+```bash
+aws ssm start-session --profile <profile> --region <region> \
+  --target "$RELAY_ID" \
+  --document-name AWS-StartPortForwardingSessionToRemoteHost \
+  --parameters '{"host":["<eks-api-fqdn>"],"portNumber":["443"],"localPortNumber":["8443"]}'
+```
+Expected output: `Port 8443 opened ... Waiting for connections...`
+
+#### Step 4 — Configure kubeconfig (Terminal 2, once per cluster)
+```bash
+aws eks update-kubeconfig --profile <profile> --region <region> --name <cluster>
+
+ARN="arn:aws:eks:<region>:<account-id>:cluster/<cluster>"
+kubectl config set-cluster "$ARN" --server=https://127.0.0.1:8443
+kubectl config set-cluster "$ARN" --tls-server-name=<eks-api-fqdn>
+```
+**Why `tls-server-name` is required:** the API server's certificate is issued for its real hostname, not `127.0.0.1`. This setting lets `kubectl` connect to the local port while still validating the certificate against the real hostname. Without it the connection fails with a certificate error.
+
+> To keep this separate from your default kubeconfig, prefix commands with `KUBECONFIG=/tmp/<cluster>.kubeconfig` (including the `update-kubeconfig` command).
+
+#### Step 5 — Use kubectl
+With the Terminal 1 session still running:
+```bash
+kubectl get nodes
+kubectl get namespaces
+```
+If these return results, you are connected to the private API through the relay.
+
+#### Step 6 — Disconnect
+Press `Ctrl-C` in Terminal 1 to close the tunnel. The session end is recorded in CloudTrail.
+### Disabling private endpoint mode
+Set the VPC back to `false` in `network/locals.tf`, raise a PR, and merge.
+
+> **Known gap — rollback is not fully safe yet.** Because `network` runs before `cluster`, disabling happens in this order: `network` destroys the relay while the endpoint is still private, then `cluster` restores public access. There is a short window inside the run with no relay and no public endpoint. It only causes a problem if the `cluster` job fails midway, and it is recoverable by re-running the `cluster` job or setting the endpoint public by hand in the console. Tracked as acceptance criterion 4 on [#8425](https://github.com/ministryofjustice/cloud-platform/issues/8425).
+
+If you need a guaranteed-safe rollback, do it in two steps: set the endpoint public first (a code change to force `endpoint_public_access = true`), apply, then remove the relay in a second apply.
+### Cost
+The relay is a single `t3.micro`, roughly £8 per month per VPC while private endpoint mode is on. Nothing runs when the flag is `false`.
+### Security and audit
+- The relay has no inbound access; all SSM traffic is outbound from the instance.
+- Connections are authenticated with your IAM Identity Center identity, not a shared key.
+- The API server certificate is validated on every connection and traffic is encrypted end to end.
+- Session start and end are recorded in CloudTrail. Session Manager can additionally log full session activity to CloudWatch Logs or S3 if a keystroke-level audit trail is required.
+### Troubleshooting
+
+| Symptom | Cause / resolution |
+|---|---|
+| `Waiting for connections` shown, but `kubectl` hangs | The relay cannot reach the API on 443. The cluster security group must allow 443 inbound from the relay's security group. |
+| TLS / certificate error | `--tls-server-name` not set, or set to the wrong hostname (Step 4). |
+| Relay not `Online` in SSM | The relay's security group must allow outbound 443 **and** 53 (DNS); the SSM agent needs DNS to resolve the service endpoints. |
+| `TargetNotConnected` when starting the session | Stale instance ID — re-run Step 2 to get the current relay. |
+| Session fails immediately | Session Manager plugin not installed, or the SSO token has expired (`aws sso login`). |
+| No relay instance found in Step 2 | `private_endpoint_mode` is `false` for that VPC, so no relay exists. Confirm the `private-endpoint-mode` tag on the VPC. |
+### Future direction
+`private_endpoint_mode` deliberately couples two concerns — blocking public API access and deploying the SSM relay — which is only valid while the relay is the sole route to a private endpoint. Once MoJ VPN routing to the EKS API exists ([#8386](https://github.com/ministryofjustice/cloud-platform/issues/8386)), the two concerns separate, and this flag is expected to split into independent controls for endpoint visibility and relay deployment. Revisit this page when that work lands.
+### References
+- ADR-016: Private Cluster Access Connectivity (SSM Session Manager)
+- NFR-007: Private Cluster Endpoints
+- [#8425 — Gate the SSM relay behind a private endpoint flag](https://github.com/ministryofjustice/cloud-platform/issues/8425)
+- [#8370 — SSM relay implementation](https://github.com/ministryofjustice/cloud-platform/issues/8370)
+- Terraform: `network/locals.tf`, `network/vpc.tf`, `network/ssm-relay.tf`, `cluster/locals.tf`, `cluster/eks-cluster.tf` in `modernisation-platform-environments`
