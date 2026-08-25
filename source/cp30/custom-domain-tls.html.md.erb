@@ -82,11 +82,9 @@ Make sure you already have:
   an apex).
 - `<your-business-unit>`: from the check above.
 - `<your-namespace>`, `<your-service-name>`, `<your-service-port>`: your app.
-- `<acme-target-label>`: any short label you choose, for example `payments-acme`.
-  This label becomes the subdomain in the platform zone that your
-  `_acme-challenge` record points at, and the place `cert-manager` writes the
-  challenge (see the DNS records in step 3). It only needs to be unique among
-  your own delegations, and you never see it again after issuance.
+- `<acme-target-label>`: any short label, it just names where the challenge is
+  written. If you have several custom-domain certificates, give each a distinct
+  label (e.g. `<app>-acme`) so their challenges don't collide.
 
 ### 2. Find the platform ingress address
 
