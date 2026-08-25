@@ -1,0 +1,415 @@
+---
+title: Serve a custom domain with your own TLS certificate
+weight: 15
+last_reviewed_on: 2026-08-25
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+Use this guide to serve your application on a **custom domain that you own** (for
+example `payments.example.gov.uk`), with a valid, automatically-renewed TLS
+certificate issued by Let's Encrypt.
+
+By the end, your application will be reachable at:
+
+```text
+https://<your-custom-domain>
+```
+
+with a certificate whose subject matches `<your-custom-domain>` exactly.
+
+This guide is for serving a domain **you own** (for example
+`payments.example.gov.uk`). If you only need a hostname under the shared platform
+wildcard (`*.<your-business-unit>.container-platform.service.justice.gov.uk`), you
+do **not** need your own certificate, use
+[Expose a service with Gateway API (HTTPRoute)](https://user-guide.development.container-platform.service.justice.gov.uk/documentation/getting-started/gateway-api-httproute.html)
+instead.
+
+## How it works
+
+Four things have to line up:
+
+1. **A certificate.** `cert-manager` requests a certificate from Let's Encrypt
+   using a DNS-01 challenge. Because you own the domain (not the platform), the
+   challenge is **delegated**: you create a one-off `_acme-challenge` `CNAME` in
+   your domain that points into a platform-controlled zone. `cert-manager` then
+   writes the challenge record into that platform zone on your behalf. The
+   platform never needs write access to your DNS.
+2. **A listener.** Your `ListenerSet` adds an HTTPS listener for your hostname to
+   the shared platform `Gateway`, terminating TLS with the certificate above.
+3. **A route.** Your `HTTPRoute` sends traffic for the hostname to your `Service`.
+4. **A network policy.** Platform namespaces deny all ingress by default, so you
+   must allow traffic from the gateway namespace to your Pods. Without it, the
+   request reaches the gateway but times out before it gets to your application.
+
+## How you apply changes
+
+You do not run `kubectl apply` on Container Platform. Changes are delivered by
+**GitOps**: you add manifests to your service's directory in the
+[`container-platform-environments`](https://github.com/ministryofjustice/container-platform-environments)
+repository, raise a pull request, and once it is approved and merged **ArgoCD**
+applies them to your cluster. ArgoCD applies the resources on your behalf, so you
+do not need permission to create them yourself. The `kubectl` commands in this
+guide are **read-only checks** you can run to confirm the result.
+
+## Before you start
+
+Make sure you already have:
+
+- a namespace for your application
+- a running workload and a `Service` in that namespace
+- **a domain you control**, and the ability to create DNS records in it
+- ensure the name is no more than 63 characters long
+- your **business unit** name (the label in the platform wildcard). Find it with:
+
+  ```sh
+  kubectl describe listenerset -n envoy-gateway-system default-listenerset | grep "Hostname"
+  # Example output:
+  # Hostname: *.octo-nonlive.container-platform.service.justice.gov.uk
+  ```
+
+- access to your service's configuration in the
+  [`container-platform-environments`](https://github.com/ministryofjustice/container-platform-environments)
+  repository, where your namespace and workloads are defined
+
+## Steps
+
+### 1. Choose your values
+
+- `<your-custom-domain>`: the hostname you want to serve, for example
+  `payments.example.gov.uk`. Use a subdomain, not a zone apex (you cannot `CNAME`
+  an apex).
+- `<your-business-unit>`: from the check above.
+- `<your-namespace>`, `<your-service-name>`, `<your-service-port>`: your app.
+- `<acme-target-label>`: any short label you choose, for example `payments-acme`.
+  This label becomes the subdomain in the platform zone that your
+  `_acme-challenge` record points at, and the place `cert-manager` writes the
+  challenge (see the DNS records in step 3). It only needs to be unique among
+  your own delegations, and you never see it again after issuance.
+
+### 2. Find the platform ingress address
+
+Your traffic record needs to point at the platform's load balancer. Get its
+hostname:
+
+```sh
+kubectl get gateway default -n envoy-gateway-system \
+  -o jsonpath='{.status.addresses[*].value}{"\n"}'
+# Example output:
+# <bu>-envoy-default-xxxxxxxxxxxx.elb.eu-west-2.amazonaws.com
+```
+
+We'll refer to this as `<platform-ingress-hostname>`.
+
+### 3. Create two DNS records in your domain
+
+In **your own** DNS (the zone you control), create:
+
+| Record | Type | Value |
+|---|---|---|
+| `_acme-challenge.<your-custom-domain>` | `CNAME` | `<acme-target-label>.<your-business-unit>.container-platform.service.justice.gov.uk` |
+| `<your-custom-domain>` | `CNAME` | `<platform-ingress-hostname>` |
+
+The first record **delegates** the certificate challenge to the platform zone.
+The second sends live traffic to the platform.
+
+Wait until both resolve before continuing:
+
+```sh
+dig +short CNAME _acme-challenge.<your-custom-domain>
+dig +short <your-custom-domain>
+```
+
+<div class="govuk-warning-text">
+  <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+  <strong class="govuk-warning-text__text">
+    Confirm both records resolve before you create the certificate. Requesting a
+    certificate before the delegation resolves wastes the Let's Encrypt
+    production rate limit.
+  </strong>
+</div>
+
+### 4. Add the manifests to your service configuration
+
+Add the following four resources to your service's directory in
+`container-platform-environments` (the same place your `Deployment` and `Service`
+are defined). You can put them in one file or several.
+
+The `argocd.argoproj.io/sync-wave` annotations make ArgoCD create the
+`Certificate` before the `ListenerSet`, so the TLS secret exists by the time the
+listener is created.
+
+**Certificate** (sync-wave 0) requests the certificate from Let's Encrypt:
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: <your-app>-tls
+  namespace: <your-namespace>
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  secretName: <your-app>-tls
+  dnsNames:
+    - <your-custom-domain>
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+```
+
+**ListenerSet** (sync-wave 1) adds the HTTPS listener for your hostname:
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: ListenerSet
+metadata:
+  name: <your-app>
+  namespace: <your-namespace>
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  parentRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: default
+    namespace: envoy-gateway-system
+  listeners:
+    - name: https
+      hostname: <your-custom-domain>
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: <your-app>-tls
+      allowedRoutes:
+        namespaces:
+          from: Same
+```
+
+**HTTPRoute** routes traffic for the hostname to your `Service`:
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: <your-app>
+  namespace: <your-namespace>
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: ListenerSet
+      name: <your-app>
+      sectionName: https
+  hostnames:
+    - <your-custom-domain>
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: <your-service-name>
+          port: <your-service-port>
+```
+
+**NetworkPolicy** lets the gateway reach your Pods. Platform namespaces deny all
+ingress by default, so without this the gateway returns `503`
+(`upstream connect error ... connection timeout`):
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: <your-app>-allow-gateway
+  namespace: <your-namespace>
+spec:
+  podSelector:
+    matchLabels:
+      app: <your-app>            # must match your Pod labels
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: envoy-gateway-system
+      ports:
+        - protocol: TCP
+          port: <your-container-port>   # the Pod port, e.g. 8080
+```
+
+### 5. Raise a pull request
+
+Commit the manifests, push, and open a pull request against
+`container-platform-environments`. Once it is reviewed, approved and merged,
+ArgoCD applies the resources to your cluster automatically, usually within a few
+minutes.
+
+### 6. Verify
+
+Once ArgoCD has synced, use these **read-only** checks:
+
+```sh
+# Certificate has been issued
+kubectl get certificate <your-app>-tls -n <your-namespace>
+
+# Listener is programmed and the route attached
+kubectl get listenerset <your-app> -n <your-namespace> \
+  -o jsonpath='{range .status.listeners[*]}{.name}: programmed={range .conditions[?(@.type=="Programmed")]}{.status}{end} routes={.attachedRoutes}{"\n"}{end}'
+
+# The served certificate matches your domain, with a valid chain (no -k)
+curl -s -o /dev/null -w 'http_code=%{http_code} ssl_verify=%{ssl_verify_result}\n' \
+  https://<your-custom-domain>
+```
+
+A working result is the certificate `READY=True`, `programmed=True`,
+`http_code=200` and `ssl_verify=0`.
+
+## Remove it later
+
+Delete the four manifests from `container-platform-environments` and raise a
+pull request. When it merges, ArgoCD removes the resources from your cluster.
+
+Also remove the two DNS records from your domain. Leaving a traffic `CNAME`
+pointing at a load balancer you no longer use is a subdomain-takeover risk.
+
+## Troubleshooting
+
+**Certificate stays `Ready=False`.**
+Check the challenge and confirm the delegation resolves:
+
+```sh
+kubectl get certificate,certificaterequest,order,challenge -n <your-namespace>
+dig +short CNAME _acme-challenge.<your-custom-domain>
+```
+
+The `_acme-challenge` record must resolve to your
+`<acme-target-label>.<your-business-unit>...` target. DNS-01 propagation can take
+a couple of minutes.
+
+**Listener shows `Programmed=False` with `InvalidCertificateRef`, even though the
+secret exists.**
+This happens if the listener was created **before** the certificate secret
+existed. The `argocd.argoproj.io/sync-wave` annotations in step 4 prevent this by
+creating the `Certificate` first. If you still hit it, the Envoy Gateway control
+plane has cached the failed reference and needs to re-read the secret. A platform
+engineer can force this with a rollout restart of the **control plane** (this
+does not interrupt live traffic, the data plane keeps serving and the certificate
+is not re-issued):
+
+```sh
+kubectl rollout restart deploy/envoy-gateway -n envoy-gateway-system
+```
+
+Do not delete and recreate the `ListenerSet` as a fix. The `Certificate` is owned
+by the `ListenerSet`, so removing it can trigger a re-issue and burn Let's
+Encrypt production quota.
+
+**`curl` fails with no certificate returned.**
+The listener is not programmed yet, or the traffic `CNAME` has not propagated.
+Re-check step 6 and `dig +short <your-custom-domain>`.
+
+**Request returns `503` with `upstream connect error ... connection timeout`.**
+TLS terminated and the route matched, but the gateway cannot reach your Pods.
+This is almost always a missing or mismatched `NetworkPolicy`. Confirm the policy
+from step 4 exists, that its `podSelector` matches your Pod labels, and that the
+port is your **container** port, not the `Service` port.
+
+## Full working example
+
+Replace the placeholder values with your own. This assumes you already have a
+`Service` named `my-app` on port `80` in namespace `my-app`.
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: my-app-tls
+  namespace: my-app
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  secretName: my-app-tls
+  dnsNames:
+    - payments.example.gov.uk
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: ListenerSet
+metadata:
+  name: my-app
+  namespace: my-app
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  parentRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: default
+    namespace: envoy-gateway-system
+  listeners:
+    - name: https
+      hostname: payments.example.gov.uk
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: my-app-tls
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: my-app
+  namespace: my-app
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: ListenerSet
+      name: my-app
+      sectionName: https
+  hostnames:
+    - payments.example.gov.uk
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: my-app
+          port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: my-app-allow-gateway
+  namespace: my-app
+spec:
+  podSelector:
+    matchLabels:
+      app: my-app
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: envoy-gateway-system
+      ports:
+        - protocol: TCP
+          port: 8080
+```
