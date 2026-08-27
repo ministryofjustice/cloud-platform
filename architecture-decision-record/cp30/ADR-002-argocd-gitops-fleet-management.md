@@ -1,7 +1,8 @@
 # ADR-002: GitOps Fleet Management — EKS Capability for Argo CD vs. Self-Managed Argo CD
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-05-07  
+**Updated:** 2026-08-27 — recorded the two-hub (one per environment tier) model as the baseline, superseding the earlier single-hub design.  
 **Decision Maker:** AWS ProServe / MoJ Principal Technical Architect  
 **Category:** Compute / Integration
 
@@ -24,9 +25,9 @@
 
 ## Decision
 
-**We will use the EKS Capability for Argo CD on the hub cluster as the managed GitOps controller, with per-BU AppProject-based separation enforcing both environment and tenant isolation.**
+**We will use the EKS Capability for Argo CD as the managed GitOps controller, deployed as two hubs — one per environment tier (non-live and live) — with per-BU AppProject-based separation enforcing tenant isolation within each tier.**
 
-This provides AWS-managed HA, upgrades, and native cross-account private cluster connectivity via EKS ARN + Access Entries — without VPC peering or TGW routing between accounts. A single Argo CD Capability instance manages both live and non-live clusters across all BUs (EKS limits one Argo CD Capability per cluster). Isolation is enforced through a per-BU, per-environment AppProject model where each project's destination allowlist restricts deployments to a single cluster ARN.
+This provides AWS-managed HA, upgrades, and native cross-account private cluster connectivity via EKS ARN + Access Entries — without VPC peering or TGW routing between accounts. Each hub runs a single Argo CD Capability instance (EKS limits one Argo CD Capability per cluster) and manages only the spokes in its own tier: the `cloud-platform-nonlive` hub manages non-live spokes, and the `cloud-platform-live` hub manages live spokes. Environment isolation is therefore structural — live and non-live credentials never co-reside on the same hub compute. Within each tier, a per-BU AppProject model provides tenant isolation, where each project's destination allowlist restricts deployments to a single cluster ARN.
 
 ### AppProject Hierarchy
 
@@ -126,7 +127,7 @@ No manual Argo CD configuration is required for new BUs.
 
 ### EKS Capability Constraint
 
-**Hard limit:** EKS allows only one Argo CD Capability instance per cluster ([source](https://docs.aws.amazon.com/eks/latest/userguide/capabilities.html)). If a future security assessment requires that IAM credentials for live clusters are never co-located with credentials for non-live clusters on the same compute, the architecture can evolve to two hub clusters (one per environment tier). This is documented as an escalation path, not the baseline design.
+**Hard limit:** EKS allows only one Argo CD Capability instance per cluster ([source](https://docs.aws.amazon.com/eks/latest/userguide/capabilities.html)). Because a single instance cannot keep live and non-live IAM credentials on separate compute, the platform runs two hubs — one per environment tier — rather than one hub spanning both. This gives each tier its own Argo CD Capability instance and guarantees that live and non-live credentials are never co-located. The two hubs are the baseline design (see Implementation Notes → "Two-Hub Model").
 
 ---
 
@@ -187,7 +188,7 @@ No manual Argo CD configuration is required for new BUs.
 | Item | Type | Impact | Mitigation |
 |------|------|--------|------------|
 | Single-namespace constraint for Argo CD CRs | Constraint | Medium — candidate baseline uses multi-namespace pattern | All Argo CD CRs in one namespace is sufficient for MoJ; AppProjects provide separation |
-| One Argo CD Capability per cluster (EKS hard limit) | Constraint | Medium — cannot run separate instances for live vs. non-live on same hub | AppProject destination allowlists enforce environment boundaries; escalation path: two hub clusters if security assessment requires credential isolation |
+| One Argo CD Capability per cluster (EKS hard limit) | Constraint | Low — resolved by the two-hub model | Two hubs (one per tier) each run their own Capability instance, so live and non-live credentials are structurally isolated; AppProject destination allowlists provide defence in depth within a tier |
 | GitHub Actions integration with private hub cluster | Assumption | Medium — hub Argo CD API must be accessible | Self-hosted runners in management VPC reach hub Argo CD API; spoke clusters not accessed directly |
 | EKS Capability Argo CD pricing at scale | Unknown | Low-Medium — per Application pricing | Confirm with AWS account team; ~20-30 Applications per cluster × 22 clusters = budgetable |
 | AppProject misconfiguration risk | Risk | Medium — a misconfigured AppProject could allow cross-environment deployment | Terraform-managed AppProject definitions (not manually edited); PR review for AppProject changes; PoC validates guardrails |
@@ -252,20 +253,20 @@ In the context of managing GitOps deployments to 20+ private-endpoint EKS cluste
 ### Negative
 - IAM Identity Center required (creates dependency on Identity Center being operational)
 - Single-namespace constraint for Argo CD CRs (deviation from candidate baseline multi-namespace pattern)
-- Per-Application pricing (predictable but adds cost at scale)
-- Single Argo CD instance means a misconfigured AppProject could theoretically cross environment boundaries (mitigated by Terraform-managed definitions and PR review)
-- Cannot run separate Argo CD instances for live vs. non-live on the same hub cluster (EKS hard limit)
+- Per-Application pricing, across two hubs (predictable but adds cost at scale)
+- Two hubs to operate and upgrade instead of one (marginal, since the Capability is AWS-managed)
+- Within a tier, a misconfigured AppProject could still cross BU boundaries (mitigated by Terraform-managed definitions and PR review); it cannot cross the live/non-live boundary because that is enforced by separate hubs
 
 ### Neutral
 - Platform and Workloads AppProject separation still achievable within single namespace
 - ApplicationSets for fleet-level automation supported natively
-- Escalation path to two hub clusters documented if security assessment requires stronger isolation
+- Live and non-live are structurally isolated by running one hub per tier (the two-hub model)
 
 ---
 
 ## PoC Validation Approach (Updated — Iteration 3, 3 July 2026)
 
-The ArgoCD hub-and-spoke model will be validated using:
+The ArgoCD hub-and-spoke model was validated using an ephemeral hub/spoke pair before the permanent per-tier hubs (`cloud-platform-nonlive`, `cloud-platform-live`) were provisioned:
 - **Hub cluster:** Development cluster in the `cloud-platform-development` account
 - **Spoke cluster:** `container-platform-octo-nonlive` cluster
 
@@ -305,13 +306,16 @@ CodeConnections is only required in the hub account.
 
 The IAM Identity Center instance ARN is passed as a GitHub Actions secret (`ARGOCD_IDC_INSTANCE_ARN`) rather than discovered dynamically via a Terraform data source. The `aws_ssoadmin_instances` data source requires `sso:ListInstances` permission which is only available in the management account — the workflow role in `cloud-platform-development` does not have cross-account access to query this. The IDC instance ARN is static infrastructure that rarely changes.
 
-### Single vs. Dual Hub — Noted Risk
+### Two-Hub Model (Decision — supersedes the earlier single-hub baseline)
 
-The team identified a specific concern: with a single hub managing both live and non-live environments, platform engineers testing ArgoCD configuration changes (ApplicationSets, AppProjects, RBAC) could accidentally affect live clusters. While the AppProject destination allowlists and manual sync policy for live mitigate this, the mitigations are procedural (PR review) rather than structural.
+The team originally considered a single hub managing both live and non-live environments. That raised a specific concern: platform engineers testing ArgoCD configuration changes (ApplicationSets, AppProjects, RBAC) could accidentally affect live clusters, and the mitigations (AppProject destination allowlists, manual sync for live) were procedural (PR review) rather than structural.
 
-The escalation path to two hub clusters (one per environment tier) provides a structural guarantee of isolation. The implementation module supports either pattern via the `enable_argocd` toggle — applying it to two separate cluster workspaces creates two independent hubs. The infrastructure cost is minimal since the Capability runs in AWS-managed infrastructure.
+**Decision:** the platform runs two hubs, one per environment tier, giving a structural guarantee of isolation. This is now the implemented baseline, not an escalation path.
 
-This remains a team decision and does not change the baseline architecture.
+- **`cloud-platform-nonlive`** — the non-live hub, in the `cloud-platform-nonlive` account. Registers only non-live spokes.
+- **`cloud-platform-live`** — the live hub, in the `cloud-platform-live` account. Registers only live spokes.
+
+Each spoke resolves its hub by tier and a hub only registers spokes in its own tier, so live and non-live credentials are never co-located on the same hub compute. The two hubs are declared in `local.argocd_hubs` (Terraform, `cluster/locals.tf`), and each spoke derives its tier hub's Argo CD Capability role ARN by convention — no per-spoke input is required. The infrastructure cost of the second hub is minimal since the Capability runs in AWS-managed infrastructure.
 
 ### Hub Enablement Mechanism
 
