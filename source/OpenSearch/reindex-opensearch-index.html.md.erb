@@ -59,10 +59,15 @@ PUT live_kubernetes_ingress-<date>-reindexed
 ```
 
 inputs:
+
 - `<date>` - the date of the index you want to reindex, this is the date in the index name `live_kubernetes_ingress-<date>`
+
 - `settings`
+
   - `number_of_shards` - the number of primary shards you want to create for the new index, this should be set to a value that will result in a shard size between 30 and 50 GIB, you can use the formula above to calculate the number of primary shards needed.
+  
   - `number_of_replicas` - the number of replica shards you want to create for the new index, this should be set to 0, as we will be reindexing the data from the old index to the new index, and we don't want to create any replicas until the reindexing is complete.
+  
   - `refresh_interval` - the refresh interval for the new index, this should be set to -1, as we don't want to refresh the index until the reindexing is complete.
 
 
@@ -93,12 +98,19 @@ POST _reindex?wait_for_completion=false&scroll=1h
 ```
 
 inputs:
+
 - `wait_for_completion` - this should be set to false, as we don't want to wait for the reindexing to complete before returning a response, this will allow us to monitor the progress of the reindexing using the task API.
+
 - `scroll` - this should be set to 1h, as we want to keep the scroll context alive for 1 hour, this will allow us to reindex large indexes without running into scroll context timeouts.
+
 - `source`
+
   - `index` - the name of the index you want to reindex, this should be set to the name of the old index you want to reindex.
+  
   - `size` - the number of documents to reindex in each batch, this should be set to a value that will allow the reindexing to complete in a reasonable amount of time, you can adjust this value based on the size of the index and the performance of your OpenSearch cluster.
+
 - `dest`
+  
   - `index` - the name of the new index you want to reindex the data to, this should be set to the name of the new index you created in step 1.
 
 
@@ -118,6 +130,7 @@ GET _tasks/<task_id>
 ```
 
 inputs:
+
 - `task_id` - the ID of the reindexing task, this should be set to the value returned by the `_reindex` API when `wait_for_completion` is set to false.
 
 command output example:
@@ -165,6 +178,10 @@ live_kubernetes_ingress-<date>             1000000     1002.9gb
 live_kubernetes_ingress-<date>-reindexed   1000000     1002.9gb
 ```
 
+The document count is the only thing that needs to be the same between the old and new index. The store size may differ due to differences in shard allocation and index settings.
+If they dont match it means the reindexing did not complete successfully and you should investigate the cause before proceeding. You can usually find the error in the reindex task from step 3,
+if this step fails you will need to delete the new index (`live_kubernetes_ingress-<date>-reindexed`) before attempting to reindex again.
+
 
 ### Step 5: Re-enable replica and refresh interval on the new index
 
@@ -190,13 +207,7 @@ POST _plugins/_ism/add/live_kubernetes_ingress-<date>-reindexed
 ```
 
 
-### Step 7: Delete the old index (only after confirming doc counts match)
-
-```html
-DELETE live_kubernetes_ingress-<date>
-```
-
-### Step 8: Migrate the new index to warm storage
+### Step 7: Migrate the new index to warm storage
 
 ```html
 POST _ultrawarm/migration/live_kubernetes_ingress-<date>-reindexed/_warm
@@ -219,5 +230,13 @@ POST _ultrawarm/migration/live_kubernetes_ingress-<date>-reindexed/_cold
 }
 ```
 
+
+### Step 8: Delete the old index (only after confirming doc counts match)
+
+```html
+DELETE live_kubernetes_ingress-<date>
+```
+
+Always best to leave this to last after confirming that the new index is fully migrated to warm storage and the document counts match.
 
 [cloud-platform]: https://github.com/ministryofjustice/cloud-platform
