@@ -1,5 +1,7 @@
 # Ministry of Justice Cloud Platform
 
+[![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/cloud-platform/badge)](https://github-community.service.justice.gov.uk/repository-standards/cloud-platform)
+
 ## About this repository
 
 This is the Ministry of Justice (MOJ) Cloud Platform team's repository for public facing documentation, feature work, enhancements, and issues.
