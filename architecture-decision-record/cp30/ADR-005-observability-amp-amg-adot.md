@@ -224,16 +224,16 @@ Amazon Managed Grafana (AMG) resides in the existing **`cloud-platform-live` acc
 
 **Dashboards-as-code:** users author dashboards in the Grafana UI, export JSON, commit to the repo, and a pipeline applies them (mirroring the Argo CD environment-folder pattern with an added dashboards folder). This gives version control, audit trail, and recovery if a workspace is lost or upgraded.
 
-### Deployment: standalone `observability` Terraform component
+### Deployment: AMG in the cloud-platform root component
 
-AMG is deployed by a dedicated `observability` Terraform component, separate from `cluster-components`. This reflects the different lifecycles: the metrics collectors (AMP workspace + ADOT, or the CloudWatch Observability add-on) are **per-cluster** and stay in `cluster-components`, deployed on every cluster; AMG is a **single environment-designated** resource with no per-cluster relationship.
+AMG is deployed as part of the **root `cloud-platform` Terraform component** (alongside the other account-level singletons such as IAM roles, ECR, and Route53), not a dedicated component. A standalone `observability` component was prototyped but judged overkill for a single workspace plus one IAM role: root already provides the required providers (`aws`, `http`), the per-workspace model, and the related account-level IAM, and it applies as the first pipeline stage. The metrics collectors (AMP workspace + ADOT, or the CloudWatch Observability add-on) remain **per-cluster** in `cluster-components`; only AMG — a single, account-level resource — lives at root.
 
-Which environments host an AMG workspace is declared in the component (not passed as a runtime flag):
+Which environments host an AMG workspace is declared in root's `locals.tf` (not passed as a runtime flag):
 
 - **`cloud-platform-live`** — the production central AMG serving all BUs and both live and non-live environments.
-- **`cloud-platform-development`** — a test AMG in the development account, so ephemeral clusters' dashboards and cross-cluster data sources can be validated. Deployed via the main pipeline against the `cloud-platform-development` workspace (not by the ephemeral-cluster deploy workflow).
+- **`cloud-platform-development`** — a test AMG in the development account, so ephemeral clusters' dashboards and cross-cluster data sources can be validated.
 
-Every other Terraform workspace (BU spokes, preproduction, nonlive) plans an empty state for this component. Designating a new AMG host is a reviewed one-line code change, which prevents an AMG workspace being created in the wrong account by accident.
+`enable_amg` is derived from `contains(local.amg_host_workspaces, terraform.workspace)`, so every other workspace (BU spokes, preproduction, nonlive) creates no AMG resources. Designating a new AMG host is a reviewed one-line code change, which prevents an AMG workspace being created in the wrong account by accident.
 
 ### BU metric isolation
 
@@ -249,7 +249,7 @@ Isolation is enforced in three combined layers:
 
 The binding chain is: **IAM Identity Center group (per BU) → Grafana team → {folder permission + data source permission}**.
 
-**Implementation dependency:** the AWS provider manages the AMG *workspace* and IAM roles, but Grafana-internal objects (teams, folders, data sources, and data source permissions) are managed through the Grafana provider / dashboards-as-code pipeline that authenticates into the workspace. The isolation is only realised once that second layer exists; the `observability` component provisions the workspace and IAM foundation, and the Grafana-object layer is tracked as follow-up work (see Related Decisions).
+**Implementation dependency:** the AWS provider manages the AMG *workspace* and IAM roles, but Grafana-internal objects (teams, folders, data sources, and data source permissions) are managed through the Grafana provider / dashboards-as-code pipeline that authenticates into the workspace. The isolation is only realised once that second layer exists; the root `cloud-platform` component provisions the workspace and IAM foundation, and the Grafana-object layer is tracked as follow-up work (see Related Decisions).
 
 **Superseded proposal (original, pre-2026-09-07):** AMG in a dedicated Observability account separate from the Platform Services account, on the grounds that app engineers should never touch the account hosting Argo CD. Rejected in favour of the above because app-team access is read-only and dashboard-only, making the extra account's overhead unjustified.
 
