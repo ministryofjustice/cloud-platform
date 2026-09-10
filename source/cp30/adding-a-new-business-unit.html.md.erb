@@ -105,6 +105,9 @@ PR example: [modernisation-platform-environments#17412](https://github.com/minis
 
 Approve and merge the PR, then apply the `cloud-platform` and `container-platform` workflows.
 
+>*NOTE* <br>
+>If the `container-platform` workflow hangs `in_progress` and its `terraform-main` job never schedules its matrix legs, a previous change is most likely still pending deployment and holding the queue. Cancel the stale or pending run, then rerun the latest run on `main`. See [cloud-platform#8500](https://github.com/ministryofjustice/cloud-platform/issues/8500).
+
 **Step 13: Add the New BU Accounts to Identity**
 
 Add the new `container-platform-<bu>-nonlive` and `container-platform-<bu>-live` account names to the identity Terraform configuration in the `container-platform-environments` repository.
