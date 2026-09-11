@@ -1,7 +1,7 @@
 ---
 title: GitOps with ArgoCD
 weight: 12
-last_reviewed_on: 2026-08-20
+last_reviewed_on: 2026-09-11
 review_in: 6 months
 ---
 
@@ -36,7 +36,8 @@ workloads before it reaches live workloads.
 > works and how to operate it. The Terraform that implements it lives in
 > [modernisation-platform-environments](https://github.com/ministryofjustice/modernisation-platform-environments)
 > under `terraform/environments/cloud-platform`, and the design is recorded in
-> ADR-002 (GitOps Fleet Management) and ADR-018 (Deployment Model Flexibility).
+> [ADR-002 GitOps Fleet Management](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/cp30/ADR-002-argocd-gitops-fleet-management.md)
+> and [ADR-018 Deployment Model Flexibility](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/cp30/ADR-018-deployment-model-flexibility-gitops-vs-push-cd.md).
 
 ## Architecture
 
@@ -438,6 +439,80 @@ user is mapped to:
   **read-only** SSO group, so they can view and inspect their Applications and
   sync status without being able to change them. Their workloads are changed
   through Git, not directly in the UI.
+
+### Sync a workload
+
+How a workload reaches its spoke after a merge depends on the tier, and this is
+deliberate ([ADR-002 GitOps Fleet Management](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/cp30/ADR-002-argocd-gitops-fleet-management.md)).
+The sync policy is set per tier in `cluster-core/argocd-gitops.tf`, driven by
+`auto_sync = env == "nonlive"` in `cluster-core/locals.tf`:
+
+- **nonlive** uses `automated` with `prune` and `selfHeal`, so Argo CD applies
+  merged changes on its own and reverts manual drift.
+- **live** sets `automated: null`, so the Application goes `OutOfSync` after a
+  merge and waits for an engineer to sync it.
+
+The `app-baseline` workloads (Namespace, default-deny `NetworkPolicy`,
+`RoleBinding`s) always auto-sync on both tiers, so a namespace and its guardrails
+are never left un-applied.
+
+**Why live is manual.** A live change is a two-person, two-step action: the Git
+review and merge is the first gate, and the sync is a second, explicit human
+action on the live hub. Nothing reaches a live spoke without someone choosing to
+release it, and self-heal is off so a deliberate manual intervention is not
+fought by Argo CD.
+
+**Sync from the UI (the standard path).** Sign in to the live hub's Argo CD as
+described in [Inspect Argo CD on a hub](#inspect-argo-cd-on-a-hub). From the
+**Applications** dashboard choose **Sync Apps**. The dialog lists every
+Application on the hub, so tick only the ones you intend to release, then choose
+**Sync**. Releasing a live workload is a Cloud Platform engineer action.
+
+**Sync options.** The defaults are correct for both a new Application and an
+existing one, so in normal use you do not need to change any of them. Three are
+worth understanding:
+
+- **Auto-create namespace** must stay off. Both ApplicationSets set
+  `CreateNamespace=false`, and the namespace is a resource of the auto-syncing
+  `app-baseline` Application. Letting Argo CD create it here would produce a
+  namespace without the default-deny `NetworkPolicy` and `RoleBinding`s.
+- **Apply out of sync only** limits the operation to resources that have
+  drifted. That is useful on an existing Application and has no effect on a new
+  one, where every resource is missing and therefore out of sync already.
+- **Prune** deletes resources that are no longer in Git. Live has no automated
+  prune, so this dialog is the only place those deletions happen. Leave it off
+  unless you have confirmed what it would remove.
+
+![The Argo CD sync dialog on the live hub, with every sync option left unticked and two Applications selected for release](../images/argocd-live-sync-dialog.png)
+
+**Sync from the command line.** With `kubectl` access to the live hub you can
+trigger the same sync by setting the Application's `operation` field:
+
+```bash
+aws eks update-kubeconfig --name cloud-platform-live
+
+# Check what is waiting to be released
+kubectl -n argocd get applications
+
+# Sync one Application, as the UI does
+kubectl -n argocd patch application <application-name> --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"<your-username>"},"sync":{"syncStrategy":{"hook":{}}}}}'
+
+# Watch it converge to Synced / Healthy
+kubectl -n argocd get application <application-name> -w
+```
+
+Both paths sync the Application's target revision, which is the head of `main`
+as Argo CD last saw it, so a sync releases everything merged since the previous
+one rather than only your own commit. The revision that actually went out is
+recorded in `status.sync.revision`. For pruning, resource selection and the
+other operation fields, see the Argo CD guide to
+[syncing applications with kubectl](https://argo-cd.readthedocs.io/en/stable/user-guide/sync-kubectl/).
+
+A typical live release therefore is: merge the values change (for example a new
+image digest) to `main`, confirm the Application shows `OutOfSync` on the live
+hub, then sync it and confirm it returns to `Synced` and `Healthy`. On nonlive
+the same merge is picked up automatically and no sync step is needed.
 
 ## Troubleshooting
 
