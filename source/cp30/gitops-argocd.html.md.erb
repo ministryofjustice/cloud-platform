@@ -479,8 +479,9 @@ worth understanding:
 - **Apply out of sync only** limits the operation to resources that have
   drifted. That is useful on an existing Application and has no effect on a new
   one, where every resource is missing and therefore out of sync already.
-- **Prune** deletes resources that are no longer in Git, so leave it off unless
-  you have confirmed what it would remove.
+- **Prune** deletes resources that are no longer in Git. Live has no automated
+  prune, so this dialog is the only place those deletions happen. Leave it off
+  unless you have confirmed what it would remove.
 
 ![The Argo CD sync dialog on the live hub, with every sync option left unticked and two Applications selected for release](../images/argocd-live-sync-dialog.png)
 
@@ -493,13 +494,20 @@ aws eks update-kubeconfig --name cloud-platform-live
 # Check what is waiting to be released
 kubectl -n argocd get applications
 
-# Trigger a sync of one Application against the latest committed revision
+# Sync one Application, as the UI does
 kubectl -n argocd patch application <application-name> --type merge \
-  -p '{"operation":{"sync":{"revision":"HEAD"}}}'
+  -p '{"operation":{"initiatedBy":{"username":"<your-username>"},"sync":{"syncStrategy":{"hook":{}}}}}'
 
 # Watch it converge to Synced / Healthy
 kubectl -n argocd get application <application-name> -w
 ```
+
+Both paths sync the Application's target revision, which is the head of `main`
+as Argo CD last saw it, so a sync releases everything merged since the previous
+one rather than only your own commit. The revision that actually went out is
+recorded in `status.sync.revision`. For pruning, resource selection and the
+other operation fields, see the Argo CD guide to
+[syncing applications with kubectl](https://argo-cd.readthedocs.io/en/stable/user-guide/sync-kubectl/).
 
 A typical live release therefore is: merge the values change (for example a new
 image digest) to `main`, confirm the Application shows `OutOfSync` on the live
