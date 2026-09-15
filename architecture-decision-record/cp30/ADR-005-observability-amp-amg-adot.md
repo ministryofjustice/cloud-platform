@@ -235,6 +235,8 @@ Which environments host an AMG workspace is declared in root's `locals.tf` (not 
 
 `enable_amg` is derived from `contains(local.amg_host_workspaces, terraform.workspace)`, so every other workspace (BU spokes, preproduction, nonlive) creates no AMG resources. Designating a new AMG host is a reviewed one-line code change, which prevents an AMG workspace being created in the wrong account by accident.
 
+The AMG service role and workspace need no additional deploy-role permissions from the main pipeline's apply role (confirmed with the platform team), so AMG does not depend on the `oidc.tf` grant. The AMG workspace has no dependency on any cluster existing, so applying it in the root (first) stage is safe.
+
 ### BU metric isolation
 
 **Requirement (security team, 2026-09-07):** logical separation of metrics between BUs — if a BU publishes sensitive metrics, other BUs must not be able to view them by default. This is default-deny visibility, not a hard cryptographic boundary.
