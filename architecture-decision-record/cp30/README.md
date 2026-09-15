@@ -21,6 +21,7 @@ will be added here over time.
 
 - 🤔 [ADR-002: GitOps Fleet Management — EKS Capability for Argo CD](ADR-002-argocd-gitops-fleet-management.md)
 - 🤔 [ADR-005: Observability Stack — Metrics, Dashboards, and Alerting](ADR-005-observability-amp-amg-adot.md)
+- 🤔 [ADR-017: Logging and Log Management Architecture](ADR-017-logging-and-log-management.md)
 - 🤔 [ADR-018: Deployment Model Flexibility — GitOps as Default, Push-Based CD as Accommodation](ADR-018-deployment-model-flexibility-gitops-vs-push-cd.md)
 
 ### Statuses
