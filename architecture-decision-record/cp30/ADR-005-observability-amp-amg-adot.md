@@ -1,7 +1,7 @@
 # ADR-005: Observability Stack — Metrics, Dashboards, and Alerting
 
-**Status:** Proposed — Phase 1 PoC validation required (metrics backend); AMG placement decided 2026-09-07  
-**Date:** 2026-05-07 (updated 2026-05-12, 2026-09-07)  
+**Status:** Proposed — Phase 1 PoC validation required (metrics backend); AMG placement decided 2026-09-07; BU metric isolation implemented 2026-09-16 (cloud-platform#8509)  
+**Date:** 2026-05-07 (updated 2026-05-12, 2026-09-07, 2026-09-16)  
 **Decision Maker:** AWS ProServe / MoJ Principal Technical Architect  
 **Category:** Compute
 
@@ -235,21 +235,37 @@ Which environments host an AMG workspace is declared in root's `locals.tf` (not 
 
 `enable_amg` is derived from `contains(local.amg_host_workspaces, terraform.workspace)`, so every other workspace (BU spokes, preproduction, nonlive) creates no AMG resources. Designating a new AMG host is a reviewed one-line code change, which prevents an AMG workspace being created in the wrong account by accident.
 
+The AMG service role and workspace need no additional deploy-role permissions from the main pipeline's apply role (confirmed with the platform team), so AMG does not depend on the `oidc.tf` grant. The AMG workspace has no dependency on any cluster existing, so applying it in the root (first) stage is safe.
+
 ### BU metric isolation
+
+> **Updated 2026-09-16 (cloud-platform#8509 implemented):** the isolation model
+> below is now realised in Terraform in the root `cloud-platform` component
+> (`grafana-objects.tf`), with a dev PoC deployed against two simulated BUs. The
+> implementing change is
+> [modernisation-platform-environments#19165](https://github.com/ministryofjustice/modernisation-platform-environments/pull/19165).
 
 **Requirement (security team, 2026-09-07):** logical separation of metrics between BUs — if a BU publishes sensitive metrics, other BUs must not be able to view them by default. This is default-deny visibility, not a hard cryptographic boundary.
 
 **Key constraint:** in a single shared AMG workspace, Grafana **folder permissions control dashboard visibility only — they do not restrict which data sources a user can query.** A user with Explore access, or a dashboard exposing a data-source picker, could otherwise query any data source in the workspace. Folders alone therefore do **not** provide the required isolation.
 
+**LBAC ruled out:** Grafana label-based access control (LBAC), which would let a single data source restrict results by label per team, is **not available in AMG** (Grafana Cloud/Enterprise only — verified against AMG docs). Isolation must therefore use AMG's own primitives: per-BU data sources, data-source permissions, Teams, and folders.
+
 Isolation is enforced in three combined layers:
 
-1. **Grafana data source permissions (primary enforcement).** One data source per BU (e.g. `amp-hmpps`, `amp-laa`), each restricted so only that BU's Grafana team can query it. This is what actually prevents cross-BU querying, including from Explore.
-2. **Per-BU IAM assume-roles (AWS-layer defence in depth).** Each BU data source uses a distinct cross-account IAM role scoped to that BU's AMP/CloudWatch, rather than one broad role over all backends.
+1. **Grafana data source permissions (primary enforcement).** One data source per BU (e.g. `amp-bu1`, `amp-bu2`), each restricted so only that BU's Grafana team can query it. `grafana_data_source_permission` manages the **entire** permission set for a data source, so the default-deny is achieved by granting `Query` to only the BU's team and deliberately **not** granting the built-in Viewer/Editor basic roles. This removes default query access for everyone else — every other BU's users — in dashboards and in Explore.
+2. **Per-BU IAM assume-roles (AWS-layer defence in depth).** Each BU data source uses a distinct cross-account IAM role scoped to that BU's AMP/CloudWatch, rather than one broad role over all backends. Delivered by cloud-platform#8517 (production form).
 3. **Folders + Viewer role (visibility hygiene).** Per-BU folders and read-only (Viewer) access so users see only their dashboards and cannot author dashboards pointing at other data sources.
 
-The binding chain is: **IAM Identity Center group (per BU) → Grafana team → {folder permission + data source permission}**.
+The binding chain is: **IAM Identity Center group(s) (per BU) → Grafana team → {folder permission + data source permission}**.
 
-**Implementation dependency:** the AWS provider manages the AMG *workspace* and IAM roles, but Grafana-internal objects (teams, folders, data sources, and data source permissions) are managed through the Grafana provider / dashboards-as-code pipeline that authenticates into the workspace. The isolation is only realised once that second layer exists; the root `cloud-platform` component provisions the workspace and IAM foundation, and the Grafana-object layer is tracked as follow-up work (see Related Decisions).
+**Many teams per BU.** A BU has many delivery teams, not one. Every identity group granted access to any namespace in a BU should get Grafana access to that BU's metrics, so each BU's Grafana team syncs from a **list** of IdC groups (`grafana_team_external_group.groups` is a list; deduplicated). BUs are configured by group **name** as those appear in `product.yaml`; names are resolved to IdC group IDs (AMG team sync matches on group ID) via the plural `data.aws_identitystore_groups` data source (ListGroups) using the read-only Identity Center provider — no hardcoded IDs. Deriving each BU's group list automatically from the `access[].group` entries across its `product.yaml` files is expected follow-up work. Isolation granularity is the BU; namespace-level isolation within a BU is not achievable with data-source permissions (that would need LBAC).
+
+**Data source type:** AMG v12+ uses the dedicated Amazon Managed Service for Prometheus plugin (`grafana-amazonprometheus-datasource`); SigV4 is built in and signed with the AMG workspace's own IAM role, so no credentials are configured on the data source.
+
+**Implementation dependency:** the AWS provider manages the AMG *workspace*, the service account, and IAM roles, but Grafana-internal objects (teams, folders, data sources, and data-source permissions) are managed through the **Grafana Terraform provider** (`grafana/grafana ~> 4.46`), which authenticates into the workspace with a **short-lived service account token minted per pipeline run** (AMG tokens are capped at 30 days, so nothing is stored). The service account itself is Terraform-managed at root; only the token is per-run. This is the same provider and token mechanism dashboards-as-code (cloud-platform#8510) will use.
+
+**Known caveat (permissions):** the `github-actions-plan` role does not currently hold `grafana:CreateWorkspaceServiceAccountToken` (only the apply role does), so at plan time the Grafana provider is unauthenticated; the token-mint pipeline step is tolerant of this and does not fail the plan job. Granting the plan role that permission is a modernisation-platform-framework change tracked separately.
 
 **Superseded proposal (original, pre-2026-09-07):** AMG in a dedicated Observability account separate from the Platform Services account, on the grounds that app engineers should never touch the account hosting Argo CD. Rejected in favour of the above because app-team access is read-only and dashboard-only, making the extra account's overhead unjustified.
 
@@ -353,6 +369,14 @@ The final decision will be evidence-based, made by Phase 1 Week 10, and included
 
 - **Depends On:** ADR-004 (IAM Identity Center — AMG SSO, OpenSearch SSO)
 - **Related:** ADR-001 (EKS), ADR-002 (Argo CD), ADR-017 (Logging and Log Management)
+
+### Implementation tracking (cloud-platform issues)
+
+- **cloud-platform#8414** — observability metrics PoC (parent epic)
+- **cloud-platform#8508** — AMG workspace (delivered at the root `cloud-platform` component; closed)
+- **cloud-platform#8509** — BU metric isolation (implemented; see the section above and modernisation-platform-environments#19165)
+- **cloud-platform#8510** — dashboards-as-code (shares the Grafana provider + per-run token)
+- **cloud-platform#8517** — per-BU AMP workspaces + cross-account query roles (production isolation prerequisite)
 
 ---
 
