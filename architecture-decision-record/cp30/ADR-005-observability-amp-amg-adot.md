@@ -33,6 +33,18 @@
 
 Both options use Amazon Managed Grafana for the dashboard UX (team familiarity) and Fluent Bit + CloudWatch Logs for log aggregation. The difference is the metrics backend: AMP (Prometheus-compatible, PromQL) vs. CloudWatch Metrics (native, CloudWatch query language).
 
+### Architecture Diagrams
+
+**PoC architecture (Phase 1).** Both metrics options run side by side on a single development cluster, and one AMG workspace evaluates both against equivalent dashboards. The BU metric isolation model (cloud-platform#8509) is exercised with two simulated BUs.
+
+![PoC architecture](../../architecture/container-platform/diagrams/observability-poc-architecture.drawio.svg)
+
+**Target architecture (Phase 2).** One central AMG workspace in `cloud-platform-live` serves all BUs. Metrics and logs stay in each BU's account and are queried cross-account via per-BU scoped IAM roles. The metrics backend (Option A or D) is chosen at the Phase 1 Week 10 decision gate and populates the per-BU data sources.
+
+![Target architecture](../../architecture/container-platform/diagrams/observability-target-architecture.drawio.svg)
+
+Source files are editable Draw.io SVGs under [`architecture/container-platform/diagrams/`](../../architecture/container-platform/diagrams/).
+
 ### PoC Evaluation Criteria
 
 | Criterion | Weight | How to Measure |
