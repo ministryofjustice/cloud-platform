@@ -41,7 +41,7 @@ workloads before it reaches live workloads.
 
 ## Architecture
 
-![Multi-account ArgoCD hub and spoke architecture](../images/argocd-hub-spoke.drawio.svg)
+![Multi-account ArgoCD hub and spoke architecture](../../architecture/container-platform/diagrams/argocd-hub-spoke.drawio.png)
 
 The diagram shows the full picture: the GitOps source repository, the two hub
 clusters in the hub account, the business-unit spoke clusters split by tier, and
@@ -134,7 +134,7 @@ two ApplicationSets, to the resources that end up on a spoke. Every business
 unit and product follows the same layout, so this is the shape to copy when
 onboarding a new workload.
 
-![How a product maps from the repository to ApplicationSets to spoke resources](../images/argocd-repo-structure.drawio.svg)
+![How a product maps from the repository to ApplicationSets to spoke resources](../../architecture/container-platform/diagrams/argocd-repo-structure.drawio.png)
 
 A product is described by a single `product.yaml` plus one directory per
 service:
