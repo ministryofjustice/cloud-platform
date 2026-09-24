@@ -3,6 +3,7 @@
 **Status:** Accepted  
 **Date:** 2026-05-07  
 **Updated:** 2026-08-27 — recorded the two-hub (one per environment tier) model as the baseline, superseding the earlier single-hub design.  
+**Updated:** 2026-09-22 — added the BU-user Argo CD UI access model (Identity Center role mappings plus per-BU AppProject roles), resolving cloud-platform#8548. The original ADR specified deployment-side tenant isolation but never defined how BU engineers reach the Argo CD UI.  
 **Decision Maker:** AWS ProServe / MoJ Principal Technical Architect  
 **Category:** Compute / Integration
 
@@ -114,6 +115,57 @@ Layer 5: Gatekeeper admission     Blocks cross-namespace resource creation
 Layer 6: Git access control       CODEOWNERS prevents Team A editing Team B's manifests
 ```
 
+### BU-User Argo CD UI Access (cloud-platform#8548)
+
+The isolation layers above govern the **deployment path** — what a BU's Argo CD Applications may pull and where they may deploy. They say nothing about the **human path**: which people can open the Argo CD UI, and what they see once inside. The original ADR assumed BU teams interact only through Git and `kubectl`, so no UI access model was defined. In practice BU engineers need read-only visibility of their own deployments in the UI. Access was only ever exercised as `cloud-platform-engineers` and `container-platform-aws`, which both hold default ADMIN, so the gap went unnoticed until a BU user reported an empty Applications list.
+
+The EKS managed Argo CD capability exposes access as two independent layers (see [Configure Argo CD permissions](https://docs.aws.amazon.com/eks/latest/userguide/argocd-permissions.html)). Both are required — either alone yields no useful access:
+
+| Layer | Control | Grants | Where configured |
+|-------|---------|--------|------------------|
+| UI entry | Capability `rbacRoleMappings` (global `VIEWER`) | Log in to the Argo CD UI. On its own shows **zero** Applications — global roles gate Argo CD itself, not project-scoped resources. | `cluster` component (`argocd_rbac_role_mappings`) |
+| App visibility | Per-BU AppProject `roles` (`applications, get, <project>/*`) | See that BU's Applications, read-only, scoped to the BU's own project. | `cluster-core` component (generated per BU AppProject) |
+
+Because visibility is granted per AppProject, a BU only ever sees its own Applications — cross-BU isolation in the shared hub UI is a consequence of the layer-2 grant, not a separate control. Read-only (`VIEWER` + `applications, get`) is deliberate: BU teams observe deployments but do not sync, create, or delete from the UI (GitOps drives changes through Git).
+
+Verified on the non-live hub (2026-09-22): a BU group mapped to global `VIEWER` with no project role sees an empty UI; adding the project `roles` grant makes exactly that BU's Applications visible and no others.
+
+### BU-to-Identity-Group Mapping
+
+Both layers key on a **stable per-BU IAM Identity Center group**, not the per-squad groups that `product.yaml` uses for AWS/EKS access. This is the deliberate asymmetry that keeps the Argo CD configuration static:
+
+- **AWS account / EKS access** is driven by `product.yaml access[].group` — squad-level groups (e.g. `hmpps-sre`), scoped per-cluster and per-namespace, churning as teams onboard.
+- **Argo CD UI access** is driven by the **BU parent group** — one per BU, read-only, BU-wide.
+
+The BU parent groups are the children of the `business-units` GitHub team. GitHub surfaces a nested child team's members in the parent team's membership (the team members API marks them `inherited=true`, distinct from directly-added members), and it is the parent group's full membership that syncs to Identity Center. So no per-team churn reaches the Argo CD config: a squad team nested under its BU parent contributes its members to the parent automatically, and the only Argo CD change is onboarding a brand-new BU, which already requires a `bu_configs` edit.
+
+**Operational dependency — squad teams must be nested under their BU parent.** This model relies on that nesting being done. It is the established org convention (verified: `hmpps-developers` includes both directly-added members and `inherited=true` members surfaced purely through child teams), but it is not automatic. A squad team created as a standalone team, not nested under its BU parent, still gets AWS/EKS access through `product.yaml` (which keys on the squad group directly) but its members will **not** appear in the BU parent group, so they get no Argo CD UI access until the team is nested. This is the one recurring manual step: when creating a new squad team, nest it under its BU parent. It is easy to forget precisely because the AWS-access path does not depend on it.
+
+#### Groups in use (onboarded BUs)
+
+These four BUs have `bu_configs` entries and clusters today. The `VIEWER` mapping and AppProject role are wired for each:
+
+| BU code | Clusters | BU parent group (GitHub team → IdC) | Evidence |
+|---------|----------|-------------------------------------|----------|
+| `octo` | `container-platform-octo-{nonlive,live}` | `office-of-the-cto` | Child teams are `octo-*` (`octo-engineering`, `octo-architecture`, `octo-hosting`). OCTO = Office of the CTO. |
+| `laa` | `container-platform-laa-{nonlive,live}` | `laa` | Direct name match; child teams `laa-*`. |
+| `hmpps` | `container-platform-hmpps-{nonlive,live}` | `hmpps-developers` | Child teams `hmpps-*` (verified `hmpps-sre` members ⊆ `hmpps-developers`). |
+| `cd` | `container-platform-cd-{nonlive,live}` | `central-digital` | Only `central-digital-*` BU team space; no other `cd-*` candidate. |
+
+**Reviewers: please confirm the `octo → office-of-the-cto` and `cd → central-digital` mappings.** `hmpps` and `laa` are unambiguous; the other two are inferred from child-team naming and should be validated against the actual team a BU's engineers belong to.
+
+#### Anticipated groups (not yet onboarded)
+
+The remaining `business-units` children are candidate BU parent groups for future onboarding. They are recorded here so a wrong pick is caught at review time, but are **not** wired until the BU has `bu_configs` clusters:
+
+| BU parent group | Members (2026-09-22) | Notes |
+|-----------------|----------------------|-------|
+| `opg` | 44 | Office of the Public Guardian — likely a future BU. |
+| `technology-services` | 79 | Central technology services. |
+| `platforms` | 30 | Platforms group; overlaps the platform team — confirm it is a tenant BU, not platform staff, before mapping. |
+
+Group IdC IDs are not hardcoded in the ADR; the `cluster-core` layer-2 grant resolves BU parent group names to IdC IDs at plan time (Identity Center `ListGroups`), and the `cluster` layer-1 mapping carries the resolved IDs. Names, not IDs, are the reviewable source of truth.
+
 ### Onboarding a New BU
 
 When a new BU is onboarded (US-011), the following is automated via Terraform:
@@ -122,8 +174,9 @@ When a new BU is onboarded (US-011), the following is automated via Terraform:
 3. Register new cluster secrets in the hub cluster
 4. Platform ApplicationSet (cluster generator) automatically deploys platform add-ons to new clusters
 5. BU-specific ApplicationSet created to generate per-namespace Applications from the BU's deployment repo
+6. Add the BU's parent group to the `VIEWER` role mapping (layer 1, `cluster` component) and add the read-only `roles` grant to the BU's AppProject (layer 2, `cluster-core` component), so BU engineers get read-only UI visibility of their own Applications
 
-No manual Argo CD configuration is required for new BUs.
+Adding the BU is the only Argo CD change; no per-team or per-namespace Argo CD configuration is required as squads onboard.
 
 ### EKS Capability Constraint
 
@@ -256,11 +309,13 @@ In the context of managing GitOps deployments to 20+ private-endpoint EKS cluste
 - Per-Application pricing, across two hubs (predictable but adds cost at scale)
 - Two hubs to operate and upgrade instead of one (marginal, since the Capability is AWS-managed)
 - Within a tier, a misconfigured AppProject could still cross BU boundaries (mitigated by Terraform-managed definitions and PR review); it cannot cross the live/non-live boundary because that is enforced by separate hubs
+- BU-user UI access is governed by BU parent GitHub team membership, a control surface outside the `product.yaml` review process that gates AWS/EKS access. A person in a BU parent group but in no `product.yaml` squad gets read-only UI visibility of that BU's Applications without any cluster access. Accepted for a read-only dashboard; the two access decisions are intentionally made at different group tiers (see BU-to-Identity-Group Mapping)
 
 ### Neutral
 - Platform and Workloads AppProject separation still achievable within single namespace
 - ApplicationSets for fleet-level automation supported natively
 - Live and non-live are structurally isolated by running one hub per tier (the two-hub model)
+- BU-user Argo CD access is read-only (`VIEWER` + per-project `applications, get`); write actions remain GitOps-driven through Git
 
 ---
 
