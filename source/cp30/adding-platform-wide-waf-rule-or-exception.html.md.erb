@@ -1,0 +1,106 @@
+---
+title: Adding Platform WAF Rules
+weight: 10
+last_reviewed_on: 2026-09-15
+review_in: 6 months
+---
+
+# Adding Platform WAF Rules
+
+This guide explains how to add platform-wide Coraza WAF rules or exceptions for services running behind the shared Gateway API stack. Use it when a rule should apply across the Container Platform rather than only to one service or route.
+
+## How the platform rules work
+
+Coraza does not merge multiple `EnvoyExtensionPolicy` resources. In practice, this means a WAF policy attached to an `HTTPRoute` cannot simply extend the rules already defined at the platform level.
+
+To work around this, the platform uses a shared `ConfigMap` mounted read-only on the Envoy proxy pods. That ConfigMap is accessible to both the platform-level and tenant-level Coraza configuration, so platform-wide rules and route-level customisations can both include the same shared directives.
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coraza-cp-config
+  namespace: envoy-gateway-system
+data:
+  coraza-cp.conf: |
+    # Container Platform managed Coraza configuration.
+    # This file may intentionally be empty.
+```
+
+This file is then included in the `EnvoyExtensionPolicy` that targets the default platform gateway alongside the other WAF settings.
+
+If a team customises the WAF with an `EnvoyExtensionPolicy` that targets an `HTTPRoute`, it must also include the same platform include block. This is enforced by the `corazawafincludesplatformrules` Gatekeeper rule.
+
+```yaml
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: default-coraza-waf
+  namespace: envoy-gateway-system
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: default
+      namespace: envoy-gateway-system
+  dynamicModule:
+    - name: composer
+      filterName: coraza-waf
+      config:
+        directives:
+          - Include @coraza.conf
+          - SecRuleEngine On
+          - Include @crs-setup.conf
+          - Include @owasp_crs/*.conf
+          - Include /etc/coraza/cp/coraza-cp.conf
+```
+
+By default, Envoy does not reload Gateway-scoped `EnvoyExtensionPolicy` changes automatically. Without this, changes to the `ConfigMap` or the gateway WAF directives would require a manual rollout of the Envoy deployment.
+
+To avoid that manual step, the Deployment is annotated with hashes of the relevant manifests, so changes to the platform WAF configuration should trigger a reload automatically.
+
+## Adding directives
+
+Adding a rule and adding an exception are essentially the same process: both are added to the shared `coraza-cp.conf` ConfigMap, which is included by the platform `EnvoyExtensionPolicy`.
+
+This ConfigMap in `envoy-gateway-system` is the single source of truth for platform-wide Coraza directives. If a change is only needed for one route, that route's own `EnvoyExtensionPolicy` should still include the platform include block, but any platform-wide rule or exception should be added here.
+
+### Adding a new rule
+
+Add a `SecRule` stanza to the `coraza-cp.conf` file. Rule IDs should be unique and should not overlap with OWASP CRS rule IDs. At the time of writing, there are no prescribed ranges for Container Platform rules.
+
+The following example adds a new `SecRule` that blocks a specific endpoint.
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coraza-cp-config
+  namespace: envoy-gateway-system
+data:
+  coraza-cp.conf: |
+    # Container Platform managed Coraza configuration.
+    SecRule REQUEST_URI "@rx /wp-login.php" "id:1000001,phase:1,deny,status:403,log,auditlog,msg:'Block access to legacy admin endpoint'"
+```
+
+This rule is included automatically by the default gateway policy and applies across the Container Platform. Because the Envoy Gateway deployment is annotated with a hash of the manifest, a change to this file should trigger a rollout automatically.
+
+### Adding a new exception
+
+If a specific request is being blocked incorrectly, add an exception in the same file using `SecRuleRemoveById` or a more targeted condition. Keep exceptions as narrow as possible and avoid broad removals unless there is a clear and justified need.
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coraza-cp-config
+  namespace: envoy-gateway-system
+data:
+  coraza-cp.conf: |
+    # Container Platform managed Coraza configuration.
+    SecRuleRemoveById 942100
+```
+
+This disables a specific rule ID. If the exception should only apply in certain circumstances, prefer a scoped rule such as a request URI, header, or argument match rather than removing the rule entirely.
+
+As with rules, changes to the `ConfigMap` are picked up by the Envoy deployment annotation and should trigger a reload without a manual rollout.
