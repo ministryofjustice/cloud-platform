@@ -1,0 +1,89 @@
+---
+title: Envoy Gateway Troubleshooting
+weight: 10
+last_reviewed_on: 2026-09-15
+review_in: 6 months
+---
+
+# Troubleshooting Envoy Gateway
+
+These are some useful techniques for debugging Envoy Gateway.
+
+## Launch a debug container
+
+The default containers launched by Envoy Gateway (the proxy and controller) do not allow shell access for debugging, so we create a temporary debug container instead.
+
+It is possible to use the `kubectl debug` command for this, which targets a specific pod and creates an ephemeral container.
+
+```bash
+kubectl -n envoy-gateway-system debug -it default-envoy-proxy-56d8498ddb-27pc9 \
+  --image=nicolaka/netshoot:latest \
+  --container=coraza-cp-config-debug \
+  -- /bin/sh
+```
+
+The debug container can also receive partial manifests using the `custom` flag. For example, you can mount an existing volume already present on the Envoy pods.
+
+```yaml
+# coraza-debug-container.yaml
+volumeMounts:
+  - name: coraza-cp-config
+    mountPath: /etc/coraza/cp
+    readOnly: true
+```
+
+```bash
+kubectl -n envoy-gateway-system debug -it default-envoy-proxy-56d8498ddb-27pc9 \
+  --image=nicolaka/netshoot:latest \
+  --container=coraza-cp-config-debug \
+  --custom=debug/coraza-debug-container.yaml \
+  -- /bin/sh
+```
+
+Debug containers need to be cleaned up by deleting the parent pod, which should then be recreated by the Deployment.
+
+## Envoy Gateway controller dashboard
+
+Envoy Gateway ships with its own admin dashboard and API, which can be useful for debugging.
+
+Port-forward the `envoy-gateway` deployment (this is only available on localhost for security reasons):
+
+```bash
+kubectl port-forward -n envoy-gateway-system deployment/envoy-gateway 19000:19000
+```
+
+Endpoints are under an `/api` prefix. Useful examples include:
+
+- A config dump of all Gateway API resources loaded by the controller:
+
+  ```bash
+  curl http://localhost:19000/api/config_dump?resource=all
+  ```
+
+- Browsing `http://localhost:19000` in a browser gives a dashboard with Server Info, Config Dump, Stats, and Profiling links.
+
+## Envoy proxy dashboard
+
+Similarly, the Envoy proxy also exposes an admin dashboard and API.
+
+Find one of the actual proxy pods handling traffic and port-forward that pod instead of the `envoy-gateway` deployment:
+
+```bash
+kubectl -n envoy-gateway-system get pods -l app.kubernetes.io/name=envoy
+kubectl -n envoy-gateway-system port-forward pod/default-envoy-proxy-xxxxx 19000:19000
+```
+
+Endpoints have no `/api` prefix. Useful examples include:
+
+```bash
+curl http://localhost:19000/ready          # readiness: LIVE if healthy
+curl http://localhost:19000/stats          # runtime stats/counters
+curl http://localhost:19000/config_dump    # config actually applied to this proxy
+curl http://localhost:19000/clusters       # upstream cluster/endpoint health
+curl http://localhost:19000/listeners      # listeners bound by this proxy
+```
+
+Further reading:
+
+- [Envoy Gateway: Admin Console](https://gateway.envoyproxy.io/docs/troubleshooting/admin-console/)
+- [Envoy Gateway: Advanced - Envoy Proxy Admin Interface](https://gateway.envoyproxy.io/docs/troubleshooting/envoy-proxy-admin-interface/)
