@@ -74,6 +74,16 @@ These are the **node** ranges. Your pods have their own addresses, but traffic l
 cluster appears to come from the node it is running on, so the node range is what the
 security group needs to allow.
 
+More clusters will be added over time. The ranges for every cluster are defined in the
+`vpc_cidr` map in
+[network/locals.tf](https://github.com/ministryofjustice/modernisation-platform-environments/blob/main/terraform/environments/cloud-platform/network/locals.tf),
+where `primary` is the node range you need and `secondary` is the pod range.
+
+If your cluster is not listed above, ask in
+[#container-platform-alpha-users](https://moj.enterprise.slack.com/archives/C0BKZHMQNRK)
+before raising your pull request. A newly created cluster may not have connectivity to Cloud
+Platform enabled yet.
+
 Then attach the security group to your RDS instance. In the file where you call the RDS
 module, add:
 
@@ -165,13 +175,12 @@ staying up.
 
 The steps above are for reaching a database from your own machine.
 
-If you want a deployed application on Container Platform to connect to a Cloud Platform
-database, the network path is the same, but the credentials are not. Your RDS secret is
-created in your Cloud Platform namespace, and Container Platform has no mechanism for
-copying it across. You will need to arrange your own way of getting the credentials to your
-workload. Ask in
-[#ask-cloud-platform](https://mojdt.slack.com/messages/ask-cloud-platform) if you are
-unsure.
+Do not commit credentials to a repository or put them in plain manifests. Container Platform
+does not yet provide a mechanism for secrets management, and it is being tracked separately.
+If you need to connect an application to a database, talk to us first so we can deliberate on
+an approach in the
+[#container-platform-alpha-users](https://moj.enterprise.slack.com/archives/C0BKZHMQNRK)
+channel.
 
 ## Troubleshooting
 
@@ -192,3 +201,8 @@ You have run the command without the `--overrides` section. Use the full command
 
 `LOCAL_PORT` must be above 1024. The container does not run as root and cannot bind to
 privileged ports.
+
+## Getting help
+
+Ask in
+[#container-platform-alpha-users](https://moj.enterprise.slack.com/archives/C0BKZHMQNRK).
