@@ -1,0 +1,194 @@
+---
+title: Connecting to a Cloud Platform database
+weight: 17
+last_reviewed_on: 2026-09-29
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+If you have an RDS instance on Cloud Platform and a namespace on a Container Platform
+nonlive cluster, your Container Platform workload can reach that database.
+
+There are two parts to it:
+
+1. Allow your cluster's address range through the database's security group. This is a
+   Terraform change in your Cloud Platform namespace.
+2. Connect to the database. To do this from your own machine, use a port-forward pod.
+
+This is currently available on **nonlive clusters only**.
+
+## Before you start
+
+You need:
+
+- a namespace on a Container Platform nonlive cluster
+- an RDS instance in a Cloud Platform namespace, created with the
+  [RDS module](https://github.com/ministryofjustice/cloud-platform-terraform-rds-instance)
+- the ability to raise a pull request against
+  [cloud-platform-environments](https://github.com/ministryofjustice/cloud-platform-environments)
+
+## Step 1: allow your cluster to reach the database
+
+In your Cloud Platform namespace, add a `security-group.tf` file to the `resources` directory:
+
+```hcl
+data "aws_vpc" "selected" {
+  filter {
+    name   = "tag:Name"
+    values = [var.vpc_name == "live" ? "live-1" : var.vpc_name]
+  }
+}
+
+resource "aws_security_group" "rds" {
+  name        = "${var.namespace}-rds-sg"
+  description = "Allow Container Platform access to this database"
+  vpc_id      = data.aws_vpc.selected.id
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "rds_inbound" {
+  type              = "ingress"
+  description       = "Container Platform nonlive"
+  from_port         = 5432
+  to_port           = 5432
+  protocol          = "tcp"
+  security_group_id = aws_security_group.rds.id
+  cidr_blocks       = ["10.195.48.0/20"] # your cluster, see the table below
+}
+```
+
+Use the range for the cluster your workload runs on:
+
+| Cluster | Address range |
+| --- | --- |
+| `container-platform-octo-nonlive` | `10.195.48.0/20` |
+| `container-platform-hmpps-nonlive` | `10.195.64.0/20` |
+| `container-platform-laa-nonlive` | `10.195.80.0/20` |
+| `container-platform-cd-nonlive` | `10.195.96.0/20` |
+
+These are the **node** ranges. Your pods have their own addresses, but traffic leaving the
+cluster appears to come from the node it is running on, so the node range is what the
+security group needs to allow.
+
+Then attach the security group to your RDS instance. In the file where you call the RDS
+module, add:
+
+```hcl
+module "rds" {
+  source = "github.com/ministryofjustice/cloud-platform-terraform-rds-instance?ref=<version>"
+
+  vpc_name               = var.vpc_name
+  vpc_security_group_ids = [aws_security_group.rds.id]
+
+  # ...the rest of your configuration
+}
+```
+
+> Creating the security group is not enough on its own. If you do not add
+> `vpc_security_group_ids`, the rule has no effect and your connection will time out.
+
+Raise a pull request with both changes. Once it is merged, the pipeline applies it.
+
+Use port `1433` for MS-SQL and `3306` for MySQL.
+
+## Step 2: run a port-forward pod
+
+Run this in your Container Platform namespace, replacing the namespace and the database
+hostname. You can find the hostname in the `rds_instance_address` field of your RDS secret
+in your Cloud Platform namespace.
+
+```bash
+kubectl -n [your namespace] run port-forward-pod \
+  --image=ministryofjustice/port-forward \
+  --port=5432 \
+  --env="REMOTE_HOST=[your database hostname]" \
+  --env="LOCAL_PORT=5432" \
+  --env="REMOTE_PORT=5432" \
+  --overrides='{"spec":{"securityContext":{"runAsNonRoot":true,"runAsUser":1001,"seccompProfile":{"type":"RuntimeDefault"}},"containers":[{"name":"port-forward-pod","image":"ministryofjustice/port-forward","ports":[{"containerPort":5432}],"env":[{"name":"REMOTE_HOST","value":"[your database hostname]"},{"name":"LOCAL_PORT","value":"5432"},{"name":"REMOTE_PORT","value":"5432"}],"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}}}]}}'
+```
+
+> This command differs from the equivalent one in the
+> [Cloud Platform user guide](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/rds-external-access.html).
+> Container Platform enforces the `restricted` Pod Security Standard, so the security
+> settings have to be set explicitly. Without the `--overrides` the pod is rejected.
+
+Check it started:
+
+```bash
+kubectl -n [your namespace] logs port-forward-pod
+```
+
+You should see `Socat started listening on 5432`.
+
+## Step 3: forward traffic from your machine
+
+```bash
+kubectl -n [your namespace] port-forward port-forward-pod 5432:5432
+```
+
+Leave this running while you use the database.
+
+## Step 4: connect
+
+Get the credentials from the RDS secret in your **Cloud Platform** namespace:
+
+```bash
+kubectl -n [your cloud platform namespace] get secret [your rds secret] \
+  -o jsonpath='{.data.database_username}' | base64 --decode
+```
+
+Repeat for `database_password` and `database_name`, then connect as if the database were
+local:
+
+```bash
+psql --host localhost --port 5432 \
+  --dbname [your database name] \
+  --username [your database username] \
+  --password
+```
+
+## Step 5: delete the port-forward pod
+
+```bash
+kubectl -n [your namespace] delete pod port-forward-pod
+```
+
+Please delete it when you have finished. Pods created this way are not managed by a
+deployment and will be removed when the node they run on is replaced, so do not rely on one
+staying up.
+
+## Connecting from an application
+
+The steps above are for reaching a database from your own machine.
+
+If you want a deployed application on Container Platform to connect to a Cloud Platform
+database, the network path is the same, but the credentials are not. Your RDS secret is
+created in your Cloud Platform namespace, and Container Platform has no mechanism for
+copying it across. You will need to arrange your own way of getting the credentials to your
+workload. Ask in
+[#ask-cloud-platform](https://mojdt.slack.com/messages/ask-cloud-platform) if you are
+unsure.
+
+## Troubleshooting
+
+**The connection times out.**
+
+Check the security group is attached to the instance, not just created. This is the most
+common cause. Confirm `vpc_security_group_ids` is set on your RDS module and that the change
+has been applied.
+
+Then check you used the node range for your cluster from the table above, rather than a pod
+address.
+
+**The pod is rejected with a `violates PodSecurity "restricted:latest"` error.**
+
+You have run the command without the `--overrides` section. Use the full command in step 2.
+
+**`socat` fails to start, or the pod crashes.**
+
+`LOCAL_PORT` must be above 1024. The container does not run as root and cannot bind to
+privileged ports.
