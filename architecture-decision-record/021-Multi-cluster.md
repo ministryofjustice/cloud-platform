@@ -48,7 +48,7 @@ Several elements in the cluster are a single point of failure:
 
 ### Derisk upgrading of k8s
 
-Once you start a Kubernetes version upgrade, rolling back becomes infeasible (incidents: [1](https://runbooks.cloud-platform.service.justice.gov.uk/incident-log.html#q1-2020-january-march)).
+Once you start a Kubernetes version upgrade, rolling back becomes infeasible (incidents: [1](https://runbooks.cloud-platform.service.justice.gov.uk/incidents/index.html#q1-2020-january-march)).
 
 With multi-cluster we could do a "blue-green" upgrade - spin up an cluster at the newer k8s version and then carefully move the apps across to it.
 
