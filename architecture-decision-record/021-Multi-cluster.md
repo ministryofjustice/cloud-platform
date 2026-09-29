@@ -40,15 +40,15 @@ Running everything on a single cluster is a 'single point of failure', which is 
 
 Several elements in the cluster are a single point of failure:
 
-- ingress (incidents: [1](https://runbooks.cloud-platform.service.justice.gov.uk/incident-log.html#incident-on-2020-10-06-09-07-intermittent-quot-micro-downtimes-quot-on-various-services-using-dedicated-ingress-controllers) [2](https://runbooks.cloud-platform.service.justice.gov.uk/incident-log.html#incident-on-2020-04-15-10-58-nginx-tls))
+- ingress (incidents: [1](https://runbooks.cloud-platform.service.justice.gov.uk/incidents/2020-10-06-intermittent-downtime-ingress-controllers.html) [2](https://runbooks.cloud-platform.service.justice.gov.uk/incidents/2020-04-15-nginx-tls.html))
 - external-dns
 - cert manager
 - kiam
-- OPA ([incident](https://runbooks.cloud-platform.service.justice.gov.uk/incident-log.html#incident-on-2020-02-25-10-58))
+- OPA ([incident](https://runbooks.cloud-platform.service.justice.gov.uk/incidents/2020-02-25.html))
 
 ### Derisk upgrading of k8s
 
-Once you start a Kubernetes version upgrade, rolling back becomes infeasible (incidents: [1](https://runbooks.cloud-platform.service.justice.gov.uk/incident-log.html#q1-2020-january-march)).
+Once you start a Kubernetes version upgrade, rolling back becomes infeasible (incidents: [1](https://runbooks.cloud-platform.service.justice.gov.uk/incidents/index.html#q1-2020-january-march)).
 
 With multi-cluster we could do a "blue-green" upgrade - spin up an cluster at the newer k8s version and then carefully move the apps across to it.
 
@@ -64,7 +64,7 @@ Pre-prod environments are likely to often be running new code that has not have 
 
 ### Reduce blast radius of accidental deletion
 
-In the case of accidental deletion being run by a Cloud Platform team member, the ability to run administrative commands on only one cluster at a time would reduce the impact of this event, such as [this incident](https://runbooks.cloud-platform.service.justice.gov.uk/incident-log.html#incident-on-2020-09-21-18-27-some-cloud-platform-components-destroyed). Disaster Recovery procedures are in [good shape now](https://runbooks.cloud-platform.service.justice.gov.uk/disaster-recovery-scenarios.html#cloud-platform-disaster-recovery-scenarios), but it's worth minimizing blast radius all the same.
+In the case of accidental deletion being run by a Cloud Platform team member, the ability to run administrative commands on only one cluster at a time would reduce the impact of this event, such as [this incident](https://runbooks.cloud-platform.service.justice.gov.uk/incidents/2020-09-21-some-cloud-platform-components-destroyed.html). Disaster Recovery procedures are in [good shape now](https://runbooks.cloud-platform.service.justice.gov.uk/disaster-recovery-scenarios.html#cloud-platform-disaster-recovery-scenarios), but it's worth minimizing blast radius all the same.
 
 ### Pre-prod cluster
 
