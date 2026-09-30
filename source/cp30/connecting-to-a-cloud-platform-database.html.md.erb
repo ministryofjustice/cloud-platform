@@ -117,7 +117,7 @@ kubectl config current-context
 
 Run this in your Container Platform namespace, replacing `[your namespace]` and
 `[your database hostname]`. The hostname appears in **both** `REMOTE_HOST` and
-`overrides` sections). You can find the hostname in the `rds_instance_address` field of your
+`overrides` sections. You can find the hostname in the `rds_instance_address` field of your
 RDS secret in your Cloud Platform namespace.
 
 ```bash
@@ -160,6 +160,7 @@ kubectl -n [your cloud platform namespace] get secret [your rds secret] -o go-te
 dbname: {{index .data "database_name" | base64decode}}
 username: {{index .data "database_username" | base64decode}}
 password: {{index .data "database_password" | base64decode}}
+'
 ```
 
 Then connect as if the database were local:
@@ -202,7 +203,12 @@ deliberate on an approach in the [#container-platform-alpha-users](https://moj.e
 
 Check the security group is attached to the instance, not just created. This is the most
 common cause. Confirm `vpc_security_group_ids` is set on your RDS module and that the change
-has been applied.
+has been applied:
+
+```bash
+aws rds describe-db-instances \\n  --db-instance-identifier [your database identifier] \\n  --query 'DBInstances[0].VpcSecurityGroups[*].VpcSecurityGroupId' \\n  --output text
+aws ec2 describe-security-groups \\n  --group-ids sg-xxxxxxxxxxxxxxxxx sg-yyyyyyyyyyyyyyyyy \\n  --output table
+```
 
 Then check you used the node range for your cluster from the table above, rather than a pod
 address.
