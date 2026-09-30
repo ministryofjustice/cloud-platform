@@ -8,7 +8,7 @@ review_in: 6 months
 # <%= current_page.data.title %>
 
 If you have an RDS instance on Cloud Platform and a namespace on a Container Platform
-cluster, you can use a port-forward pod on the Container Platform to reach that
+nonlive cluster, you can use a port-forward pod on the Container Platform to reach that
 database and prove connectivity.
 
 There are two parts to it:
@@ -116,8 +116,8 @@ cluster you are pointed at before each step:
 kubectl config current-context
 ```
 
-Run this in your Container Platform namespace, replacing `[your namespace]` and
-`[your database hostname]`. The hostname appears in **both** `REMOTE_HOST` and
+Run this in your Container Platform namespace, replacing `[your container platform namespace]`
+and `[your database hostname]`. The hostname appears in **both** `REMOTE_HOST` and
 `overrides` sections. You can find the hostname in the `rds_instance_address` field of your
 RDS secret in your Cloud Platform namespace.
 
