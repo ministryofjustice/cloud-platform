@@ -8,7 +8,7 @@ review_in: 6 months
 # <%= current_page.data.title %>
 
 If you have an RDS instance on Cloud Platform and a namespace on a Container Platform
-nonlive cluster, your Container Platform workload can reach that database.
+cluster, your Container Platform workload can reach that database.
 
 There are two parts to it:
 
@@ -20,9 +20,12 @@ There are two parts to it:
 
 You need:
 
-- a namespace on a Container Platform nonlive cluster
+- a namespace on a Container Platform nonlive cluster.
+  See [Deploying an application to the Container Platform](https://user-guide.development.container-platform.service.justice.gov.uk/documentation/getting-started/1-deploying-an-application-to-the-container-platform.html)
 - an RDS instance in a Cloud Platform namespace, created with the
-  [RDS module](https://github.com/ministryofjustice/cloud-platform-terraform-rds-instance)
+  [RDS module](https://github.com/ministryofjustice/cloud-platform-terraform-rds-instance).
+  See Cloud Platform [namespace user guide](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/getting-started/env-create.html)
+  and [RDS user guide](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/deploying-an-app/relational-databases/create.html)
 - the ability to raise a pull request against
   [cloud-platform-environments](https://github.com/ministryofjustice/cloud-platform-environments)
 
@@ -59,7 +62,7 @@ resource "aws_security_group_rule" "rds_inbound" {
 }
 ```
 
-Use the range for the cluster your workload runs on:
+You **must** change `cidr_blocks` to your Container Platform cluster:
 
 | Cluster | Address range |
 | --- | --- |
@@ -112,9 +115,10 @@ cluster you are pointed at before each step:
 kubectl config current-context
 ```
 
-Run this in your Container Platform namespace, replacing the namespace and the database
-hostname. You can find the hostname in the `rds_instance_address` field of your RDS secret
-in your Cloud Platform namespace.
+Run this in your Container Platform namespace, replacing `[your namespace]` and
+`[your database hostname]`. The hostname appears in **both** `REMOTE_HOST` and
+`overrides` sections). You can find the hostname in the `rds_instance_address` field of your
+RDS secret in your Cloud Platform namespace.
 
 ```bash
 kubectl -n [your container platform namespace] run port-forward-pod \
@@ -152,12 +156,13 @@ Leave this running while you use the database.
 Get the credentials from the RDS secret in your **Cloud Platform** namespace:
 
 ```bash
-kubectl -n [your cloud platform namespace] get secret [your rds secret] \
-  -o jsonpath='{.data.database_username}' | base64 --decode
+kubectl -n [your cloud platform namespace] get secret [your rds secret] -o go-template='
+dbname: {{index .data "database_name" | base64decode}}
+username: {{index .data "database_username" | base64decode}}
+password: {{index .data "database_password" | base64decode}}
 ```
 
-Repeat for `database_password` and `database_name`, then connect as if the database were
-local:
+Then connect as if the database were local:
 
 ```bash
 psql --host localhost --port 5432 \
@@ -165,6 +170,8 @@ psql --host localhost --port 5432 \
   --username [your database username] \
   --password
 ```
+
+You will be prompted for the password.
 
 ## Step 5: delete the port-forward pod
 
@@ -187,9 +194,7 @@ Platform namespace.
 Do not commit credentials to a repository or put them in plain manifests. The Container
 Platform does not yet provide a mechanism for secrets management, and it is being tracked
 separately. If you need to connect an application to a database, talk to us first so we can
-deliberate on an approach in the
-[#container-platform-alpha-users](https://moj.enterprise.slack.com/archives/C0BKZHMQNRK)
-channel.
+deliberate on an approach in the [#container-platform-alpha-users](https://moj.enterprise.slack.com/archives/C0BKZHMQNRK) channel.
 
 ## Troubleshooting
 
@@ -213,5 +218,4 @@ privileged ports.
 
 ## Getting help
 
-Ask in
-[#container-platform-alpha-users](https://moj.enterprise.slack.com/archives/C0BKZHMQNRK).
+Ask in [#container-platform-alpha-users](https://moj.enterprise.slack.com/archives/C0BKZHMQNRK).
