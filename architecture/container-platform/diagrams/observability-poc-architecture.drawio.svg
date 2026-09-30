@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="820" viewBox="0 0 1200 820" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#37474f"/>
+    </marker>
+    <marker id="arrowDash" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#b85450"/>
+    </marker>
+  </defs>
+  <style>
+    .title { font-size: 22px; font-weight: bold; fill: #102a43; }
+    .subtitle { font-size: 13px; fill: #486581; }
+    .acct { font-size: 13px; font-weight: bold; fill: #b1361e; }
+    .grp { font-size: 13px; font-weight: bold; fill: #0d3c78; }
+    .greenh { font-size: 13px; font-weight: bold; fill: #1b5e20; }
+    .lbl { font-size: 11px; fill: #37474f; }
+    .small { font-size: 10.5px; fill: #52606d; }
+  </style>
+
+  <!-- Title -->
+  <text x="600" y="34" text-anchor="middle" class="title">ADR-005 Observability — PoC Architecture (Phase 1)</text>
+  <text x="600" y="54" text-anchor="middle" class="subtitle">Both metrics options run side by side on one dev cluster; single AMG workspace evaluates both — cloud-platform-development, eu-west-2</text>
+
+  <!-- Identity Center -->
+  <rect x="40" y="90" width="230" height="80" rx="8" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="155" y="118" text-anchor="middle" class="grp">IAM Identity Center</text>
+  <text x="155" y="137" text-anchor="middle" class="small">cloud-platform-engineers</text>
+  <text x="155" y="153" text-anchor="middle" class="small">container-platform-aws</text>
+
+  <!-- Dev account boundary -->
+  <rect x="310" y="80" width="850" height="700" rx="10" fill="#f7fafc" stroke="#627d98" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="330" y="102" class="acct">cloud-platform-development account</text>
+
+  <!-- EKS cluster -->
+  <rect x="340" y="120" width="540" height="210" rx="8" fill="#ffffff" stroke="#9673a6" stroke-width="1.5"/>
+  <text x="610" y="143" text-anchor="middle" class="grp" fill="#6b3fa0">PoC EKS cluster — Auto Mode</text>
+
+  <!-- Option A -->
+  <rect x="360" y="158" width="240" height="150" rx="8" fill="#e8f0fe" stroke="#4285f4" stroke-width="1.5"/>
+  <text x="480" y="180" text-anchor="middle" class="grp">Option A — AMP + ADOT</text>
+  <rect x="378" y="196" width="204" height="96" rx="6" fill="#ffffff" stroke="#4285f4" stroke-width="1.2"/>
+  <text x="480" y="222" text-anchor="middle" class="lbl" font-weight="bold">ADOT Collector DaemonSet</text>
+  <text x="480" y="242" text-anchor="middle" class="small">Prometheus scrape:</text>
+  <text x="480" y="258" text-anchor="middle" class="small">nodes / pods / endpoints</text>
+  <text x="480" y="278" text-anchor="middle" class="small">remote_write via SigV4</text>
+
+  <!-- Option D -->
+  <rect x="620" y="158" width="240" height="150" rx="8" fill="#e8f0fe" stroke="#4285f4" stroke-width="1.5"/>
+  <text x="740" y="180" text-anchor="middle" class="grp">Option D — CloudWatch add-on</text>
+  <rect x="638" y="196" width="204" height="96" rx="6" fill="#ffffff" stroke="#4285f4" stroke-width="1.2"/>
+  <text x="740" y="228" text-anchor="middle" class="lbl" font-weight="bold">CloudWatch agent DaemonSet</text>
+  <text x="740" y="250" text-anchor="middle" class="small">amazon-cloudwatch-observability</text>
+  <text x="740" y="268" text-anchor="middle" class="small">OTel Container Insights</text>
+
+  <!-- Backends -->
+  <rect x="360" y="360" width="220" height="70" rx="8" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <text x="470" y="388" text-anchor="middle" class="lbl" font-weight="bold">AMP workspace</text>
+  <text x="470" y="406" text-anchor="middle" class="small">per PoC cluster</text>
+  <text x="470" y="422" text-anchor="middle" class="small">Prometheus-compatible / PromQL</text>
+
+  <rect x="640" y="360" width="220" height="70" rx="8" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <text x="750" y="388" text-anchor="middle" class="lbl" font-weight="bold">CloudWatch</text>
+  <text x="750" y="406" text-anchor="middle" class="small">Metrics + Logs</text>
+  <text x="750" y="422" text-anchor="middle" class="small">PromQL-named metrics</text>
+
+  <!-- AMG workspace -->
+  <rect x="340" y="470" width="540" height="290" rx="8" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="610" y="493" text-anchor="middle" class="greenh">Single AMG workspace (Grafana v12.4)</text>
+
+  <rect x="360" y="508" width="240" height="54" rx="6" fill="#ffffff" stroke="#82b366" stroke-width="1.2"/>
+  <text x="480" y="530" text-anchor="middle" class="lbl" font-weight="bold">Data sources: amp-bu1 / amp-bu2</text>
+  <text x="480" y="548" text-anchor="middle" class="small">grafana-amazonprometheus</text>
+
+  <rect x="620" y="508" width="240" height="54" rx="6" fill="#ffffff" stroke="#82b366" stroke-width="1.2"/>
+  <text x="740" y="530" text-anchor="middle" class="lbl" font-weight="bold">Data source: CloudWatch</text>
+  <text x="740" y="548" text-anchor="middle" class="small">native metrics + logs</text>
+
+  <!-- Isolation box -->
+  <rect x="360" y="580" width="500" height="160" rx="8" fill="#eafaf1" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="610" y="602" text-anchor="middle" class="greenh" fill="#1e8449">BU metric isolation PoC (cloud-platform#8509) — two simulated BUs</text>
+
+  <rect x="378" y="616" width="150" height="106" rx="6" fill="#ffffff" stroke="#27ae60" stroke-width="1.2"/>
+  <text x="453" y="640" text-anchor="middle" class="lbl" font-weight="bold">Grafana team</text>
+  <text x="453" y="658" text-anchor="middle" class="small">per BU (bu1, bu2)</text>
+  <text x="453" y="676" text-anchor="middle" class="small">membership synced</text>
+  <text x="453" y="692" text-anchor="middle" class="small">from IdC group</text>
+
+  <rect x="538" y="616" width="150" height="106" rx="6" fill="#ffffff" stroke="#27ae60" stroke-width="1.2"/>
+  <text x="613" y="640" text-anchor="middle" class="lbl" font-weight="bold">DS permission</text>
+  <text x="613" y="658" text-anchor="middle" class="small">only BU team</text>
+  <text x="613" y="674" text-anchor="middle" class="small">&#8594; Query</text>
+  <text x="613" y="694" text-anchor="middle" class="small">(default-deny others)</text>
+
+  <rect x="698" y="616" width="146" height="106" rx="6" fill="#ffffff" stroke="#27ae60" stroke-width="1.2"/>
+  <text x="771" y="640" text-anchor="middle" class="lbl" font-weight="bold">Per-BU folder</text>
+  <text x="771" y="658" text-anchor="middle" class="small">View only</text>
+  <text x="771" y="678" text-anchor="middle" class="small">dashboard</text>
+  <text x="771" y="694" text-anchor="middle" class="small">visibility</text>
+
+  <!-- Service account -->
+  <rect x="920" y="490" width="220" height="110" rx="8" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="1030" y="516" text-anchor="middle" class="lbl" font-weight="bold" fill="#a1332b">AMG service account</text>
+  <text x="1030" y="536" text-anchor="middle" class="small">short-lived token, per run</text>
+  <text x="1030" y="556" text-anchor="middle" class="small">Grafana Terraform provider</text>
+  <text x="1030" y="576" text-anchor="middle" class="small">manages teams / data</text>
+  <text x="1030" y="592" text-anchor="middle" class="small">sources / permissions / folders</text>
+
+  <!-- Edges -->
+  <line x1="480" y1="308" x2="470" y2="358" stroke="#37474f" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="530" y="342" class="small">remote write</text>
+  <line x1="740" y1="308" x2="750" y2="358" stroke="#37474f" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="760" y="342" class="small">metrics + logs</text>
+
+  <line x1="470" y1="430" x2="475" y2="506" stroke="#37474f" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="750" y1="430" x2="745" y2="506" stroke="#37474f" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <line x1="270" y1="130" x2="338" y2="500" stroke="#37474f" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="278" y="330" class="small">SSO login + team sync</text>
+
+  <line x1="918" y1="560" x2="882" y2="560" stroke="#b85450" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrowDash)"/>
+
+  <text x="600" y="800" text-anchor="middle" class="small">Decision gate: comparison report by Phase 1 Week 10 feeds the Phase 2 go/no-go (US-008); metrics backend chosen then.</text>
+</svg>
