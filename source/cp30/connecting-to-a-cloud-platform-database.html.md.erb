@@ -206,8 +206,8 @@ common cause. Confirm `vpc_security_group_ids` is set on your RDS module and tha
 has been applied:
 
 ```bash
-aws rds describe-db-instances \\n  --db-instance-identifier [your database identifier] \\n  --query 'DBInstances[0].VpcSecurityGroups[*].VpcSecurityGroupId' \\n  --output text
-aws ec2 describe-security-groups \\n  --group-ids sg-xxxxxxxxxxxxxxxxx sg-yyyyyyyyyyyyyyyyy \\n  --output table
+aws rds describe-db-instances --db-instance-identifier [your database identifier] --query 'DBInstances[0].VpcSecurityGroups[*].VpcSecurityGroupId' --output text
+aws ec2 describe-security-groups --group-ids sg-xxxxxxxxxxxxxxxxx sg-yyyyyyyyyyyyyyyyy --output table
 ```
 
 Then check you used the node range for your cluster from the table above, rather than a pod
