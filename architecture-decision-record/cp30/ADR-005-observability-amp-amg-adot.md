@@ -1,7 +1,7 @@
 # ADR-005: Observability Stack — Metrics, Dashboards, and Alerting
 
-**Status:** Proposed — Phase 1 PoC validation required (metrics backend); AMG placement decided 2026-09-07; BU metric isolation implemented 2026-09-16 (cloud-platform#8509)  
-**Date:** 2026-05-07 (updated 2026-05-12, 2026-09-07, 2026-09-16)  
+**Status:** Accepted — metrics backend decided 2026-09-30 (Option A, AMP); AMG placement decided 2026-09-07; BU metric isolation implemented 2026-09-16 (cloud-platform#8509); collector decided 2026-09-30 (self-managed ADOT)  
+**Date:** 2026-05-07 (updated 2026-05-12, 2026-09-07, 2026-09-16, 2026-09-30)  
 **Decision Maker:** AWS ProServe / MoJ Principal Technical Architect  
 **Category:** Compute
 
@@ -26,14 +26,36 @@
 
 ## Decision
 
-**Both approaches will be deployed on the Phase 1 PoC cluster for comparative evaluation. The final decision will be made before Phase 2 based on PoC findings.**
+> **Decided 2026-09-30.** The Phase 1 PoC ran Option A and Option D in parallel on
+> separate clusters. The decisions below are final. The original "evaluate both
+> during the PoC" framing and the full research for each option are retained
+> further down as the evidence trail.
 
-**Option A (baseline):** AMP + AMG + ADOT — full Prometheus-native pipeline with Grafana UX  
-**Option D (challenger):** CloudWatch Container Insights + AMG (querying CloudWatch as data source) — simpler pipeline, fewer moving parts
+**The metrics platform is AMP + AMG + ADOT (Option A).** Metrics are collected on each cluster and remote-written to Amazon Managed Service for Prometheus (AMP); Amazon Managed Grafana (AMG) is the dashboard and query layer. CloudWatch Container Insights (Option D) is **not** the primary metrics store, but its code is **retained behind a feature flag** (`enable_cloudwatch_observability`, default off) for two narrow uses: AWS-native signals that originate in CloudWatch (e.g. RDS status), and CloudWatch's cross-service "explore related" root-cause view, which can be switched on selectively for the platform team.
 
-Both options use Amazon Managed Grafana for the dashboard UX (team familiarity) and Fluent Bit + CloudWatch Logs for log aggregation. The difference is the metrics backend: AMP (Prometheus-compatible, PromQL) vs. CloudWatch Metrics (native, CloudWatch query language).
+**The metrics collector is self-managed ADOT**, not the AMP agentless managed collector and not the CloudWatch agent. ADOT runs in-cluster (AWS Distro for OpenTelemetry) and remote-writes to AMP over SigV4 / EKS Pod Identity. It was chosen because it is a **single component that can satisfy several requirements as they arrive**: scraping platform and application `/metrics` (pull), receiving pushed OpenTelemetry (OTLP) metrics from tenants, and — later, if needed — receiving OTLP traces and deriving span metrics into AMP. See "Collector decision" below for the alternatives and why they were ruled out.
 
-### PoC Evaluation Criteria
+**Alerting is Prometheus + AlertManager, not AMG-managed alerting.** This supersedes the AMG 100-alert-rule framing throughout this ADR; that limit no longer applies to the chosen design. The user-facing alert-configuration experience is designed separately (cloud-platform#7871).
+
+**Unchanged across both options and still in force:** AMG is the dashboard UX (team familiarity, Identity Centre SSO), and logs go via Fluent Bit (log architecture is now owned by [ADR-017](ADR-017-logging-and-log-management.md)).
+
+### Collector decision (2026-09-30): self-managed ADOT
+
+Three ways to get metrics into AMP were considered. ADOT was chosen.
+
+| Option | What it is | Ruled out because |
+|--------|-----------|-------------------|
+| **Self-managed ADOT (CHOSEN)** | OpenTelemetry collector run in-cluster as code; scrapes Prometheus endpoints and/or receives OTLP, remote-writes to AMP | — |
+| **AMP agentless managed collector** | AWS-run scraper, no in-cluster collector; AWS owns its scaling/HA/upgrades | Metrics-only and **pull-only**, so pushed OTLP tenant metrics would need a *second* in-cluster collector anyway. Carries a per-collector charge (~$0.04/collector-hour + $0.03/10M samples ≈ $32/cluster/month, ~$7.8k/yr across 22 clusters, mostly fixed). Does **not** reduce scrape-config effort (same Prometheus config) and does **not** remove the need to run node-exporter and kube-state-metrics in-cluster. Soft limit of 10 scrapers/region/account. |
+| **CloudWatch agent** | AWS-managed OpenTelemetry collector with CloudWatch components | Sends metrics to CloudWatch, which is the store we did **not** select as primary. Would still need an AMP collector for the Prometheus path, i.e. two agents per node. |
+
+**Why ADOT wins:** there is a **near-term requirement for tenant application metrics**, and tenants may expose them either as Prometheus `/metrics` (pull) or as pushed OTLP. ADOT is the only one of the three that covers **both** patterns with a single agent, and the same agent can later add a traces pipeline (OTLP → X-Ray or OpenSearch) and derive span metrics into AMP. The managed collector's appeal was offloading collector operations to AWS; that appeal is outweighed once a second collector would be needed anyway for OTLP, and given it saves no scrape-config or exporter work.
+
+**Trade-off accepted:** the team owns the ADOT collector lifecycle — upgrades alongside EKS, occasional collector-config deprecations, HA, scrape de-duplication, and memory tuning (estimated at a few engineer-days a year, plus the collectors' node resources) — in exchange for one extensible collector and no per-collector charge. The historical Prometheus pain was running the Prometheus *server* (storage, retention, HA), which AMP removes; the collector is the small part of the stack.
+
+**Known defect to fix in the production build (cloud-platform#7867):** the PoC ADOT collector runs as a DaemonSet with cluster-wide service discovery on every pod, so each target is scraped once per node (measured ~3× on a 3-node cluster). It is silent (no errors) and ingestion cost scales with node count. The production design fixes this with node-scoped discovery (each DaemonSet pod scrapes only its own node) plus a small replica-set collector for cluster-level targets using AMP's `cluster`/`__replica__` de-duplication; the OpenTelemetry Target Allocator is an alternative that additionally enables tenant ServiceMonitor/PodMonitor self-service. Baseline cardinality measured during the PoC: ~16k active series per cluster before node-exporter, kube-state-metrics, control-plane, and add-on metrics are added.
+
+### PoC Evaluation Criteria (how the decision was reached)
 
 | Criterion | Weight | How to Measure |
 |-----------|--------|----------------|
@@ -45,9 +67,9 @@ Both options use Amazon Managed Grafana for the dashboard UX (team familiarity) 
 | Storage cost at projected scale | Medium | Estimate storage cost at the platform's target retention: AMP GB-month vs. CloudWatch per-metric-month, projected as cardinality × retention; include sensitivity to longer retention |
 | Team adoption friction | Medium | Which approach do MoJ engineers find easier to use? |
 
-### Decision Gate
+### Decision Gate (closed)
 
-The PoC team will produce a comparison report by Phase 1 Week 10 covering the criteria above. The final observability architecture decision will be included in the Phase 2 go/no-go recommendation (US-008).
+The PoC ran both options and the decision was taken on 2026-09-30: **Option A (AMP), collected by self-managed ADOT.** The PoC epic and its children are closed (cloud-platform#8414). Production build work is tracked under US-107 (#8235) and US-013 (#8247) — see "Implementation tracking" below. This outcome feeds the Phase 2 go/no-go recommendation (US-008).
 
 ---
 
@@ -152,20 +174,33 @@ The PoC team will produce a comparison report by Phase 1 Week 10 covering the cr
 
 ---
 
-## Unknowns and Assumptions
+## Unknowns and Assumptions (resolved by the PoC)
 
-| Item | Type | Impact | Mitigation |
-|------|------|--------|------------|
-| AMG 100 alert rules limit at scale (Option A) | Risk | Medium — 8-9 BUs × N rules may approach limit | Platform-critical alerts in AMP Alert Manager; BU alerts in AMG; OR use Option D (CloudWatch Alarms, no limit) |
-| PromQL investment vs. fresh start | Unknown | High — determines whether Option A's PromQL advantage matters | PoC evaluation: if MoJ has no existing PromQL to migrate, Option D's simpler pipeline may win |
-| CloudWatch custom metric cost at high cardinality | Risk | Medium — CloudWatch per-metric pricing can be expensive with high-cardinality labels | PoC: measure actual metric cardinality on PoC cluster; compare AMP vs. CW cost |
-| Team preference for query language | Unknown | Medium — affects daily usability | PoC: have MoJ engineers try both PromQL (AMP) and CloudWatch Metrics Insights; gather feedback |
+| Item | Resolution |
+|------|------------|
+| AMG 100 alert rules limit at scale | No longer applies. Alerting is Prometheus + AlertManager, not AMG-managed alerting, so the AMG rule limit is not a constraint on the chosen design. |
+| PromQL investment vs. fresh start | Resolved in favour of Prometheus. Familiarity and low migration friction favoured PromQL; this was a deciding factor for Option A. |
+| CloudWatch custom metric cost at high cardinality | Measured: ~16k active series per PoC cluster. The ingestion/storage cost difference between AMP and CloudWatch was minor relative to overall observability spend (dominated by logging), so cost did not decide the metrics backend. |
+| Team preference for query language | Resolved in favour of PromQL/Prometheus (familiar to engineers, no workflow change). |
+
+### Open items carried into the production build
+
+| Item | Where tracked |
+|------|---------------|
+| Control-plane metrics on EKS Auto Mode (API server/scheduler/controller-manager available; etcd not exposed) — confirm on Auto Mode specifically | cloud-platform#7867 |
+| Fix the ADOT 3× scrape duplication; deploy node-exporter + kube-state-metrics; enable per-add-on metrics | cloud-platform#7867 |
+| Platform-team fleet-wide view via an explicit grant (not AMG admin-bypass) | cloud-platform#7867 |
+| ADR text and `amg.tf` (`unifiedAlerting`) still reflect the old AMG-alerting assumption and need reconciling with the AlertManager decision | cloud-platform#7871 |
+| Tenant application metrics (near-term): define the exposure contract (annotations / ServiceMonitor / OTLP) and per-tenant cardinality guardrails | cloud-platform#7907 |
 
 ---
 
-## Phase 1 PoC Validation Plan
+## Phase 1 PoC Validation Plan (completed — retained as the record of what was run)
 
-Both Option A and Option D will be deployed on the PoC cluster:
+> This plan was executed; both options ran on separate clusters and the decision
+> (Option A, ADOT) was taken on 2026-09-30. Retained for the record.
+
+Both Option A and Option D were deployed on the PoC clusters:
 
 **Option A deployment:**
 - ADOT Collector DaemonSet (EKS add-on)
@@ -301,67 +336,83 @@ Self-managed Grafana + Thanos provides full feature control without the AMG 100 
 
 ## Alternatives Considered
 
-### Option B: Self-Managed Prometheus + Grafana — REJECTED
+This covers both the **metrics-backend** alternatives (A chosen over B, C, D) and the **collector** alternatives (ADOT chosen over the managed collector and the CloudWatch agent).
 
-**Why Rejected:** The current self-managed stack costs ~£7,000/month and is described as having "compute management problematic." Moving to the same self-managed model in the new architecture perpetuates the operational burden. AWS-managed alternatives exist that satisfy all requirements at comparable cost.
+### Metrics backend
 
-**Pros:** No alert rule limits; full feature control; no IAM Identity Center dependency for Grafana
-**Cons:** ~£7,000/month confirmed pain point; platform team manages upgrades, HA, storage; multi-cluster requires Thanos/Cortex (additional complexity)
+#### Option D: CloudWatch Container Insights + AMG — REJECTED as primary (retained behind a flag)
 
-### Option C: Datadog — NOT APPLICABLE (team-level tool)
+**Why Rejected:** It was the challenger and ran in the PoC alongside Option A. Its genuine advantages (fewer moving parts, no AMP to provision, CloudWatch Alarms with no 100-rule limit) did not outweigh Option A's: PromQL is familiar to MoJ engineers so migration friction is low; the cost difference was minor against total observability spend (dominated by logging); and CloudWatch's query/dashboard model is less expressive and makes custom application metrics (EMF/PutMetricData) less natural than Prometheus scraping. Not discarded entirely — kept behind `enable_cloudwatch_observability` for AWS-native signals (e.g. RDS status) and the "explore related" root-cause view, usable selectively by the platform team.
 
-**Why Not Applicable:** Datadog is used by individual application teams at their own discretion. It is not a platform-level observability decision. Teams may continue using Datadog alongside the platform-provided managed stack if they choose. No platform licensing evaluation required.
+**Pros:** fewest moving parts; no AMP/ADOT; no alert-rule limit; single metrics+logs pipeline in CloudWatch.
+**Cons:** no PromQL; less expressive dashboards; EMF/API for custom metrics; per-metric cost high at high cardinality; metrics land in CloudWatch, not the Prometheus-native store the team wanted.
+
+#### Option B: Self-Managed Prometheus + Grafana — REJECTED
+
+**Why Rejected:** The current self-managed stack costs ~£7,000/month and is "compute management problematic." Repeating the self-managed model perpetuates the operational burden; AWS-managed alternatives meet the requirements at comparable cost. (AMP removes the Prometheus-*server* burden specifically — the part that hurt — while ADOT keeps only the lightweight collector in-cluster.)
+
+**Pros:** no alert-rule limits; full feature control; no Identity Centre dependency for Grafana.
+**Cons:** ~£7,000/month confirmed pain point; platform team owns upgrades, HA, storage, scaling; multi-cluster needs Thanos/Cortex.
+
+#### Option C: Datadog — NOT APPLICABLE (team-level tool)
+
+**Why Not Applicable:** Datadog is a team-level choice, not a platform observability decision. Teams may keep using it alongside the platform stack. No platform licensing evaluation required.
+
+### Collector (how metrics reach AMP)
+
+#### AMP agentless managed collector — REJECTED
+
+**Why Rejected:** metrics-only and pull-only, so pushed OTLP tenant metrics would need a second in-cluster collector anyway, defeating the point of offloading. Per-collector charge (~$32/cluster/month, ~$7.8k/yr across 22 clusters, mostly fixed). Saves no scrape-config effort (same Prometheus config) and still needs node-exporter and kube-state-metrics in-cluster. Soft limit of 10 scrapers/region/account would bite in the ephemeral-cluster dev account.
+
+**Pros:** AWS owns collector scaling/HA/upgrades; default config includes control-plane jobs; no collector pods on nodes.
+**Cons:** per-collector charge; pull-only (no OTLP); metrics-only (no traces); doesn't reduce config or remove in-cluster exporters.
+
+#### CloudWatch agent — REJECTED (for metrics)
+
+**Why Rejected:** sends metrics to CloudWatch, not the selected AMP store; would still need an AMP collector for the Prometheus path, i.e. two agents per node. May re-enter scope later purely for **traces** to CloudWatch/X-Ray, independent of the metrics collector.
+
+**Pros:** AWS-managed; can also handle traces and logs.
+**Cons:** wrong destination for primary metrics; its log path is itself Fluent Bit routing only to CloudWatch, so it does not replace the Fluent Bit pipeline in ADR-017.
+
+#### Self-managed ADOT — CHOSEN
+
+Single extensible collector covering pull `/metrics`, pushed OTLP tenant metrics, and (later) traces + span-derived metrics; vendor-neutral (OpenTelemetry), no per-collector charge. Trade-off: the team owns the collector lifecycle (see "Collector decision" above).
 
 ---
 
 ## Rationale
 
-In the context of replacing a self-managed Grafana stack costing ~£7,000/month with high operational overhead, facing the need for multi-cluster cross-account observability with direct engineer access and UK data residency, we decided to validate both AMP+AMG+ADOT (Option A) and CloudWatch Container Insights+AMG (Option D) during Phase 1 PoC, and rejected self-managed Prometheus/Grafana outright, because:
+The PoC ran AMP (Option A) and CloudWatch Container Insights (Option D) in parallel on separate clusters. We chose **AMP + AMG + ADOT, collected by self-managed ADOT**, because:
 
-1. Self-managed is the confirmed pain point — any managed alternative is an improvement
-2. Option A provides PromQL compatibility and richer cross-account aggregation, but has a 100-alert-rule hard limit and more moving parts
-3. Option D provides simpler operations with fewer components and no alert-rule constraint, but loses PromQL and has less expressive custom metrics
-4. MoJ is building a new platform (not migrating existing Prometheus configs), so the PromQL advantage may not be decisive
-5. The 07 May meeting clarified that logs go to CloudWatch first regardless — both options share the same log pipeline
-6. A 2-week comparative evaluation on the PoC cluster is low-cost and eliminates guesswork
+1. **Familiarity and low migration friction.** Engineers know Prometheus/PromQL; workflows and mental models don't change. This was the decisive factor over Option D.
+2. **AMP removes the pain that mattered.** The historical Prometheus burden was running the *server* at scale (storage, retention, HA) — AMP removes exactly that. The collector is the small, remaining in-cluster piece.
+3. **Cost was not decisive.** Measured cardinality (~16k active series/cluster) showed the AMP-vs-CloudWatch metrics cost difference is minor against total observability spend, which is dominated by logging.
+4. **ADOT is one component that grows with us.** It covers both tenant metric patterns (pull `/metrics` and pushed OTLP) today, and can later add traces and span-derived metrics — avoiding a second collector. The managed collector and the CloudWatch agent each would have forced a second agent for one of these needs.
+5. **Self-managed is rejected** — repeating the ~£7,000/month self-managed Grafana/Prometheus model perpetuates the operational burden the platform is trying to shed; managed AMP/AMG meets the requirements at comparable cost.
+6. **Datadog is out of platform scope** — a team-level choice, not a platform decision.
 
-The final decision will be evidence-based, made by Phase 1 Week 10, and included in the go/no-go recommendation.
+CloudWatch Container Insights is retained behind a feature flag for AWS-native signals and selective root-cause analysis, but is not the primary metrics store. Alerting is Prometheus + AlertManager. This decision feeds the Phase 2 go/no-go recommendation (US-008).
 
 ---
 
 ## Consequences
 
-### Positive (both options)
-- No Grafana/Prometheus infrastructure to manage
-- Cross-cluster unified view via AMG
-- Identity Center SSO for Grafana (no separate user management)
-- CloudWatch Logs as shared log backend (Fluent Bit DaemonSet per cluster)
+### Positive
+- No Prometheus-server or Grafana infrastructure to manage (AMP + AMG are managed); cross-cluster unified view via AMG with Identity Centre SSO.
+- PromQL compatibility — engineers' existing queries and skills port directly.
+- ADOT is vendor-neutral (OpenTelemetry) and extensible: one collector can scrape `/metrics`, receive OTLP tenant metrics, and later carry traces + span metrics — avoiding a second agent and avoiding pipeline lock-in.
+- No AMG alert-rule limit in play — alerting is Prometheus + AlertManager.
+- CloudWatch remains available (behind a flag) for AWS-native signals and selective root-cause analysis, without being the primary store.
 
-### Positive (Option A specific)
-- PromQL compatibility — existing Prometheus queries port directly
-- ADOT is vendor-neutral (OpenTelemetry); avoids metric pipeline lock-in
-- Richer cross-account data source model in AMG
-
-### Positive (Option D specific)
-- Fewer moving parts (no ADOT, no AMP, no per-cluster workspace provisioning)
-- No 100-alert-rule constraint (CloudWatch Alarms scale to 5,000+)
-- Single pipeline for metrics and logs (CloudWatch handles both)
-- Simpler cross-account setup (CloudWatch delegated admin)
-
-### Negative (Option A specific)
-- AMG 100 alert rule hard limit requires hybrid alert management
-- 3 services to configure and maintain (ADOT + AMP + AMG)
-- Cross-account AMP IAM roles per cluster
-
-### Negative (Option D specific)
-- No PromQL — CloudWatch query language is less expressive
-- Custom application metrics require EMF format (less natural than Prometheus scraping)
-- CloudWatch per-metric cost can be high at high cardinality
+### Negative / cost of ownership
+- The team owns the ADOT collector lifecycle: upgrades alongside EKS, occasional collector-config deprecations, HA, scrape de-duplication, and memory tuning (estimated a few engineer-days/year, plus the collectors' node CPU/memory).
+- The PoC collector's 3× scrape duplication must be fixed before production rollout (cloud-platform#7867); node-exporter and kube-state-metrics must be deployed and per-add-on metrics enabled for full coverage.
+- AMG carries many data sources (one per BU AMP), needing clear naming conventions and the per-BU data-source-permission isolation model.
+- Alerting UX (how tenants configure alerts, secure webhook storage) is still to be designed (cloud-platform#7871), and the ADR/`amg.tf` AMG-alerting assumption needs reconciling.
 
 ### Neutral
-- Phase 1 PoC runs both approaches simultaneously (low additional cost)
-- Final decision deferred to Phase 1 Week 10 based on evidence
-- AMG is common to both options — team builds Grafana skills regardless
+- AMG is unchanged from the original plan — the team builds Grafana skills regardless.
+- Tenant application metrics are a near-term requirement; the exposure contract and cardinality guardrails are tracked in cloud-platform#7907.
 
 ---
 
@@ -372,11 +423,27 @@ The final decision will be evidence-based, made by Phase 1 Week 10, and included
 
 ### Implementation tracking (cloud-platform issues)
 
-- **cloud-platform#8414** — observability metrics PoC (parent epic)
-- **cloud-platform#8508** — AMG workspace (delivered at the root `cloud-platform` component; closed)
-- **cloud-platform#8509** — BU metric isolation (implemented; see the section above and modernisation-platform-environments#19165)
-- **cloud-platform#8510** — dashboards-as-code (shares the Grafana provider + per-run token)
-- **cloud-platform#8517** — per-BU AMP workspaces + cross-account query roles (production isolation prerequisite)
+**PoC — closed (decision taken 2026-09-30):**
+- **#8414** — observability metrics PoC parent epic (closed; Option A selected)
+- **#8416** — Option A pipeline (closed; selected)
+- **#8417** — Option D pipeline (closed; evaluated, not selected, retained behind flag)
+- **#8418** — cost analysis (closed; cost not decisive)
+- **#8509** — BU metric isolation mechanism (closed; validated in dev with simulated BUs — see the section above and modernisation-platform-environments#19165)
+- **#8508, #8523** — AMG workspace / plan-role token permission (closed, enabling work)
+
+**Production build — under US-107 (#8235) Managed Observability Stack:**
+- **#7867** — platform metrics capture (production ADOT: fix duplication, node-exporter/KSM, add-on metrics, fleet-wide view)
+- **#8517** — per-BU AMP workspaces + cross-account query roles
+- **#8558** — consolidated `business-units.json` group mapping
+- **#8560** — split AMG into live/non-live workspaces + ephemeral-cluster feature flag
+
+**Production build — under US-013 (#8247) Direct Namespace Observability:**
+- **#8561** — productionise BU isolation with real BU parent groups
+- **#8510** — dashboards-as-code pipeline
+
+**Related:**
+- **#7871** — re-architect user alert configuration (Prometheus + AlertManager)
+- **#7907** — tenant service application metrics (near-term requirement)
 
 ---
 
