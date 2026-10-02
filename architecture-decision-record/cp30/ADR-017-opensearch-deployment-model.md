@@ -404,10 +404,83 @@ the direct equivalent of the central-Grafana-over-many-sources pattern.
 - **Not available on T2/T3/M3 instances**, and the connection **can't be set up via
   CloudFormation** (console/API only — check the Terraform path at build time).
 
-**So O1 is answered:** a hub domain with CCS gives the single cross-BU search view, consistent
-with the Grafana model, at no extra licence cost. The design points to confirm on the build are
-the IAM/FGAC permissions, the VPC connectivity (peering/TGW), and whether Terraform can manage
-the connections (or if it's a console/API step).
+**So O1 is answered:** a hub domain with cross-cluster search gives the single cross-BU search
+view, consistent with the Grafana model, at no extra licence cost. The design points to confirm
+on the build are the IAM/FGAC permissions, the VPC connectivity (peering/TGW), and whether
+Terraform can manage the connections (or if it's a console/API step).
+
+---
+
+## Target deployment shape
+
+How Option B gets built, following the patterns already in the repo (this mirrors how
+`amg.tf` is deployed today).
+
+### Where the code lives
+A new `opensearch.tf` at the **repo root** (next to `amg.tf`), not under `cluster/` (D8). It
+deploys at the account level, before cluster components, so clusters can reference it.
+
+### How per-BU / per-account / live-non-live is expressed
+It rides the **existing Terraform workspace model** — no new mechanism:
+- The apply runs once per `cloud-platform-<environment>` workspace, and each workspace maps to a
+  BU-environment account.
+- The existing `is_live` / `is-production` locals already tell each run whether it is live or
+  non-live, so the same code sizes a **larger domain for live, smaller for non-live**.
+- An `enable_opensearch` local (like `enable_amg`) gates whether a given BU/environment gets a
+  domain.
+
+So one `opensearch.tf`, applied across workspaces, naturally produces **one domain per BU per
+environment** — Option B falling out of the existing structure rather than being bolted on.
+
+### Each domain
+- Engine **`OpenSearch_3.7`**, pinned (D5); **managed/provisioned**, live and non-live (D2).
+- **FGAC + node-to-node encryption + encryption at rest** — required for the access model and a
+  prerequisite for cross-cluster search.
+- Sized live > non-live; node counts/types **TO MEASURE** against real log volume. The current
+  live cluster (18× r6g.4xlarge + 40× ultrawarm1.medium + 5× m6g.large) is the "nowhere near
+  this per BU" ceiling reference.
+- UltraWarm + ISM for 14-day hot / 90-day warm tiering.
+
+### Access
+- **IAM Identity Center SSO** (ADR-004 / the AMG pattern). Platform engineers admin; BU engineers
+  read-only. In Option B the per-BU scope is automatic — each BU's domain is in its own account,
+  so there is no per-index RBAC to maintain (that was Option A's problem).
+
+### Cross-BU view
+- A **hub domain** (central/observability account) with cross-cluster search out to each BU
+  domain → one Dashboards view across all BUs.
+
+### Ingestion (D10)
+- Fluent Bit (cluster-scoped, #8419) → S3 + CloudWatch + OpenSearch, each feature-flagged. Future
+  S3 → OpenSearch pipeline to remove log loss and filter what is indexed.
+
+```mermaid
+flowchart TB
+  subgraph BUA["BU-A account"]
+    CA["EKS cluster + Fluent Bit"] --> OSA["OpenSearch (BU-A)<br/>live + non-live"]
+  end
+  subgraph BUB["BU-B account"]
+    CB["EKS cluster + Fluent Bit"] --> OSB["OpenSearch (BU-B)<br/>live + non-live"]
+  end
+  subgraph OBS["Central / observability account"]
+    HUB["Hub OpenSearch + Dashboards<br/>(cross-cluster search)"]
+  end
+  CA --> S3A["S3 (BU-A, source of truth)"]
+  CB --> S3B["S3 (BU-B, source of truth)"]
+  HUB -. "cross-cluster search" .-> OSA
+  HUB -. "cross-cluster search" .-> OSB
+  USERS["Engineers<br/>(Identity Center SSO)"] --> HUB
+```
+
+### Open questions for the build
+1. **Hub + connections** — where the hub domain lives, and whether cross-cluster-search
+   connections can be managed in Terraform or are a console/API step (not CloudFormation).
+2. **Cross-account networking** — VPC peering / Transit Gateway between the hub and 8–9 BU
+   accounts; check what already exists.
+3. **First build is in the development account** (D4) — a single domain to prove the config,
+   before the full per-account layout exists.
+4. **Upgrade lifecycle** across 8–9 accounts — the cross-cluster-search "source ≥ destination
+   version" rule means upgrades must be ordered.
 
 ---
 
