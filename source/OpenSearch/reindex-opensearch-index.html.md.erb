@@ -87,7 +87,7 @@ command output example:
 ### Step 2: Reindex the data from the old index to the new index
 
 ```html
-POST _reindex?wait_for_completion=false&scroll=1h
+POST _reindex?wait_for_completion=false&scroll=1h&slices=auto
   {
     "source": {
       "index": "live_kubernetes_ingress-<date>",
