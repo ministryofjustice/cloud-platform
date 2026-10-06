@@ -1,0 +1,348 @@
+---
+title: Platform metrics and monitoring
+weight: 13
+last_reviewed_on: 2026-10-03
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+## Overview
+
+Container Platform 3 (CP3) captures platform-level metrics from every cluster
+and delivers them to [Amazon Managed Service for Prometheus](https://aws.amazon.com/prometheus/)
+(AMP), where they are queried through [Amazon Managed Grafana](https://aws.amazon.com/grafana/)
+(AMG). "Platform metrics" means cluster infrastructure and platform-component
+health: node, container, kubelet, workload-state, control-plane, and the
+platform add-ons. Tenant application metrics are a separate concern.
+
+Collection runs on-cluster as an [AWS Distro for OpenTelemetry](https://aws-otel.github.io/)
+(ADOT) collector. The collector scrapes Prometheus endpoints across the cluster
+and remote-writes them to AMP, authenticating with IAM through EKS Pod Identity
+so there are no long-lived credentials. Everything is deployed as Terraform in
+the `cluster-components` component, not applied by hand.
+
+> This page is a developer and platform-engineer guide to how the solution
+> works and how to operate it. The Terraform that implements it lives in
+> [modernisation-platform-environments](https://github.com/ministryofjustice/modernisation-platform-environments)
+> under `terraform/environments/cloud-platform/cluster-components`, and the
+> backend choice is recorded in
+> [ADR-005 Observability Stack](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/cp30/ADR-005-observability-amp-amg-adot.md).
+
+## Architecture
+
+The pipeline has three stages: collection on each cluster, delivery into AMP,
+and query through AMG.
+
+### Collection — the ADOT collector
+
+The [ADOT EKS add-on](https://docs.aws.amazon.com/eks/latest/userguide/opentelemetry.html)
+installs the OpenTelemetry operator on the cluster. The operator manages an
+`OpenTelemetryCollector` custom resource, deployed as a **DaemonSet** so there
+is a collector pod on every node. The collector runs as the `adot-collector`
+service account in the `opentelemetry-operator-system` namespace.
+
+The collector's Prometheus receiver runs a set of scrape jobs (defined in
+`cluster-components/adot-scrape-config.tf`) and a `prometheusremotewrite`
+exporter that ships the samples to AMP. A `batch` processor sits between them.
+
+### Delivery — remote-write into AMP
+
+Each cluster has its own AMP workspace, aliased `<cluster-name>-metrics`. The
+collector remote-writes to the workspace's `api/v1/remote_write` endpoint,
+signing requests with SigV4.
+
+Authentication is IAM-only. An EKS **Pod Identity** association binds the
+`adot-collector` service account to an IAM role (`<cluster-name>-adot-amp-remote-write`)
+whose policy allows `aps:RemoteWrite` to that workspace. There are no static
+credentials anywhere in the path.
+
+### Query — Amazon Managed Grafana
+
+Metrics in AMP are queried through AMG, which reaches each AMP workspace through
+a Grafana data source. Business-unit metric isolation and the fleet-wide
+platform-team view are configured in the Grafana layer. Dashboards, BU
+isolation, and the per-BU AMP workspace topology are covered by their own
+tickets and are out of scope for this page.
+
+### What is scraped
+
+The collector runs these scrape jobs. All target reachability was verified on a
+live EKS Auto Mode cluster.
+
+| Job | Target | Metrics |
+|-----|--------|---------|
+| `kubernetes-nodes-cadvisor` | kubelet cAdvisor via the API-server node proxy | container CPU, memory, network, filesystem |
+| `kubernetes-nodes-kubelet` | kubelet `/metrics` via the node proxy | pod/workload state, volume stats, running-pod counts, restart counts |
+| `kubernetes-nodes-kubelet-resource` | kubelet `/metrics/resource` via the node proxy | node and container CPU and memory working set |
+| `kubernetes-apiservers` | the API server `/metrics` endpoint | control-plane request rate and latency, basic etcd |
+| `kubernetes-pods` | pods annotated `prometheus.io/scrape: "true"` | any annotated workload, including platform add-ons |
+| `kubernetes-service-endpoints` | services annotated `prometheus.io/scrape: "true"` | any annotated service's endpoints |
+
+Two sources are deployed as exporters because the cluster does not emit them on
+its own (`cluster-components/kube-metric-exporters.tf`):
+
+- **node-exporter** (DaemonSet) for node/host CPU, memory, filesystem, and load.
+- **kube-state-metrics** (Deployment) for pod phase, container restart counts,
+  running-pod counts, and other workload-state metrics.
+
+Both deploy into a dedicated `monitoring` namespace and expose a
+Prometheus-annotated service, so the `kubernetes-service-endpoints` job
+discovers them with no collector change.
+
+### EKS Auto Mode: what is and is not scrapeable
+
+CP3 clusters run EKS Auto Mode, where parts of the cluster are AWS-managed and
+have no in-cluster endpoint to scrape. This shapes what the pipeline can collect:
+
+- **API server** metrics (request rate, latency, basic etcd) **are** reachable
+  via the API server's own `/metrics` endpoint and are scraped.
+- **Scheduler and controller-manager** run on the managed control plane with no
+  pod endpoint. Their metrics are not scrapeable; where available they are
+  published to CloudWatch instead.
+- **CoreDNS** is AWS-managed on Auto Mode with no in-cluster endpoint and no
+  CloudWatch metrics, so cluster-DNS metrics are not collected.
+
+## The scrape contract for platform add-ons
+
+Platform add-on metrics are discovered by annotation, not by hardcoded jobs. The
+`kubernetes-pods` and `kubernetes-service-endpoints` jobs scrape any pod or
+service carrying:
+
+```yaml
+prometheus.io/scrape: "true"
+prometheus.io/port: "<metrics-port>"
+prometheus.io/path: "/metrics"   # optional; defaults to /metrics
+```
+
+So making a new component's metrics flow to AMP is a matter of annotating its
+metrics pod or service at source — usually a Helm values change in the
+component's module. No change to the collector is needed.
+
+The current platform add-ons are covered as follows:
+
+| Add-on | How its metrics are discovered |
+|--------|-------------------------------|
+| cert-manager | chart annotates its pods on `:9402` by default |
+| Envoy Gateway | chart annotates the control-plane and proxy pods on `:19001` by default |
+| ExternalDNS | metrics service annotated on `:7979` in its module |
+| Gatekeeper | controller and audit pods annotated on `:8888` in its module |
+
+The same contract applies to tenant workloads: a workload that exposes a
+Prometheus `/metrics` endpoint and carries the `prometheus.io/scrape`
+annotations will be scraped by the `kubernetes-pods` job.
+
+## Key features
+
+- **Collector on every node.** The ADOT collector runs as a DaemonSet, so node
+  and container metrics are collected locally on each node.
+- **IAM-only delivery.** Remote-write to AMP is authenticated with SigV4 through
+  EKS Pod Identity. No long-lived credentials exist in the pipeline.
+- **Annotation-driven discovery.** Add-on and tenant metrics are collected by
+  annotating the source, so new components onboard without a collector change.
+- **Deployed as code.** The collector, exporters, AMP workspace, IAM role, and
+  Pod Identity association are all Terraform in `cluster-components`.
+- **Auto Mode aware.** The scrape jobs target only endpoints that are reachable
+  on EKS Auto Mode; managed-plane components that cannot be scraped are
+  documented rather than silently missing.
+
+## Runbooks
+
+These runbooks are for platform engineers operating the metrics pipeline. They
+assume an active AWS SSO session for the relevant account and, where noted,
+`kubectl` access to the target cluster.
+
+Set your profile and region before running `aws` or `kubectl`:
+
+```bash
+export AWS_PROFILE=<profile> AWS_REGION=eu-west-2
+aws eks update-kubeconfig --name <cluster-name>
+```
+
+### Enable metrics collection on a development cluster
+
+Collection is gated behind the `enable_amp_adot` variable in the
+`cluster-components` component. On the **Development Cluster Deployment**
+workflow, pass it through the `observability_tfargs` input:
+
+```bash
+gh workflow run "Development Cluster Deployment" \
+  --repo ministryofjustice/cloud-platform-github-workflows \
+  --ref main \
+  -f cluster_action=deploy \
+  -f cluster_name=<cluster-name> \
+  -f branch_name=main \
+  -f observability_tfargs='-var=enable_amp_adot=true'
+```
+
+This deploys the AMP workspace, the ADOT collector, node-exporter, and
+kube-state-metrics on that cluster.
+
+### Confirm the collector is running
+
+```bash
+aws eks update-kubeconfig --name <cluster-name>
+
+# One collector pod per node
+kubectl get pods -n opentelemetry-operator-system \
+  -l app.kubernetes.io/component=opentelemetry-collector
+
+# The exporters
+kubectl get ds,deploy -n monitoring
+```
+
+### Confirm metrics are reaching AMP
+
+Find the workspace, then query it. AMP requires SigV4-signed requests;
+[`awscurl`](https://github.com/okigan/awscurl) handles the signing:
+
+```bash
+WS=$(aws amp list-workspaces --alias <cluster-name>-metrics \
+  --query 'workspaces[0].workspaceId' --output text)
+EP="https://aps-workspaces.eu-west-2.amazonaws.com/workspaces/$WS/api/v1/query"
+
+# Total active series (should be non-zero)
+awscurl --service aps --region eu-west-2 "$EP" \
+  --data-urlencode 'query=count({__name__=~".+"})'
+
+# A representative metric from each source
+for q in node_memory_MemAvailable_bytes kubelet_running_pods \
+         kube_pod_status_phase apiserver_request_total up; do
+  awscurl --service aps --region eu-west-2 "$EP" \
+    --data-urlencode "query=count($q)"
+done
+```
+
+A non-zero `count(up)` confirms the collector is scraping targets and
+remote-writing successfully.
+
+### Check what the collector is sending
+
+The collector exposes its own telemetry on `:8888`. This is the quickest way to
+tell whether remote-write is succeeding without querying AMP:
+
+```bash
+COL=$(kubectl get pod -n opentelemetry-operator-system \
+  -l app.kubernetes.io/component=opentelemetry-collector \
+  -o jsonpath='{.items[0].metadata.name}')
+
+kubectl get --raw \
+  "/api/v1/namespaces/opentelemetry-operator-system/pods/$COL:8888/proxy/metrics" \
+  | grep -E 'otelcol_exporter_sent_metric_points|otelcol_exporter_send_failed_metric_points'
+```
+
+A rising `sent` counter with no `send_failed` means samples are reaching AMP.
+
+### Add metrics for a new platform add-on or tenant workload
+
+1. Confirm the component serves Prometheus metrics and note the port and path.
+2. Annotate its metrics pod or service at source (in its Helm values or
+   manifest):
+
+   ```yaml
+   prometheus.io/scrape: "true"
+   prometheus.io/port: "<metrics-port>"
+   ```
+
+3. Apply the change. The `kubernetes-pods` or `kubernetes-service-endpoints` job
+   discovers it on the next scrape cycle (60s). No collector change is needed.
+4. Confirm the new series appear in AMP with the query runbook above, and that
+   the target shows as `up`.
+
+## Troubleshooting
+
+### The AMP workspace has no series
+
+**Symptom.** `count({__name__=~".+"})` returns nothing for the cluster's
+workspace.
+
+**Cause.** Either the collector is not running, or its service account cannot
+discover scrape targets, or remote-write is failing.
+
+**Fix.** Work through the pipeline:
+
+```bash
+# 1. Is the collector running?
+kubectl get pods -n opentelemetry-operator-system
+
+# 2. Does its telemetry show samples being sent? (see "Check what the
+#    collector is sending")
+# 3. Is Pod Identity bound so remote-write can authenticate?
+aws eks list-pod-identity-associations --cluster-name <cluster-name>
+```
+
+If the collector is running but `otelcol_exporter_send_failed_metric_points` is
+rising, the problem is AMP auth: confirm the Pod Identity association exists and
+the `<cluster-name>-adot-amp-remote-write` role allows `aps:RemoteWrite` to the
+workspace.
+
+### A platform add-on's metrics are missing
+
+**Symptom.** The collector is healthy and other metrics flow, but one add-on's
+metrics are absent from AMP.
+
+**Cause.** The add-on's metrics pod or service is not annotated for scraping, so
+the discovery jobs skip it.
+
+**Fix.** Check the live annotations and the served metrics:
+
+```bash
+# Is the pod/service annotated?
+kubectl get pod -n <namespace> <pod> -o jsonpath='{.metadata.annotations}'
+
+# Does it actually serve metrics on the expected port?
+kubectl get --raw \
+  "/api/v1/namespaces/<namespace>/pods/<pod>:<port>/proxy/metrics" | head
+```
+
+If the annotations are missing, add them at source (see
+[The scrape contract for platform add-ons](#the-scrape-contract-for-platform-add-ons)).
+If they are present but the metrics are still absent, confirm the port in the
+annotation matches the port the component actually serves on.
+
+### node-exporter will not start on an Auto Mode cluster
+
+**Symptom.** The node-exporter DaemonSet shows no ready pods, and its events or
+the Helm release report an admission denial.
+
+**Cause.** The cluster's Gatekeeper policies deny host-network pods and require
+all containers to drop Linux capabilities. node-exporter's defaults trip both.
+
+**Fix.** node-exporter is deployed with `hostNetwork` disabled and all
+capabilities dropped for exactly this reason; it still reads host metrics
+through host mounts and is scraped on the pod IP. If you are deploying a variant
+by hand, apply the same settings. The deployed configuration lives in
+`cluster-components/kube-metric-exporters.tf`.
+
+### `kubectl` reports "you must be logged in to the server"
+
+**Symptom.** `kubectl` commands fail mid-session with an authentication error.
+
+**Cause.** The token minted by `aws eks update-kubeconfig` has expired, or your
+AWS SSO session has expired.
+
+**Fix.** Refresh your AWS session, then re-run
+`aws eks update-kubeconfig --name <cluster-name>`.
+
+### Expected control-plane or DNS metrics are missing
+
+**Symptom.** Scheduler, controller-manager, or CoreDNS metrics are not in AMP.
+
+**Cause.** This is expected on EKS Auto Mode. The scheduler and
+controller-manager run on the managed control plane with no scrapeable
+endpoint, and CoreDNS is AWS-managed with no in-cluster endpoint. See
+[EKS Auto Mode: what is and is not scrapeable](#eks-auto-mode-what-is-and-is-not-scrapeable).
+
+**Fix.** None required for the API-server metrics, which are collected. For
+scheduler and DNS, these are a known Auto Mode limitation rather than a fault.
+
+## Reference
+
+| Item | Location |
+|------|----------|
+| Collector, add-on, RBAC, Pod Identity | [modernisation-platform-environments](https://github.com/ministryofjustice/modernisation-platform-environments) `terraform/environments/cloud-platform/cluster-components/adot.tf` |
+| Scrape job definitions | `terraform/environments/cloud-platform/cluster-components/adot-scrape-config.tf` |
+| AMP workspace, IAM role, Pod Identity | `terraform/environments/cloud-platform/cluster-components/amp.tf` |
+| node-exporter and kube-state-metrics | `terraform/environments/cloud-platform/cluster-components/kube-metric-exporters.tf` |
+| Grafana data sources and BU isolation | `terraform/environments/cloud-platform/grafana-objects.tf` |
+| Backend decision | [ADR-005 Observability Stack](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/cp30/ADR-005-observability-amp-amg-adot.md) |
