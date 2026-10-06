@@ -34,6 +34,17 @@ the `cluster-components` component, not applied by hand.
 The pipeline has three stages: collection on each cluster, delivery into AMP,
 and query through AMG.
 
+![CP3 platform metrics target-state architecture](../../architecture/container-platform/diagrams/observability-metrics.drawio.png)
+
+The diagram shows the target state: per-BU AMP workspaces in each BU account,
+tier-split AMG workspaces (live, non-live, and a feature-flagged development
+workspace) each scoped to its own tier's data sources, cross-account query
+roles, and dashboards-as-code through a GitHub Actions pipeline. Some of this
+is still being delivered (per-BU AMP workspaces and the tier split are tracked
+under [#8235](https://github.com/ministryofjustice/cloud-platform/issues/8235)
+and its subtasks); the sections below describe how the collection leg works
+today, which is unchanged by that topology.
+
 ### Collection — the ADOT collector
 
 The [ADOT EKS add-on](https://docs.aws.amazon.com/eks/latest/userguide/opentelemetry.html)

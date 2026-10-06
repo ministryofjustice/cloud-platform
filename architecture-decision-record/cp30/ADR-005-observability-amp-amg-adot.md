@@ -1,7 +1,7 @@
 # ADR-005: Observability Stack — Metrics, Dashboards, and Alerting
 
-**Status:** Proposed — Phase 1 PoC validation required (metrics backend); AMG placement decided 2026-09-07; BU metric isolation implemented 2026-09-16 (cloud-platform#8509)  
-**Date:** 2026-05-07 (updated 2026-05-12, 2026-09-07, 2026-09-16)  
+**Status:** Proposed — Phase 1 PoC validation required (metrics backend); AMG placement decided 2026-09-07; BU metric isolation implemented 2026-09-16 (cloud-platform#8509); tier-split AMG decided 2026-10-03 (cloud-platform#8235, #8560)  
+**Date:** 2026-05-07 (updated 2026-05-12, 2026-09-07, 2026-09-16, 2026-10-03)  
 **Decision Maker:** AWS ProServe / MoJ Principal Technical Architect  
 **Category:** Compute
 
@@ -191,24 +191,41 @@ Both Option A and Option D will be deployed on the PoC cluster:
 
 ## Account Placement
 
-> **Updated 2026-09-07 (tech lead huddle):** AMG is placed in the existing
-> **`cloud-platform-live` account**, not a new dedicated Observability account,
-> and uses a **single AMG workspace**. The original dedicated-account proposal
-> is retained below under "Superseded proposal" for context.
+> **Updated 2026-10-03 (cloud-platform#8235, #8560):** AMG is split into
+> **separate live and non-live workspaces**, each in its own account, plus a
+> feature-flagged workspace for ephemeral development clusters. This supersedes
+> the earlier single-workspace decision (retained below under
+> "Considered and discounted"). The dedicated-Observability-account proposal
+> remains discounted for the reasons given under "Superseded proposal".
 
-Amazon Managed Grafana (AMG) resides in the existing **`cloud-platform-live` account**. A separate dedicated Observability account was considered but rejected: the overhead of managing an additional account was judged excessive for what is primarily dashboard hosting, and app teams receive only **read-only** dashboard access, so the isolation a separate account would provide is not warranted.
+Amazon Managed Grafana (AMG) is deployed as **separate workspaces per tier**, each hosted in that tier's account:
 
-**Rationale:**
-- App teams get read-only access to AMG dashboards and never receive IAM access to the account. The security exposure that motivated a separate account (protecting the Argo CD hub) is low under a read-only dashboard access model.
-- Avoids the operational overhead of provisioning and maintaining an additional AWS account for a visualisation layer.
-- `cloud-platform-live` already exists and is managed by the platform team.
+| Workspace | Account | Data sources | Access |
+|-----------|---------|--------------|--------|
+| AMG non-live | `cloud-platform-nonlive` | non-live BU AMP + CloudWatch only | **Edit** permitted (dashboard authoring) |
+| AMG live | `cloud-platform-live` | live BU AMP + CloudWatch only | **Viewer-only** (production) |
+| AMG development | `cloud-platform-development` | ephemeral dev clusters' AMP | feature-flagged for dev clusters |
 
-**Single AMG workspace (all BUs, both live and non-live):**
-- One workspace, not per-BU and not split live/non-live.
-- Driven by AMG licensing: **$5 / viewer / month, $9 / editor / month**, charged only for users who log in that month, minimum one license per workspace per month. Separate workspaces would double-charge any user who spans BUs or environments.
-- Live/non-live workspace separation is **deferred** (roughly 80% live / 20% non-live dashboards). Grafana folder permissions separate views within the single workspace if needed.
+**Rationale for the split (cloud-platform#8560):**
+- **Edit vs. read-only.** BU engineers need Edit access to author dashboards. The non-live workspace permits Edit for development; the live workspace stays Viewer-only, so production dashboards cannot be inadvertently changed in the UI. This resolves the dashboard-authoring friction without fine-grained per-viewer permissions.
+- **Blast radius.** A single shared workspace means one bad change or outage affects every tier and BU at once. Separate workspaces limit the impact of an AMG change to a single tier, matching the pattern used for other platform services (for example the Argo CD hub split).
+- **Simpler data-source config.** Each workspace carries only its tier's data sources — one data source per BU per workspace instead of two.
+- **Development workspace** is feature-flagged for ephemeral dev clusters, consistent with the dev-cluster philosophy. Its lifecycle (a standing workspace connected to ephemeral AMP data sources vs. an ephemeral workspace) is an open decision on cloud-platform#8560.
 
-**Dashboard capacity (confirmed sufficient):** each AMG workspace has a hard limit of 2000 dashboards (default 5 workspaces per account, adjustable on request via quota `L-2C2D5119` — AWS publishes no fixed maximum, increases are case-by-case). MoJ currently has **fewer than 400 dashboards** across all environments, so a single workspace is sufficient for production with substantial headroom. This is a monitor-only item, not a constraint on the single-workspace decision.
+A separate **dedicated Observability account** remains rejected (see "Superseded proposal"): app teams receive only read-only dashboard access, so the isolation it would provide is not warranted, and it adds account-management overhead for a visualisation layer. The tier workspaces therefore live in the existing per-tier accounts, which the platform team already manages.
+
+**Licensing note:** AMG is billed **$5 / viewer / month, $9 / editor / month**, charged only for users who log in that month, minimum one license per workspace per month. A second workspace was assessed as manageable given dashboard authoring is infrequent and done by a subset of each team.
+
+**Dashboard capacity (confirmed sufficient):** each AMG workspace has a hard limit of 2000 dashboards (default 5 workspaces per account, adjustable on request via quota `L-2C2D5119`). MoJ currently has **fewer than 400 dashboards** across all environments, so each workspace has substantial headroom.
+
+#### Considered and discounted: single shared AMG workspace
+
+A **single AMG workspace** serving all BUs across both tiers (the 2026-09-07 decision) was discounted on 2026-10-03 (cloud-platform#8235, #8560) because:
+
+1. **BU engineers need Edit access to author dashboards.** A single production workspace cannot safely combine authoring (Edit) with read-only production viewing; the live/non-live split gives Edit in non-live and keeps live read-only.
+2. **Large blast radius.** One workspace for all tiers and BUs means a single bad change or outage affects everything. Per-tier workspaces contain the impact.
+
+The licensing concern that originally motivated a single workspace (double-charging users who span BUs or environments) was reassessed as manageable, since authoring is infrequent and per-login billing applies only to users who actually log in to a given workspace.
 
 **Access model:**
 
@@ -219,21 +236,22 @@ Amazon Managed Grafana (AMG) resides in the existing **`cloud-platform-live` acc
 
 **Data flow:**
 - AMP workspaces (per BU) and CloudWatch remain in each BU account (data stays close to source).
-- The single AMG workspace in `cloud-platform-live` queries BU accounts cross-account via IAM role assumption. This means AMG carries **many data sources** (one per BU AMP/CloudWatch), which requires clear data-source naming conventions and sample dashboards.
-- No metric/log data is stored in `cloud-platform-live` for this purpose — AMG is a query and visualisation layer only.
+- Each tier's AMG workspace queries that tier's BU accounts cross-account via IAM role assumption, so each workspace carries **one data source per BU** for its tier (non-live workspace → non-live BU AMP/CloudWatch; live workspace → live). This requires clear data-source naming conventions and sample dashboards.
+- No metric/log data is stored in the AMG accounts — AMG is a query and visualisation layer only.
 
-**Dashboards-as-code:** users author dashboards in the Grafana UI, export JSON, commit to the repo, and a pipeline applies them (mirroring the Argo CD environment-folder pattern with an added dashboards folder). This gives version control, audit trail, and recovery if a workspace is lost or upgraded.
+**Dashboards-as-code:** dashboards are authored in the **non-live** workspace (where Edit is permitted), exported as JSON, and committed to the repo; a **GitHub Actions pipeline** then applies them (mirroring the Argo CD environment-folder pattern with an added dashboards folder). The pipeline manages the isolation objects (teams, folders, data sources, data-source permissions) in **both** workspaces, and applies dashboard JSON to **live**. It also reconciles the **non-live** workspace to the committed JSON — not to re-author dashboards (they originate there), but so Git is the source of truth, non-live does not drift, and a lost or upgraded workspace can be rebuilt. This gives version control, audit trail, and recovery.
 
 ### Deployment: AMG in the cloud-platform root component
 
-AMG is deployed as part of the **root `cloud-platform` Terraform component** (alongside the other account-level singletons such as IAM roles, ECR, and Route53), not a dedicated component. A standalone `observability` component was prototyped but judged overkill for a single workspace plus one IAM role: root already provides the required providers (`aws`, `http`), the per-workspace model, and the related account-level IAM, and it applies as the first pipeline stage. The metrics collectors (AMP workspace + ADOT, or the CloudWatch Observability add-on) remain **per-cluster** in `cluster-components`; only AMG — a single, account-level resource — lives at root.
+AMG is deployed as part of the **root `cloud-platform` Terraform component** (alongside the other account-level singletons such as IAM roles, ECR, and Route53), not a dedicated component. A standalone `observability` component was prototyped but judged overkill for the AMG workspace plus its IAM role: root already provides the required providers (`aws`, `http`), the per-workspace model, and the related account-level IAM, and it applies as the first pipeline stage. The metrics collectors (AMP workspace + ADOT, or the CloudWatch Observability add-on) remain **per-cluster** in `cluster-components`; only AMG — an account-level resource — lives at root.
 
 Which environments host an AMG workspace is declared in root's `locals.tf` (not passed as a runtime flag):
 
-- **`cloud-platform-live`** — the production central AMG serving all BUs and both live and non-live environments.
-- **`cloud-platform-development`** — a test AMG in the development account, so ephemeral clusters' dashboards and cross-cluster data sources can be validated.
+- **`cloud-platform-live`** — the production AMG workspace serving the **live** tier (Viewer-only).
+- **`cloud-platform-nonlive`** — the AMG workspace serving the **non-live** tier (Edit permitted for dashboard authoring).
+- **`cloud-platform-development`** — a feature-flagged AMG workspace for ephemeral dev clusters.
 
-`enable_amg` is derived from `contains(local.amg_host_workspaces, terraform.workspace)`, so every other workspace (BU spokes, preproduction, nonlive) creates no AMG resources. Designating a new AMG host is a reviewed one-line code change, which prevents an AMG workspace being created in the wrong account by accident.
+`enable_amg` is derived from `contains(local.amg_host_workspaces, terraform.workspace)`, so every other workspace (BU spokes, preproduction) creates no AMG resources. Each workspace is scoped to its own tier's AMP data sources. Designating a new AMG host is a reviewed one-line code change, which prevents an AMG workspace being created in the wrong account by accident.
 
 The AMG service role and workspace need no additional deploy-role permissions from the main pipeline's apply role (confirmed with the platform team), so AMG does not depend on the `oidc.tf` grant. The AMG workspace has no dependency on any cluster existing, so applying it in the root (first) stage is safe.
 
