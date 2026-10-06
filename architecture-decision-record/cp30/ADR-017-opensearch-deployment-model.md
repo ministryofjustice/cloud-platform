@@ -1,9 +1,11 @@
 # ADR-017: OpenSearch Deployment Model
 
-**Status:** Accepted — Option B chosen (30 Sept); build in progress (#8420)
+**Status:** Accepted — Option B chosen (30 Sept); build-out questions resolved at the architecture review; build in progress (#8420)
 **Parent:** [ADR-017: Logging and Log Management Architecture](ADR-017-logging-and-log-management.md)
 **Related ticket:** [cloud-platform#8420](https://github.com/ministryofjustice/cloud-platform/issues/8420) (child of #8415)
 **Category:** Observability / Logging
+**Owner:** Cloud Platform team. Produced during the AWS ProServe CP3 engagement; maintained by
+the platform team thereafter.
 
 ---
 
@@ -18,6 +20,8 @@ The decisions it covers:
 1. **Service model** — provisioned (managed) OpenSearch. Serverless was considered and dropped.
 2. **Placement** — one cluster per business unit, each in its own AWS account (Option B).
 3. **Cost** — compared across models, and against today's ~$54k/month.
+4. **Build-out** — private (in-VPC) clusters, audit logging on, per-BU retention, read-only
+   access for BU engineers, and no cross-BU aggregation (architecture review).
 
 Out of scope: the Cortex XSIAM / SOC forwarding path (a separate concern on the S3 side), and
 the tracing decision itself (ADR-005 — noted here only where it touches the logging choice).
@@ -37,6 +41,62 @@ the tracing decision itself (ADR-005 — noted here only where it touches the lo
   below).
 
 The options are described below for the record.
+
+### Cost breakdown by cluster
+
+A per-cluster cost breakdown of the whole OpenSearch estate (49 clusters), snapshot taken
+**5 October 2026**, settles the platform-vs-user split the earlier callout was waiting on. This
+is a point-in-time view of the clusters as configured on that date, not a specific billing
+month. Totals from the breakdown:
+
+| | $/month | Share |
+|---|---|---|
+| **Platform logging clusters** (the clusters this work replaces) | ~$71,800 | **70%** |
+| **User-deployed clusters** (teams' own search clusters) | ~$31,000 | 30% |
+| **Whole OpenSearch estate** | ~$102,800 | 100% |
+
+**The platform logging clusters are ~70% of all OpenSearch spend.** The per-BU logging model
+targets that 70%, not the many smaller user clusters. The platform logging spend is four
+clusters:
+
+| Cluster | $/month | Role |
+|---|---|---|
+| `cp-live-app-logs` | ~$59,400 | the main central app-logs cluster |
+| `cloud-platform-live` (Elasticsearch) | ~$8,300 | older Elasticsearch logging cluster |
+| `cp-live-2-app-logs` | ~$2,200 | second app-logs cluster |
+| `cp-live-modsec-audit` | ~$2,000 | ModSec audit logs |
+
+**Storage vs compute.** Across the whole estate, compute is the bigger line (66% compute / 34%
+storage). But that reverses on the central logging cluster: on `cp-live-app-logs`, storage
+(~$30,600) slightly exceeds compute (~$28,900), and that one cluster is **87% of all storage
+spend** in the estate. So "storage dominates" is true specifically for the central logging
+cluster — consistent with the Sept bill review.
+
+**Clearest saving signal — over-provisioning.** `cp-live-app-logs` has **~211 TB of hot (gp3)
+disk provisioned but only ~47 TB used — about 22%**. Most of the provisioned hot storage is
+unused. That points the saving at **right-sizing and warm/cold tiering**, not at the
+deployment-model shape (A/B/C), which barely moves storage.
+
+> **Treat these as relative, not exact.** The breakdown is built from AWS Pricing API **on-demand**
+> rates applied to each cluster's **current** config as if it ran all month. It runs higher than
+> the actual bill because it misses reserved-instance / savings-plan discounts and mid-month
+> config changes. Use it to compare clusters and see where the weight is, not as a billing figure.
+> Source data: `project-doc/research/8420-opensearch-model/cost-data/opensearch-cost-breakdown.csv`.
+
+> **Important — read the cost figures below in this light (updated after the Sept bill review).**
+> The cost numbers in this document are **compute** (instance-hours). A live review of the
+> September AWS bill showed that **storage is the dominant OpenSearch cost, not compute** — the
+> platform cluster holds ~28 TB and ingests 1–2 TB/day. So:
+> - **The deployment model (A/B/C) does not change the storage bill** — the same logs are stored
+>   either way. The real savings levers are **retention policy and filtering noisy logs at
+>   source**, not instance sizing or how the clusters are split.
+> - The compute figures below are still useful for comparing the *options against each other*,
+>   but they are **not** the headline cost. A storage-first cost model supersedes them.
+> - Note the per-BU model here is structurally the same as the **user-deployed clusters** that
+>   also appear on the bill — so guardrails/tiering on those apply to this too.
+>
+> The platform-vs-user split has now been measured — see **"Cost breakdown by cluster"**
+> directly below.
 
 ## The options
 
@@ -63,8 +123,9 @@ lived experience), Option C rejected in favour of B's account-boundary isolation
 
 ### Diagrams
 
-Draft sketches for review — the final AWS-icon diagram is added once the model is chosen.
-All apply the live/non-live split (D7).
+Diagrams of all three options, for the record. Option B was chosen (see the Decision above).
+A polished AWS-icon diagram of the final design is a follow-up. All apply the live/non-live
+split (D7).
 
 **Option A — one shared cluster, per-BU indexes**
 
@@ -135,6 +196,31 @@ platform team must reach into each account (assume-role) to manage 8–9 cluster
 storage. Storage is the same as the other options. (Illustrative on verified eu-west-2 rates;
 real figure needs measured log volume.)
 
+**Current vs proposed (for context).** Today's single shared cluster is big: 18×
+`r6g.4xlarge.search` data + 40× `ultrawarm1.medium.search` warm + 5× `m6g.large.search` master.
+At verified eu-west-2 rates that is **~$29,250/month compute** (~$54k/month all-in with storage
+and transfer, per ADR-017).
+
+| | Compute/month | Notes |
+|---|---|---|
+| Current shared cluster | ~$29,250 | 18× r6g.4xlarge + 40× ultrawarm + 5× master |
+| Option B (9 per-BU) | ~$4,000 | small per-BU nodes |
+
+**Treat the gap with care — the direction is real, the exact numbers are not.** The current
+cluster is sized for the whole platform at once and is likely over-provisioned (ADR-017 says so).
+The ~$4,000 assumes small per-BU nodes that are almost certainly under-sized versus real load.
+The true per-BU figure will rise once log volume is measured — but is very likely still well
+below the current spend. So: per-BU is materially cheaper and right-sizing is the big saving;
+don't quote the 7× gap as literal.
+
+**Where the saving actually comes from.** Not from Option B's shape itself — splitting the same
+hardware across 9 BUs would cost about the same as today (same instances, just spread out). A
+BU cluster *can* use the same `r6g.4xlarge` instance type if its load needs it. The saving comes
+from **right-sizing each cluster to its own BU's load**: the single shared cluster has to be
+sized for the whole platform's peak, whereas most BUs are much smaller, so each per-BU cluster
+can be smaller. A genuinely large, busy BU could still need big instances and cost more — so the
+total depends entirely on each BU's real volume, which is why measuring it is the key task.
+
 **Option C — one cluster per BU, all in one account**
 
 ```mermaid
@@ -195,16 +281,22 @@ platform team has to hop across accounts to manage it. **C** is easier for the p
 | # | Decision | Basis | Status |
 |---|---|---|---|
 | DB | **Option B: one OpenSearch cluster per BU, each in its own AWS account.** Account boundary gives natural isolation and the cleaner security story; A ruled out (noisy neighbour), C rejected (needs complex cross-BU permissions for no cost saving). | Status call 30 Sept | Agreed |
+| D11 | **Clusters are private, not internet-facing.** Same network model as the EKS clusters — users reach them over VPN, transit gateway and VPC endpoints. A log store should not be on the internet. | Architecture review | Agreed |
+| D12 | **Audit logging is on from the first build.** Good practice, and cheaper to build in early than retrofit. Verbosity tuning to control ingest cost is a separate follow-on ticket, not a blocker. | Architecture review | Agreed |
+| D13 | **Log retention is configurable per BU, not a single global value.** Different BUs have different data-handling needs. The mechanism is per-BU; the exact durations firm up once regulatory guidance lands. | Architecture review | Agreed |
+| D14 | **No cross-BU aggregation.** Each BU's cluster stays isolated; the platform team logs into each one when needed. OpenSearch access is ad hoc, not a daily operational need, so a single aggregated view is not required. This keeps per-BU cost and storage control (e.g. aggressive tiering for a high-volume BU without forcing it on everyone). | Architecture review | Agreed |
+| D15 | **Platform-managed clusters are read-only for BU engineers; self-deployed clusters keep admin.** SSO via IAM Identity Center, like Grafana. Unlike Grafana, BU engineers can deploy their own OpenSearch clusters and hold admin on those. | Architecture review | Agreed |
+| D16 | **Direction: the 34 existing user dashboards should move from OpenSearch to Grafana** to simplify the access model (Grafana already has the non-live/live admin-vs-read-only pattern). Recorded as context — **this migration is out of scope for the OpenSearch deployment work (#8420)** and sits with the owner of the user-dashboard relationship, not this ADR. | Architecture review | Noted — not this work's remit |
 | D1 | **Live runs on a provisioned (managed) domain.** | Team decision | Agreed |
 | D2 | **Serverless is not used — for live or non-live.** OpenSearch is provisioned in dev only ~2-3×/year, so the idle-cost saving is minimal, and a Serverless non-live wouldn't match managed prod (weakens upgrade testing). Full managed OpenSearch everywhere. | Status call 30 Sept | Agreed |
 | D5 | **Engine version pinned to `OpenSearch_3.7`** (latest in eu-west-2). Always pin versions — don't rely on defaults. | Verified via `aws opensearch list-versions` | Agreed |
-| D7 | **Split live and non-live** into separate instances per BU, like Grafana. The split costs about the same as one big instance — storage and data transfer are the same either way; live can just be bigger. | Call with William | Agreed |
-| D8 | **Deployment code goes at the repo root**, not under a cluster, so it deploys first and clusters point at it. The `cluster-observability` folder is being deleted — do not use it. Fluent Bit config stays with the clusters. | Call with William | Agreed |
-| D9 | **`ministryofjustice/cloud-platform` is the source of truth.** The internal AWS CodeCommit repo is out of date — don't use it. ADR changes go via branch + PR here. | Call with William | Agreed |
+| D7 | **Split live and non-live** into separate instances per BU, like Grafana. The split costs about the same as one big instance — storage and data transfer are the same either way; live can just be bigger. | Design review | Agreed |
+| D8 | **Deployment code goes at the repo root**, not under a cluster, so it deploys first and clusters point at it. The `cluster-observability` folder is being deleted — do not use it. Fluent Bit config stays with the clusters. | Design review | Agreed |
+| D9 | **`ministryofjustice/cloud-platform` is the source of truth.** The internal AWS CodeCommit repo is out of date — don't use it. ADR changes go via branch + PR here. | Design review | Agreed |
 | D10 | **S3 is the durable source of truth for logs.** Fluent Bit writes to CloudWatch, S3 and OpenSearch, each independently toggleable via a feature flag. A possible S3 → OpenSearch ingestion pipeline could filter what gets indexed and avoid log loss when OpenSearch is down. | Status call 30 Sept | Agreed |
 | D6 | **Involve the platform team early**, so OpenSearch follows the same patterns as the Grafana/AMG setup (ADR-005). | Team decision | To action |
 | D3 | ~~One index per BU in a shared cluster.~~ **Superseded** by the Option B decision (DB) — each BU now has its own cluster, so there is no shared-cluster per-BU index. | Was Option A model | Superseded |
-| D4 | ~~One shared Observability account for live and non-live.~~ **Superseded.** No such account exists yet, so OpenSearch goes in the **development account** for now. | Call with William | Superseded |
+| D4 | ~~One shared Observability account for live and non-live.~~ **Superseded.** No such account exists yet, so OpenSearch goes in the **development account** for now. | Design review | Superseded |
 
 ---
 
@@ -220,10 +312,10 @@ platform team has to hop across accounts to manage it. **C** is easier for the p
 
 | # | Question | Why it matters | Next step |
 |---|---|---|---|
-| O1 | **Cross-cluster querying** — can we query across the per-BU clusters from one place, like a central Grafana over many data sources? | Option B gives each BU its own cluster; engineers may need a single search view across BUs. | **Answered: yes — OpenSearch cross-cluster search (CCS).** See the section below. |
-| O2 | **CloudWatch Logs vs OpenSearch** — is OpenSearch needed, given CloudWatch already has all logs, search, alerting and (via X-Ray) tracing? | Avoid assuming OpenSearch by default. | Brief trade-off analysis (Mohammad) — see below. OpenSearch expected to remain (full-text search speed + UX, log-based alerting). |
+| O1 | **Cross-cluster querying** — can we query across the per-BU clusters from one place, like a central Grafana over many data sources? | Option B gives each BU its own cluster; engineers may want a single search view across BUs. | **No longer required (D14).** The architecture review decided against cross-BU aggregation — the platform team logs into each cluster when needed. Cross-cluster search is possible (section below, kept for the record) but is not a planned deliverable. |
+| O2 | **CloudWatch Logs vs OpenSearch** — is OpenSearch needed, given CloudWatch already has all logs, search, alerting and (via X-Ray) tracing? | Avoid assuming OpenSearch by default. | Trade-off analysis below. OpenSearch confirmed as the choice (full-text search speed + UX, log-based alerting). |
 | O3 | **Query speed on engine 3.7** and **Dashboards** behaviour. | Engineer experience. | Confirm on the build. |
-| O4 | **Full-scale cost** vs today's ~$54k/month. | Cost deliverable (NFR-106). Tom is costing the current live cluster (18× r6g.4xlarge + 40× ultrawarm1.medium + 5× m6g.large master). | Build once real log volume is measured. |
+| O4 | **Full-scale cost** vs today's ~$54k/month. | Cost deliverable (NFR-106). | Measured breakdown now in "Where the money actually goes": platform logging ~$71.8k/mo (~70% of OpenSearch spend), user clusters ~$31k/mo. Central `cp-live-app-logs` hot disk only ~22% used. Target savings figure still pending retention/tiering numbers. |
 
 ---
 
@@ -369,7 +461,12 @@ destinations can be dropped without affecting the others.
 *(The S3 → OpenSearch pipeline is a direction, not yet built. Fluent Bit multi-output work is
 tracked on #8419.)*
 
-## Cross-cluster querying (O1) — solved by cross-cluster search
+## Cross-cluster querying (O1) — possible, but not planned (D14)
+
+> **Note.** The architecture review decided a single cross-BU search view is **not required**
+> (D14) — the platform team logs into each cluster when needed. This section is kept for the
+> record: it shows cross-cluster search is available if that decision is ever revisited, but no
+> hub domain is planned in the current build.
 
 Option B gives each BU its own cluster, which raised the question: can an engineer search
 across all of them from one place, like central Grafana querying many data sources? **Yes —
@@ -389,9 +486,10 @@ the direct equivalent of the central-Grafana-over-many-sources pattern.
   results moved between domains.
 - Connections are **unidirectional** (source → destination) and need approval at the
   destination, so a BU keeps control of who federates into it.
-- Prerequisites match what we're building anyway: **fine-grained access control on**,
-  **node-to-node encryption on**, and if the domains are in VPCs they must be reachable via
-  **VPC peering or Transit Gateway** with security-group rules allowing the traffic.
+- Prerequisites match what we're building anyway: **fine-grained access control (FGAC) on**
+  (OpenSearch's own control over who can see which indexes/documents/fields, below the AWS IAM
+  layer), **node-to-node encryption on**, and if the domains are in VPCs they must be reachable
+  via **VPC peering or Transit Gateway** with security-group rules allowing the traffic.
 
 **Limits to design around (verified):**
 - A domain can have **max 20 outbound and 20 inbound** connections — fine for 8–9 BUs, but caps
@@ -439,48 +537,173 @@ environment** — Option B falling out of the existing structure rather than bei
 - Sized live > non-live; node counts/types **TO MEASURE** against real log volume. The current
   live cluster (18× r6g.4xlarge + 40× ultrawarm1.medium + 5× m6g.large) is the "nowhere near
   this per BU" ceiling reference.
-- UltraWarm + ISM for 14-day hot / 90-day warm tiering.
+
+#### Storage — right-sizing and tiering
+
+This is where the money is (see the cost breakdown): the central cluster had 216 TB of hot disk
+provisioned but only ~22% used. Two levers address that, one in place now and one deferred.
+
+- **Hot disk is sized per BU, not one shared number (in the code now).** Each BU sets its own
+  `opensearch_ebs_gb` in its environment configuration; the default is a small live/non-live
+  starter. The rule is **size to measured use plus headroom, not to peak** — a single global
+  size is exactly what over-provisioned the central cluster. The per-BU model helps here by
+  design: each domain is sized to its own BU, so no one inherits a whole-estate-sized disk.
+- **Warm/cold tiering + lifecycle (deferred).** Moving older indexes off hot gp3 (~$0.14/GB-mo)
+  onto S3-backed UltraWarm/cold (~$0.024/GB-mo, roughly 6× cheaper) is the larger saving. It
+  needs two things not yet in place: the UltraWarm/cold settings on the domain, and an Index
+  State Management (ISM) lifecycle policy to decide *when* data moves (hot → warm → cold →
+  delete). ISM is an **in-cluster** setting — the same dependency as the Fluent Bit write
+  mapping and audit-log tuning (needs the OpenSearch provider, not just the domain resource) —
+  and the thresholds depend on the retention guidance that is still outstanding. So tiering
+  lands as a bundle once the provider is wired up and the retention numbers exist, rather than
+  baking in guessed thresholds now.
+
+### Network
+- **Private domain (D11).** The domain sits in the VPC's private subnets, reached over VPN,
+  transit gateway and VPC endpoints — the same model as the EKS clusters. No internet route. A
+  security group allows HTTPS from inside the VPC only.
 
 ### Access
-- **IAM Identity Center SSO** (ADR-004 / the AMG pattern). Platform engineers admin; BU engineers
-  read-only. In Option B the per-BU scope is automatic — each BU's domain is in its own account,
-  so there is no per-index RBAC to maintain (that was Option A's problem).
+- **IAM Identity Center SSO** (ADR-004 / the AMG pattern). On a platform-managed cluster,
+  platform engineers are admin and BU engineers are **read-only** (D15). A BU engineer who
+  deploys their **own** cluster keeps admin on it. In Option B the per-BU scope is automatic —
+  each BU's domain is in its own account, so there is no per-index RBAC to maintain (that was
+  Option A's problem).
+- The **34 existing user dashboards** on the live platform cluster are expected to move to
+  Grafana (D16), which already handles the non-live/live admin-vs-read-only pattern cleanly.
+  That migration is **out of scope here** — noted for context, owned elsewhere.
+
+### Audit logging
+- **On from the first build (D12)**, published to a CloudWatch log group under
+  `/aws/vendedlogs/` (one broad resource policy covers every per-BU domain — CloudWatch allows
+  only 10 resource policies per Region). Retention is set **per BU (D13)**. Verbosity tuning is
+  a separate follow-on ticket.
 
 ### Cross-BU view
-- A **hub domain** (central/observability account) with cross-cluster search out to each BU
-  domain → one Dashboards view across all BUs.
+- **Not built (D14).** Cross-BU aggregation is explicitly not required — the platform team logs
+  into each BU's cluster when needed. Cross-cluster search remains available if that changes
+  (section above), but no hub domain is planned.
 
 ### Ingestion (D10)
 - Fluent Bit (cluster-scoped, #8419) → S3 + CloudWatch + OpenSearch, each feature-flagged. Future
   S3 → OpenSearch pipeline to remove log loss and filter what is indexed.
+- **Fluent Bit → OpenSearch needs write access** on the domain (fine-grained-access-control role
+  mapping for the Fluent Bit pod-identity role). This is the hand-off point with #8419: the
+  domain must grant Fluent Bit write before the Fluent Bit OpenSearch output can send logs. See
+  access question above.
+
+Each BU is self-contained: Fluent Bit writes to S3 (source of truth) and to that BU's own
+OpenSearch domain, and that BU's engineers reach their own Dashboards. There is no shared hub —
+cross-BU aggregation is not planned (D14); the platform team signs in to each BU's domain when
+needed.
 
 ```mermaid
 flowchart TB
   subgraph BUA["BU-A account"]
     CA["EKS cluster + Fluent Bit"] --> OSA["OpenSearch (BU-A)<br/>live + non-live"]
+    OSA --> DA["Dashboards (BU-A SSO)"]
+    CA --> S3A["S3 (BU-A, source of truth)"]
   end
   subgraph BUB["BU-B account"]
     CB["EKS cluster + Fluent Bit"] --> OSB["OpenSearch (BU-B)<br/>live + non-live"]
+    OSB --> DB["Dashboards (BU-B SSO)"]
+    CB --> S3B["S3 (BU-B, source of truth)"]
   end
-  subgraph OBS["Central / observability account"]
-    HUB["Hub OpenSearch + Dashboards<br/>(cross-cluster search)"]
-  end
-  CA --> S3A["S3 (BU-A, source of truth)"]
-  CB --> S3B["S3 (BU-B, source of truth)"]
-  HUB -. "cross-cluster search" .-> OSA
-  HUB -. "cross-cluster search" .-> OSB
-  USERS["Engineers<br/>(Identity Center SSO)"] --> HUB
+  PE["Platform engineers<br/>(Identity Center SSO,<br/>sign in per BU)"]
+  PE -. admin .-> OSA
+  PE -. admin .-> OSB
 ```
 
 ### Open questions for the build
-1. **Hub + connections** — where the hub domain lives, and whether cross-cluster-search
-   connections can be managed in Terraform or are a console/API step (not CloudFormation).
-2. **Cross-account networking** — VPC peering / Transit Gateway between the hub and 8–9 BU
-   accounts; check what already exists.
-3. **First build is in the development account** (D4) — a single domain to prove the config,
-   before the full per-account layout exists.
-4. **Upgrade lifecycle** across 8–9 accounts — the cross-cluster-search "source ≥ destination
-   version" rule means upgrades must be ordered.
+
+Grouped by when they need answering. **Nothing here blocks the dev proof-of-concept** — a
+single dev cluster can be built now; these are about the per-BU rollout.
+
+#### Decided at the architecture review
+
+These were open; the architecture review settled them. Captured as D11–D16 above.
+
+1. **Start in dev.** Build one cluster in the development account first to prove the config
+   works, before rolling out per BU (D4). This is the current focus.
+2. **Private, not internet-facing (D11).** Clusters sit inside the network and are reached over
+   VPN, transit gateway and VPC endpoints — the same model as the EKS clusters. No internet
+   route. This is now in the deployment code.
+3. **Audit logging on from the first build (D12).** Switched on in the build; verbosity tuning
+   is a separate follow-on ticket (cost rationale below).
+4. **Retention is configurable per BU (D13).** The deployment code takes a per-BU retention
+   value rather than one global setting. The *mechanism* is decided; the actual durations are
+   still open — see the blocker below.
+5. **No cross-BU aggregation (D14).** Each cluster stays isolated; the platform team logs into
+   each one when needed. A single cross-BU search view is explicitly not required, which
+   simplifies the design (the "hub" / cross-cluster search below is now optional, not planned).
+6. **Access model (D15).** Platform-managed clusters are read-only for BU engineers (SSO via IAM
+   Identity Center); self-deployed clusters keep admin. *(The team also noted the 34 user
+   dashboards should move to Grafana (D16) — recorded as context, but out of scope for this
+   work.)*
+
+#### Still blocking the per-BU rollout
+
+7. **What retention durations, and in which tier?** The mechanism is decided (per BU, D13); the
+   values are not. This is the biggest cost lever (storage dominates — Sept bill): retention
+   length, hot vs warm, live vs non-live, per log type. Blocked on regulatory guidance for
+   minimum retention periods — being chased separately.
+8. **Fluent Bit write access.** Fluent Bit must be granted write access to push logs into the
+   cluster — the dependency for the Fluent Bit OpenSearch output (#8419). It needs a
+   fine-grained-access-control (FGAC) role mapping for the Fluent Bit pod-identity role, scoped
+   to write to the log indexes. **Not yet in the deployment code** — needs the OpenSearch
+   Terraform provider and the pod-identity role ARN from #8419, which isn't on main yet.
+9. **Is the private networking in place across the accounts?** With private clusters (D11), each
+   BU account must be reachable over the shared network (VPN / transit gateway / VPC endpoints).
+   The dev build uses the development VPC's private subnets; the per-BU rollout needs the same
+   path confirmed per account. May need other teams and take time.
+
+#### Audit-log verbosity — the follow-on tuning ticket
+
+Audit logging is on (D12). What is **not** yet done is tuning *how much* it records. Audit logs
+go to CloudWatch Logs ($0.5985/GB ingested, $0.0315/GB-month stored) and scale with *activity*
+— one line per request — not with log data size. Full-detail audit logging on a busy cluster is
+a real cost.
+
+**Rough estimate (illustrative — real volume to be measured):**
+| Scenario | Assumed audit volume | Monthly cost |
+|---|---|---|
+| Empty PoC domain (just config testing) | a few MB/month | **~£0 (pennies)** |
+| Real non-live cluster (apps logging, engineers querying) | ~1 GB/day (~30 GB/mo) | **~$18/month** |
+| Busy live cluster | ~10 GB/day (~300 GB/mo) | **~$180/month** |
+
+Only the empty proof-of-concept domain is negligible. Across 8–9 per-BU clusters, full-detail
+audit logging adds up and ties into the wider logging cost work (#8422). The tuning levers are
+real (exclude the two highest-volume categories, keep metadata not request bodies, cap
+retention) — these are being scoped as a separate follow-on ticket so audit logging ships now
+without carrying unnecessary cost. Verbosity tuning is not a blocker for the rollout.
+
+#### Answer before go-live / full rollout (not the dev PoC)
+
+10. **What is the full-scale cost, storage-first?** The platform-vs-user split is now measured
+    (see "Cost breakdown by cluster" near the top): platform logging is ~70% of OpenSearch
+    spend, and the central cluster's hot disk is only ~22% used. What's left is turning that into
+    a target savings figure — i.e. the retention and warm/cold tiering numbers, which are blocked
+    on regulatory retention guidance.
+11. **How are upgrades sequenced across the clusters?** Across 8–9 clusters, upgrades have to be
+    done in a set order. Only matters once several clusters exist. *(With no cross-BU hub planned
+    (D14), this is now just per-BU upgrade hygiene, not hub-ordering.)*
+12. **Encryption at rest with a customer-managed key (CMK).** The dev proof-of-concept encrypts
+    with the AWS-managed `aws/es` key. The platform's shared per-BU key (`alias/general-<bu>`)
+    lives in the shared-services account, not the development account, so there is no suitable
+    key to point at in dev. The per-BU rollout should encrypt each domain (and its audit log
+    group) with that BU's shared key. Tracked as a deferral; the dev PoC skips the Checkov CMK
+    check with this reason.
+13. **High-availability sizing — dedicated master nodes and zone awareness.** The dev PoC runs
+    single/dual-node with no dedicated master and no multi-AZ, to keep the throwaway cluster
+    small. A production per-BU domain needs three dedicated master nodes and zone awareness. This
+    is part of the "size against measured log volume" follow-up; the dev PoC skips the two
+    Checkov HA checks with this reason.
+
+**Security scanning note.** The deployment code passes Checkov with four documented skips, all
+tied to the items above: the customer-managed-key check (#12), the two dedicated-master checks
+(#13), and the CloudWatch log-group KMS check (the audit log group is the short-retention
+operational tier, matching the existing platform convention). None is an unreviewed failure —
+each is a deliberate dev-PoC choice with the production position recorded here.
 
 ---
 
@@ -514,14 +737,14 @@ OpenSearch goes in the **development account** for now (D4). Final code lands at
 root** (D8). The PoC can use a throwaway config to keep costs down, then be torn down (domains
 are billable).
 
-1. Provisioned domain — engine `OpenSearch_3.7`, small, FGAC on.
-2. Serverless collection — scale-to-zero (manual for now, per Q4), dev/test only.
-3. Load sample logs via SigV4 `_bulk` for now (Fluent Bit is #8419 and depends on this).
-4. Test one-index-per-BU access on both.
-5. Record speed, Dashboards gaps, and cost; build the full-scale figure.
+1. Provisioned domain — engine `OpenSearch_3.7`, small, FGAC on, **private (in-VPC)**, audit
+   logging on. Managed only — Serverless is not used (D2).
+2. Load sample logs via SigV4 `_bulk` for now (Fluent Bit is #8419 and depends on this).
+3. Confirm SSO sign-in and read-only access for a BU engineer; admin for platform engineers.
+4. Record speed, Dashboards gaps, and cost; build the full-scale figure.
 
-Detailed working notes are kept separately by AWS ProServe and folded back into this page as
-the PoC produces results.
+This page is updated as the proof-of-concept produces results (query speed, Dashboards
+behaviour, and real cost once log volume is measured).
 
 ---
 
