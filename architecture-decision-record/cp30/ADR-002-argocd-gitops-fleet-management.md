@@ -4,6 +4,7 @@
 **Date:** 2026-05-07  
 **Updated:** 2026-08-27 — recorded the two-hub (one per environment tier) model as the baseline, superseding the earlier single-hub design.  
 **Updated:** 2026-09-22 — added the BU-user Argo CD UI access model (Identity Center role mappings plus per-BU AppProject roles), resolving cloud-platform#8548. The original ADR specified deployment-side tenant isolation but never defined how BU engineers reach the Argo CD UI.  
+**Updated:** 2026-10-07 — recorded that the BU → parent group name mapping now has a single source of truth (`business-units.json` in modernisation-platform-environments), consumed by both the `cluster` (layer-1) and `cluster-core` (layer-2) components, so the two layers can no longer drift (cloud-platform#8558).  
 **Decision Maker:** AWS ProServe / MoJ Principal Technical Architect  
 **Category:** Compute / Integration
 
@@ -164,7 +165,7 @@ The remaining `business-units` children are candidate BU parent groups for futur
 | `technology-services` | 79 | Central technology services. |
 | `platforms` | 30 | Platforms group; overlaps the platform team — confirm it is a tenant BU, not platform staff, before mapping. |
 
-Group IdC IDs are not hardcoded in the ADR; the `cluster-core` layer-2 grant resolves BU parent group names to IdC IDs at plan time (Identity Center `ListGroups`), and the `cluster` layer-1 mapping carries the resolved IDs. Names, not IDs, are the reviewable source of truth.
+Group IdC IDs are not hardcoded in the ADR; the BU → parent group **name** mapping is defined once in `business-units.json` (in modernisation-platform-environments, `terraform/environments/cloud-platform/`) and consumed by **both** the `cluster` component (layer-1 `argocd_viewer_bu_group_names`) and the `cluster-core` component (layer-2 `bu_configs[*].viewer_group`), so the two layers can no longer drift. Each component resolves those names to IdC IDs at plan time (Identity Center `ListGroups`): the `cluster-core` layer-2 grant resolves them for the AppProject role, and the `cluster` layer-1 mapping carries the resolved IDs. Onboarding a new BU is now a one-line edit to the shared file (its cluster names still live inline in `cluster-core` `bu_configs`).
 
 ### Onboarding a New BU
 

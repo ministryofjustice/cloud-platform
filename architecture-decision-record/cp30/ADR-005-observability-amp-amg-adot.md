@@ -1,7 +1,7 @@
 # ADR-005: Observability Stack — Metrics, Dashboards, and Alerting
 
-**Status:** Proposed — Phase 1 PoC validation required (metrics backend); AMG placement decided 2026-09-07; BU metric isolation implemented 2026-09-16 (cloud-platform#8509); tier-split AMG decided 2026-10-03 (cloud-platform#8235, #8560)  
-**Date:** 2026-05-07 (updated 2026-05-12, 2026-09-07, 2026-09-16, 2026-10-03)  
+**Status:** Proposed — Phase 1 PoC validation required (metrics backend); AMG placement decided 2026-09-07; BU metric isolation implemented 2026-09-16 (cloud-platform#8509); tier-split AMG decided 2026-10-03 (cloud-platform#8235, #8560); shared BU→parent-group source of truth 2026-10-07 (cloud-platform#8558)  
+**Date:** 2026-05-07 (updated 2026-05-12, 2026-09-07, 2026-09-16, 2026-10-03, 2026-10-07)  
 **Decision Maker:** AWS ProServe / MoJ Principal Technical Architect  
 **Category:** Compute
 
@@ -259,9 +259,19 @@ The AMG service role and workspace need no additional deploy-role permissions fr
 
 > **Updated 2026-09-16 (cloud-platform#8509 implemented):** the isolation model
 > below is now realised in Terraform in the root `cloud-platform` component
-> (`grafana-objects.tf`), with a dev PoC deployed against two simulated BUs. The
-> implementing change is
+> (`grafana-objects.tf`). The implementing change is
 > [modernisation-platform-environments#19165](https://github.com/ministryofjustice/modernisation-platform-environments/pull/19165).
+>
+> **Updated 2026-10-07 (cloud-platform#8558):** the canonical BU → parent-group
+> mapping now lives in the shared `business-units.json`
+> (`terraform/environments/cloud-platform/`, real production BUs only), consumed
+> by the Grafana root component **and** the two ArgoCD components (`cluster`
+> layer-1, `cluster-core` layer-2) — see ADR-002. Simulated BUs for the #8509
+> ephemeral-cluster PoC are kept **out** of the canonical file, in a dev-only,
+> workspace-gated map (merged only on the `cloud-platform-development`
+> workspace), so the ArgoCD components never see them. `cloud-platform-live`
+> stays gated OFF (`grafana_objects_enabled`) until per-BU AMP workspaces exist
+> (cloud-platform#8517), unchanged.
 
 **Requirement (security team, 2026-09-07):** logical separation of metrics between BUs — if a BU publishes sensitive metrics, other BUs must not be able to view them by default. This is default-deny visibility, not a hard cryptographic boundary.
 
