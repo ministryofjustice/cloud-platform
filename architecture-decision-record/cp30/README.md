@@ -24,6 +24,7 @@ will be added here over time.
 - 🤔 [ADR-017: Logging and Log Management Architecture](ADR-017-logging-and-log-management.md)
   - [ADR-017: OpenSearch Deployment Model](ADR-017-opensearch-deployment-model.md) — PoC working record (#8420)
 - 🤔 [ADR-018: Deployment Model Flexibility — GitOps as Default, Push-Based CD as Accommodation](ADR-018-deployment-model-flexibility-gitops-vs-push-cd.md)
+- 🤔 [ADR-019: User Terraform Deployment Workflow](ADR-019-user-terraform-deployment-workflow.md)
 
 ### Statuses
 
