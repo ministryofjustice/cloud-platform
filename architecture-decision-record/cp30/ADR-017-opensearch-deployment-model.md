@@ -227,7 +227,8 @@ between business units comes from**. Grounded in AWS documentation.
 - HTTPS enforced — move to **TLS 1.3** (`Policy-Min-TLS-1-2-PFS-2023-10`); our config is currently
   TLS 1.2 only (`Policy-Min-TLS-1-2-2019-07`). Node-to-node encryption; encryption at rest with a
   customer-managed key (CMK).
-- Fine-grained access control (FGAC) on, with sign-in through Identity Center single sign-on.
+- Fine-grained access control (FGAC) on, with native Identity Center sign-in (D18) — sign-in lands
+  in the OpenSearch UI.
 - Audit logging on, shipped to CloudWatch.
 
 ### Shared cluster (chosen) — isolation inside the cluster
@@ -270,6 +271,7 @@ baseline — but each cluster carries its own master-node standing cost.
 | D12 | **Audit logging is on from the first build.** Verbosity tuning to control ingest cost is a separate follow-on ticket (#8585), not a blocker. | Architecture review | Agreed |
 | D13 | **Log retention is configurable per index (per BU), not a single global value.** The mechanism is per-index ISM; the exact durations firm up once regulatory guidance lands. | Architecture review | Agreed |
 | D15 | **Platform-managed cluster is read-only for BU engineers; self-deployed clusters keep admin.** SSO via IAM Identity Center, like Grafana. | Architecture review | Agreed |
+| D18 | **Dashboards SSO uses native Identity Center**, not SAML — the `identity_center_options` setting on the domain, the same no-metadata model as Grafana. Group membership drives fine-grained access control. The trade-off: sign-in lands in **OpenSearch UI** (the AWS-hosted interface), not the domain's classic Dashboards. SAML on classic Dashboards was the considered alternative; rejected because it needs a hand-built Identity Center app and metadata. | Fluent Bit + OpenSearch review | Agreed |
 | D17 | **Public endpoint for now** (reverses D11, temporarily). There is no VPN for the team to reach a private domain, so a private Dashboard would be unreachable; the current live cluster and Grafana are both public. Still locked down by fine-grained access control and HTTPS. A follow-up ticket moves it to private once VPN access exists. Fluent Bit's write path stays private either way. | Status call 8 Oct | Agreed (interim) |
 | D11 | ~~**Private, not internet-facing** — reached over VPN, transit gateway and VPC endpoints.~~ **Superseded by D17 for now** (no VPN to reach it). Remains the target end state. | Architecture review | Superseded (interim) |
 | D1 | **Provisioned (managed) domain.** | Team decision | Agreed |
