@@ -212,8 +212,7 @@ A yes/no on physical separation is the decision. If physical separation is requi
 
 **Open questions to resolve before the review:** who owns security sign-off for platform logging;
 whether any data classification triggers a physical-separation rule; any BU with a
-contractual/regulatory override; and reconciling the 13-month security (SIEM) retention from the
-parent logging ADR with the operational retention in the shared-index design.
+contractual/regulatory override. (Retention is now settled — see D13.)
 
 ## Security hardening
 
@@ -269,7 +268,7 @@ baseline — but each cluster carries its own master-node standing cost.
 | DS | **Single shared cluster with per-BU indexes and logical isolation.** Driven by cost (over-provisioning is the real issue; per-cluster master-node standing cost); noisy neighbour handled in-cluster; physical isolation not a hard requirement; mirrors Grafana. | Fluent Bit + OpenSearch review (Oct) | Accepted — pending security sign-off |
 | DB | **Option B (one cluster per BU, own account) kept as the fallback** if security mandates physical separation. Was the accepted decision 30 Sept–early Oct; superseded by DS on cost grounds once noisy neighbour was judged addressable in-cluster. | Status call 30 Sept | Fallback / future option |
 | D12 | **Audit logging is on from the first build.** Verbosity tuning to control ingest cost is a separate follow-on ticket (#8585), not a blocker. | Architecture review | Agreed |
-| D13 | **Log retention is configurable per index (per BU), not a single global value.** The mechanism is per-index ISM; the exact durations firm up once regulatory guidance lands. | Architecture review | Agreed |
+| D13 | **Log retention follows the MoJ standard, keyed on service type**, enforced per index via ISM. Internal-facing services (reached with an MoJ or Government identity) keep logs a **minimum of 13 months**; external-facing (public-web) services a **minimum of 90 days**; application logs follow their service. Maximum **2 years** without CISO approval; aggregate/anonymised data may be kept beyond that. CP3 platform logs are mostly internal-facing, so 13 months is the usual floor. The hot/warm/cold split within the retention window is an operational choice for the platform team — security governs the S3 copy, not OpenSearch's internal tiering (D10). | Security retention guidance | Agreed |
 | D15 | **Platform-managed cluster is read-only for BU engineers; self-deployed clusters keep admin.** SSO via IAM Identity Center, like Grafana. | Architecture review | Agreed |
 | D18 | **Dashboards SSO uses native Identity Center**, not SAML — the `identity_center_options` setting on the domain, the same no-metadata model as Grafana. Group membership drives fine-grained access control. The trade-off: sign-in lands in **OpenSearch UI** (the AWS-hosted interface), not the domain's classic Dashboards. SAML on classic Dashboards was the considered alternative; rejected because it needs a hand-built Identity Center app and metadata. | Fluent Bit + OpenSearch review | Agreed |
 | D17 | **Public endpoint for now** (reverses D11, temporarily). There is no VPN for the team to reach a private domain, so a private Dashboard would be unreachable; the current live cluster and Grafana are both public. Still locked down by fine-grained access control and HTTPS. A follow-up ticket moves it to private once VPN access exists. Fluent Bit's write path stays private either way. | Status call 8 Oct | Agreed (interim) |
@@ -388,6 +387,47 @@ account level.
 - **IAM Identity Center SSO** (ADR-004 / AMG pattern). Platform engineers admin; BU engineers
   read-only on the platform cluster (D15). BU Identity Center groups map to OpenSearch roles via
   backend roles.
+
+### Role-based access control (RBAC)
+
+> Proposed role model for review. The elevated set below is a starting point — the exact
+> permissions in it are to be confirmed with the platform team.
+
+Three roles. Business units are separated by scoping index permissions to each unit's pattern
+(`<bu>-<env>-*`); all three are built with fine-grained access control.
+
+| Role | Who | Scope |
+|---|---|---|
+| **Master** | Platform team only | Full control (`all_access` + `security_manager`), mapped to the platform-engineer Identity Center group. Owns cluster config, templates, lifecycle. |
+| **Read-only** (default) | Every business unit | Read + read-only Dashboards on the unit's own indices. The default for all BU users. |
+| **Elevated** (opt-in) | Business units that want it | Read-only, plus safe self-service (log export). Each unit maps its own teams to it. |
+
+Division of responsibility: the platform team **defines and provisions** the read-only and elevated
+roles and keeps **cluster-level** management; each business unit **maps its own teams** to those
+roles and owns **index-level** access within its own indices. Units conform to the platform team's
+role structure (inconsistent team naming across units makes automated assignment unworkable).
+
+**Read-only** grants, on `<bu>-<env>-*` only: search, get, field-caps, scroll and the
+multi-get/multi-search read actions, index monitoring, and read of mappings — plus read-only
+Dashboards saved objects and the cluster monitoring actions Dashboards needs. No writes, and no
+index administration (create, delete, close, force-merge, mapping or settings changes).
+
+**Elevated** adds log **export** (the reporting actions — the capability currently missing, which is
+why the role exists), scoped to the unit's own indices. It deliberately excludes anything that
+changes index configuration or affects cluster stability: index admin, index templates, writes
+(ingestion is Fluent Bit's own role, not a human one), lifecycle (ISM), snapshots, cluster settings,
+UltraWarm and ML management, and all Security-plugin administration.
+
+A note on predefined roles: a read-only role **cannot** be the predefined Dashboards user role, as
+that role can allow index deletion — read-only is a custom role. AWS OpenSearch Service does not
+offer the predefined reporting roles, so export is a custom grant of the reporting actions.
+
+Open for confirmation: the exact export permission subset (tested as the restricted role once it
+exists); whether business units may create log-based alarms (and if so, via the elevated role or a
+pull-request process); and whether each unit gets its own Dashboards tenant or a shared one.
+
+Enforcement (the roles and their mappings, via the OpenSearch provider) is tracked on #8592. Full
+working: `research/8420-opensearch-model/rbac-permission-mapping.md`.
 
 ### Audit logging
 - **On (D12)**, to a CloudWatch log group under `/aws/vendedlogs/` with one broad resource policy
