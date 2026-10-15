@@ -11,14 +11,26 @@ RDS snapshots have multiple purposes: migrations, backups, etc. When RDS DB inst
 
 This team runbook provides technical guidance for testing and verifying the RDS snapshot restoration process.
 
+<div class="govuk-warning-text">
+  <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+  <strong class="govuk-warning-text__text">
+    <span class="govuk-visually-hidden">Warning</span>
+    Where a team asks for help restoring a production database, advise them to
+    rehearse the same restore in a non-production environment first and to
+    proceed in production only once that has succeeded. Record that advice in
+    the support ticket.
+  </strong>
+</div>
+
 ## Prerequisites
 
 Before performing an RDS restore from snapshot:
 
-1. Ensure you have AWS CLI access with appropriate permissions
-2. Verify the existence of snapshots for the target database
-3. Identify the correct DB instance identifier
-4. Check any existing snapshots with potential naming conflicts
+1. Confirm the team has rehearsed the restore in a non-production environment
+2. Ensure you have AWS CLI access with appropriate permissions
+3. Verify the existence of snapshots for the target database
+4. Identify the correct DB instance identifier
+5. Check any existing snapshots with potential naming conflicts
 
 ### Confirm the snapshot belongs to the database being restored
 
