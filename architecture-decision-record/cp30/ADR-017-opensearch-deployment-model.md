@@ -170,13 +170,13 @@ was scaled up fast to stop it filling (3 TB → 4 → 8 → 12 TB per node in a 
 fixed, but the disk was **never scaled back down**. It is leftover emergency headroom, not a size
 anyone would choose. The ISM tiering is now working (hot→warm after ~1 day). So the saving is in
 **right-sizing it back**, which is independent of the deployment model — reinforcing that the
-model is not where the money is. (Source: `app-opensearch.tf` in `cloud-platform-infrastructure`;
-detail in the research note `decision/why-current-cluster-is-oversized.md`.)
+model is not where the money is. (Source: the current live cluster's Terraform config,
+`app-opensearch.tf`, read from the infrastructure repo.)
 
 > **Treat these as relative, not exact.** Built from AWS Pricing API **on-demand** rates on each
 > cluster's current config as if it ran all month — higher than the real bill (no reserved-
 > instance/savings-plan discounts, no mid-month changes). For comparison, not billing.
-> Source data: `project-doc/research/8420-opensearch-model/cost-data/opensearch-cost-breakdown.csv`.
+> Figures derived from the AWS Pricing API against each cluster's current configuration.
 
 **On the standing cost that drives the choice:** each per-BU cluster needs its own master nodes
 (~£1.5k/month equivalent per cluster), a cost that exists regardless of utilisation. Across many
@@ -407,10 +407,12 @@ roles and keeps **cluster-level** management; each business unit **maps its own 
 roles and owns **index-level** access within its own indices. Units conform to the platform team's
 role structure (inconsistent team naming across units makes automated assignment unworkable).
 
-**Read-only** grants, on `<bu>-<env>-*` only: search, get, field-caps, scroll and the
-multi-get/multi-search read actions, index monitoring, and read of mappings — plus read-only
-Dashboards saved objects and the cluster monitoring actions Dashboards needs. No writes, and no
-index administration (create, delete, close, force-merge, mapping or settings changes).
+**Read-only** is composed from the default action groups, on `<bu>-<env>-*` only: the index-level
+`read`, `search` and `indices_monitor` groups, plus the cluster-level `cluster_composite_ops_ro`
+(read-only mget/msearch/scroll) and `cluster_monitor` so Dashboards works — plus read-only Dashboards
+saved objects. No writes, and no index administration (create, delete, close, force-merge, mapping or
+settings changes). (Using the named action groups is cleaner and less error-prone than listing raw
+permission strings.)
 
 **Elevated** adds log **export** (the reporting actions — the capability currently missing, which is
 why the role exists), scoped to the unit's own indices. It deliberately excludes anything that
@@ -426,8 +428,67 @@ Open for confirmation: the exact export permission subset (tested as the restric
 exists); whether business units may create log-based alarms (and if so, via the elevated role or a
 pull-request process); and whether each unit gets its own Dashboards tenant or a shared one.
 
-Enforcement (the roles and their mappings, via the OpenSearch provider) is tracked on #8592. Full
-working: `research/8420-opensearch-model/rbac-permission-mapping.md`.
+#### Elevated role — candidate capabilities (for review)
+
+A pick-list of what the elevated role could grant, beyond read-only. Each stays scoped to the unit's
+own `<bu>-<env>-*` indices. "Proposed" is a starting point to confirm or change — the agreed set is
+what gets built (#8592). Everything here is self-service and avoids anything that changes index
+configuration or affects cluster stability.
+
+| Capability | OpenSearch action group / actions | What it allows | Risk | Proposed |
+|---|---|---|---|---|
+| **Log export / reporting** | `cluster:admin/opendistro/reports/*` | Export search results and generate reports (e.g. CSV) — the capability users are missing today | Low. Read-derived output; the motivating case for the role | **Include** |
+| **Save own Dashboards objects** | Dashboards saved-object write on the unit's tenant | Create and keep own visualisations, saved searches, dashboards | Low. Scoped to the unit's own tenant | **Include** |
+| **Manage own index aliases** | `manage_aliases` (`indices:admin/aliases*`) | Create/point aliases over the unit's own indices | Low. Scoped to own indices; no data change | Consider |
+| **SQL / PPL queries** | `cluster:admin/opensearch/ql/*` | Query logs with SQL or PPL instead of DQL | Low–medium. Query compute only; some teams prefer SQL | Consider |
+| **Point-in-time (PIT) search** | `indices:data/read/point_in_time/*` | Consistent views across paginated searches | Low–medium. Holds search contexts open — some resource cost | Consider |
+| **Log-based alarms (Alerting)** | `cluster:admin/opendistro/alerting/*` | Create monitors/alerts on the unit's own logs | Medium. Runs scheduled queries — load; metrics-alerting via Grafana is preferred | Undecided — or via a pull-request process |
+| **Anomaly detection** | `cluster:admin/opendistro/ad/*` | Run anomaly detectors on the unit's logs | Medium. Standing background compute on the shared cluster | Exclude for now |
+| **Asynchronous search** | `cluster:admin/opendistro/asynchronous_search/*` | Long-running searches that return later | Low–medium. Useful for big queries; some resource cost | Exclude for now |
+
+This is a practical menu, not the full set. For anything else, the complete catalogue is here:
+[OpenSearch permissions](https://docs.opensearch.org/latest/security/access-control/permissions/)
+(individual actions) and
+[default action groups](https://docs.opensearch.org/latest/security/access-control/default-action-groups/)
+(the ready-made bundles — `read`, `search`, `crud`, `manage_aliases`, etc., which are the cleanest
+way to compose a role).
+
+Never in the elevated role (index config or cluster stability — platform team only): index admin
+(create/delete/close/force-merge/mapping/settings), index templates, writes (ingestion is Fluent
+Bit's role), lifecycle (ISM), snapshots, cluster settings, UltraWarm and ML management, and all
+Security-plugin administration.
+
+#### Permission detail (what each role is built from)
+
+Concrete permissions, for building the roles. All index permissions are scoped to `<bu>-<env>-*`.
+
+**Read-only** — index-level: `read`, `search`, `indices_monitor` action groups (search, get,
+field-caps, mappings read, index monitoring). Cluster-level: `cluster_composite_ops_ro` (read-only
+mget/msearch/scroll) and `cluster_monitor` (health/stats/nodes-info, which Dashboards needs). Plus
+read-only Dashboards saved objects on the unit's tenant. The `mget`/`msearch`/`scroll` families must
+be granted at both cluster and index level to work.
+
+**Elevated** — read-only plus the confirmed self-service capabilities from the table above
+(reporting/export to start), still on `<bu>-<env>-*`.
+
+**Excluded from any BU role** (platform team only): index admin (`indices:admin/create`, `delete`,
+`close`, `open`, `forcemerge`, `mapping/put`, `settings/update`, `rollover`); index templates
+(`indices:admin/index_template/*`, `indices:admin/template/*`); writes (`indices:data/write/*` —
+ingestion is Fluent Bit's role); ISM (`cluster:admin/opendistro/ism/*`); snapshots
+(`cluster:admin/snapshot/*`); `cluster:admin/settings/update`; `ultrawarm_manager`; `ml_full_access`;
+and all Security-plugin admin (`security_manager`, `all_access`, `restapi:admin/*`).
+
+**Master** (platform team only, not a BU role): `all_access` + `security_manager`, mapped to the
+platform-engineer Identity Center group — how the domain's master is already set.
+
+Two build notes:
+- A read-only role **cannot** be the predefined Dashboards user role (`opensearch_dashboards_user`) —
+  on its own it can allow index deletion. Read-only must be a custom role.
+- AWS OpenSearch Service does **not** offer the predefined reporting roles, so export is a custom
+  grant of the reporting actions. It also does not offer the `observability_*` roles.
+
+Enforcement — the roles and their mappings, applied via the OpenSearch Terraform provider — is
+tracked on #8592.
 
 ### Audit logging
 - **On (D12)**, to a CloudWatch log group under `/aws/vendedlogs/` with one broad resource policy
@@ -524,9 +585,7 @@ Updated as the PoC produces results.
 
 - [ADR-017: Logging and Log Management Architecture](ADR-017-logging-and-log-management.md)
 - [ADR-005: Observability Stack](ADR-005-observability-amp-amg-adot.md)
-- Research: `project-doc/research/8420-opensearch-model/` — `decision/` (model choice, cost,
-  why-oversized), `access/` (dashboards access, security hardening + review strategy),
-  `follow-on-work/` (#8592 plan, sub-ticket drafts), `cost-data/` (the cost CSV).
 - [Fine-grained access control in Amazon OpenSearch Service](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html)
+- [OpenSearch permissions](https://docs.opensearch.org/latest/security/access-control/permissions/) and [default action groups](https://docs.opensearch.org/latest/security/access-control/default-action-groups/)
 - [TLS 1.3 / PFS on Amazon OpenSearch Service](https://aws.amazon.com/blogs/big-data/enhance-security-and-performance-with-tls-1-3-and-perfect-forward-secrecy-on-amazon-opensearch-service)
 - [Amazon OpenSearch Service pricing](https://aws.amazon.com/opensearch-service/pricing/)
