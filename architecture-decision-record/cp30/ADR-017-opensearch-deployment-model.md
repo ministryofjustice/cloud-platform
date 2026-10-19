@@ -1,6 +1,6 @@
 # ADR-017: OpenSearch Deployment Model
 
-**Status:** Accepted (Oct) — **single shared OpenSearch cluster** with per-business-unit indexes and logical isolation. Conditional on security sign-off (see "Security review strategy"). Reverses an earlier per-business-unit decision, which is kept below as a considered alternative and a possible future option. Build in progress (#8420).
+**Status:** Accepted (Oct) — **one shared OpenSearch cluster per environment** (one non-live, one live), with business units sharing each cluster through per-business-unit indexes and logical isolation. Conditional on security sign-off (see "Security review strategy"). Reverses an earlier per-business-unit decision, which is kept below as a considered alternative and a possible future option. Build in progress (#8420).
 **Parent:** [ADR-017: Logging and Log Management Architecture](ADR-017-logging-and-log-management.md)
 **Related ticket:** [cloud-platform#8420](https://github.com/ministryofjustice/cloud-platform/issues/8420) (child of #8415)
 **Category:** Observability / Logging
@@ -18,7 +18,8 @@ and what is still open. It is a **living document** — updated as the build pro
 The decisions it covers:
 
 1. **Service model** — provisioned (managed) OpenSearch. Serverless was considered and dropped.
-2. **Placement** — a single shared cluster, with each business unit's logs in its own index.
+2. **Placement** — one shared cluster per environment (one non-live, one live), with each business
+   unit's logs in its own index within that cluster.
 3. **Cost** — compared across models, and against today's ~$54k/month.
 4. **Build-out** — public endpoint for now (private once VPN exists), audit logging on, per-index
    retention, logical isolation via fine-grained access control.
@@ -30,13 +31,19 @@ the tracing decision itself (ADR-005 — noted here only where it touches the lo
 
 ## Decision
 
-**A single shared OpenSearch cluster, with each business unit separated by in-cluster controls —
-not one cluster per business unit.**
+**One shared OpenSearch cluster per environment — one non-live, one live — with each business unit
+separated by in-cluster controls, not one cluster per business unit.**
 
-Each business unit's logs go into **its own index** (today they share a single index, so every
-user can see every other team's logs). Business units are kept apart by **logical isolation** —
-fine-grained access control with index-level permissions, document- and field-level security —
-rather than by a physical account boundary. Full managed OpenSearch; Serverless is not used (D2).
+This is the same cluster-per-environment pattern already standard across the EKS clusters, Grafana
+and other platform tooling: a single non-live cluster shared by all business units' non-live logs,
+and a single live cluster shared by all their live logs. "Shared" means shared *within* each
+environment, across business units — not one global cluster for everything.
+
+Each business unit's logs go into **its own index** on the relevant cluster (today they share a
+single index, so every user can see every other team's logs). Business units are kept apart by
+**logical isolation** — fine-grained access control with index-level permissions, document- and
+field-level security — rather than by a physical account boundary. Full managed OpenSearch;
+Serverless is not used (D2).
 
 ### Why shared
 
@@ -265,7 +272,7 @@ baseline — but each cluster carries its own master-node standing cost.
 
 | # | Decision | Basis | Status |
 |---|---|---|---|
-| DS | **Single shared cluster with per-BU indexes and logical isolation.** Driven by cost (over-provisioning is the real issue; per-cluster master-node standing cost); noisy neighbour handled in-cluster; physical isolation not a hard requirement; mirrors Grafana. | Fluent Bit + OpenSearch review (Oct) | Accepted — pending security sign-off |
+| DS | **One shared cluster per environment (one non-live, one live) with per-BU indexes and logical isolation**, the same cluster-per-environment pattern as EKS, Grafana and other tooling — BUs share within each cluster, not one global cluster. Driven by cost (over-provisioning is the real issue; per-cluster master-node standing cost); noisy neighbour handled in-cluster; physical isolation not a hard requirement; mirrors Grafana. | Fluent Bit + OpenSearch review (Oct) | Accepted — pending security sign-off |
 | DB | **Option B (one cluster per BU, own account) kept as the fallback** if security mandates physical separation. Was the accepted decision 30 Sept–early Oct; superseded by DS on cost grounds once noisy neighbour was judged addressable in-cluster. | Status call 30 Sept | Fallback / future option |
 | D12 | **Audit logging is on from the first build.** Verbosity tuning to control ingest cost is a separate follow-on ticket (#8585), not a blocker. | Architecture review | Agreed |
 | D13 | **Log retention follows the MoJ standard, keyed on service type**, enforced per index via ISM. Internal-facing services (reached with an MoJ or Government identity) keep logs a **minimum of 13 months**; external-facing (public-web) services a **minimum of 90 days**; application logs follow their service. Maximum **2 years** without CISO approval; aggregate/anonymised data may be kept beyond that. CP3 platform logs are mostly internal-facing, so 13 months is the usual floor. The hot/warm/cold split within the retention window is an operational choice for the platform team — security governs the S3 copy, not OpenSearch's internal tiering (D10). | Security retention guidance | Agreed |
@@ -276,7 +283,7 @@ baseline — but each cluster carries its own master-node standing cost.
 | D1 | **Provisioned (managed) domain.** | Team decision | Agreed |
 | D2 | **Serverless is not used.** Provisioned in dev only ~2-3×/year, so idle-cost saving is minimal, and Serverless wouldn't match managed prod. | Status call 30 Sept | Agreed |
 | D5 | **Engine version pinned to `OpenSearch_3.7`** (latest in eu-west-2). | Verified via `aws opensearch list-versions` | Agreed |
-| D7 | **Split live and non-live** instances, like Grafana. | Design review | Agreed |
+| D7 | **Split live and non-live** instances, like Grafana — these are the two shared clusters per the deployment model (one non-live, one live), each shared across all BUs. | Design review | Agreed |
 | D8 | **Deployment code at the repo root**, not under a cluster, so it deploys first. The `cluster-observability` folder is being deleted. | Design review | Agreed |
 | D9 | **`ministryofjustice/cloud-platform` is the source of truth.** Internal AWS CodeCommit is out of date. | Design review | Agreed |
 | D10 | **S3 is the durable source of truth for logs.** Fluent Bit writes to CloudWatch, S3 and OpenSearch, each feature-flagged. Possible S3 → OpenSearch pipeline to filter and avoid log loss. | Status call 30 Sept | Agreed |
