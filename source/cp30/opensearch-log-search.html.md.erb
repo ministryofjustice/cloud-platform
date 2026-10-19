@@ -11,9 +11,10 @@ review_in: 6 months
 
 Container Platform 3 (CP3) provides full-text log search through a shared
 [Amazon OpenSearch Service](https://aws.amazon.com/opensearch-service/) domain.
-One managed cluster serves every business unit: each unit's logs live in their
-own set of indexes, and fine-grained access control keeps a unit's view to its
-own logs. You search and build visualisations through OpenSearch Dashboards,
+Each environment has one shared managed cluster — one for non-live, one for live
+— used by every business unit: each unit's logs live in their own set of indexes,
+and fine-grained access control keeps a unit's view to its own logs. You search
+and build visualisations through OpenSearch Dashboards,
 reached from an AWS-hosted OpenSearch user interface (OpenSearch UI) that you
 sign into with your MoJ identity through IAM Identity Center — the same single
 sign-on as the AWS access portal and Grafana.
@@ -33,8 +34,9 @@ sign-on as the AWS access portal and Grafana.
 
 ## How it works
 
-One shared, managed OpenSearch domain holds the logs. Business units are
-separated **inside** the cluster rather than by separate clusters:
+Each environment's shared, managed OpenSearch domain holds that environment's
+logs. Business units are separated **inside** the cluster rather than by
+separate clusters per unit:
 
 - **Per-unit indexes** — each unit's logs go to indexes named
   `<business-unit>-<environment>-*` (for example `hmpps-non-live-*`).
