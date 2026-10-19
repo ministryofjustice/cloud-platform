@@ -1,0 +1,87 @@
+---
+title: EKS Auto Mode component logs
+weight: 18
+last_reviewed_on: 2026-10-19
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+## Overview
+
+Container Platform 3 (CP3) runs several of the cluster's components as an
+AWS-managed service through EKS Auto Mode — Karpenter (compute/scaling), the
+EBS CSI driver (block storage), the load balancer controller, and VPC CNI (IP
+address management). Their logs are delivered to
+[Amazon CloudWatch Logs](https://aws.amazon.com/cloudwatch/) so you can see what
+these managed components are doing — for example, why a node did or did not
+scale.
+
+These are the platform's **managed-component** logs. They are separate from:
+
+- your **application** logs (searchable in OpenSearch — see
+  [Searching logs in OpenSearch](opensearch-log-search)), and
+- the EKS **control plane** logs (api, audit, authenticator, and so on).
+
+> This page is a developer and platform-engineer guide. The Terraform that
+> enables and delivers these logs lives in
+> [modernisation-platform-environments](https://github.com/ministryofjustice/modernisation-platform-environments)
+> under `terraform/environments/cloud-platform/cluster` (`eks-cluster.tf`), and
+> the wider logging design is in
+> [ADR-017](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/cp30/ADR-017-opensearch-deployment-model.md).
+
+## What is captured
+
+All four Auto Mode component log types are enabled:
+
+| Log type | Component | Useful for |
+|---|---|---|
+| `AUTO_MODE_COMPUTE_LOGS` | Karpenter | Why nodes scaled up/down; scheduling decisions |
+| `AUTO_MODE_BLOCK_STORAGE_LOGS` | EBS CSI driver | Volume provisioning, attach/mount problems |
+| `AUTO_MODE_LOAD_BALANCING_LOGS` | Load balancer controller | Why a load balancer / target group is not coming up |
+| `AUTO_MODE_IPAM_LOGS` | VPC CNI | IP address exhaustion, ENI problems |
+
+## How it works
+
+The log types are turned on in the `cluster` component (`eks-cluster.tf`) and
+delivered to CloudWatch using CloudWatch Vended Logs. Each type goes to its own
+log group, per cluster:
+
+```
+/aws/vendedlogs/eks/cluster/AUTO_MODE_<COMPONENT>_LOGS/<cluster-name>
+```
+
+The `/aws/vendedlogs/` prefix lets a single prefix-wide resource policy grant
+the delivery service write access, which avoids hitting CloudWatch's per-Region
+resource-policy limit as cluster count grows.
+
+Enabling a log type triggers an EKS cluster update, and EKS allows only one such
+update at a time — so the four are enabled one after another during a cluster
+build (handled automatically; it adds a few minutes). Volume is small — a few MB
+per cluster per month across all four.
+
+The managed **ArgoCD** components deliver logs the same way, under
+`/aws/vendedlogs/eks/capability/EKS_CAPABILITY_ARGOCD_*`.
+
+## Where to find them
+
+Find the groups in the CloudWatch Logs console, or query with CloudWatch Logs
+Insights. For example, compute (scaling) logs for a cluster are in
+`/aws/vendedlogs/eks/cluster/AUTO_MODE_COMPUTE_LOGS/<cluster-name>`. The groups
+are **per cluster**, so an ephemeral development cluster has its own set. Access
+uses your normal AWS console / CloudWatch permissions — no OpenSearch access
+needed.
+
+## Reading the logs
+
+The four types come in different formats: Karpenter, the load balancer
+controller and VPC CNI emit structured JSON; the EBS CSI driver emits klog-style
+text wrapped in JSON (the detail is in the message string). Each line carries the
+source and a timestamp, so you can line up events across components for a single
+cluster action — for example, a scale-up showing in both compute and IPAM.
+
+## Status
+
+- All four log types are delivered to CloudWatch today.
+- Delivery to S3 for long-term archive is a planned follow-up, separate from the
+  CloudWatch delivery above.

@@ -1,0 +1,111 @@
+---
+title: Searching logs in OpenSearch
+weight: 17
+last_reviewed_on: 2026-10-19
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+## Overview
+
+Container Platform 3 (CP3) provides full-text log search through a shared
+[Amazon OpenSearch Service](https://aws.amazon.com/opensearch-service/) domain.
+One managed cluster serves every business unit: each unit's logs live in their
+own set of indexes, and fine-grained access control keeps a unit's view to its
+own logs. You search and build visualisations through OpenSearch Dashboards,
+reached from an AWS-hosted OpenSearch user interface (OpenSearch UI) that you
+sign into with your MoJ identity through IAM Identity Center — the same single
+sign-on as the AWS access portal and Grafana.
+
+> This page is a developer and platform-engineer guide to how log search works
+> and how to use it. The Terraform that implements it lives in
+> [modernisation-platform-environments](https://github.com/ministryofjustice/modernisation-platform-environments)
+> under `terraform/environments/cloud-platform` (the `root` component,
+> `opensearch.tf`), and the design is recorded in
+> [ADR-017 OpenSearch deployment model](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/cp30/ADR-017-opensearch-deployment-model.md).
+
+> **Status:** this is a development proof of concept. The cluster runs in the
+> cloud-platform development account only, on a public (internet-facing)
+> endpoint locked down by access control and HTTPS. A move to a private,
+> in-VPC endpoint is planned once VPN access exists. Log ingestion from clusters
+> is still being rolled out, so not every unit's logs are flowing yet.
+
+## How it works
+
+One shared, managed OpenSearch domain holds the logs. Business units are
+separated **inside** the cluster rather than by separate clusters:
+
+- **Per-unit indexes** — each unit's logs go to indexes named
+  `<business-unit>-<environment>-*` (for example `hmpps-non-live-*`).
+- **Fine-grained access control (FGAC)** — a unit's role is scoped to its own
+  index pattern, so a user sees only their own logs.
+- **Encryption and HTTPS** — encryption at rest and in transit, TLS 1.3, audit
+  logging to CloudWatch.
+
+The domain runs OpenSearch 3.7, right-sized for the proof of concept. Why one
+shared cluster rather than one per unit (cost, operational overhead, and the
+isolation model) is set out in ADR-017.
+
+## Signing in
+
+<!-- TODO (verify once the sign-in fix is applied): walk the exact steps against
+     the live UI before publishing. Fill in from a real sign-in. -->
+
+Access is through the **OpenSearch UI application**, not the domain's own
+Dashboards address (that has no interactive sign-in).
+
+1. Open the OpenSearch UI application URL (published by the platform team).
+2. You are redirected to IAM Identity Center; sign in with your MoJ identity if
+   you are not already signed in.
+3. You land in OpenSearch Dashboards.
+
+Your access is decided by your **Identity Center group membership** — there is
+nothing to request per person; being in the right group is enough.
+
+## Access model
+
+| Role | Who | What you can do |
+|---|---|---|
+| Read-only | Every business unit, by default | Search your unit's logs; build and read visualisations and dashboards. |
+| Elevated | Units that opt in | Read-only, plus safe self-service such as exporting search results. |
+| Admin | Platform team | Full management of the cluster. |
+
+Two things follow:
+
+- You see **only your own unit's logs** — your role is scoped to your unit's
+  `<business-unit>-<environment>-*` indexes.
+- The elevated role is **opt-in per unit**, and each unit maps its own teams to
+  it, so onboarding an engineer needs no platform-team change.
+
+The platform team defines and provisions the roles and manages the cluster;
+business units map their own teams and own index-level access within their own
+indexes.
+
+## Finding your logs
+
+Create an index pattern for your unit — `<business-unit>-<environment>-*` — then
+use Discover to search and the visualisation tools to build charts and
+dashboards.
+
+## Programmatic access
+
+For scripts and tools, call the domain's REST API directly with an AWS-signed
+(SigV4) request using your `platform-engineer` credentials, rather than the
+browser UI. Browser sign-in is for interactive use only.
+
+## Troubleshooting
+
+- **"You don't have authorization to access dashboards"** — your Identity Center
+  group is not mapped to a role yet. Contact the platform team with your group
+  name.
+- **Signed in but no indexes** — logs may not be flowing for your unit yet, or
+  your index pattern does not match `<business-unit>-<environment>-*`.
+- **Cannot reach the URL** — use the OpenSearch UI application URL, not the
+  cluster's own Dashboards address.
+
+## Related
+
+For the cluster's managed-component logs (Karpenter, EBS CSI, load balancer
+controller, VPC CNI), which go to CloudWatch rather than OpenSearch, see
+[EKS Auto Mode component logs](auto-mode-component-logs).
