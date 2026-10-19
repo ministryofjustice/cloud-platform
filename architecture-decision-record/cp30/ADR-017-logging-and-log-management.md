@@ -1,9 +1,14 @@
 # ADR-017: Logging and Log Management Architecture
 
-**Status:** Proposed — Phase 1 PoC validation required  
-**Date:** 2026-07-22  
-**Decision Maker:** AWS ProServe / MoJ Principal Technical Architect  
+**Status:** Proposed — Phase 1 PoC validation required. The OpenSearch deployment model (the
+"OpenSearch — Full-Text Log Search" section) is Accepted and in build (#8420), conditional on
+security sign-off on logical isolation.
+**Date:** 2026-07-22 (OpenSearch deployment model merged in October)
+**Decision Maker:** AWS ProServe / MoJ Principal Technical Architect
 **Category:** Observability
+
+This ADR now also covers the OpenSearch deployment model, previously a separate doc also numbered
+017; the two were merged into one.
 
 ---
 
@@ -302,133 +307,220 @@ The platform tracks the percentage of logs arriving in structured JSON format vs
 
 ## OpenSearch — Full-Text Log Search
 
-### Observability Account — Single Dedicated Account (All Environments)
+OpenSearch is the full-text search tier (the 20 May 2026 meeting confirmed it cannot be dropped).
+This section records how it is deployed — the model, the cost basis, the security posture, the
+access model, and what is still open. It was previously a separate ADR (also numbered 017,
+"OpenSearch deployment model"); it has been folded in here so there is one ADR-017.
 
-All observability query and visualisation tooling (AMG, OpenSearch Dashboards) resides in a **single dedicated Observability account** that serves both live and non-live environments. This aligns with ADR-005's account placement decision for AMG.
+### Decision — one shared cluster per environment
 
-**Why a single account (not split live/non-live):**
+**One shared OpenSearch cluster per environment — one non-live, one live — with each business unit
+separated by in-cluster controls, not one cluster per business unit.**
 
-| Factor | Single account | Split (non-live + live) |
-|--------|----------------|------------------------|
-| Incident correlation | Engineers compare live vs non-live logs in one place | Must switch between two OpenSearch instances |
-| Data isolation | Index-level RBAC in OpenSearch; actual log data stays in BU accounts (S3/CloudWatch) | Account-boundary separation (redundant — data is already in source accounts) |
-| Operational overhead | 1 OpenSearch domain (or Serverless collection), 1 set of index policies | 2 domains, duplicate ISM policies and access config |
-| Access control | Identity Centre SSO, role-scoped to BU/namespace indices | Same, but duplicated across accounts |
-| Security boundary | OpenSearch has read-only access to log data (no write to source accounts) | Same posture, but in two places |
-| Cost | Single domain sized for total query load | Two domains with idle capacity in non-live |
+This is the same cluster-per-environment pattern already standard across the EKS clusters, Grafana
+and other platform tooling: a single non-live cluster shared by all business units' non-live logs,
+and a single live cluster shared by all their live logs. "Shared" means shared *within* each
+environment, across business units — not one global cluster for everything.
 
-**Key insight:** The Observability account doesn't store the primary copy of log data. S3 (per-BU account) is the durable archive. OpenSearch receives a copy for search purposes. If the OpenSearch domain is compromised, the attacker gains read access to log data — the same data already available to anyone with Identity Centre SSO access to the relevant BU scope. Splitting accounts doesn't add a meaningful security boundary.
+Each business unit's logs go into **its own index** on the relevant cluster (today they share a
+single index, so every user can see every other team's logs). Business units are kept apart by
+**logical isolation** — fine-grained access control with index-level permissions, document- and
+field-level security — rather than by a physical account boundary. Full managed OpenSearch;
+Serverless is not used.
 
-**When splitting would be justified:**
-- A compliance requirement mandating production observability tooling in a separate account from non-production (not currently the case)
-- Different teams managing live vs non-live observability (unlikely — same platform team)
+> **Conditional on security sign-off.** The shared model depends on the security function accepting
+> logical isolation in place of a physical account boundary (see "Security review strategy"). If
+> security mandates physical separation for a data classification, that subset reverts to per-BU
+> (Option B, below).
 
-**What remains per-BU account (not in the Observability account):**
-- S3 log buckets (primary archive, SOC feed)
-- CloudWatch log groups (operational queries, short retention)
-- AMP workspaces or CloudWatch metrics (per ADR-005)
+**Why shared:**
+- **Over-provisioning, not the model, is the biggest cost.** The current cluster has ~211 TB of hot
+  disk provisioned but only ~22% used — a sizing problem fixed by right-sizing, independent of how
+  many clusters there are.
+- **Every cluster carries a standing cost** for its own master nodes. Per-BU clusters multiply that;
+  a shared cluster per environment retires most of it.
+- **Noisy neighbour is manageable in-cluster** — per-index isolation, search backpressure,
+  per-request limits, dedicated node pools for heavy tenants.
+- **Per-BU retention does not need separate clusters** — per-index ISM policies handle it.
+- **Logical isolation is accepted**, consistent with Grafana.
+- **Shared keeps the option open** to split per-BU later; the reverse migration would be very hard.
 
-### Requirement Confirmation
+### Alternatives considered
 
-The 20 May 2026 meeting confirmed: "full-text search is important, cannot dispense with OpenSearch." The platform team manages the OpenSearch infrastructure; application teams consume it via IAM Identity Centre SSO without administrative access.
+| Option | What it is | Isolation | Ops effort | Main trade-off |
+|---|---|---|---|---|
+| **A — Shared cluster per env, per-BU index (CHOSEN)** | One cluster per environment; each BU's logs in its own index, visible only to that BU | Logical (index-level roles) | Lowest — one cluster per env | Noisy neighbour — mitigated in-cluster |
+| **B — Cluster per BU, in BU accounts** | Each BU its own cluster in its own AWS account | Physical (account boundary) | Highest — 8–9 clusters across accounts | Most to run; per-cluster master-node cost |
+| **C — Cluster per BU, one account** | Each BU its own cluster, all in one account | Physical (cluster boundary) | High — 8–9 clusters | Middle ground |
 
-### OpenSearch Placement Within the Observability Account — PoC Evaluation
+Option A was originally ruled out on noisy-neighbour grounds, then chosen once the cost breakdown
+landed and noisy neighbour was judged addressable with in-cluster controls. **Option B is kept as
+the fallback** if security mandates physical separation (in whole or for a classification). Moving
+shared → per-BU later is feasible; the reverse is not, so starting shared is the lower-risk order.
 
-The Observability account is confirmed as the home for query/visualisation tooling. The remaining question is whether OpenSearch lives **centralised in the Observability account** (one domain, all BUs) or **per-BU account** (domain co-located with the log source). Both models use the single Observability account for AMG regardless.
+### Cost basis
 
-| | Option 1: Centralised (Observability account) | Option 2: Per-BU account |
-|--|--|--|
-| Operational model | Platform team manages one (or few) OpenSearch domain(s) | Platform team manages N domains across BU accounts |
-| Platform team access | Direct — single account, all indices visible | Cross-account — must assume roles into each BU account |
-| App team access | Cross-account IAM Identity Centre SSO, scoped to BU indices | Same-account IAM Identity Centre SSO, simpler IAM |
-| Log ingestion | Fluent Bit writes cross-account to central OpenSearch | Fluent Bit writes same-account to local OpenSearch |
-| Noisy-neighbour risk | Index-level isolation within shared domain; one team's volume could affect performance | Natural isolation — each BU has own domain capacity |
-| Cost | Potentially lower (shared infrastructure) | Potentially higher (per-BU domain overhead) |
-| Complexity | Simpler infra management; more complex access control (index-level RBAC) | More domains to manage; simpler access control (account boundary) |
+A per-cluster breakdown of the whole OpenSearch estate (49 clusters, snapshot 5 Oct 2026):
 
-### Access Control Model
+| | $/month | Share |
+|---|---|---|
+| Platform logging clusters (what this replaces) | ~$71,800 | 70% |
+| User-deployed clusters | ~$31,000 | 30% |
+| Whole estate | ~$102,800 | 100% |
+
+The platform logging clusters are ~70% of all OpenSearch spend. The biggest signal is
+over-provisioning: `cp-live-app-logs` has ~211 TB hot disk but only ~47 TB used (~22%) — leftover
+emergency headroom from an incident, never scaled back. So the saving is in **right-sizing**, which
+is independent of the deployment model. Each per-BU cluster also needs its own master nodes
+(~£1.5k/month equivalent), the main standing cost a shared cluster avoids. (Figures are AWS Pricing
+API on-demand rates on current configs — for comparison, not billing.)
+
+### Security review strategy
+
+The shared model rests on security accepting **logical** isolation in place of a physical account
+boundary — the gating risk. The ask is one question: is logical isolation acceptable for this log
+data, or is physical separation mandated for any classification? If physical separation is required
+for a subset, that subset uses Option B and the rest stays shared. The review leads with the Grafana
+precedent (logical isolation already accepted there), brings the in-cluster controls as the
+mitigation, is explicit that this is logical not physical isolation, and is demonstrated on the dev
+cluster (a BU role seeing only its own index, field masking, a denied cross-index query in the audit
+log). The outcome is recorded here with owner and date.
+
+### Security hardening
+
+Baseline (either model): private/VPC-only target (public for now — see "public endpoint" below),
+HTTPS enforced moving to **TLS 1.3** (`Policy-Min-TLS-1-2-PFS-2023-10`), node-to-node encryption,
+encryption at rest (CMK in production), FGAC on with native Identity Center sign-in, audit logging
+to CloudWatch.
+
+Shared cluster (chosen) — isolation rebuilt inside the cluster with FGAC:
+
+| Control | What it gives each business unit |
+|---|---|
+| Index-level permissions | A unit sees only its own indices — the main isolation |
+| Document-level security | Restrict which documents a role can see |
+| Field-level security / masking | Hide or anonymise sensitive fields (e.g. personal data) |
+| Backend roles | Map a unit's Identity Center groups to OpenSearch roles |
+| Tenants | Separate Dashboards spaces per unit |
+
+Plus noisy-neighbour controls (backpressure, per-request limits, dedicated node pools) and per-unit
+ISM retention. **The limit:** these are logical, not physical, separation — shared nodes and
+storage. A documented mandate for physical separation cannot be met by a shared cluster, and Option
+B is used for that subset.
+
+### Access model and RBAC
 
 | Actor | Access scope | Mechanism |
 |-------|-------------|-----------|
-| Platform team | All logs across all BUs and namespaces | Identity Centre SSO → OpenSearch (admin role) |
-| App team engineer | Only logs for namespaces they have access to | Identity Centre SSO → OpenSearch (BU/namespace-scoped role) |
-| SOC team | All security-relevant logs | Cortex XSIAM (via S3 pull — not via OpenSearch) |
+| Platform team | All logs, all BUs | Identity Center SSO → OpenSearch (master role) |
+| BU engineer | Only their own unit's logs | Identity Center SSO → OpenSearch (BU-scoped role) |
+| SOC team | Security-relevant logs | Cortex XSIAM (via S3 pull — not via OpenSearch) |
 
-### Tiered Storage Lifecycle
+Three roles, all built with FGAC, BU access scoped to `<bu>-<env>-*`:
 
-| Tier | Storage | Retention | Query Latency | Cost (relative) |
-|------|---------|-----------|---------------|-----------------|
-| Hot | OpenSearch (instance store/EBS) | 14 days | Milliseconds | $$$ |
-| Warm | OpenSearch UltraWarm (S3-backed) | 90 days | Seconds | $$ |
-| Cold | OpenSearch Cold Storage or S3 | 1 year | Minutes (requires restore) | $ |
-| Archive | S3 Glacier Deep Archive | 1 year+ (per compliance) | Hours (requires restore) | ¢ |
+| Role | Who | Scope |
+|---|---|---|
+| **Master** | Platform team only | Full control (`all_access` + `security_manager`), mapped to the platform-engineer group |
+| **Read-only** (default) | Every business unit | Read + read-only Dashboards on the unit's own indices |
+| **Elevated** (opt-in) | Units that want it | Read-only plus safe self-service (log export); each unit maps its own teams |
 
-### Selective Retrieval from Archive
+The platform team defines and provisions the roles and keeps cluster-level management; each unit maps
+its own teams and owns index-level access within its own indices. **Read-only** is composed from the
+default action groups (`read`, `search`, `indices_monitor` at index level; `cluster_composite_ops_ro`
+and `cluster_monitor` at cluster level so Dashboards works) — no writes, no index administration.
+**Elevated** adds log export (the reporting actions) on the unit's own indices and excludes anything
+that changes index config or cluster stability. A read-only role cannot be the predefined
+`opensearch_dashboards_user` role (it can allow index deletion) — it must be custom; AWS OpenSearch
+offers no predefined reporting roles, so export is a custom grant. Enforcement (the roles and
+mappings via the OpenSearch Terraform provider) is tracked on #8592.
 
-Engineers must be able to restore logs for a specific time window, namespace, or application without restoring the entire archive. Implementation approach:
-- **Bucket model:** one S3 bucket **per business unit** (not per cluster), named `container-platform-{bu}-{env}-eks-logs` (naming confirmed during PoC — see #8430). A single BU bucket is shared across the BU's clusters and log producers.
-- **Prefix layout within the bucket:** Fluent Bit application/platform logs land under `logs/`; EKS Auto Mode component logs land under `auto-mode/`. Fluent Bit objects are partitioned by `logs/{cluster}/{namespace}/{YYYY}/{MM}/{DD}/{HH}/`.
-- Restore request targets a specific prefix (e.g., one namespace, one day)
-- Documented runbook for the restore process, validated during PoC
+#### Elevated role — candidate capabilities (for review)
 
-### Cost Reduction Strategy
+A pick-list of what the elevated role could grant beyond read-only, each scoped to the unit's own
+`<bu>-<env>-*` indices. "Proposed" is a starting point to confirm; the agreed set is what gets built
+(#8592). Everything here is self-service and avoids anything that changes index config or cluster
+stability.
 
-Current OpenSearch spend: ~$54k/month. Target: significant reduction through:
+| Capability | OpenSearch action group / actions | What it allows | Risk | Proposed |
+|---|---|---|---|---|
+| **Log export / reporting** | `cluster:admin/opendistro/reports/*` | Export search results, generate reports (e.g. CSV) — the capability users miss today | Low. Read-derived; the motivating case | **Include** |
+| **Save own Dashboards objects** | Dashboards saved-object write on the unit's tenant | Keep own visualisations, saved searches, dashboards | Low. Scoped to own tenant | **Include** |
+| **Manage own index aliases** | `manage_aliases` | Create/point aliases over the unit's own indices | Low. Own indices; no data change | Consider |
+| **SQL / PPL queries** | `cluster:admin/opensearch/ql/*` | Query with SQL/PPL instead of DQL | Low–medium. Query compute only | Consider |
+| **Point-in-time search** | `indices:data/read/point_in_time/*` | Consistent views across paginated searches | Low–medium. Holds contexts open | Consider |
+| **Log-based alarms (Alerting)** | `cluster:admin/opendistro/alerting/*` | Monitors/alerts on the unit's own logs | Medium. Scheduled queries — load; metrics-alerting via Grafana preferred | Undecided — or via PR process |
+| **Anomaly detection** | `cluster:admin/opendistro/ad/*` | Run anomaly detectors | Medium. Standing background compute | Exclude for now |
+| **Asynchronous search** | `cluster:admin/opendistro/asynchronous_search/*` | Long-running searches that return later | Low–medium. Some resource cost | Exclude for now |
 
-| Lever | Mechanism | Expected Impact |
-|-------|-----------|-----------------|
-| Right-sizing | Match instance types to actual query load (current likely over-provisioned) | 20-40% reduction |
-| Tiered storage | UltraWarm for 14-90 day logs (fraction of hot storage cost) | 30-50% reduction on older data |
-| Retention enforcement | Automated ISM policies delete indices past retention — no unbounded growth | Prevents cost creep |
-| Structured logging | Better indexing reduces storage (fewer catch-all text fields) | 10-20% storage reduction |
-| Log filtering | Fluent Bit drops known-noisy, low-value log patterns before ingestion | 10-30% volume reduction |
-| Sampling (optional) | For very high-volume debug logs, sample rather than ingest all | Variable |
+Never in any BU role (platform team only): index admin (create/delete/close/open/forcemerge/
+mapping/settings/rollover); index templates; writes (`indices:data/write/*` — ingestion is Fluent
+Bit's role); ISM; snapshots; `cluster:admin/settings/update`; `ultrawarm_manager`; `ml_full_access`;
+and all Security-plugin admin (`security_manager`, `all_access`, `restapi:admin/*`). The full action
+catalogue: [OpenSearch permissions](https://docs.opensearch.org/latest/security/access-control/permissions/)
+and [default action groups](https://docs.opensearch.org/latest/security/access-control/default-action-groups/).
 
-### OpenSearch Serverless — Evaluation for PoC
+Open for confirmation: the exact export permission subset; whether BUs may create log-based alarms
+(and if so, via the elevated role or a PR process); and whether each unit gets its own Dashboards
+tenant or a shared one.
 
-OpenSearch Serverless eliminates domain management entirely (no instance sizing, patching, shard rebalancing). It uses OpenSearch Compute Units (OCUs) that auto-scale based on load and can scale to zero when idle.
+### Tiered storage
 
-**Key characteristics:**
+| Tier | Storage | Retention | Query latency | Cost |
+|------|---------|-----------|---------------|------|
+| Hot | OpenSearch (EBS gp3) | ~14 days | Milliseconds | $$$ |
+| Warm | OpenSearch UltraWarm (S3-backed) | ~90 days | Seconds | $$ |
+| Cold | OpenSearch Cold Storage or S3 | ~1 year | Minutes (restore) | $ |
+| Archive | S3 Glacier | per compliance | Hours (restore) | ¢ |
 
-| Aspect | Detail |
-|--------|--------|
-| Pricing | $0.24/OCU/hour (eu-west-2). Production with standby replicas: minimum 4 OCUs (2 indexing + 2 search) = ~$691/month baseline |
-| Scale to zero | NextGen collections scale to 0 OCU after 10 minutes of inactivity — no cost when idle |
-| Cold start | 10-30 seconds latency on first request after scale-to-zero |
-| Collection types | Time series (log analytics), Search (full-text), Vector search |
-| Storage tiering | Time series collections automatically tier hot → warm. No manual ISM policy management |
-| Access control | Data access policies (different model from provisioned FGAC/RBAC) |
-| Dashboards | Supported, but with reduced plugin availability compared to provisioned |
+Retention durations follow the MoJ standard, keyed on service type and enforced per index via ISM
+(see Decisions table). The hot/warm/cold split within the window is an operational choice; security
+governs the S3 copy, not OpenSearch's internal tiering.
 
-**Where Serverless fits best:**
+### Target deployment shape
 
-| Environment | Recommendation | Rationale |
-|-------------|----------------|-----------|
-| Non-live (development, preproduction) | Serverless (Time series collection) | Scale-to-zero eliminates idle cost overnight/weekends. Cold start acceptable for non-live. |
-| Live (production) | Provisioned domain | Predictable sub-second query latency, UltraWarm tiering, full Dashboards plugin support, no cold start during incidents |
-| Per-BU model (if selected) | Serverless per-BU | Avoids managing 8-9 separate provisioned domains. Each BU collection scales independently. |
+- **Code** in `opensearch.tf` at the repo root (next to `amg.tf`), deploys at account level; mirrors
+  the Grafana pattern.
+- **Cluster** — engine `OpenSearch_3.7` pinned, managed/provisioned, FGAC + node-to-node encryption +
+  encryption at rest, live/non-live split, sized against measured volume (right-sizing is the main
+  cost lever).
+- **Per-BU indexes** — each BU's logs to `<bu>-<env>-*`, index-level permissions + doc/field-level
+  security, ISM per index. In-cluster settings need the OpenSearch Terraform provider (a build
+  dependency, #8592).
+- **Network** — public endpoint for now (no VPN to reach a private domain; the live cluster and
+  Grafana are public too), locked down by FGAC + HTTPS. Target is private (in-VPC) once VPN exists;
+  Fluent Bit's write path is private regardless.
+- **Access** — IAM Identity Center SSO (ADR-004 / AMG pattern); platform engineers admin, BU
+  engineers read-only on the platform cluster.
+- **Ingestion** — Fluent Bit (#8419) → S3 + CloudWatch + OpenSearch, each feature-flagged. The
+  Fluent Bit → OpenSearch write needs an FGAC role mapping for the Fluent Bit Pod Identity role
+  (`<cluster>-fluent-bit`), scoped to its BU's index — the hand-off with #8419.
 
-**Trade-offs vs provisioned:**
+### Serverless — not used
 
-| Consideration | Provisioned | Serverless |
-|---------------|-------------|------------|
-| Operational overhead | Platform team manages sizing, patching, shard balance | Zero — fully managed |
-| Cost predictability | Fixed (instance hours) + variable (storage) | Variable (OCU hours) — harder to predict at scale |
-| UltraWarm/Cold tiers | Full control via ISM policies | Automatic (Time series) but less configurable |
-| Fine-grained access | RBAC with backend roles, index-level permissions | Data access policies (principal-based, less granular) |
-| Steady-state cost at high volume | Often cheaper at sustained high throughput | Can be more expensive — OCU cost accumulates at continuous load |
-| OpenSearch Dashboards | Full plugin ecosystem | Reduced plugin support |
-| Ingestion from Fluent Bit | Well-established (direct HTTPS) | Supported via SigV4 auth (less battle-tested at scale) |
+OpenSearch Serverless (OCU-based, scale-to-zero) was considered for non-live. Rejected: the dev PoC
+runs only a few times a year so idle-cost saving is minimal, Serverless wouldn't match managed
+production, and its access model (data access policies) is weaker than provisioned FGAC for
+index-level isolation. Provisioned managed OpenSearch is used throughout.
 
-**PoC evaluation plan:**
+### What is still open
 
-Deploy both models on the PoC cluster:
-1. Provisioned domain (right-sized for PoC volume) — baseline
-2. Serverless Time series collection — challenger for non-live use
+- **Security sign-off on logical isolation** — the gating item for full rollout.
+- **Retention durations/tiers** — mechanism is per-index ISM; values follow the MoJ standard (D13).
+- **Per-index design, ISM, role mappings, Fluent Bit write access** — in-cluster config via the
+  OpenSearch provider, tracked on #8592 (needs the Fluent Bit role from #8419).
+- **Full-scale cost** — platform-vs-user split measured (~70% platform); target saving pending the
+  retention/tiering numbers.
+- **HA sizing, CMK, TLS 1.3** — production hardening; the dev PoC runs smaller, on the AWS-managed
+  key, and TLS is being moved to 1.3.
 
-Measure: ingestion reliability from Fluent Bit, query latency, Dashboards functionality, cost projection at full scale, access control expressiveness for namespace-scoped visibility.
+### Verified facts (AWS docs / Pricing API, eu-west-2)
 
-**Decision gate:** Include in the Week 10 comparison report. Likely outcome is a hybrid model (Serverless for non-live, provisioned for live) unless Serverless proves cost-effective and performant at sustained production load.
+- Provisioned rates/hr: `or1.medium.search` $0.123, `or1.large.search` $0.246, `r6g.large.search`
+  $0.197, `ultrawarm1.medium.search` $0.276. EBS gp3 $0.1415/GB-mo; UltraWarm S3 $0.024/GB-mo.
+- CloudWatch Logs: ingest $0.5985/GB; storage $0.0315/GB-mo; Logs Insights scan $0.0059/GB.
+- Engine versions: `OpenSearch_3.7` (latest in eu-west-2), 3.5, 3.3, 3.1, 2.19, 2.17.
+- TLS policies: `Policy-Min-TLS-1-2-2019-07` (1.2 only), `Policy-Min-TLS-1-2-PFS-2023-10` (adds
+  TLS 1.3 + PFS), `Policy-Min-TLS-1-2-RFC9151-FIPS-2024-08` (FIPS).
 
 ---
 
@@ -517,7 +609,7 @@ The four Auto Mode Vended Logs sources (`AUTO_MODE_COMPUTE_LOGS`, `AUTO_MODE_BLO
 | Actual log volume per cluster | Unknown | High — drives cost estimates for all destinations | Measure on PoC cluster in Phase 1 Weeks 1-4, extrapolate |
 | OpenSearch domain sizing | Unknown | High — affects cost reduction target | PoC evaluation with real log volume |
 | Fluent Bit S3 plugin reliability under back-pressure | Risk | Medium — log loss during node pressure | PoC testing with simulated load; enable filesystem buffering on host path volume |
-| Multi-account Fluent Bit → OpenSearch auth | Unknown | Medium — cross-account writes need IAM or SAML | PoC evaluation of both centralised and per-BU models |
+| Fluent Bit → OpenSearch write auth | Unknown | Medium — the Fluent Bit role needs an FGAC mapping to write its BU's index | Build with the OpenSearch provider (#8592); placement is decided (shared cluster per environment) |
 | Application team structured logging adoption rate | Unknown | Low-Medium — affects OpenSearch query experience | Track metrics; provide tooling and examples; do not mandate |
 
 ---
@@ -541,7 +633,7 @@ The four Auto Mode Vended Logs sources (`AUTO_MODE_COMPUTE_LOGS`, `AUTO_MODE_BLO
 
 ### Neutral
 - CloudWatch is used for operational convenience, not as the primary archive — cost-controlled via short retention
-- OpenSearch account placement decision deferred to PoC evaluation
+- OpenSearch deployment is decided (one shared cluster per environment — see the OpenSearch section), conditional on security sign-off on logical isolation
 - Cortex XSIAM authentication mechanism (IAM role vs access keys) depends on vendor capability
 
 ---
