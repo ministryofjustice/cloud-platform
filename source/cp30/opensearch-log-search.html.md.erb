@@ -50,6 +50,43 @@ The domain runs OpenSearch 3.7, right-sized for the proof of concept. Why one
 shared cluster rather than one per unit (cost, operational overhead, and the
 isolation model) is set out in ADR-017.
 
+```mermaid
+flowchart TB
+  subgraph ENV["One shared cluster per environment (non-live / live)"]
+    OS["OpenSearch domain"]
+    IDXA["hmpps-non-live-*"]
+    IDXB["laa-non-live-*"]
+    OS --- IDXA
+    OS --- IDXB
+  end
+  UA["HMPPS engineer"]
+  UB["LAA engineer"]
+  UA -->|"sign in (SSO)"| OS
+  UB -->|"sign in (SSO)"| OS
+  OS -. "FGAC: HMPPS sees hmpps-* only" .-> IDXA
+  OS -. "FGAC: LAA sees laa-* only" .-> IDXB
+```
+
+### How logs get here
+
+Your application writes to stdout; Fluent Bit on the cluster collects it and sends
+it to two places — CloudWatch Logs for recent/operational searches, and an S3
+archive. Logs reach OpenSearch from that S3 archive, through an event-driven
+pipeline, so nothing is lost if the search cluster is briefly unavailable.
+
+```mermaid
+flowchart LR
+  APP["Your app<br/>(pods, stdout)"]
+  FB["Fluent Bit<br/>(on the cluster)"]
+  S3["S3 log archive<br/>(durable copy)"]
+  CW["CloudWatch Logs<br/>(recent, ~30 days)"]
+  OS["OpenSearch<br/>(full-text search, older logs)"]
+  APP --> FB
+  FB --> CW
+  FB --> S3
+  S3 -->|event-driven pipeline| OS
+```
+
 ## Signing in
 
 Access is through the **OpenSearch UI application**, not the domain's own
