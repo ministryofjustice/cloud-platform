@@ -390,8 +390,8 @@ log). The outcome is recorded here with owner and date.
 
 Baseline (either model): private/VPC-only target (public for now — see "public endpoint" below),
 HTTPS enforced moving to **TLS 1.3** (`Policy-Min-TLS-1-2-PFS-2023-10`), node-to-node encryption,
-encryption at rest (CMK in production), FGAC on with native Identity Center sign-in, audit logging
-to CloudWatch.
+encryption at rest (CMK in production), FGAC on with native Identity Center sign-in, and audit-log
+delivery to CloudWatch wired (capture to be enabled + tuned — see below).
 
 Shared cluster (chosen) — isolation rebuilt inside the cluster with FGAC:
 
@@ -531,9 +531,14 @@ index-level isolation. Provisioned managed OpenSearch is used throughout.
   retention/tiering numbers.
 - **HA sizing, CMK, TLS 1.3** — production hardening; the dev PoC runs smaller, on the AWS-managed
   key, and TLS is being moved to 1.3.
-- **Audit-log verbosity tuning** — audit logging is on from the first build; tuning its verbosity to
-  control ingest cost is a separate ticket (#8585), not a blocker. A ticket has been raised and this
-  is a handover item for the platform team, not part of the current build.
+- **Audit logging — delivery wired, capture not yet enabled.** The domain publishes AUDIT_LOGS to a
+  CloudWatch group, but the security plugin's audit capture is currently off
+  (`config.enabled=false`), so no audit events are being recorded (verified on the dev domain, 20
+  Oct — only AWS's validation streams in the group). Enabling capture (`audit.enabled=true` via the
+  security API / OpenSearch provider) and tuning its verbosity to control ingest cost are tracked on
+  #8585. The verbosity levers already sit at low-noise values (categories AUTHENTICATED/
+  GRANTED_PRIVILEGES excluded, no request bodies, metadata-only), so #8585 is mostly enable +
+  confirm + codify. Same OpenSearch-provider dependency as #8592. Handover item, not current build.
 
 ### Verified facts (AWS docs / Pricing API, eu-west-2)
 
