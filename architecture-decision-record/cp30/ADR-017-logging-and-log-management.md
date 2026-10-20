@@ -553,6 +553,15 @@ governs the S3 copy, not OpenSearch's internal tiering.
   separate option if ever needed). The FGAC write mapping is for the **OSIS pipeline role**, not the
   Fluent Bit role — the #8592 hand-off. Terraform: `opensearch-ingestion.tf`.
 
+  **Why EventBridge and not a direct S3 → SQS notification.** The OSIS S3 source is read-based: the
+  pipeline polls an SQS queue that lists new objects to pull (AWS calls this "S3-SQS processing"), so
+  the queue is required either way — the only choice is how S3 feeds it. An S3 event notification
+  allows only one destination, so a direct S3 → SQS notification would lock the bucket to a single
+  consumer and sit in the `cluster` component that owns the bucket. EventBridge lets several consumers
+  each own a rule (per-`logs/`-prefix filtered), avoids that cross-component clash, and is the
+  mechanism that makes the cross-account forwarding below possible. A scheduled OSIS S3 scan was also
+  rejected — it is batch, not near real-time.
+
   **Cross-account topology (Option B — central pipeline).** The log buckets are per business unit, in
   each BU's account; the domain is central, in the platform account. Rather than an OSIS pipeline in
   every BU account (which multiplies the standing OCU cost and pushes compute into the BUs — the same
@@ -597,6 +606,12 @@ Only S3 object-created *events* cross accounts (dotted); logs themselves stay in
 and the OSIS pipeline's write to the domain is same-account. CloudWatch (per BU, operational, 30-day)
 is a separate direct Fluent Bit output, not part of the OpenSearch feed. Today's dev build is the
 single-account form of this (one bucket, one EventBridge rule, one pipeline).
+
+AWS references:
+- [OSIS S3 source is read-based and polls SQS ("S3-SQS processing")](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/configure-client-s3.html)
+- [S3 event notifications allow only one destination; EventBridge is the fan-out path](https://docs.aws.amazon.com/AmazonS3/latest/userguide/notification-how-to-event-types-and-destinations.html)
+- [Enabling S3 → EventBridge](https://docs.aws.amazon.com/AmazonS3/latest/userguide/EventBridge.html)
+- [OSIS best practices (SQS visibility-timeout sizing)](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/osis-best-practices.html)
 
 ### Serverless — not used
 
