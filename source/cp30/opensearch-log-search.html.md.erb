@@ -1,7 +1,7 @@
 ---
 title: Searching logs in OpenSearch
 weight: 17
-last_reviewed_on: 2026-10-19
+last_reviewed_on: 2026-10-20
 review_in: 6 months
 ---
 
@@ -24,7 +24,8 @@ sign-on as the AWS access portal and Grafana.
 > [modernisation-platform-environments](https://github.com/ministryofjustice/modernisation-platform-environments)
 > under `terraform/environments/cloud-platform` (the `root` component,
 > `opensearch.tf`), and the design is recorded in
-> [ADR-017 OpenSearch deployment model](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/cp30/ADR-017-opensearch-deployment-model.md).
+> [ADR-017 Logging and Log Management Architecture](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/cp30/ADR-017-logging-and-log-management.md)
+> (see its OpenSearch section).
 
 > **Status:** this is a development proof of concept. The cluster runs in the
 > cloud-platform development account only, on a public (internet-facing)
@@ -51,9 +52,6 @@ isolation model) is set out in ADR-017.
 
 ## Signing in
 
-<!-- TODO (verify once the sign-in fix is applied): walk the exact steps against
-     the live UI before publishing. Fill in from a real sign-in. -->
-
 Access is through the **OpenSearch UI application**, not the domain's own
 Dashboards address (that has no interactive sign-in).
 
@@ -62,8 +60,10 @@ Dashboards address (that has no interactive sign-in).
    you are not already signed in.
 3. You land in OpenSearch Dashboards.
 
-Your access is decided by your **Identity Center group membership** — there is
-nothing to request per person; being in the right group is enough.
+Your access follows your **Identity Center group membership** — being in the
+right group is enough, there is nothing to request per person. Your group does
+need to be added to the application by the platform team first; once it is,
+everyone in that group can sign in.
 
 ## Access model
 
@@ -99,8 +99,8 @@ browser UI. Browser sign-in is for interactive use only.
 ## Troubleshooting
 
 - **"You don't have authorization to access dashboards"** — your Identity Center
-  group is not mapped to a role yet. Contact the platform team with your group
-  name.
+  group has not been added to the application yet. Contact the platform team with
+  your group name so they can add it.
 - **Signed in but no indexes** — logs may not be flowing for your unit yet, or
   your index pattern does not match `<business-unit>-<environment>-*`.
 - **Cannot reach the URL** — use the OpenSearch UI application URL, not the
