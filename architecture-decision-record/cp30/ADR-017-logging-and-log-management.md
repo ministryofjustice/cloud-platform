@@ -491,9 +491,26 @@ governs the S3 copy, not OpenSearch's internal tiering.
   Fluent Bit's write path is private regardless.
 - **Access** — IAM Identity Center SSO (ADR-004 / AMG pattern); platform engineers admin, BU
   engineers read-only on the platform cluster.
-- **Ingestion** — Fluent Bit (#8419) → S3 + CloudWatch + OpenSearch, each feature-flagged. The
-  Fluent Bit → OpenSearch write needs an FGAC role mapping for the Fluent Bit Pod Identity role
-  (`<cluster>-fluent-bit`), scoped to its BU's index — the hand-off with #8419.
+- **Ingestion — S3-first, via OpenSearch Ingestion (OSIS), not a direct write.** Fluent Bit (#8419)
+  writes to S3 + CloudWatch (each feature-flagged). OpenSearch is fed **from S3**, not by Fluent Bit
+  writing to the domain directly: S3 object-created events → EventBridge → SQS → an **OpenSearch
+  Ingestion (OSIS)** pipeline → the domain (`<bu>-<env>-*`). This matches the S3-first, event-driven
+  design (no log loss; S3 is the durable source), uses no Lambda (NFR-003), and is the priority path
+  over direct Fluent Bit → OpenSearch (which drops logs when the domain is unavailable; kept as a
+  separate option if ever needed). The FGAC write mapping is for the **OSIS pipeline role**, not the
+  Fluent Bit role — the #8592 hand-off. Terraform: `opensearch-ingestion.tf`.
+
+  **Cross-account topology (Option B — central pipeline).** The log buckets are per business unit, in
+  each BU's account; the domain is central, in the platform account. Rather than an OSIS pipeline in
+  every BU account (which multiplies the standing OCU cost and pushes compute into the BUs — the same
+  argument that ruled out per-BU clusters), each BU bucket **forwards its S3 events via EventBridge to
+  the platform account**, where **one central OSIS pipeline** consumes them and writes to the shared
+  domain. Only the event notification crosses accounts; the pipeline → domain write stays
+  same-account. Per-BU pipelines remain the fallback if a classification ever needs a physically
+  separate ingestion path. The current dev build is the **same-account form** of this (one bucket,
+  one rule, one pipeline in the dev account); the cross-account forwarding is additive as per-BU
+  buckets land. OSIS has no scale-to-zero, so a running pipeline is ~$175–350/month per pipeline —
+  the reason to keep it central (one standing cost, not one per BU).
 
 ### Serverless — not used
 
@@ -506,12 +523,17 @@ index-level isolation. Provisioned managed OpenSearch is used throughout.
 
 - **Security sign-off on logical isolation** — the gating item for full rollout.
 - **Retention durations/tiers** — mechanism is per-index ISM; values follow the MoJ standard (D13).
-- **Per-index design, ISM, role mappings, Fluent Bit write access** — in-cluster config via the
-  OpenSearch provider, tracked on #8592 (needs the Fluent Bit role from #8419).
+- **Per-index design, ISM, role mappings, ingestion write access** — in-cluster config via the
+  OpenSearch provider, tracked on #8592. The write mapping is for the **OSIS pipeline role** (the S3
+  path writes via OSIS, not Fluent Bit directly). Also the cross-account EventBridge forwarding for
+  per-BU buckets.
 - **Full-scale cost** — platform-vs-user split measured (~70% platform); target saving pending the
   retention/tiering numbers.
 - **HA sizing, CMK, TLS 1.3** — production hardening; the dev PoC runs smaller, on the AWS-managed
   key, and TLS is being moved to 1.3.
+- **Audit-log verbosity tuning** — audit logging is on from the first build; tuning its verbosity to
+  control ingest cost is a separate ticket (#8585), not a blocker. A ticket has been raised and this
+  is a handover item for the platform team, not part of the current build.
 
 ### Verified facts (AWS docs / Pricing API, eu-west-2)
 
