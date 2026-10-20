@@ -353,6 +353,51 @@ Serverless is not used.
 | **B — Cluster per BU, in BU accounts** | Each BU its own cluster in its own AWS account | Physical (account boundary) | Highest — 8–9 clusters across accounts | Most to run; per-cluster master-node cost |
 | **C — Cluster per BU, one account** | Each BU its own cluster, all in one account | Physical (cluster boundary) | High — 8–9 clusters | Middle ground |
 
+**Option A — shared cluster per environment, per-BU indexes (chosen)**
+
+```mermaid
+flowchart TB
+  subgraph BUA["BU-A cluster (EKS + Fluent Bit)"]
+    FBA["Fluent Bit"]
+  end
+  subgraph BUB["BU-B cluster (EKS + Fluent Bit)"]
+    FBB["Fluent Bit"]
+  end
+  subgraph OBS["Shared OpenSearch (platform account)"]
+    OS["OpenSearch domain<br/>index: bu-a-*, bu-b-*, ..."]
+    DASH["OpenSearch Dashboards<br/>(Identity Center SSO)"]
+  end
+  FBA -- "bu-a-*" --> OS
+  FBB -- "bu-b-*" --> OS
+  OS --> DASH
+  DASH -. "BU-A sees bu-a-* only<br/>BU-B sees bu-b-* only<br/>(index-level roles)" .-> OS
+```
+
+Each BU's logs go into one shared cluster, to its own index; index-level roles mean a BU sees only
+its own. One cluster per environment to run; isolation is logical. (How logs reach the cluster is the
+ingestion path below — via S3, not a direct write.)
+
+**Option B — one cluster per BU, in each BU's account (fallback)**
+
+```mermaid
+flowchart TB
+  subgraph BUA["BU-A account"]
+    FBA["Fluent Bit"] --> OSA["OpenSearch domain (BU-A)"]
+    OSA --> DA["Dashboards (BU-A SSO)"]
+  end
+  subgraph BUB["BU-B account"]
+    FBB["Fluent Bit"] --> OSB["OpenSearch domain (BU-B)"]
+    OSB --> DB["Dashboards (BU-B SSO)"]
+  end
+  PE["Platform engineers<br/>(assume-role into each account)"]
+  PE -. admin .-> OSA
+  PE -. admin .-> OSB
+```
+
+Each BU its own cluster in its own account. Strongest isolation, no noisy neighbour — but 8–9
+clusters to run, each with its own master-node standing cost, and the platform team assume-roles into
+each account. The fallback if security mandates physical separation.
+
 Option A was originally ruled out on noisy-neighbour grounds, then chosen once the cost breakdown
 landed and noisy neighbour was judged addressable with in-cluster controls. **Option B is kept as
 the fallback** if security mandates physical separation (in whole or for a classification). Moving
@@ -490,7 +535,15 @@ governs the S3 copy, not OpenSearch's internal tiering.
   Grafana are public too), locked down by FGAC + HTTPS. Target is private (in-VPC) once VPN exists;
   Fluent Bit's write path is private regardless.
 - **Access** — IAM Identity Center SSO (ADR-004 / AMG pattern); platform engineers admin, BU
-  engineers read-only on the platform cluster.
+  engineers read-only on the platform cluster. Browser sign-in uses the OpenSearch **UI application**
+  (the `aws_opensearch_application` resource), which registers an IdC application under the hood.
+  Three things must all be in place or sign-in fails with "not authorized to access dashboards":
+  (1) the UI application exists; (2) `dashboardAdmin.groups` holds the admin groups' **IDs** (not
+  names); and (3) those groups are **assigned to the IdC application** — it requires assignment, so
+  with none assigned IdC passes no group claims and the admin check has nothing to match. All three
+  are codified in `opensearch.tf`. A gotcha: the AWS provider's `aws_opensearch_application` **update**
+  path doesn't persist `app_config` changes ([provider bug #49240](https://github.com/hashicorp/terraform-provider-aws/issues/49240)) — the value only sticks on
+  **create**, so changing the admin groups needs a `-replace` of the application until that's fixed.
 - **Ingestion — S3-first, via OpenSearch Ingestion (OSIS), not a direct write.** Fluent Bit (#8419)
   writes to S3 + CloudWatch (each feature-flagged). OpenSearch is fed **from S3**, not by Fluent Bit
   writing to the domain directly: S3 object-created events → EventBridge → SQS → an **OpenSearch
@@ -512,12 +565,58 @@ governs the S3 copy, not OpenSearch's internal tiering.
   buckets land. OSIS has no scale-to-zero, so a running pipeline is ~$175–350/month per pipeline —
   the reason to keep it central (one standing cost, not one per BU).
 
+```mermaid
+flowchart LR
+  subgraph BUA["BU-A account"]
+    FBA["Fluent Bit"]
+    S3A["S3 log bucket<br/>(logs/)"]
+    CWA["CloudWatch Logs<br/>(30d, operational)"]
+    FBA -->|archive| S3A
+    FBA -->|operational| CWA
+    S3A -->|Object Created| EBA["EventBridge"]
+  end
+  subgraph BUB["BU-B account"]
+    FBB["Fluent Bit"]
+    S3B["S3 log bucket<br/>(logs/)"]
+    FBB --> S3B
+    S3B -->|Object Created| EBB["EventBridge"]
+  end
+  subgraph PLAT["Platform account"]
+    BUS["EventBridge<br/>(platform bus)"]
+    SQS["SQS queue"]
+    OSIS["OpenSearch Ingestion<br/>(OSIS) pipeline"]
+    OS["OpenSearch domain<br/>index per BU: bu-a-*, bu-b-*"]
+    DASH["Dashboards<br/>(Identity Center SSO)"]
+    BUS --> SQS --> OSIS -->|write bu-x-*| OS --> DASH
+  end
+  EBA -.->|forward events| BUS
+  EBB -.->|forward events| BUS
+```
+
+Only S3 object-created *events* cross accounts (dotted); logs themselves stay in each BU's S3 bucket,
+and the OSIS pipeline's write to the domain is same-account. CloudWatch (per BU, operational, 30-day)
+is a separate direct Fluent Bit output, not part of the OpenSearch feed. Today's dev build is the
+single-account form of this (one bucket, one EventBridge rule, one pipeline).
+
 ### Serverless — not used
 
 OpenSearch Serverless (OCU-based, scale-to-zero) was considered for non-live. Rejected: the dev PoC
 runs only a few times a year so idle-cost saving is minimal, Serverless wouldn't match managed
 production, and its access model (data access policies) is weaker than provisioned FGAC for
 index-level isolation. Provisioned managed OpenSearch is used throughout.
+
+### Tracing — a consideration for the logging choice
+
+CP3 may add distributed tracing (CP2 has none). Tracing isn't decided here (ADR-005), but *where*
+traces go affects the logging tool choice. Two homes, both fed by OpenTelemetry (ADOT):
+
+- **X-Ray (+ ADOT)** — fully managed, viewed in the CloudWatch console; standard EKS path. But
+  metrics (Grafana) + logs (OpenSearch) + traces (X-Ray) = three UIs.
+- **OpenSearch Trace Analytics (+ Data Prepper)** — keeps logs and traces in the **same Dashboards**;
+  costs extra load/storage on the cluster and running Data Prepper.
+
+Don't decide tracing here, but note that choosing OpenSearch for logs keeps the door open to a single
+logs-plus-traces UI. Weigh against X-Ray's managed simplicity when tracing is designed.
 
 ### What is still open
 
@@ -527,6 +626,10 @@ index-level isolation. Provisioned managed OpenSearch is used throughout.
   OpenSearch provider, tracked on #8592. The write mapping is for the **OSIS pipeline role** (the S3
   path writes via OSIS, not Fluent Bit directly). Also the cross-account EventBridge forwarding for
   per-BU buckets.
+- **CI apply role needs OSIS permissions** — creating the OSIS pipeline needs `osis:CreatePipeline`,
+  `osis:ValidatePipeline`, the pipeline-lifecycle `osis:*`, and `iam:PassRole` on the pipeline role.
+  The root apply role (`github-actions-apply`, a Modernisation Platform shared role) does not have
+  these today — an MP IAM change, confirmed by a failed create in testing.
 - **Full-scale cost** — platform-vs-user split measured (~70% platform); target saving pending the
   retention/tiering numbers.
 - **HA sizing, CMK, TLS 1.3** — production hardening; the dev PoC runs smaller, on the AWS-managed
