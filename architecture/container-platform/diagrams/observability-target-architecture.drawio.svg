@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="860" viewBox="0 0 1200 860" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#37474f"/>
+    </marker>
+    <marker id="arrowDash" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#b85450"/>
+    </marker>
+  </defs>
+  <style>
+    .title { font-size: 22px; font-weight: bold; fill: #102a43; }
+    .subtitle { font-size: 13px; fill: #486581; }
+    .acct { font-size: 13px; font-weight: bold; fill: #b1361e; }
+    .grp { font-size: 13px; font-weight: bold; fill: #0d3c78; }
+    .greenh { font-size: 13px; font-weight: bold; fill: #1b5e20; }
+    .lbl { font-size: 11px; fill: #37474f; }
+    .small { font-size: 10.5px; fill: #52606d; }
+    .gate { font-size: 13px; font-weight: bold; fill: #a1332b; }
+  </style>
+
+  <!-- Title -->
+  <text x="600" y="34" text-anchor="middle" class="title">ADR-005 Observability — Target Architecture (Phase 2, multi-BU)</text>
+  <text x="600" y="54" text-anchor="middle" class="subtitle">One central AMG in cloud-platform-live; metrics and logs stay in each BU account, queried cross-account — eu-west-2</text>
+
+  <!-- Identity Center -->
+  <rect x="40" y="90" width="240" height="90" rx="8" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="160" y="116" text-anchor="middle" class="grp">IAM Identity Center (ADR-004)</text>
+  <text x="160" y="136" text-anchor="middle" class="small">Per-BU IdC groups</text>
+  <text x="160" y="154" text-anchor="middle" class="small">derived from product.yaml</text>
+  <text x="160" y="170" text-anchor="middle" class="small">access[] entries</text>
+
+  <!-- Live account boundary -->
+  <rect x="330" y="80" width="520" height="470" rx="10" fill="#f7fafc" stroke="#627d98" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="350" y="102" class="acct">cloud-platform-live account</text>
+
+  <!-- AMG workspace -->
+  <rect x="350" y="118" width="480" height="300" rx="8" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="590" y="141" text-anchor="middle" class="greenh">Single central AMG workspace (all BUs, live + non-live)</text>
+
+  <rect x="368" y="156" width="444" height="48" rx="6" fill="#ffffff" stroke="#82b366" stroke-width="1.2"/>
+  <text x="590" y="178" text-anchor="middle" class="lbl" font-weight="bold">Per-BU data sources</text>
+  <text x="590" y="195" text-anchor="middle" class="small">one per BU AMP / CloudWatch, named by convention</text>
+
+  <!-- isolation -->
+  <rect x="368" y="214" width="444" height="130" rx="6" fill="#eafaf1" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="590" y="234" text-anchor="middle" class="greenh" fill="#1e8449">Per-BU isolation</text>
+  <rect x="382" y="246" width="138" height="88" rx="6" fill="#ffffff" stroke="#27ae60" stroke-width="1.2"/>
+  <text x="451" y="270" text-anchor="middle" class="lbl" font-weight="bold">Grafana team</text>
+  <text x="451" y="288" text-anchor="middle" class="small">per BU</text>
+  <text x="451" y="306" text-anchor="middle" class="small">&#8592; list of</text>
+  <text x="451" y="322" text-anchor="middle" class="small">IdC groups</text>
+  <rect x="522" y="246" width="138" height="88" rx="6" fill="#ffffff" stroke="#27ae60" stroke-width="1.2"/>
+  <text x="591" y="270" text-anchor="middle" class="lbl" font-weight="bold">DS permission</text>
+  <text x="591" y="288" text-anchor="middle" class="small">only BU team</text>
+  <text x="591" y="304" text-anchor="middle" class="small">&#8594; Query</text>
+  <text x="591" y="322" text-anchor="middle" class="small">(default-deny)</text>
+  <rect x="662" y="246" width="136" height="88" rx="6" fill="#ffffff" stroke="#27ae60" stroke-width="1.2"/>
+  <text x="730" y="270" text-anchor="middle" class="lbl" font-weight="bold">Per-BU folder</text>
+  <text x="730" y="290" text-anchor="middle" class="small">Viewer</text>
+  <text x="730" y="310" text-anchor="middle" class="small">read-only</text>
+
+  <rect x="368" y="356" width="444" height="46" rx="6" fill="#ffffff" stroke="#82b366" stroke-width="1.2"/>
+  <text x="590" y="384" text-anchor="middle" class="lbl" font-weight="bold">Alerting (Grafana unified alerting &#8594; SNS)</text>
+
+  <!-- dashboards as code -->
+  <rect x="380" y="440" width="420" height="56" rx="8" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="590" y="464" text-anchor="middle" class="lbl" font-weight="bold" fill="#a1332b">Dashboards-as-code pipeline</text>
+  <text x="590" y="482" text-anchor="middle" class="small">author in UI &#8594; export JSON &#8594; commit to repo &#8594; pipeline applies</text>
+
+  <!-- Decision gate -->
+  <rect x="330" y="580" width="520" height="110" rx="10" fill="#fde8e8" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="590" y="606" text-anchor="middle" class="gate">Metrics backend — decided at Phase 1 Week 10 gate (US-008)</text>
+  <text x="590" y="632" text-anchor="middle" class="lbl">Option A: AMP + ADOT — PromQL, 100 alert-rule limit</text>
+  <text x="590" y="654" text-anchor="middle" class="lbl">Option D: CloudWatch + Container Insights — simpler, 5000 alarms, no PromQL</text>
+  <text x="590" y="678" text-anchor="middle" class="small">Selected backend populates the per-BU data sources above</text>
+
+  <!-- BU spoke accounts boundary -->
+  <rect x="890" y="80" width="270" height="610" rx="10" fill="#f7fafc" stroke="#627d98" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="910" y="102" class="acct">BU spoke accounts — data stays at source</text>
+
+  <!-- BU 1 -->
+  <rect x="910" y="118" width="230" height="220" rx="8" fill="#f0f4f8" stroke="#627d98" stroke-width="1.2"/>
+  <text x="1025" y="140" text-anchor="middle" class="grp">BU account 1</text>
+  <rect x="928" y="152" width="194" height="42" rx="6" fill="#ffffff" stroke="#9673a6" stroke-width="1.2"/>
+  <text x="1025" y="178" text-anchor="middle" class="lbl" fill="#6b3fa0">EKS cluster(s)</text>
+  <rect x="928" y="206" width="194" height="48" rx="6" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2"/>
+  <text x="1025" y="234" text-anchor="middle" class="lbl">AMP workspace / CloudWatch</text>
+  <rect x="928" y="266" width="194" height="56" rx="6" fill="#ffffff" stroke="#d79b00" stroke-width="1.2"/>
+  <text x="1025" y="290" text-anchor="middle" class="lbl" font-weight="bold">Cross-account query role</text>
+  <text x="1025" y="308" text-anchor="middle" class="small">scoped to this BU (#8517)</text>
+
+  <!-- BU N -->
+  <rect x="910" y="356" width="230" height="220" rx="8" fill="#f0f4f8" stroke="#627d98" stroke-width="1.2"/>
+  <text x="1025" y="378" text-anchor="middle" class="grp">BU account N</text>
+  <rect x="928" y="390" width="194" height="42" rx="6" fill="#ffffff" stroke="#9673a6" stroke-width="1.2"/>
+  <text x="1025" y="416" text-anchor="middle" class="lbl" fill="#6b3fa0">EKS cluster(s)</text>
+  <rect x="928" y="444" width="194" height="48" rx="6" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2"/>
+  <text x="1025" y="472" text-anchor="middle" class="lbl">AMP workspace / CloudWatch</text>
+  <rect x="928" y="504" width="194" height="56" rx="6" fill="#ffffff" stroke="#d79b00" stroke-width="1.2"/>
+  <text x="1025" y="528" text-anchor="middle" class="lbl" font-weight="bold">Cross-account query role</text>
+  <text x="1025" y="546" text-anchor="middle" class="small">scoped to this BU (#8517)</text>
+
+  <!-- Shared log pipeline -->
+  <rect x="330" y="720" width="520" height="66" rx="8" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <text x="590" y="746" text-anchor="middle" class="lbl" font-weight="bold">Shared log pipeline (both options) — see ADR-017</text>
+  <text x="590" y="766" text-anchor="middle" class="small">Fluent Bit DaemonSet per cluster &#8594; CloudWatch Logs</text>
+
+  <!-- Edges -->
+  <line x1="928" y1="230" x2="928" y2="230" stroke="#37474f" stroke-width="0"/>
+  <line x1="1025" y1="194" x2="1025" y2="204" stroke="#37474f" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="1025" y1="254" x2="1025" y2="264" stroke="#37474f" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="1025" y1="432" x2="1025" y2="442" stroke="#37474f" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="1025" y1="492" x2="1025" y2="502" stroke="#37474f" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <path d="M928,294 C860,294 820,220 814,190" fill="none" stroke="#37474f" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M928,532 C870,532 820,240 814,200" fill="none" stroke="#37474f" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="838" y="250" class="small" transform="rotate(-90 838 250)">assume role, cross-account query</text>
+
+  <line x1="280" y1="135" x2="348" y2="180" stroke="#37474f" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="286" y="200" class="small">SSO + team sync</text>
+
+  <line x1="590" y1="440" x2="590" y2="420" stroke="#b85450" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrowDash)"/>
+  <line x1="590" y1="580" x2="590" y2="498" stroke="#b85450" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrowDash)"/>
+</svg>
