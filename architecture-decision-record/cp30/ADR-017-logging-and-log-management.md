@@ -544,16 +544,52 @@ governs the S3 copy, not OpenSearch's internal tiering.
   are codified in `opensearch.tf`. A gotcha: the AWS provider's `aws_opensearch_application` **update**
   path doesn't persist `app_config` changes ([provider bug #49240](https://github.com/hashicorp/terraform-provider-aws/issues/49240)) — the value only sticks on
   **create**, so changing the admin groups needs a `-replace` of the application until that's fixed.
-- **Ingestion — S3-first, via OpenSearch Ingestion (OSIS), not a direct write.** Fluent Bit (#8419)
-  writes to S3 + CloudWatch (each feature-flagged). OpenSearch is fed **from S3**, not by Fluent Bit
-  writing to the domain directly: S3 object-created events → EventBridge → SQS → an **OpenSearch
-  Ingestion (OSIS)** pipeline → the domain (`<bu>-<env>-*`). This matches the S3-first, event-driven
-  design (no log loss; S3 is the durable source), uses no Lambda (NFR-003), and is the priority path
-  over direct Fluent Bit → OpenSearch (which drops logs when the domain is unavailable; kept as a
-  separate option if ever needed). The FGAC write mapping is for the **OSIS pipeline role**, not the
-  Fluent Bit role — the #8592 hand-off. Terraform: `opensearch-ingestion.tf`.
 
-  **Why EventBridge and not a direct S3 → SQS notification.** The OSIS S3 source is read-based: the
+  **Reading data needs a fourth thing.** Signing in is not the same as seeing data. The UI reads the
+  domain through its own IAM role, and attaches the signed-in user's identity to each request
+  (trusted identity propagation). For that, the role's trust policy must allow `sts:SetContext` with
+  `sts:RequestContextProviders` set to exactly `arn:aws:iam::aws:contextProvider/IdentityCenter`
+  ([AWS docs](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/application-getting-started.html)).
+  Any other value lets users sign in but makes **every** data request fail with "Request failed to
+  get to the server (status code: 400)" — even `GET /` in Dev Tools. This was found once logs first
+  reached the domain; fixed in #19947. Access to data then follows the user's Identity Center groups,
+  matched to OpenSearch roles by group **name** (the domain's roles key is `GroupName`). No mapping is
+  needed for the UI role itself.
+- **Ingestion — route under review (#8623).** Fluent Bit (#8419) writes to S3 and CloudWatch. S3
+  keeps a copy whatever route feeds OpenSearch, because other consumers (for example SOC forwarding)
+  depend on it. How logs get **into OpenSearch** has been reopened, because the direct route now
+  works:
+
+  | Route | How it works | Trade-off |
+  |---|---|---|
+  | 1. S3 first, via OSIS (in Terraform, switched off) | Fluent Bit → S3 → EventBridge → SQS → OpenSearch Ingestion (OSIS) → domain | S3 is the durable source, so an OpenSearch outage loses nothing. Adds delay; OSIS costs ~$175–350/month per pipeline (no scale-to-zero) |
+  | 2. Fluent Bit straight to OpenSearch (working in dev) | Fluent Bit OpenSearch output, with bulk retry and a dead-letter queue (DLQ) | Simplest, no EventBridge/SQS/OSIS. But the Fluent Bit DLQ is on the node's local disk, not durable like S3, and recovery from it is manual |
+  | 3. Fluent Bit to OSIS over HTTP | Fluent Bit HTTP output → OSIS (HTTP source) → domain | No S3 in the OpenSearch path, but still pays for OSIS |
+
+  **Evidence so far.** Route 2 is running on a dev cluster: about 42,000 log lines indexed into
+  `fluentbit-<cluster>-<date>`, searchable in the UI. For route 1, the S3 → EventBridge → SQS half was
+  tested on a real Fluent Bit bucket (about 15 seconds from object written to message queued); the
+  pipeline itself is not built (see "What is still open"). Route 1 was originally preferred because a
+  direct write drops logs when the domain is unavailable; Fluent Bit's bulk retry and DLQ reduce that
+  risk but do not remove it, since the DLQ is not durable. References:
+  [bulk retries](https://docs.fluentbit.io/manual/data-pipeline/outputs/opensearch#bulk-retries),
+  [dead letter queue](https://docs.fluentbit.io/manual/administration/dead-letter-queue),
+  [Fluent Bit to OSIS](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/configure-client-fluentbit.html).
+
+  **Log bucket — one shared bucket per account.** Agreed in design review: move the Fluent Bit log
+  bucket out of the `cluster` component into `root`, one bucket per cloud-platform account
+  (development, non-live, live), with the cluster as a prefix (`logs/<cluster>/...`). Fluent Bit looks
+  the bucket up instead of creating one per cluster. This fixes the problem that a shared pipeline in
+  `root` cannot tell which cluster's bucket to read. A shared bucket is also preferred over one per
+  business unit: the per-BU choice existed because an S3 bucket can send its event notifications to
+  only one destination, and EventBridge removes that limit. It also avoids an ordering problem where
+  each BU's bucket policy needs the pipeline role's ARN before the pipeline exists.
+
+  Whichever role writes to OpenSearch (the Fluent Bit role for route 2, the OSIS pipeline role for
+  routes 1 and 3) needs an FGAC write mapping — the #8592 hand-off. Terraform for route 1:
+  `opensearch-ingestion.tf`.
+
+  **Route 1 detail — why EventBridge and not a direct S3 → SQS notification.** The OSIS S3 source is read-based: the
   pipeline polls an SQS queue that lists new objects to pull (AWS calls this "S3-SQS processing"), so
   the queue is required either way — the only choice is how S3 feeds it. An S3 event notification
   allows only one destination, so a direct S3 → SQS notification would lock the bucket to a single
@@ -562,17 +598,20 @@ governs the S3 copy, not OpenSearch's internal tiering.
   mechanism that makes the cross-account forwarding below possible. A scheduled OSIS S3 scan was also
   rejected — it is batch, not near real-time.
 
-  **Cross-account topology (Option B — central pipeline).** The log buckets are per business unit, in
+  **Cross-account topology (Option B — central pipeline), for route 1 with per-BU buckets.** Kept
+  for the record: this was the plan while buckets were per business unit. The shared bucket per
+  account above, if adopted, removes the need for cross-account event forwarding. In this design the
+  log buckets are per business unit, in
   each BU's account; the domain is central, in the platform account. Rather than an OSIS pipeline in
   every BU account (which multiplies the standing OCU cost and pushes compute into the BUs — the same
   argument that ruled out per-BU clusters), each BU bucket **forwards its S3 events via EventBridge to
   the platform account**, where **one central OSIS pipeline** consumes them and writes to the shared
   domain. Only the event notification crosses accounts; the pipeline → domain write stays
   same-account. Per-BU pipelines remain the fallback if a classification ever needs a physically
-  separate ingestion path. The current dev build is the **same-account form** of this (one bucket,
-  one rule, one pipeline in the dev account); the cross-account forwarding is additive as per-BU
-  buckets land. OSIS has no scale-to-zero, so a running pipeline is ~$175–350/month per pipeline —
-  the reason to keep it central (one standing cost, not one per BU).
+  separate ingestion path. In dev the same-account form of this (one bucket, one rule, one
+  pipeline) is written in Terraform but switched off, and the pipeline has never been created. OSIS
+  has no scale-to-zero, so a running pipeline is ~$175–350/month per pipeline — the reason to keep it
+  central (one standing cost, not one per BU).
 
 ```mermaid
 flowchart LR
@@ -604,8 +643,8 @@ flowchart LR
 
 Only S3 object-created *events* cross accounts (dotted); logs themselves stay in each BU's S3 bucket,
 and the OSIS pipeline's write to the domain is same-account. CloudWatch (per BU, operational, 30-day)
-is a separate direct Fluent Bit output, not part of the OpenSearch feed. Today's dev build is the
-single-account form of this (one bucket, one EventBridge rule, one pipeline).
+is a separate direct Fluent Bit output, not part of the OpenSearch feed. This diagram shows route 1
+with per-BU buckets; it is not what runs in dev today (see the route table above).
 
 AWS references:
 - [OSIS S3 source is read-based and polls SQS ("S3-SQS processing")](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/configure-client-s3.html)
@@ -637,14 +676,19 @@ logs-plus-traces UI. Weigh against X-Ray's managed simplicity when tracing is de
 
 - **Security sign-off on logical isolation** — the gating item for full rollout.
 - **Retention durations/tiers** — mechanism is per-index ISM; values follow the MoJ standard (D13).
+- **Ingestion route and shared log bucket** — choose route 1, 2 or 3 and build the shared bucket
+  per account, tracked on #8623. Index names in the dev test are `fluentbit-<cluster>-<date>`; they
+  need to follow `<bu>-<env>-*` before per-BU access rules can apply.
 - **Per-index design, ISM, role mappings, ingestion write access** — in-cluster config via the
-  OpenSearch provider, tracked on #8592. The write mapping is for the **OSIS pipeline role** (the S3
-  path writes via OSIS, not Fluent Bit directly). Also the cross-account EventBridge forwarding for
-  per-BU buckets.
-- **CI apply role needs OSIS permissions** — creating the OSIS pipeline needs `osis:CreatePipeline`,
+  OpenSearch provider, tracked on #8592. The write mapping is for whichever role writes (Fluent Bit
+  role for route 2, OSIS pipeline role for routes 1 and 3). The dev test's Fluent Bit write mapping
+  (`fluentbit-<cluster>-writer`) was added by hand and covers one cluster only; it needs codifying in
+  a form that works for every cluster.
+- **OSIS permissions** (routes 1 and 3 only) — creating the pipeline needs `osis:CreatePipeline`,
   `osis:ValidatePipeline`, the pipeline-lifecycle `osis:*`, and `iam:PassRole` on the pipeline role.
-  The root apply role (`github-actions-apply`, a Modernisation Platform shared role) does not have
-  these today — an MP IAM change, confirmed by a failed create in testing.
+  These are denied today for both the root apply role (`github-actions-apply`, a Modernisation
+  Platform shared role) and the `platform-engineer-admin` SSO role, confirmed by failed creates in
+  testing. Needs a permissions request to the Modernisation Platform team.
 - **Full-scale cost** — platform-vs-user split measured (~70% platform); target saving pending the
   retention/tiering numbers.
 - **HA sizing, CMK, TLS 1.3** — production hardening; the dev PoC runs smaller, on the AWS-managed
