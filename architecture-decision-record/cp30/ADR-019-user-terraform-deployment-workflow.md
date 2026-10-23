@@ -3,7 +3,8 @@
 **Status:** Proposed - draft  
 **Date:** 2026-10-06  
 **Decision Maker:** Cloud Platform team, subject to AWS and security agreement  
-**Category:** CICD/Infrastructure
+**Category:** CICD/Infrastructure  
+**Supersedes:** ADR-003 (KRO + ACK platform abstraction, rejected 2026-10-23)
 
 ## Context
 
