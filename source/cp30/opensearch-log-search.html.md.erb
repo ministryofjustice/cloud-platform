@@ -1,0 +1,177 @@
+---
+title: Searching logs in OpenSearch
+weight: 17
+last_reviewed_on: 2026-10-23
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+## Overview
+
+Container Platform 3 (CP3) provides full-text log search through a shared
+[Amazon OpenSearch Service](https://aws.amazon.com/opensearch-service/) domain.
+Each environment has one shared managed cluster — one for non-live, one for live
+— used by every business unit: each unit's logs live in their own set of indexes,
+and fine-grained access control keeps a unit's view to its own logs. You search
+and build visualisations through OpenSearch Dashboards,
+reached from an AWS-hosted OpenSearch user interface (OpenSearch UI) that you
+sign into with your MoJ identity through IAM Identity Center — the same single
+sign-on as the AWS access portal and Grafana.
+
+> This page is a developer and platform-engineer guide to how log search works
+> and how to use it. The Terraform that implements it lives in
+> [modernisation-platform-environments](https://github.com/ministryofjustice/modernisation-platform-environments)
+> under `terraform/environments/cloud-platform` (the `root` component,
+> `opensearch.tf`), and the design is recorded in
+> [ADR-017 Logging and Log Management Architecture](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/cp30/ADR-017-logging-and-log-management.md)
+> (see its OpenSearch section).
+
+> **Status:** this is a development proof of concept. The cluster runs in the
+> cloud-platform development account only, on a public (internet-facing)
+> endpoint locked down by access control and HTTPS. A move to a private,
+> in-VPC endpoint is planned once VPN access exists. Log ingestion from clusters
+> is still being rolled out, so not every unit's logs are flowing yet.
+
+## How it works
+
+Each environment's shared, managed OpenSearch domain holds that environment's
+logs. Business units are separated **inside** the cluster rather than by
+separate clusters per unit:
+
+- **Per-unit indexes** — each unit's logs go to indexes named
+  `<business-unit>-<environment>-*` (for example `hmpps-non-live-*`).
+- **Fine-grained access control (FGAC)** — a unit's role is scoped to its own
+  index pattern, so a user sees only their own logs.
+- **Encryption and HTTPS** — encryption at rest and in transit (TLS 1.2 or
+  later), with audit log delivery to CloudWatch.
+
+The domain runs OpenSearch 3.7, right-sized for the proof of concept. Why one
+shared cluster rather than one per unit (cost, operational overhead, and the
+isolation model) is set out in ADR-017.
+
+```mermaid
+flowchart TB
+  subgraph ENV["One shared cluster per environment (non-live / live)"]
+    OS["OpenSearch domain"]
+    IDXA["hmpps-non-live-*"]
+    IDXB["laa-non-live-*"]
+    OS --- IDXA
+    OS --- IDXB
+  end
+  UA["HMPPS engineer"]
+  UB["LAA engineer"]
+  UA -->|"sign in (SSO)"| OS
+  UB -->|"sign in (SSO)"| OS
+  OS -. "FGAC: HMPPS sees hmpps-* only" .-> IDXA
+  OS -. "FGAC: LAA sees laa-* only" .-> IDXB
+```
+
+### How logs get here
+
+Your application writes to stdout. Fluent Bit on the cluster collects it and
+sends it to CloudWatch Logs (recent, operational searches) and to an S3 archive
+(the durable copy). It also gets the logs into OpenSearch for full-text search.
+
+> **TODO:** the route into OpenSearch is still being decided. In the
+> development proof of concept, Fluent Bit writes to OpenSearch directly. The
+> alternative is to feed OpenSearch from the S3 archive. Update this section once
+> the route is agreed (see ADR-017, OpenSearch section).
+
+```mermaid
+flowchart LR
+  APP["Your app<br/>(pods, stdout)"]
+  FB["Fluent Bit<br/>(on the cluster)"]
+  S3["S3 log archive<br/>(durable copy)"]
+  CW["CloudWatch Logs<br/>(recent, ~30 days)"]
+  OS["OpenSearch<br/>(full-text search)"]
+  APP --> FB
+  FB --> CW
+  FB --> S3
+  FB -->|route being finalised| OS
+```
+
+## Signing in
+
+Access is through the **OpenSearch UI application**, not the domain's own
+Dashboards address (that has no interactive sign-in).
+
+1. Open the OpenSearch UI application URL (published by the platform team).
+2. You are redirected to IAM Identity Center; sign in with your MoJ identity if
+   you are not already signed in.
+3. You land on the OpenSearch UI home page. Work happens inside a
+   **workspace**. Open an existing one, or create one with the
+   **Observability** use case and add the OpenSearch domain as its data source.
+
+Your access follows your **Identity Center group membership** — being in the
+right group is enough, there is nothing to request per person. Your group does
+need to be added to the application by the platform team first; once it is,
+everyone in that group can sign in.
+
+## Access model
+
+| Role | Who | What you can do |
+|---|---|---|
+| Read-only | Every business unit, by default | Search your unit's logs; build and read visualisations and dashboards. |
+| Elevated | Units that opt in | Read-only, plus safe self-service such as exporting search results. |
+| Admin | Platform team | Full management of the cluster. |
+
+Two things follow:
+
+- You see **only your own unit's logs** — your role is scoped to your unit's
+  `<business-unit>-<environment>-*` indexes.
+- The elevated role is **opt-in per unit**, and each unit maps its own teams to
+  it, so onboarding an engineer needs no platform-team change.
+
+The platform team defines and provisions the roles and manages the cluster;
+business units map their own teams and own index-level access within their own
+indexes.
+
+## Finding your logs
+
+Inside your workspace:
+
+1. Open **Explore logs** (or **Discover**, the compass icon in the left-hand bar).
+2. In the data selector choose **Indexes**, then the OpenSearch domain.
+3. Type your unit's pattern, `<business-unit>-<environment>-*`, and choose
+   **Add wildcard**. Don't pick a single index from the list: indexes are
+   created daily, so a single one only covers one day.
+4. Choose **Next**, set the time field to **`@timestamp`**, then **Select data**.
+5. Set the time range (top right), for example **Last 1 hour**.
+
+You can then search, add fields as columns, and build visualisations and
+dashboards from the same data.
+
+> In the development proof of concept, test indexes are named
+> `fluentbit-<cluster>-<date>` rather than by business unit, so use
+> `fluentbit-*` there.
+
+## Programmatic access
+
+For scripts and tools, call the domain's REST API directly with an AWS-signed
+(SigV4) request using your `platform-engineer` credentials, rather than the
+browser UI. Browser sign-in is for interactive use only.
+
+## Troubleshooting
+
+- **"You don't have authorization to access dashboards"** — your Identity Center
+  group has not been added to the application yet. Contact the platform team with
+  your group name so they can add it.
+- **Signed in but no indexes** — logs may not be flowing for your unit yet, or
+  your index pattern does not match `<business-unit>-<environment>-*`.
+- **Every request fails with "Request failed to get to the server (status code:
+  400)"**, even `GET /` in Dev Tools — this is a platform problem, not your
+  access. The OpenSearch UI cannot pass your identity to the domain. Contact the
+  platform team (the cause is described in ADR-017, OpenSearch section).
+- **Only one day of logs shows** — you picked a single daily index. Go back to
+  the data selector and add the wildcard pattern instead.
+- **No results** — widen the time range, and check the time field is
+  `@timestamp`.
+- **Cannot reach the URL** — use the OpenSearch UI application URL, not the
+  cluster's own Dashboards address.
+
+## Related
+
+For the cluster's managed-component logs (Karpenter, EBS CSI, load balancer
+controller, VPC CNI), which go to CloudWatch rather than OpenSearch, see
+[EKS Auto Mode component logs](auto-mode-component-logs).

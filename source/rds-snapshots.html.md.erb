@@ -1,7 +1,7 @@
 ---
 title: RDS Snapshot Restoration
 weight: 190
-last_reviewed_on: 2025-11-14
+last_reviewed_on: 2026-10-16
 review_in: 6 months
 ---
 
@@ -11,14 +11,57 @@ RDS snapshots have multiple purposes: migrations, backups, etc. When RDS DB inst
 
 This team runbook provides technical guidance for testing and verifying the RDS snapshot restoration process.
 
+<div class="govuk-warning-text">
+  <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+  <strong class="govuk-warning-text__text">
+    <span class="govuk-visually-hidden">Warning</span>
+    Where a team asks for help restoring a production database, advise them to
+    rehearse the same restore in a non-production environment first and to
+    proceed in production only once that has succeeded. Record that advice in
+    the support ticket.
+  </strong>
+</div>
+
 ## Prerequisites
 
 Before performing an RDS restore from snapshot:
 
-1. Ensure you have AWS CLI access with appropriate permissions
-2. Verify the existence of snapshots for the target database
-3. Identify the correct DB instance identifier
-4. Check any existing snapshots with potential naming conflicts
+1. Confirm the team has rehearsed the restore in a non-production environment
+2. Ensure you have AWS CLI access with appropriate permissions
+3. Verify the existence of snapshots for the target database
+4. Identify the correct DB instance identifier
+5. Check any existing snapshots with potential naming conflicts
+
+### Confirm the snapshot belongs to the database being restored
+
+Check the snapshot's source instance, engine version, storage and master username before using it:
+
+```bash
+aws rds describe-db-snapshots \
+  --db-snapshot-identifier <snapshot-identifier> \
+  --query 'DBSnapshots[0].[DBInstanceIdentifier,InstanceCreateTime,EngineVersion,AllocatedStorage,MasterUsername,KmsKeyId]' \
+  --output text
+```
+
+`InstanceCreateTime` is the creation time of the database the snapshot came from, not the time the snapshot was taken. It is the most reliable way to confirm a snapshot's lineage when several snapshots share a similar name.
+
+A snapshot taken from a different database carries that database's master username and KMS key. See [Restored Database Has the Wrong Credentials](#restored-database-has-the-wrong-credentials).
+
+### Use a manual snapshot
+
+Automated snapshots, prefixed `rds:`, are tied to the lifecycle of their source instance and are deleted with it. Terraform destroys the existing instance before creating its replacement, so an automated snapshot can be removed part-way through a restore.
+
+Copy an automated snapshot to a manual one before using it:
+
+```bash
+aws rds copy-db-snapshot \
+  --source-db-snapshot-identifier <automated-snapshot-id> \
+  --target-db-snapshot-identifier <new-manual-snapshot-name> \
+  --copy-tags \
+  --region eu-west-2
+```
+
+Copying is also the safest way to preserve a snapshot that Terraform would otherwise overwrite, or that a team needs held under a stable name. Copies are independent, so deleting the source does not affect the copy.
 
 ## Considerations
 - The amount of manual snapshots per AWS account is limited, so it's important to cleanup old snapshots
@@ -86,21 +129,19 @@ aws rds describe-db-snapshots --db-instance-identifier <db-instance-identifier> 
 
 This will list all available snapshots for the specified database along with their creation timestamps.
 
-### 5. Add SKIP_FILE to Pause Pipeline
+### 3. Pausing the Pipeline Is Currently Unavailable
 
-**Important:** Before making any changes to the RDS configuration, you must first create a PR to add a SKIP_FILE:
+Earlier revisions of this runbook instructed teams to add an `APPLY_PIPELINE_SKIP_THIS_NAMESPACE` file at the root of the namespace to stop the apply pipeline running against it during a restoration.
 
-* Create a PR to add an `APPLY_PIPELINE_SKIP_THIS_NAMESPACE` file at the root of the namespace
-* Merged it
-* Update your local repo with the latest changes from main branch
+> **Warning:** The pipeline mechanism this depends on is currently out of service. Adding the file has no effect, so do not ask teams to add it and do not rely on it to hold a namespace still. Remove this notice once the mechanism is back in service.
 
-This ensures the pipeline doesn't try to apply changes while you're in the middle of the restoration process.
+Agree directly with the team instead that no further changes are merged for the namespace until the restoration is complete and verified. An unrelated apply landing part-way through a replacement is difficult to unpick, because a replacement destroys the instance before recreating it.
 
 ### 4. Create a Test Database with Sample Data (For Testing)
 
 Before proceeding with any live restoration, it's recommended to test the process:
 
-#### 3.1 Seed Test Data Process
+#### 4.1 Seed Test Data Process
 
 1. Create a port-forward pod to establish connection with the RDS database:
 
@@ -149,7 +190,7 @@ Before proceeding with any live restoration, it's recommended to test the proces
    SELECT * FROM restore_test;
    ```
 
-#### 3.2 Create a Manual Snapshot
+#### 4.2 Create a Manual Snapshot
 
 Before making any changes, create a manual snapshot as a safety measure:
 
@@ -168,6 +209,46 @@ aws rds describe-db-instances --db-instance-identifier <db-instance-identifier>
 ```
 
 Note the `AllocatedStorage` and `MaxAllocatedStorage` values. By default, these are set to 20GB and 500GB respectively if not explicitly defined in the module.
+
+The target database's `db_allocated_storage` must be at least equal to the `AllocatedStorage` of the database the snapshot came from. A restore cannot be used to reduce storage, and the apply fails with:
+
+```
+InvalidParameterCombination: Invalid storage size for engine name postgres and storage type gp3: <size>
+```
+
+If `db_allocated_storage` has to be raised to accommodate the restore, the increase must be at least 10 percent of the current value. AWS rejects anything smaller: "You can increase the allocated space on a storage volume by a minimum of 10%. You can't deallocate space." See [Increasing DB instance storage capacity](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.ModifyingExisting.html).
+
+#### Establishing how much storage is actually needed
+
+Teams often quote the size shown against a snapshot in the RDS console and ask to restore into something smaller. That figure is not returned by the API and is not a safe basis for sizing the target.
+
+`describe-db-snapshots` reports only `AllocatedStorage`, which is the volume provisioned on the source instance rather than the data held in the snapshot:
+
+```bash
+aws rds describe-db-snapshots \
+  --db-snapshot-identifier <snapshot-identifier> \
+  --query 'DBSnapshots[0].[DBSnapshotIdentifier,AllocatedStorage,InstanceCreateTime,EngineVersion]' \
+  --output text
+```
+
+To establish how much data a running instance actually holds, subtract the `FreeStorageSpace` CloudWatch metric from its `AllocatedStorage`:
+
+```bash
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/RDS \
+  --metric-name FreeStorageSpace \
+  --dimensions Name=DBInstanceIdentifier,Value=<db-instance-identifier> \
+  --start-time "$(date -u -v-3H '+%Y-%m-%dT%H:%M:%SZ')" \
+  --end-time "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+  --period 300 \
+  --statistics Minimum \
+  --region eu-west-2 \
+  --query 'sort_by(Datapoints,&Timestamp)[-1]'
+```
+
+The value is returned in bytes. The `date -u -v-3H` syntax is macOS; on Linux use `date -u -d '3 hours ago'`.
+
+This establishes whether a shrink is worth pursuing, but it cannot be delivered through a snapshot restore. Point teams at the [Migrating an RDS instance](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/aws-rds-migration.html) guide, which covers a logical dump and reload.
 
 ### 6. Modify the RDS Module for Restoration
 
@@ -225,6 +306,23 @@ aws rds delete-db-snapshot --db-snapshot-identifier <db-instance-identifier>-fin
 ```
 
 Then rerun the failed pipeline.
+
+> **Warning:** Check what the conflicting snapshot contains before deleting it. Where a database has already been replaced once, `<db-instance-identifier>-finalsnapshot` can hold the only copy of the data from before that happened. Compare its `InstanceCreateTime` against the database it is expected to have come from, and copy it to a safely named manual snapshot first if there is any doubt.
+
+Deleting the final snapshot also unblocks whatever is currently merged to `main`. Confirm that the merged configuration contains the `snapshot_identifier` intended for the restore. If it does not, clearing the conflict allows the destroy to succeed and the instance is rebuilt empty.
+
+#### Setting skip_final_snapshot does not resolve the conflict
+
+Adding `skip_final_snapshot = true` in the same PR as `snapshot_identifier` does not prevent the error.
+
+Changing `snapshot_identifier` forces a replacement, and the destroy half of a replacement uses the values already recorded in state, not the values in the new PR. `skip_final_snapshot = true` only takes effect once it has been applied and stored in state, which cannot happen in the same run.
+
+For it to take effect it has to reach state before the replacement is planned, which means applying it on its own first:
+
+1. Raise a PR changing only `skip_final_snapshot = true`. Nothing else in the module changes, so this is an update in place rather than a replacement, and the value is recorded in state.
+2. Once that has applied, raise the PR adding `snapshot_identifier`. The destroy now reads `skip_final_snapshot = true` from state and writes no final snapshot, so there is nothing to conflict with.
+
+This costs an extra apply and gives up the final snapshot, which is the last copy of the data as it stood before the restore. In most cases deleting the conflicting snapshot is the better option.
 
 ## Expected Timeline and Status Changes
 
@@ -355,10 +453,55 @@ Once the terraform apply is successful, and the new DB instance has been created
 
 **Issue:** If there is an RDS read replica for the DB instance that is being restored, Terraform will throw the error: `Error: cannot elect new source database for replication`
 
-**Solution:**
-Set `count = 0` or comment out the read replica code (and any Kubernetes secrets relating to the read replica) before restoration. After successful restoration, re-enable the DB read replica code by setting `count = 1` or uncommenting the code.
+**Why This Happens:**
+A replacement destroys the source database before recreating it. AWS documents that "if you delete a source DB instance without deleting its read replicas in the same AWS Region, each replica is promoted to a standalone DB instance" ([Considerations when deleting replicas](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html#USER_ReadRepl.Overview.deletion-considerations)).
 
-Note that the read replica will have a new database identifier once it is recreated.
+Promotion is one way. A promoted instance "ceases to function as a read replica and becomes a standalone DB instance", and "you can't use the DB instance as a replication target because it is no longer a read replica" ([Characteristics of a promoted read replica](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.Promote.html#USER_ReadRepl.Promote.characteristics)).
+
+Terraform therefore has no way of reattaching it to the restored database, and rerunning the pipeline will not clear the error.
+
+**Solution:**
+Set `count = 0` on the read replica module and on any Kubernetes secrets relating to the read replica. Both must change in the same PR, otherwise the plan fails with `module.read_replica is empty tuple`. After the restoration is complete and verified, set both back to `count = 1`.
+
+Note that the read replica will have a new database identifier and endpoint once it is recreated, so any pods reading from it need restarting.
+
+> **Warning:** The module sets `skip_final_snapshot = true` and `db_backup_retention_period = 0` on read replicas, so nothing is retained when one is deleted. A promoted replica holds a live copy of the data as it stood when its source was destroyed, which is often the most convenient thing to verify against during an incident. Snapshot it before setting `count = 0`.
+
+### Restored Database Has the Wrong Credentials
+
+**Issue:** The restore reports success but the application cannot connect.
+
+**Why This Happens:**
+The master username and password are generated by the module and held in Terraform state, but a restored instance keeps the master username from the snapshot. Restoring from a snapshot belonging to another database brings that database's credentials across, and they will not match what the application expects.
+
+A snapshot from another database also carries its KMS key, and the restored instance inherits that key rather than the one the module created. This leaves the database dependent on a key belonging to another namespace, which will become unrecoverable if that namespace is torn down.
+
+**Solution:**
+Confirm the snapshot's `MasterUsername` and `KmsKeyId` against the target database before restoring. A snapshot taken from another database carries its own KMS key, and the restored instance inherits that key rather than the one belonging to its own module. A database left encrypted under another namespace's key is a risk in its own right, because that key is outside the owning team's control.
+
+To recover from a restore that used the wrong snapshot, restore again from a snapshot belonging to the correct database. The final snapshot written when the original instance was destroyed is usually the best source. Copy it to a stable name before using it, so that it is not overwritten by a later destroy.
+
+### Removing snapshot_identifier Destroys the Database
+
+**Issue:** A clean-up PR removing `snapshot_identifier` triggers a destroy and recreate, and the replacement is built empty.
+
+**Why This Happens:**
+`snapshot_identifier` forces replacement, and the module does not set `ignore_changes` on it. Removing the attribute is a change like any other, so Terraform replaces the instance and creates the new one with no snapshot to restore from.
+
+**Solution:**
+Advise teams to leave `snapshot_identifier` in place. While its value is unchanged it produces no plan diff and has no effect on the running database. Where it genuinely has to come out, clear it from Terraform state rather than through a pipeline apply.
+
+Recommend `deletion_protection = true` on restored production databases. With it enabled AWS refuses the delete, so an accidental replacement fails in the pipeline rather than destroying the data.
+
+### Permission Denied Copying a Snapshot
+
+**Issue:** A team reports an access denied error running `aws rds copy-db-snapshot` from their service pod, despite being able to create snapshots.
+
+**Why This Happens:**
+The module's IRSA policy grants `rds:CopyDBSnapshot`, but copying an encrypted snapshot also requires KMS permissions on the source key, which the policy does not grant. All Cloud Platform databases are encrypted.
+
+**Solution:**
+Carry out the copy on the team's behalf, and record the request so the gap in the IRSA policy can be addressed.
 
 ## Metrics and Observations
 
