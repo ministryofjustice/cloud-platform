@@ -1,0 +1,79 @@
+---
+title: Concourse Multi Namespace Applier
+weight: 51
+last_reviewed_on: 2025-10-27
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+# Introduction to Applying Changes To Multiple Namespaces At Once
+
+Users are prevented from submitting PRs which will affect multiple namespaces at once. Occasionally we will need to do it e.g. during incidents, or at user request if they have a very large amount of namespaces to update.
+
+## Pre-requisites
+
+- A PR with all the updates in it (typically created by the user). This PR will fail on the `reject-multi-namespace-prs.yml` check.
+- Access to concourse
+- Access to [cloud-platform-terraform-concourse](https://github.com/ministryofjustice/cloud-platform-terraform-concourse)
+- If running locally: [fly](https://concourse-ci.org/docs/fly/) installed
+
+## Process
+
+When a change needs to be applied to multiple namespaces in a single operation, use the following process.
+
+1. Consider whether the user has appropriate permissions for what they are requesting. This is needed as the `rbac-permissions-check` will only check one namespace.
+
+2. Obtain a list of all namespaces that need to be updated. The `github-actions` bot should have commented a list on the PR.
+
+3. Dismiss the failing `reject-multi-namespace-prs.yml` check on the PR.
+
+4. Create a Concourse pipeline to run the apply. Note this can also be done locally with `fly`, see the section further down, but that is not the preferred approach. If you do use `fly`, skip steps 6 & 7.
+
+6. Update the multi-namespace applier pipeline configuration:
+   - Add the affected namespaces to the following file (you may need to create it):
+     - https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/multi-ns-applier.yaml
+   - Raise and merge a pull request into `main`.
+   - Note that you don't need to cut a release, the job just needs to be in `main`. The bootstrap pipeline will look at all the files in `../pipelines/manager/main` directory and the tile for job will appear.
+
+7. Unpause the bootstrap pipeline in the Concourse CI.
+
+8. Ensure no other changes are being applied to the affected namespaces at the same time.
+   - Running multiple Terraform applies against the same namespace concurrently may result in state lock contention or failed applies.
+   - If this cannot be assured, consider temporarily pausing the [environments-live](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/environments-live/) pipeline until the multi-namespace apply has completed.
+
+9. Merge the pull request.
+
+10. Trigger the multi-namespace apply job:
+   - Navigate to:
+     - https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/multi-ns-applier/jobs/apply-namespaces/builds/
+   - Unpause this pipeline
+   - Start a new build and monitor it until completion.
+
+11. Cleanup:
+   - If you modified the shared `multi-ns-applier.yaml` file, remove the temporary namespace entries once the change has been successfully applied and merge the cleanup change into `main`. This reduces the risk of future executions unintentionally targeting the same namespaces.
+   - Pause the bootstrap pipeline if you unpaused it.
+
+## Running the Pipeline Locally With `fly`
+
+Instead of updating the shared pipeline configuration, you can create a temporary copy of the pipeline and execute it using `fly`. Be aware this introduces drift and means we lose visibility of who updated the pipeline so is not the preferred option.
+
+1. Clone a local copy of [cloud-platform-terraform-concourse](https://github.com/ministryofjustice/cloud-platform-terraform-concourse)
+
+2. Update `pipelines/disabled/multi-ns-applier.yaml`
+
+3. Create the pipeline:
+   - `fly -t manager set-pipeline -p multi-ns-applier-[some-name] -c pipelines/disabled/multi-ns-applier.yaml`
+   - If you are not already authenticated, `fly` will display an error similar to:
+
+     ```text
+     could not find a valid token.
+     logging in to team 'main'
+     navigate to the following URL in your browser:
+     https://concourse.cloud-platform.service.justice.gov.uk/login?fly_port=XXXX
+     ```
+
+   - Open the URL in your browser and complete the authentication process.
+   - Re-run the `fly set-pipeline` command.
+
+4. Now continue the Process section at Step 8.
