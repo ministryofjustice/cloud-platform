@@ -42,7 +42,9 @@ When a change needs to be applied to multiple namespaces in a single operation, 
    - Unpause this pipeline
    - Start a new build and monitor it until completion.
 
-8. Cleanup: If you modified the shared `multi-ns-applier.yaml` file, remove the temporary namespace entries once the change has been successfully applied and merge the cleanup change into `main`. This reduces the risk of future executions unintentionally targeting the same namespaces.
+8. Cleanup:
+   - If you modified the shared `multi-ns-applier.yaml` file, remove the temporary namespace entries once the change has been successfully applied and merge the cleanup change into `main`. This reduces the risk of future executions unintentionally targeting the same namespaces.
+   - Pause the bootstrap pipeline if you unpaused it.
 
 ## Adding The Pipeline To Concourse
 
@@ -54,14 +56,11 @@ Pick this option if you want the applier pipeline to persist.
    - Add the affected namespaces to the following file (you may need to create it):
      - https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/multi-ns-applier.yaml
    - Raise and merge a pull request into `main`.
+   - Note that you don't need to cut a release, the job just needs to be in `main`. The bootstrap pipeline will look at all the files in `../pipelines/manager/main` directory and the tile for job will appear.
 
-2. Create a new release of `cloud-platform-terraform-concourse`.
+2. Unpause the bootstrap pipeline in the Concourse CI.
 
-3. Update `cloud-platform-infrastructure` with the new version
-   - https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components/concourse.tf
-   - Create and merge a PR to update the module version.
-
-4. Now continue the Process section at Step 5.
+3. Now continue the Process section at Step 5.
 
 ### Running the Pipeline Locally With `fly`
 
