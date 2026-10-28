@@ -7,8 +7,6 @@ review_in: 6 months
 
 # <%= current_page.data.title %>
 
-# Introduction to Applying Changes To Multiple Namespaces At Once
-
 Users are prevented from submitting PRs which will affect multiple namespaces at once. Occasionally we will need to do it e.g. during incidents, or at user request if they have a very large amount of namespaces to update.
 
 ## Pre-requisites
@@ -28,29 +26,29 @@ When a change needs to be applied to multiple namespaces in a single operation, 
 
 3. Dismiss the failing `reject-multi-namespace-prs.yml` check on the PR.
 
-4. Create a Concourse pipeline to run the apply. Note this can also be done locally with `fly`, see the section further down, but that is not the preferred approach. If you do use `fly`, skip steps 6 & 7.
+4. Create a Concourse pipeline to run the apply. Note this can also be done locally with `fly`, see the section further down, but that is not the preferred approach. If you do use `fly`, skip the next 2 steps.
 
-6. Update the multi-namespace applier pipeline configuration:
+5. Update the multi-namespace applier pipeline configuration:
    - Add the affected namespaces to the following file (you may need to create it):
      - https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/multi-ns-applier.yaml
    - Raise and merge a pull request into `main`.
    - Note that you don't need to cut a release, the job just needs to be in `main`. The bootstrap pipeline will look at all the files in `../pipelines/manager/main` directory and the tile for job will appear.
 
-7. Unpause the bootstrap pipeline in the Concourse CI.
+6. Unpause the bootstrap pipeline in the Concourse CI.
 
-8. Ensure no other changes are being applied to the affected namespaces at the same time.
+7. Ensure no other changes are being applied to the affected namespaces at the same time.
    - Running multiple Terraform applies against the same namespace concurrently may result in state lock contention or failed applies.
    - If this cannot be assured, consider temporarily pausing the [environments-live](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/environments-live/) pipeline until the multi-namespace apply has completed.
 
-9. Merge the pull request.
+8. Merge the pull request.
 
-10. Trigger the multi-namespace apply job:
+9. Trigger the multi-namespace apply job:
    - Navigate to:
      - https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/multi-ns-applier/jobs/apply-namespaces/builds/
    - Unpause this pipeline
    - Start a new build and monitor it until completion.
 
-11. Cleanup:
+10. Cleanup:
    - If you modified the shared `multi-ns-applier.yaml` file, remove the temporary namespace entries once the change has been successfully applied and merge the cleanup change into `main`. This reduces the risk of future executions unintentionally targeting the same namespaces.
    - Pause the bootstrap pipeline if you unpaused it.
 
