@@ -1,7 +1,7 @@
 ---
 title: EKS Auto Mode component logs
 weight: 18
-last_reviewed_on: 2026-10-20
+last_reviewed_on: 2026-10-23
 review_in: 6 months
 ---
 
@@ -15,7 +15,7 @@ EBS CSI driver (block storage), the load balancer controller, and VPC CNI (IP
 address management). Their logs are delivered to
 [Amazon CloudWatch Logs](https://aws.amazon.com/cloudwatch/) so you can see what
 these managed components are doing — for example, why a node did or did not
-scale.
+scale. A copy is also archived to S3 for long-term storage.
 
 These are the platform's **managed-component** logs. They are separate from:
 
@@ -26,13 +26,14 @@ These are the platform's **managed-component** logs. They are separate from:
 > This page is a developer and platform-engineer guide. The Terraform that
 > enables and delivers these logs lives in
 > [modernisation-platform-environments](https://github.com/ministryofjustice/modernisation-platform-environments)
-> under `terraform/environments/cloud-platform/cluster` (`eks-cluster.tf`), and
-> the wider logging design is in
+> under `terraform/environments/cloud-platform/cluster` (`eks-cluster.tf` for
+> CloudWatch, `auto-mode-logs-s3.tf` for S3), and the wider logging design is in
 > [ADR-017](https://github.com/ministryofjustice/cloud-platform/blob/main/architecture-decision-record/cp30/ADR-017-logging-and-log-management.md).
 
 ## What is captured
 
-All four Auto Mode component log types are enabled:
+All four Auto Mode component log types are enabled on every cluster. You do not
+need to configure anything.
 
 | Log type | Component | Useful for |
 |---|---|---|
@@ -41,36 +42,41 @@ All four Auto Mode component log types are enabled:
 | `AUTO_MODE_LOAD_BALANCING_LOGS` | Load balancer controller | Why a load balancer / target group is not coming up |
 | `AUTO_MODE_IPAM_LOGS` | VPC CNI | IP address exhaustion, ENI problems |
 
-## How it works
-
-The log types are turned on in the `cluster` component (`eks-cluster.tf`) and
-delivered to CloudWatch using CloudWatch Vended Logs. Each type goes to its own
-log group, per cluster:
-
-```
-/aws/vendedlogs/eks/cluster/AUTO_MODE_<COMPONENT>_LOGS/<cluster-name>
-```
-
-The `/aws/vendedlogs/` prefix lets a single prefix-wide resource policy grant
-the delivery service write access, which avoids hitting CloudWatch's per-Region
-resource-policy limit as cluster count grows.
-
-Enabling a log type triggers an EKS cluster update, and EKS allows only one such
-update at a time — so the four are enabled one after another during a cluster
-build (handled automatically; it adds a few minutes). Volume is small — a few MB
-per cluster per month across all four.
-
-The managed **ArgoCD** components deliver logs the same way, under
-`/aws/vendedlogs/eks/capability/EKS_CAPABILITY_ARGOCD_*`.
-
 ## Where to find them
 
-Find the groups in the CloudWatch Logs console, or query with CloudWatch Logs
-Insights. For example, compute (scaling) logs for a cluster are in
-`/aws/vendedlogs/eks/cluster/AUTO_MODE_COMPUTE_LOGS/<cluster-name>`. The groups
-are **per cluster**, so an ephemeral development cluster has its own set. Access
-uses your normal AWS console / CloudWatch permissions — no OpenSearch access
-needed.
+### CloudWatch Logs (last 30 days)
+
+Each log type goes to its own log group, per cluster:
+
+```
+/aws/eks/<cluster-name>/vendedlogs/AUTO_MODE_<COMPONENT>_LOGS
+```
+
+For example, the Karpenter logs for a cluster called `cp-2110-1243` are in
+`/aws/eks/cp-2110-1243/vendedlogs/AUTO_MODE_COMPUTE_LOGS`. Logs are kept in
+CloudWatch for **30 days**. This is the short-term operational tier for
+troubleshooting.
+
+In the AWS console, go to **CloudWatch → Log groups** and filter on
+`/aws/eks/<cluster-name>/vendedlogs/`, or query the groups with CloudWatch Logs
+Insights. From the CLI:
+
+```
+aws logs tail /aws/eks/<cluster-name>/vendedlogs/AUTO_MODE_COMPUTE_LOGS \
+  --region eu-west-2 --since 1h
+```
+
+The groups are **per cluster**, so an ephemeral development cluster has its own
+set. Access uses your normal AWS console / CloudWatch permissions — no
+OpenSearch access needed.
+
+### S3 (long-term archive)
+
+The same four log types are also delivered to the cluster environment's log
+archive bucket (`<terraform-workspace>-fluentbit`), under an `auto-mode/`
+prefix with one folder per component (for example `auto-mode/compute/`). This
+is the same bucket the Fluent Bit pipeline writes application logs to, under a
+separate `logs/` prefix. Use the S3 archive for anything older than 30 days.
 
 ## Reading the logs
 
@@ -80,8 +86,55 @@ text wrapped in JSON (the detail is in the message string). Each line carries th
 source and a timestamp, so you can line up events across components for a single
 cluster action — for example, a scale-up showing in both compute and IPAM.
 
-## Status
+## How it works
 
-- All four log types are delivered to CloudWatch today.
-- Delivery to S3 for long-term archive is a planned follow-up, separate from the
-  CloudWatch delivery above.
+Auto Mode logging is not a single cluster setting. It uses CloudWatch Vended
+Logs, and for each log type three resources are wired together: a **delivery
+source** (the log type on the cluster), a **delivery destination** (the log
+group or the S3 bucket), and a **delivery** joining the two. Each source has two
+deliveries, one to CloudWatch and one to S3. A resource policy per cluster,
+scoped to `/aws/eks/<cluster-name>/vendedlogs/*`, lets the delivery service
+write to that cluster's log groups.
+
+### One log type at a time
+
+Enabling a log type triggers an EKS cluster update, and EKS allows only one such
+update at a time. If all four were turned on at once they would collide and
+three would fail. So the four are enabled one after another: before each one, a
+check waits until the cluster has no update in progress. This adapts to how
+long the cluster actually takes rather than using a fixed wait. The check lives
+in `terraform/environments/cloud-platform/cluster/scripts/auto_mode_gate_check.sh`.
+
+This runs automatically during a cluster build and adds a few minutes to it. A
+slow logging step is expected, not a fault.
+
+### Volume and cost
+
+Volume is small — a few MB per cluster per month across all four types on a
+quiet cluster, more when the cluster is busy — at CloudWatch's reduced "vended
+logs" rate.
+
+### Argo CD capability logs
+
+The managed Argo CD capability supports the same delivery mechanism (log types
+`EKS_CAPABILITY_ARGOCD_*`), but the platform Terraform does not currently
+enable it, so Argo CD capability logs are not collected by default.
+
+## Troubleshooting
+
+- **A log group is empty.** Some components only log when something happens
+  (for example, load-balancing logs appear when a load balancer is created or
+  changes). An idle component produces little. Trigger the relevant activity and
+  check again.
+- **A cluster deploy failed on the logging step with a conflict error.** This is
+  the "one update at a time" limit above. A re-run normally clears it once the
+  cluster has settled. If it recurs, check the cluster's update history in the
+  EKS console for a stuck update.
+
+## Related
+
+- [EKS Auto Mode](eks-auto-mode) — what Auto Mode is and which components it
+  manages.
+- [Searching logs in OpenSearch](opensearch-log-search) — application logs.
+- Reference:
+  [AWS — Access AWS-managed component logs](https://docs.aws.amazon.com/eks/latest/userguide/auto-managed-component-logs.html)
