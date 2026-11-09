@@ -1,7 +1,7 @@
 ---
 title: Upgrade AMI Version
 weight: 53
-last_reviewed_on: 2025-11-24
+last_reviewed_on: 2026-11-09
 review_in: 6 months
 ---
 
@@ -10,8 +10,8 @@ review_in: 6 months
 AWS releases new AMI versions for EKS node groups that include Kubernetes patches and security updates. To upgrade the node groups to use the new AMI version:
 
 - login to the AWS console
-- Select EKS and select the cluster
-- Select the node group and click on `Update AMI version`
+- Select EKS > `<cluster name>` > Compute
+- Find the node group and click on "Update Now" in the "AMI release version" column 
 - Select the Update Strategy to "Force update" and click on "Update"
 
 This will perform a rolling update of all the nodes in the node group. Follow the steps in [Recycle all nodes](#recycle-all-nodes) section to recycle all the nodes.
