@@ -62,7 +62,7 @@ terraform apply -target=module.concourse
 
 - Clone the Concourse [repository](https://github.com/ministryofjustice/cloud-platform-terraform-concourse).
 
-- Login to Concourse
+- Login to Concourse on `https://concourse.apps.<cluster-name>.cloud-platform.service.justice.gov.uk`
 
 For this step, you will need to authenticate to Concourse using your instance's local username and password. These are stored in the kubernete secret `concourse-web` in
 the `concourse` namespace, and can be obtained using the `cloud-platform` cli tool:
