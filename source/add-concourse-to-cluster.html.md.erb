@@ -14,6 +14,8 @@ review_in: 6 months
 
 ## Process
 
+### Update cluster size if required
+
 - Go to [`cloud-platform-infrastructure/terraform/aws-accounts/cloud-platform-aws/vpc/eks` directory](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks)
 and update `node_groups_count` and `node_size` as below to match the Manager cluster configuration, as this will support the cpu and memory demands of the concourse module.
 
@@ -34,22 +36,31 @@ and update `node_groups_count` and `node_size` as below to match the Manager clu
 - Apply the changes using below terraform workflow:
 
 ```
+git-crypt unlock
 terraform init
 terraform workspace select <WorkspaceName>
 terraform plan -var "enable_oidc_associate=false"
 terraform apply -var "enable_oidc_associate=false"
 ```
 
+### Add Concourse
+
 - Go to [`cloud-platform-infrastructure/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components` directory](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components).
- Amend the following file and remove the count line from the [concourse module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components/concourse.tf).
-- Apply the terraform module to your test cluster
+ Amend the following files:
+    - Remove the count line from the [concourse module](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components/concourse.tf).
+    - Set `hoodaw_irsa_enabled` to `false` in [variables.tf](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components/variabled.tf).
+- Apply the terraform module to your test cluster:
 
 ```
+git-crypt unlock
 terraform init
 terraform workspace select <WorkspaceName>
 terraform plan
 terraform apply -target=module.concourse
 ```
+
+### Login and test
+
 - Clone the Concourse [repository](https://github.com/ministryofjustice/cloud-platform-terraform-concourse).
 
 - Login to Concourse
@@ -97,3 +108,12 @@ If your pipeline requires secrets, such as AWS credentials, you need to define t
 
 [create-test-cluster]: eks-cluster.html#provisioning-eks-clusters
 [fly]: https://concourse-ci.org/fly.html
+
+## Troubleshooting
+
+### HOODAW Duplicate Error
+
+Error: `A policy called cloud-platform-hoodaw-write already exists. Duplicate names are not allowed.`
+
+Solution: Ensure you have set `hoodaw_irsa_enabled` to `false` in [variables.tf](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/terraform/aws-accounts/cloud-platform-aws/vpc/eks/core/components/variabled.tf).
+
