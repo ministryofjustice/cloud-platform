@@ -199,7 +199,6 @@ kubectl scale deployment descheduler --replicas=1 -n kube-system
 ```
 
 ### Finishing touches
-
-The `kubectl` version in the `cloud-platform-cli` and `cloud-platform-tools-image` needs updating to match the current Kubernetes version.
-
-Documentation used as part of the upgrade should be reviewed and refined if needed.
+After the upgrade complete any remaining issues on [the board](https://github.com/ministryofjustice/cloud-platform/issues]. 
+This includes things like updating `kubectl` version in the `cloud-platform-cli` and `cloud-platform-tools-image`, adding
+any new gatekeeper constraints, and updating doumentation.
