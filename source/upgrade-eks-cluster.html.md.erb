@@ -43,6 +43,19 @@ steps:
 
 ## Upgrade Steps
 
+### Overview
+
+EKS upgrades are performed using AWS-managed upgrades for both the control plane and node groups. Node groups are upgraded using the AWS "Rolling update" strategy, allowing nodes to be replaced incrementally during the upgrade process.
+
+Detailed instructions follow. At a high level the process consists of:
+
+1. Complete compatibility checks and upgrade planning.
+2. Prepare the cluster and notify stakeholders.
+3. Upgrade the EKS control plane.
+4. Upgrade each node group using the Rolling update strategy.
+5. Monitor pod evictions and cluster health throughout the upgrade.
+6. Complete post-upgrade validation and cleanup activities.
+
 ### Compatibility Check
 
 The following areas need to be looked into to determine if there's any additional preparation work to do:
