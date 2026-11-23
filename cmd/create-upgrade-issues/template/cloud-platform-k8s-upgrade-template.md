@@ -236,6 +236,9 @@ https://github.com/ministryofjustice/cloud-platform-terraform-cluster-autoscaler
 
 The Cloud Platform EKS Cluster is in Kubernetes version <upgrade-version>. Hence upgrade the descheduler to match the Kubernetes version.
 
+Check the logs show a completed descheduling cycle, not just a running pod.
+Check the logs to confirm whether they contain useful data or, in the case there is a problem, errors pointing to a bug in the upgraded version or some other component mismatch.
+
 https://github.com/kubernetes-sigs/descheduler?tab=readme-ov-file#%EF%B8%8F--documentation-versions-by-release
 https://github.com/ministryofjustice/cloud-platform-terraform-descheduler
 
