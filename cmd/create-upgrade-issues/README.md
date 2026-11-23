@@ -29,4 +29,4 @@ go run main.go -owner="ministryofjustice" -repo="cloud-platform" -upgrade-versio
 
 The GitHub Action workflow `create-upgrade-issues.yml` is set up to run this script automatically. It triggers on manual dispatch and requires the following inputs:
 
-- `upgrade-version`: The target EKS upgrade version (e.g., "1.32")
+- `upgrade-version`: The target EKS upgrade version (e.g., "1.35")
