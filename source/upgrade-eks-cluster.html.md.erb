@@ -37,11 +37,24 @@ steps:
 
 3. Enter the required inputs:
 
-   - Target Kubernetes version (e.g. `1.34`)
+   - Target Kubernetes version (e.g. `1.35`)
 
 4. Click "Run workflow" to create the issues.
 
 ## Upgrade Steps
+
+### Overview
+
+EKS upgrades are performed using AWS-managed upgrades for both the control plane and node groups. Node groups are upgraded using the AWS "Rolling update" strategy, allowing nodes to be replaced incrementally during the upgrade process.
+
+Detailed instructions follow. At a high level the process consists of:
+
+1. Complete compatibility checks and upgrade planning.
+2. Prepare the cluster and notify stakeholders.
+3. Upgrade the EKS control plane.
+4. Upgrade each node group using the Rolling update strategy.
+5. Monitor pod evictions and cluster health throughout the upgrade.
+6. Complete post-upgrade validation and cleanup activities.
 
 ### Compatibility Check
 
@@ -155,6 +168,11 @@ Click `Update`
 
 > **NOTE:** We generally start with `monitoring` node group first, and then each additional node group, leaving `default` node group to last.
 
+> **NOTE:** During a node group upgrade, EKS may report a `PodEvictionFailure` if pods take longer than 15 minutes to drain from a node. This can cause the node group upgrade to fail. <br />
+> If this happens, identify the affected node and investigate any pods that may be preventing it from draining. Be aware that the node may eventually complete draining and remove itself, even after the upgrade has reported a failure.<br />
+> Before taking further action, check whether the affected node has been removed successfully. Once the issue is resolved, retry the node group upgrade.<br />
+> For more details, see the [AWS documentation on managed node group update behaviour](https://docs.aws.amazon.com/eks/latest/userguide/managed-node-update-behavior.html#managed-node-update-upgrade).
+
 Repeat the above steps for each node group in the cluster.
 
 Once the upgrade has completed notify the Slack channels.
@@ -186,7 +204,6 @@ kubectl scale deployment descheduler --replicas=1 -n kube-system
 ```
 
 ### Finishing touches
-
-The `kubectl` version in the `cloud-platform-cli` and `cloud-platform-tools-image` needs updating to match the current Kubernetes version.
-
-Documentation used as part of the upgrade should be reviewed and refined if needed.
+After the upgrade complete any remaining issues on [the board](https://github.com/ministryofjustice/cloud-platform/issues]. 
+This includes things like updating `kubectl` version in the `cloud-platform-cli` and `cloud-platform-tools-image`, adding
+any new gatekeeper constraints, and updating doumentation.

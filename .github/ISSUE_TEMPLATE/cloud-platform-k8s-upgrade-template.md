@@ -207,6 +207,10 @@ https://runbooks.cloud-platform.service.justice.gov.uk/container-images.html#con
 
 https://github.com/kubernetes/kube-state-metrics?tab=readme-ov-file#compatibility-matrix
 
+Review existing pinned versions in [prometheus.tf](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/blob/main/prometheus.tf#L64) to ensure they don't go stale.
+
+Check the chart’s bundled `kube-state-metrics` version against the [compatibility matrix](https://github.com/kubernetes/kube-state-metrics#compatibility-matrix) before relying on it.
+
 Review the compatibility matrix of kube-state-metrics and verify if the image is compatible with the upgraded Kubernetes version. If the version is a mismatch, check if the whole kube-prometheus-chart needs updating to get the default version of kube-state-metrics from the chart-> values. Otherwise, pin the kube-state-metrics image to match the Kubernetes version.
 
 ## Issue 15:
@@ -219,6 +223,9 @@ https://github.com/ministryofjustice/cloud-platform-terraform-cluster-autoscaler
 ## Issue 16:
 ### Upgrade cluster descheduler for EKS version <upgrade-version>
 The Cloud Platform EKS Cluster is in Kubernetes version <upgrade-version>. Hence upgrade the descheduler to match the Kubernetes version.
+
+Check the logs show a completed descheduling cycle, not just a running pod.
+Check the logs to confirm whether they contain useful data or, in the case there is a problem, errors pointing to a bug in the upgraded version or some other component mismatch.
 
 https://github.com/kubernetes-sigs/descheduler?tab=readme-ov-file#%EF%B8%8F--documentation-versions-by-release
 https://github.com/ministryofjustice/cloud-platform-terraform-descheduler
@@ -234,7 +241,10 @@ Update concourse pipelines to use updated tools-image and cli
 
 ## Issue 18:
 ### Add deprecated apis from <upgrade-version> to Gatekeeper
-Following upgrade to EKS <upgrade-version>, create a new [gatekeeper constraint](https://github.com/ministryofjustice/cloud-platform-terraform-gatekeeper/tree/main/resources/constraints) that stops people from using any apis that are now deprecated as a part of the <upgrade-version> upgrade.
+Following upgrade to EKS <upgrade-version>, create a new [gatekeeper constraint](https://github.com/ministryofjustice/cloud-platform-terraform-gatekeeper/tree/main/resources/constraints) that stops people from using any APIs that are now deprecated as a part of the <upgrade-version> upgrade.
+
+See [kubernetes deprecation guide](https://kubernetes.io/docs/reference/using-api/deprecation-guide/) to find the deprecated APIs.
+If there are no deprecated APIs in <upgrade-version>, this ticket can be closed without action.
 
 ## Issue 19:
 ### Update Upgrade runbook and Cluster Upgrade Issue Template
