@@ -219,6 +219,10 @@ https://runbooks.cloud-platform.service.justice.gov.uk/container-images.html#con
 
 https://github.com/kubernetes/kube-state-metrics?tab=readme-ov-file#compatibility-matrix
 
+Review existing pinned versions in [prometheus.tf](https://github.com/ministryofjustice/cloud-platform-terraform-monitoring/blob/main/prometheus.tf#L64) to ensure they don't go stale.
+
+Check the chart’s bundled `kube-state-metrics` version against the [compatibility matrix](https://github.com/kubernetes/kube-state-metrics#compatibility-matrix) before relying on it.
+
 Review the compatibility matrix of kube-state-metrics and verify if the image is compatible with the upgraded Kubernetes version. If the version is a mismatch, check if the whole kube-prometheus-chart needs updating to get the default version of kube-state-metrics from the chart-> values. Otherwise, pin the kube-state-metrics image to match the Kubernetes version.
 
 ## Issue 15:
