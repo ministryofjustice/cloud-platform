@@ -168,6 +168,11 @@ Click `Update`
 
 > **NOTE:** We generally start with `monitoring` node group first, and then each additional node group, leaving `default` node group to last.
 
+> **NOTE:** During a node group upgrade, EKS may report a `PodEvictionFailure` if pods take longer than 15 minutes to drain from a node. This can cause the node group upgrade to fail. <br />
+> If this happens, identify the affected node and investigate any pods that may be preventing it from draining. Be aware that the node may eventually complete draining and remove itself, even after the upgrade has reported a failure.<br />
+> Before taking further action, check whether the affected node has been removed successfully. Once the issue is resolved, retry the node group upgrade.<br />
+> For more details, see the [AWS documentation on managed node group update behaviour](https://docs.aws.amazon.com/eks/latest/userguide/managed-node-update-behavior.html#managed-node-update-upgrade).
+
 Repeat the above steps for each node group in the cluster.
 
 Once the upgrade has completed notify the Slack channels.
