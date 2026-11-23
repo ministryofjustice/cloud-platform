@@ -239,6 +239,9 @@ Update concourse pipelines to use updated tools-image and cli
 ### Add deprecated apis from <upgrade-version> to Gatekeeper
 Following upgrade to EKS <upgrade-version>, create a new [gatekeeper constraint](https://github.com/ministryofjustice/cloud-platform-terraform-gatekeeper/tree/main/resources/constraints) that stops people from using any apis that are now deprecated as a part of the <upgrade-version> upgrade.
 
+See [kubernetes deprecation guide](https://kubernetes.io/docs/reference/using-api/deprecation-guide/) to find the deprecated APIs.
+If there are no deprecated APIs in <upgrade-version>, this ticket can be closed without action.
+
 ## Issue 19:
 ### Update Upgrade runbook and Cluster Upgrade Issue Template
 
