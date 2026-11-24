@@ -48,7 +48,7 @@ Use option 2 when the request covers weeks or months. Moving many indices to war
 
 ### Check who can read the data
 
-On app-logs, every member of the GitHub organisation can read all indices except `live_kubernetes_cluster-*`, which is filtered by GitHub team. Ingress, eventrouter and ipamd indices contain every namespace's data, and request URLs can contain personal data.
+Some indices contain data from every namespace and may include personal data. Before moving indices to warm or restoring them, check who can read them and prefer option 2 when access needs to be limited to the requester.
 
 If the requester only needs an answer, search the logs yourself and share the findings rather than raw log lines or exports. This repository is public, so never paste log lines, identifiers or IP addresses into issues or pull requests.
 
