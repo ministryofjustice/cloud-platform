@@ -73,7 +73,7 @@ curl -s -m 300 -X DELETE --user "$AWS_ACCESS_KEY_ID:$AWS_SECRET_ACCESS_KEY" \
   "https://<app-logs-endpoint>/_snapshot/<snapshot-repository>/<snapshot-name>"
 ```
 
-A successful deletion returns `{"acknowledged":true}`. Each deletion took between 20 and 40 seconds.
+A successful deletion returns `{"acknowledged":true}`. Each deletion took between 20 and 40 seconds, as observed.
 
 For more than a handful of snapshots, use a script that works through the list. It needs to:
 
