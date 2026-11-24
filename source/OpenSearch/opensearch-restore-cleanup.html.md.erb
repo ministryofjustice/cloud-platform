@@ -27,7 +27,7 @@ Commands use the same placeholders as the restore runbook, for example `<sso-pro
 | 3 | Delete temporary warm copies and temporary ISM policies on app-logs | No |
 | 4 | Archive and empty the S3 lists, remove the Concourse jobs | Yes |
 | 5 | Remove the leftover restore domain code | Yes |
-| 6 | Lift the legal hold | Only within 14 days |
+| 6 | Lift the legal hold | No |
 
 Steps 1 to 3 only remove copies made for the restore. The original cold indices stay until step 6. Step 6 is the only step that affects other teams' logs.
 
@@ -173,7 +173,7 @@ The plan should not destroy anything. It updates the snapshot role trust policy 
 
 ## 6. Lift the legal hold
 
-The hold is on every eligible cold index in app-logs, not only the indices that were restored, so this step deletes other teams' logs. Lowering `legal_hold_delete_transition` in `terraform/aws-accounts/cloud-platform-aws/account/variables.tf` deletes every held index older than the new value. Deleted cold indices can only be recovered for 14 days.
+The hold is on every eligible cold index in app-logs, not only the indices that were restored, so this step deletes other teams' logs. Lowering `legal_hold_delete_transition` in `terraform/aws-accounts/cloud-platform-aws/account/variables.tf` deletes every held index older than the new value.
 
 The commands below use [change_policy_cold.sh](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/scripts/opensearch/legal-hold). Run them from the `scripts/opensearch` directory of an up-to-date `cloud-platform-infrastructure` checkout, after loading your credentials. Each run writes a TSV report into that directory. Move the reports out of the repository afterwards so they are not committed.
 
