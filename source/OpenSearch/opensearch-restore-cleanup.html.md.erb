@@ -1,0 +1,235 @@
+---
+title: OpenSearch Log Restore Clean-up Runbook
+weight: 191
+last_reviewed_on: 2026-11-24
+review_in: 6 months
+---
+
+# <%= current_page.data.title %>
+
+This runbook removes everything created for a bulk log restore (see the [OpenSearch Log Restore Runbook](/OpenSearch/opensearch-restore-indices.html)) and returns app-logs to its normal retention. Most steps permanently delete data, so follow the order below and check each step before starting the next.
+
+Commands use the same placeholders as the restore runbook, for example `<sso-profile>`, `<app-logs-endpoint>`, `<snapshot-repository>`, `<reports-bucket>` and `<concourse-target>`. See [Placeholders](/OpenSearch/opensearch-restore-indices.html#placeholders). Signed requests are explained in [Signed requests](/OpenSearch/opensearch-restore-indices.html#signed-requests).
+
+## Before you start
+
+- Get written confirmation from the requester that they have extracted everything they need. Record it on the clean-up ticket.
+- Get sign-off for the deletions and for lifting the legal hold, and record who agreed and when.
+- Make a working folder and keep the deletion lists, command output and logs there. Do not keep them in a public repository.
+- Check that no snapshot or restore build is running.
+
+## Order
+
+| Step | What | Can it be undone |
+|---|---|---|
+| 1 | Remove the restore domain's OpenSearch resources, then destroy the domain | No |
+| 2 | Delete the restore snapshots | No |
+| 3 | Delete temporary warm copies and temporary ISM policies on app-logs | No |
+| 4 | Archive and empty the S3 lists, remove the Concourse jobs | Yes |
+| 5 | Remove the leftover restore domain code | Yes |
+| 6 | Lift the legal hold | Only within 14 days |
+
+Steps 1 to 3 only remove copies made for the restore. The original cold indices stay until step 6. Step 6 is the only step that affects other teams' logs.
+
+## 1. Restore domain
+
+Use two pull requests in `cloud-platform-infrastructure`.
+
+### Remove the OpenSearch resources first
+
+Remove the role, role mapping and snapshot repository resources that Terraform manages inside the restore domain. Apply that change on its own. If the domain is destroyed first, Terraform is left with resources whose provider endpoint no longer exists, and plans for the account layer fail.
+
+After this apply, users who log in to the restore domain see "Missing Role". This is expected.
+
+### Destroy the domain
+
+Turn the domain off with its enable variable. The plan should only destroy restore domain resources: the domain, its policy and SAML options, Auth0 client, DNS record, certificate, KMS key and access role. It also updates the shared Auth0 login action in place.
+
+Deletion continues after the apply. `describe-domain` returns `"Deleted": true` while it is in progress. This command waits until the domain has gone and AWS returns `ResourceNotFoundException`:
+
+```bash
+until ! aws opensearch describe-domain --no-cli-pager --profile <sso-profile> --region <aws-region> --domain-name <restore-domain-name> >/dev/null 2>&1; do date +%T; sleep 60; done; echo deleted
+```
+
+Deleting the domain also deletes the extracts and the domain's automated snapshots.
+
+## 2. Restore snapshots
+
+Delete the restore snapshots from app-logs with signed requests. The restore domain registers the repository read-only, and Dev Tools on app-logs cannot send `DELETE`.
+
+Rules:
+
+- Build the list of names from `snapshot-restored.txt`, plus any snapshots taken by hand.
+- Check every name against any other list that uses the same repository, and stop if any match.
+- Delete by exact name only. `DELETE _snapshot/<snapshot-repository>` without a snapshot name removes the repository registration.
+- Never delete objects from the S3 bucket directly. Snapshots share data files, so removing objects can corrupt other snapshots in the repository.
+
+Delete one snapshot with a signed request. Use a timeout, because a reply can be lost after the snapshot has been deleted:
+
+```bash
+curl -s -m 300 -X DELETE --user "$AWS_ACCESS_KEY_ID:$AWS_SECRET_ACCESS_KEY" \
+  --aws-sigv4 "aws:amz:<aws-region>:es" \
+  -H "x-amz-security-token: $AWS_SESSION_TOKEN" \
+  "https://<app-logs-endpoint>/_snapshot/<snapshot-repository>/<snapshot-name>"
+```
+
+A successful deletion returns `{"acknowledged":true}`. Each deletion took between 20 and 40 seconds.
+
+For more than a handful of snapshots, use a script that works through the list. It needs to:
+
+- Refresh credentials when they expire. A run of a few hundred deletions takes longer than one set of SSO credentials lasts (1 hour).
+- Use a request timeout, and retry after a timeout.
+- Treat `404` on a retry as already deleted.
+- Stop on any other error.
+- Ask for confirmation before the first deletion, and log every name it deletes.
+
+If the script asks for confirmation, type the answer. If you paste several commands at once, the prompt reads the next pasted line as its answer.
+
+When it has finished, check that each name returns `404`:
+
+```
+GET _snapshot/<snapshot-repository>/<snapshot-name>
+```
+
+Then check that only other people's snapshots remain:
+
+```
+GET _cat/snapshots/<snapshot-repository>?h=id
+```
+
+## 3. Temporary indices and policies on app-logs
+
+Indices that were moved to warm and given a temporary hold policy for the restore are deleted from warm, not moved back to cold, if they are already past 366 days.
+
+1. List them by exact name. List all indices without a wildcard and filter locally, because signed requests cannot use `*` in the path.
+2. Check each one is on the temporary policy before deleting it:
+
+    ```
+    GET _plugins/_ism/explain/<index>
+    ```
+
+3. Delete each index by exact name with a signed `DELETE` request to `https://<app-logs-endpoint>/<index>`, and confirm a `GET` on it returns `404` afterwards.
+4. Check no hot or warm index still uses the temporary policy, then delete the policy with a signed `DELETE` request to `https://<app-logs-endpoint>/_plugins/_ism/policies/<temporary-policy>`. A `GET` on the policy should then return `404 Policy not found`.
+
+Check `legal-hold-retain` still exists:
+
+```
+GET _plugins/_ism/policies/legal-hold-retain?filter_path=_id
+```
+
+It is lowered only in step 6.
+
+## 4. S3 lists and Concourse jobs
+
+### S3 lists
+
+The lists are only read and written by the two restore scripts. Copy them to a dated archive folder, replacing `YYYYMMDD` with today's date:
+
+```bash
+aws s3 cp s3://<reports-bucket>/opensearch-snapshots/source-index-list.txt s3://<reports-bucket>/opensearch-snapshots/archive/restore-YYYYMMDD/source-index-list.txt
+aws s3 cp s3://<reports-bucket>/opensearch-snapshots/snapshot-restored.txt s3://<reports-bucket>/opensearch-snapshots/archive/restore-YYYYMMDD/snapshot-restored.txt
+aws s3 ls s3://<reports-bucket>/opensearch-snapshots/archive/restore-YYYYMMDD/
+```
+
+Check both archive copies have the same sizes as the originals, then empty the originals:
+
+```bash
+touch empty.txt
+aws s3 cp empty.txt s3://<reports-bucket>/opensearch-snapshots/source-index-list.txt
+aws s3 cp empty.txt s3://<reports-bucket>/opensearch-snapshots/snapshot-restored.txt
+rm empty.txt
+aws s3 ls s3://<reports-bucket>/opensearch-snapshots/
+```
+
+Both files should now show a size of `0`. Leave any other files in the folder alone. To undo, copy the archived files back.
+
+### Concourse jobs
+
+Remove `live-opensearch-takes-snapshot` and `separate-opensearch-restores-snapshot` from `pipelines/manager/main/opensearch.yaml` in `cloud-platform-terraform-concourse`, together with their entries in the `opensearch-app-logs` group. Validate the file before raising the pull request:
+
+```bash
+fly validate-pipeline -c pipelines/manager/main/opensearch.yaml
+```
+
+After the merge the `bootstrap` pipeline sets the pipeline. If `bootstrap` is paused, do not unpause it to apply this change. Each bootstrap run re-sets every pipeline from `main`, unpauses all of them and destroys any pipeline that is not in git. Set only the `opensearch` pipeline from `main` instead, from an up-to-date checkout of `cloud-platform-terraform-concourse` on `main`:
+
+```bash
+fly -t <concourse-target> set-pipeline -p opensearch -c pipelines/manager/main/opensearch.yaml
+fly -t <concourse-target> jobs -p opensearch
+```
+
+Without `-n`, `fly` shows the changes and asks before applying them. The changes should only remove the two jobs and their group entries. Tell the team that the pipeline was set by hand while `bootstrap` is paused.
+
+## 5. Leftover restore domain code
+
+Once the domain has gone, remove its configuration from `cloud-platform-infrastructure`:
+
+- The restore domain Terraform file and its variables.
+- The domain's entry in `snapshot_allowed_domains` (`app-opensearch-snapshot-s3.tf`).
+- The domain's client ID secret in the Auth0 action resource and the matching check in `add-github-teams-to-opensearch-saml.js`.
+- Any restore domain notes in `scripts/opensearch/snapshots/README.md`.
+
+The plan should not destroy anything. It updates the snapshot role trust policy and the Auth0 action in place. After the apply, log in to each Dashboards (app-logs, live-2 app-logs and modsec) and open Discover.
+
+## 6. Lift the legal hold
+
+The hold is on every eligible cold index in app-logs, not only the indices that were restored, so this step deletes other teams' logs. Lowering `legal_hold_delete_transition` in `terraform/aws-accounts/cloud-platform-aws/account/variables.tf` deletes every held index older than the new value. Deleted cold indices can only be recovered for 14 days.
+
+The commands below use [change_policy_cold.sh](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/scripts/opensearch/legal-hold). Run them from the `scripts/opensearch` directory of an up-to-date `cloud-platform-infrastructure` checkout, after loading your credentials. Each run writes a TSV report into that directory. Move the reports out of the repository afterwards so they are not committed.
+
+### Preview
+
+```bash
+cd cloud-platform-infrastructure/scripts/opensearch
+./legal-hold/change_policy_cold.sh false preview-lift 366
+```
+
+The run checks every cold index and ends with a `TOTAL` line and the name of its report, for example `legal-hold-preview-lift-YYYYMMDDTHHMMSSZ.tsv`. Other values can be worked out from the same report without running it again. Replace `366` with the value you want to check and use the report's file name:
+
+```bash
+awk -F'\t' 'NR>1 && ($2=="HELD"||$2=="HELD_STALE") && $7>=366 {c++; s+=$8} END {printf "%d indices, %.1f TB\n", c, s/1e12}' legal-hold-preview-lift-YYYYMMDDTHHMMSSZ.tsv
+```
+
+This counts the indices in each class:
+
+```bash
+awk -F'\t' 'NR>1 {print $2}' legal-hold-preview-lift-YYYYMMDDTHHMMSSZ.tsv | sort | uniq -c
+```
+
+If only a small number of indices would be deleted, lower the value straight to `366d`. Otherwise lower it in steps, oldest first.
+
+Before lifting, check whether anyone else still needs any of the indices that would be deleted, for example someone using the same snapshot repository.
+
+### Lift
+
+For each step:
+
+1. Raise a pull request changing the `legal_hold_delete_transition` default. The plan should show an in-place update to `elasticsearch_opensearch_ism_policy.legal_hold_retain_live_app_logs`.
+2. Merge and apply. Nothing is deleted yet, because held indices stay on the previous version of the policy.
+3. Confirm the new value is on the domain:
+
+    ```
+    GET _plugins/_ism/policies/legal-hold-retain
+    ```
+
+4. Move the indices onto the new policy version. This is where deletion starts:
+
+    ```bash
+    ./legal-hold/change_policy_cold.sh false apply
+    ./legal-hold/change_policy_cold.sh false verify
+    ```
+
+5. After an hour or two, run `preview-lift` again at the same value. It should report `TOTAL: 0 indices`.
+
+Notes on step 4:
+
+- `apply` also moves cold indices that are still on `hot-warm-cold-delete` onto the hold. At `366d` both policies delete at the same age.
+- `verify` can report `ERROR ... explain HTTP 400` for indices that were deleted while it was running. Check one of them with `GET _plugins/_ism/explain/<index>?type=_cold`. A response of `no documents to get` means the index has gone.
+
+Once the value is back to `366d`, indices on `legal-hold-retain` are deleted at the same age as indices on `hot-warm-cold-delete`, so there is no need to move them back.
+
+## Afterwards
+
+- Mark each step done on the clean-up ticket with the date and the pull requests.
+- Raise separate tickets for problems found along the way, for example cold indices whose ISM policy has stalled and that are past retention.
+- Update the restore runbook with anything that changed.

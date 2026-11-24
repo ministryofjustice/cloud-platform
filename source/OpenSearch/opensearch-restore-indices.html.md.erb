@@ -1,141 +1,357 @@
 ---
 title: OpenSearch Log Restore Runbook
 weight: 190
-last_reviewed_on: 2025-08-01
+last_reviewed_on: 2026-11-24
 review_in: 6 months
 ---
 
 # <%= current_page.data.title %>
 
-This runbook explains how to restore cold indices logs in OpenSearch as part of our Index State Management (ISM) policy.
+This runbook explains how to make cold app-logs indices searchable again, either one index at a time on the live domain or in bulk on a separate restore domain. The clean-up that follows a bulk restore is in the [OpenSearch Log Restore Clean-up Runbook](/OpenSearch/opensearch-restore-cleanup.html).
 
-## Log Availability in OpenSearch
-Our OpenSearch Index State Management (ISM) policy is configured as follows:
+## Placeholders
+
+Commands in this runbook use placeholders. Replace them before running a command.
+
+| Placeholder | Meaning |
+|---|---|
+| `<sso-profile>` | Your AWS CLI SSO profile for the Cloud Platform AWS account |
+| `<aws-account-id>` | The Cloud Platform AWS account ID |
+| `<aws-region>` | The region the OpenSearch domains run in |
+| `<app-logs-endpoint>` | The app-logs domain's custom endpoint, from `app-opensearch.tf` |
+| `<restore-domain-endpoint>` | The restore domain's custom endpoint |
+| `<snapshot-repository>` | The snapshot repository registered on app-logs, defined in `app-opensearch-snapshot-s3.tf` |
+| `<reports-bucket>` | The S3 bucket that holds the restore scripts' index lists, set in the scripts |
+| `<concourse-target>` | Your `fly` target for the manager Concourse |
+| `<index>` | An index name, for example `live_kubernetes_ingress-YYYY.MM.DD` |
+| `<extract-prefix>` | The prefix for extracted indices, set as `EXTRACT_PREFIX` on the restore job |
+
+## Log availability
+
+The `hot-warm-cold-delete` ISM policy on the app-logs domain moves indices as follows:
+
+- Hot to warm after 1 day.
+- Warm to cold after 30 days.
+- Cold indices are deleted 366 days after they were created.
+
+Hot and warm indices are searchable in OpenSearch Dashboards, so the last 30 days of logs are available by default. Cold indices are not searchable. To search them, move them back to warm (option 1) or restore them from snapshots onto a separate domain (option 2).
+
+Anything older than 366 days has already been deleted and cannot be restored. Check the oldest date the requester needs before agreeing to a restore, and tell them early if some of the range is gone.
+
+## Choosing an option
+
+Use option 1 for one or a few days of logs, for example an investigation around a specific time.
+
+Use option 2 when the request covers weeks or months. Moving many indices to warm on the live domain adds load for every user of the domain and counts against the warm index alert threshold.
+
+## Before you start
+
+### Check who can read the data
+
+On app-logs, every member of the GitHub organisation can read all indices except `live_kubernetes_cluster-*`, which is filtered by GitHub team. Ingress, eventrouter and ipamd indices contain every namespace's data, and request URLs can contain personal data.
+
+If the requester only needs an answer, search the logs yourself and share the findings rather than raw log lines or exports. This repository is public, so never paste log lines, identifiers or IP addresses into issues or pull requests.
+
+### Check retention
+
+If any requested index will reach 366 days before the work is finished, put it on the legal hold first. See [Legal hold](#legal-hold).
+
+### Signed requests
+
+`DELETE` requests from Dev Tools on app-logs are rejected (`User: anonymous is not authorized to perform: es:ESHttpDelete`). Send them from a terminal as signed requests. Log in and load your credentials into the shell first:
+
+```bash
+aws sso login --profile <sso-profile>
+eval "$(aws configure export-credentials --profile <sso-profile> --format env)"
+```
+
+The second command sets the AWS CLI's standard credential environment variables, which `curl` uses to sign the request:
+
+```bash
+curl -s --user "$AWS_ACCESS_KEY_ID:$AWS_SECRET_ACCESS_KEY" \
+  --aws-sigv4 "aws:amz:<aws-region>:es" \
+  -H "x-amz-security-token: $AWS_SESSION_TOKEN" \
+  "https://<app-logs-endpoint>/_cluster/health"
+```
+
+Remove them from the shell when you have finished:
+
+```bash
+unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_CREDENTIAL_EXPIRATION
+```
+
+Things to know about signed requests:
+
+- `curl --aws-sigv4` signs paths containing `*` incorrectly, even when written as `%2A`. List indices without a wildcard and filter the output locally, or use exact index names.
+- SSO credentials expire after 1 hour. Every request after that returns `403 The security token included in the request is expired`. Log in and load the credentials again.
+- Add a timeout (`-m 300`) to requests that can take a long time. A reply can be lost even when the request succeeded, and without a timeout `curl` waits forever.
+
+## Option 1: move a cold index to warm
+
+### Find the index
+
+Index names are per day, for example `live_kubernetes_ingress-YYYY.MM.DD`. Days are in UTC. Some days only exist as a `-reindexed` copy.
+
+### Record its policy
 
 ```
-Hot to Warm: after 1 day
-Warm to Cold: after 30 days
-Cold to Delete: after 366 days
+GET _plugins/_ism/explain/<index>?type=_cold
 ```
 
-### What does this mean
+Note the `policy_id`. When the index goes back to cold it must be on the same policy.
 
-Logs stored in hot and warm indices are fully visible in the OpenSearch console. As a result, logs from the past 30 days are available by default.
+### Check the warm index count
 
-However, cold indices are not searchable in the console - this is expected behavior. Logs are stored in cold storage for long-term retention and cost efficiency.
+```
+GET _cat/indices/_warm
+```
 
-To access logs older than 30 days, we need to manually migrate the relevant cold indices back to the warm tier, which makes them searchable again.
+The `opensearch-indices-health-check` job runs at 09:00 and alerts when there are more than 280 warm indices ([hot_and_warm_indices_alert.sh](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/scripts/opensearch/alert/hot_and_warm_indices_alert.sh)). Leave room for the indices you are moving.
 
-There are two ways to restore logs from cold storage, depending on the volume of log required.
+### Move it to warm
 
-## Option 1: Restoring Cold Indices to Warm via Console
-If only a few days of logs are needed, you can restore them manually using the OpenSearch UI:
+From Dev Tools, or from the console under `Index Management`, `Cold indexes`, `Move to warm`:
 
-1.	Navigate to: `Index Management` → `Cold Indexes` tab.
-2.	Find the required index, and click `Move to warm`.
+```
+POST _cold/migration/_warm
+{ "indices": "<index>" }
+```
 
-    ![opensearch move cold index to warm 1](./images/opensearch-log-console-restore-1.png)
+`failed_indices` should be empty. The index is ready when this returns one green row:
 
-3. Click `Move index`
+```
+GET _cat/indices/<index>?v&h=index,health,docs.count,pri.store.size
+```
 
-    ![opensearch move cold index to warm 2](./images/opensearch-log-console-restore-2.png)
+`GET _cold/migration/<index>/_status` returns an error once the migration has finished, so do not rely on it to confirm completion. `GET _cat/indices/_warm/<index>` is not a valid path.
 
-4. After log investigation is complete and the logs are no longer needed, move the warm index back to cold from the `Warm Indexes` tab.
+Check the policy again with `GET _plugins/_ism/explain/<index>`. If it has changed, note it, because it must be corrected when the index goes back to cold.
 
-    ![opensearch move cold index to warm 3](./images/opensearch-log-console-restore-3.png)
+### Search it
 
-5. Choose `Calculate from timestamp field` , select `@timestamp`, then click `Move index`.
+Use the existing index pattern in Discover with an absolute time range. Dashboards shows times in the browser's time zone, so convert UTC times first (BST is UTC plus one hour).
 
-    ![opensearch move cold index to warm 4](./images/opensearch-log-console-restore-4.png)
+`@timestamp` is the time Fluent Bit collected the line, so it is only accurate to about a second. For request timing on ingress logs use `log_processed.time` and `log_processed.request_time`.
 
-This method is suitable for restoring small batches of logs or ad-hoc investigations.
+### Move it back to cold
 
-## Caution with Large Restore
-Restoring large numbers of cold indices:
+Do this as soon as the investigation no longer needs the index. Warm storage is billed while it is there.
 
-- Adds load to the OpenSearch cluster
-- Increases hot instance resource usage
-- May impact live OpenSearch cluster performance for other users
+```
+POST _ultrawarm/migration/<index>/_cold
+{ "timestamp_field": "@timestamp" }
+```
 
-For large restore operations, use the automation method below.
+The migration has finished when `GET _cat/indices/<index>` returns `index_not_found`. Then confirm the policy matches the one you recorded:
 
-## Option 2: Restoring Large Volumes of Logs via Concourse Pipeline Automation
+```
+GET _plugins/_ism/explain/<index>?type=_cold
+```
 
-For large-scale log restores, we use **Concourse pipeline automation** to restore logs into a **separate, non-production** OpenSearch cluster to avoid load on the live environment.
+## Option 2: bulk restore onto a separate domain
 
-### Overview
+### How it works
 
-We maintain **two pipelines**:
+Two manual Concourse jobs run two scripts from [scripts/opensearch/snapshots](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/scripts/opensearch/snapshots) in `cloud-platform-infrastructure`:
 
-#### Snapshot Creation on the Live OpenSearch [pipeline](https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/opensearch.yaml#L164)
+- `take_snapshot_cold_indices.sh` runs against the live app-logs domain. For each index in the source list it moves the index from cold to warm, waits for green, takes a snapshot containing only that index, moves the index back to cold and checks it is on the expected policy. It then marks the line `snapshot-taken-<index>`. Snapshots that end `PARTIAL` are deleted and retaken up to `SNAPSHOT_ATTEMPTS` times. It stops at the first failure.
+- `restore_snapshot.sh` runs against the restore domain. It restores each `snapshot-taken-` index with zero replicas. In extract mode it copies only the documents for `EXTRACT_NAMESPACE` into `<extract-prefix><index>`, checks the counts match, deletes the restored full index and records the index in the restored list. If a run stops part-way through, the next run resumes the partial extract.
 
-- Reads from a maintained source index file in S3
-- Migrates cold indices to warm.
-- Takes snapshots to an S3 snapshot repository.
-- Tags completed snapshots with a `snapshot-taken-` prefix.
-- Moves indices back to cold.
+Both scripts use two files in the `opensearch-snapshots/` folder of `<reports-bucket>`:
 
-#### Snapshot Restore on a Separate OpenSearch [pipeline](https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/main/pipelines/manager/main/opensearch.yaml#L192)
+- `source-index-list.txt` is the list of indices to process. You add one index name per line, and the snapshot job adds the `snapshot-taken-` prefix to each line it completes.
+- `snapshot-restored.txt` is written by the restore job. It has one line per restored index with the extract name and the number of documents copied.
 
-- Restores the snapshots using the same source list.
-- Skips indices already marked as restored.
-- Sets replicas to `0` for speed and cost-efficiency.
-- Waits for shard recovery and green index health.
-- Moves the index to the warm tier.
+Both files are empty between restores. Leave any other files in the folder alone, because other people may be using them.
 
-## Usage Guide
+Snapshots are stored in `<snapshot-repository>`. Other people's snapshots may be in the same repository. Keep a copy of any list someone else is using, and check new snapshot names against it.
 
-Taking OpenSearch snapshots can take **30+ minutes per index** depending on shard size and data volume. Follow this process:
+### Legal hold
 
-1. Prepare the restore OpenSearch if needed
-2. On the **restore OpenSearch**, perform the following setup (if not already done):
-    - Update the cluster name (but not domain ARN) [here](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/b7ea4300b4183e2701ae100e3a3e0a5469404962/terraform/aws-accounts/cloud-platform-aws/account/app-opensearch-snapshot-s3.tf#L4)
-    - In Security roles, add the following IAM user to the `all_access` role:
+Indices on `hot-warm-cold-delete` are deleted at 366 days whether or not a restore is in progress. To keep them, move them onto the `legal-hold-retain` policy with [change_policy_cold.sh](https://github.com/ministryofjustice/cloud-platform-infrastructure/tree/main/scripts/opensearch/legal-hold). The policy itself is defined in `terraform/aws-accounts/cloud-platform-aws/account/app-opensearch-legal-hold.tf`, and the script is described in the [scripts/opensearch README](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/scripts/opensearch/README.md).
 
-        ```
-        arn:aws:iam::754256621582:user/cloud-platform/manager-concourse
-        ```
-    - Register the S3 snapshot repository:
+Run the commands from the `scripts/opensearch` directory of an up-to-date `cloud-platform-infrastructure` checkout, after loading your credentials (see [Signed requests](#signed-requests)):
 
-        ```
-        curl -XPUT -L \
-          --user "$AWS_ACCESS_KEY_ID:$AWS_SECRET_ACCESS_KEY" \
-          -H "x-amz-security-token: $AWS_SESSION_TOKEN" \
-          -H "Content-Type: application/json" \
-          --aws-sigv4 "aws:amz:eu-west-2:es" \
-          <new-restore-opensearch-endpoint>/_snapshot/cp-live-app-logs-snapshot-s3-repository \
-          -d '{
-              "type": "s3",
-              "settings": {
-                  "bucket": "cp-live-app-logs-snapshot-s3-repository",
-                  "region": "eu-west-2",
-                  "role_arn": "arn:aws:iam::754256621582:role/cp-live-app-logs-snapshot-s3-role"
-              }
-        }'
-        ```
-3. Update the S3 source index list and cleanup the restored tracking file before running the snapshot pipeline.
+```bash
+cd cloud-platform-infrastructure/scripts/opensearch
+./legal-hold/change_policy_cold.sh false plan
+./legal-hold/change_policy_cold.sh false apply <index>
+./legal-hold/change_policy_cold.sh false apply
+./legal-hold/change_policy_cold.sh false verify
+```
 
+- The first argument is `false` when you run the script from your own machine.
+- `plan` is read-only.
+- `apply <index>` holds one index, which is a good first test. `apply` without an index holds every eligible cold index.
+- `apply` only holds indices that are already cold. Indices that go cold later stay on `hot-warm-cold-delete`. If any of those also need keeping, run `apply` and `verify` again once they are cold.
+- Each run writes a TSV report into the current directory. Delete or move the reports afterwards so they are not committed.
+- The "Cold index count above expected" alert fires while the hold is active.
+- Each run checks every cold index one at a time and takes a while.
+
+Agree an end date for the hold before you apply it, because held indices keep costing cold storage. Lifting the hold is covered in the clean-up runbook.
+
+An index close to 366 days can be moved to warm and given a temporary ISM policy with no transitions instead. Moving an index out of cold can attach `hot-warm-cold-delete` automatically, so check its policy with `explain` straight after the move.
+
+### Inventory
+
+List all cold indices with their creation date and size before planning batches. The cold API is paginated:
+
+```
+GET _cold/indices/_search
+POST _cold/indices/_search
+{ "pagination_id": "<pagination_id from the previous page>" }
+```
+
+Things the inventory can show:
+
+- Some days only exist as a `-reindexed` copy, and a few `-reindexed` copies hold far fewer documents than the original. Compare document counts with a neighbouring day.
+- Some days are incomplete or missing. Tell the requester which.
+- Indices that are not cold, for example reindexed copies in warm, cannot be processed by the snapshot job (see [Indices that are not cold](#indices-that-are-not-cold)).
+
+### Restore domain
+
+The restore domain Terraform is removed after each restore. Recover the most recent version from the git history of `terraform/aws-accounts/cloud-platform-aws/account/` in `cloud-platform-infrastructure`, and the two Concourse jobs from the history of `pipelines/manager/main/opensearch.yaml` in `cloud-platform-terraform-concourse`. This lists files deleted from the account layer and the commits that deleted them:
+
+```bash
+git log --diff-filter=D --name-only --oneline -- terraform/aws-accounts/cloud-platform-aws/account/
+```
+
+The domain needs:
+
+- An Auth0 client and SAML options, and its client ID added to the shared Auth0 login action (`resources/auth0-actions/add-github-teams-to-opensearch-saml.js`). Without the action change, users can log in but get "Missing Role" (authentication without authorization).
+- An `all_access` role mapping for the platform team's GitHub team, and access for the Concourse jobs (the restore job runs as the Concourse IAM user `arn:aws:iam::<aws-account-id>:user/<concourse-iam-user>`).
+- A reader role limited to `<extract-prefix>*`, mapped to the requester's GitHub team.
+- The snapshot repository registered read-only, and the domain added to `snapshot_allowed_domains` in `app-opensearch-snapshot-s3.tf`.
+
+Create the index pattern `<extract-prefix>*` (time field `@timestamp`) once, in the Global tenant.
+
+On a new domain, apply the domain first with `-target`, then do a full apply. The role and repository resources need the domain endpoint to exist.
+
+### Sizing
+
+- In extract mode the domain does not need UltraWarm. Data nodes use gp3 EBS.
+- Each data node's volume must leave room for the largest single index being restored, plus the extracts.
+- With zone awareness across three AZs, use a multiple of three data nodes.
+- AWS requires dedicated master nodes when there are more than 10 data nodes. The apply fails with `ValidationException: Dedicated master instances must be enabled for domains with more than 10 instance count` otherwise.
+- With 18 `r6g.large.search` data nodes, one run restored 5.35 TB in about 3 hours 10 minutes. On smaller domains about half the elapsed time was spent waiting for the domain's automated snapshots to release restored indices so they could be deleted.
+- Scale down as soon as the restores are finished, and only when no restore build is running.
+
+### Batches
+
+Snapshot and restore jobs both take `MAX_BATCH` (indices per run). The snapshot job also takes `STEP_TIMEOUT_SECS`. Size batches by total TB as well as index count, because days vary a lot in size.
+
+Keep a batch list with the days in each batch, oldest first, and record each run's build number and the sum of the `counts match` values.
+
+### Source list rules
+
+The snapshot job overwrites `source-index-list.txt` when it finishes. These rules avoid losing its `snapshot-taken-` marks:
+
+- Do not edit the list while a snapshot build is running.
+- Download a fresh copy immediately before editing, and upload only if the copy in S3 has not changed since you downloaded it.
+- Do not add an index that is already in the list, with or without the prefix. The job stops with `invalid_snapshot_name_exception` if a snapshot with that name exists.
+- Start a restore for a batch only after its snapshot build has succeeded.
+
+To add a batch safely:
+
+1. Check the latest snapshot build has finished. Its status must be `succeeded`, not `started` or `pending`.
+
+    ```bash
+    fly -t <concourse-target> builds -j opensearch/live-opensearch-takes-snapshot -c 1
     ```
-    s3://cloud-platform-concourse-environments-live-reports/opensearch-snapshots/source-index-list.txt
-    s3://cloud-platform-concourse-environments-live-reports/opensearch-snapshots/snapshot-restored.txt
+
+2. Download the list and check it has no unmarked lines:
+
+    ```bash
+    aws s3 cp s3://<reports-bucket>/opensearch-snapshots/source-index-list.txt source-index-list.txt
+    grep -v '^snapshot-taken-' source-index-list.txt
     ```
 
-4. Update the restore OpenSearch endpoint [here](https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/main/scripts/opensearch/snapshots/restore_snapshots/restore_snapshot.sh#L13) if needed
-5. Unpause the `live-opensearch-takes-snapshot`  and `separate-opensearch-restores-snapshot` pipeline
+3. Append the batch's index names, one per line, and check for duplicates. The second command should print nothing:
 
-    ```
-    fly -t manager unpause-job -j opensearch/live-opensearch-takes-snapshot
-    fly -t manager unpause-job -j opensearch/separate-opensearch-restores-snapshot
-    ```
-
-6. Trigger `live-opensearch-takes-snapshot` on Concourse.
-7. Wait for some batch of snapshots to complete.
-8.  Trigger `separate-opensearch-restores-snapshot` on Concourse.
-9.  Pause the pipelines once the restore is complete:
-
-    ```
-    fly -t manager pause-job -j opensearch/live-opensearch-takes-snapshot
-    fly -t manager pause-job -j opensearch/separate-opensearch-restores-snapshot
+    ```bash
+    cat batch.txt >> source-index-list.txt
+    sed 's/^snapshot-taken-//' source-index-list.txt | sort | uniq -d
     ```
 
-10. After log investigation is complete and the logs are no longer needed, clean up any temporary resources (e.g., snapshots, restored indices in the restore cluster, and snapshot tracking files on S3).
+4. Download the S3 copy again and compare. Every line of the S3 copy must still be in yours, so this should print nothing:
+
+    ```bash
+    aws s3 cp s3://<reports-bucket>/opensearch-snapshots/source-index-list.txt source-index-list.remote.txt
+    grep -Fxv -f source-index-list.txt source-index-list.remote.txt
+    ```
+
+5. Upload your copy:
+
+    ```bash
+    aws s3 cp source-index-list.txt s3://<reports-bucket>/opensearch-snapshots/source-index-list.txt
+    ```
+
+### Running a batch
+
+1. Add the batch to the source list.
+2. Run the snapshot job:
+
+    ```bash
+    fly -t <concourse-target> unpause-job -j opensearch/live-opensearch-takes-snapshot
+    fly -t <concourse-target> trigger-job -j opensearch/live-opensearch-takes-snapshot -w
+    fly -t <concourse-target> pause-job -j opensearch/live-opensearch-takes-snapshot
+    ```
+
+3. When it has succeeded, check for queued builds and then run the restore job:
+
+    ```bash
+    fly -t <concourse-target> builds -j opensearch/separate-opensearch-restores-snapshot -c 2
+    fly -t <concourse-target> unpause-job -j opensearch/separate-opensearch-restores-snapshot
+    fly -t <concourse-target> trigger-job -j opensearch/separate-opensearch-restores-snapshot -w
+    fly -t <concourse-target> pause-job -j opensearch/separate-opensearch-restores-snapshot
+    ```
+
+4. Check progress. The first command should print `0`, and the second gives the number of extracts and documents so far:
+
+    ```bash
+    aws s3 cp s3://<reports-bucket>/opensearch-snapshots/source-index-list.txt source-index-list.txt
+    aws s3 cp s3://<reports-bucket>/opensearch-snapshots/snapshot-restored.txt snapshot-restored.txt
+    grep -vc '^snapshot-taken-' source-index-list.txt
+    awk '{n++; s+=$3} END {print n" extracts, "s" documents"}' snapshot-restored.txt
+    ```
+
+The snapshot job for the next batch can run while the restore job processes the current one. They act on different domains.
+
+Avoid snapshot runs that will still be moving indices around 09:00, when `opensearch-indices-health-check` counts warm and cold indices.
+
+`trigger-job` on a paused job queues a build that starts as soon as the job is unpaused. Check for `pending` builds before unpausing. A queued build can be aborted by ID with `fly -t <concourse-target> abort-build --build <build-id>`, and may only show as aborted once the build in front of it finishes.
+
+Builds keep running on Concourse if your terminal, VPN or `fly` session drops. Log in again and use `fly -t <concourse-target> watch -j <pipeline>/<job> -b <build-number>`.
+
+### Indices that are not cold
+
+Snapshot them by hand on app-logs, naming the snapshot after the index:
+
+```
+PUT _snapshot/<snapshot-repository>/<index>
+{ "indices": "<index>", "include_global_state": false, "partial": false }
+GET _snapshot/<snapshot-repository>/<index>?filter_path=snapshots.state,snapshots.indices
+```
+
+When the state is `SUCCESS` and the snapshot contains only that index, add `snapshot-taken-<index>` to the source list and run the restore job.
+
+### Handing over
+
+1. Confirm the total. The sum of all `counts match` values must equal `GET _cat/count/<extract-prefix>*`.
+2. Confirm no full indices remain on the restore domain.
+3. Give the requester the Dashboards URL, the index pattern, the date range covered, and the days that are missing or incomplete.
+4. Ask them to tell you when they have finished, because the clean-up deletes the extracts and snapshots permanently.
+
+## Troubleshooting
+
+| Symptom | Cause | Action |
+|---|---|---|
+| `snapshot with the same name already exists` | The index was added twice, or a stale copy of the list was uploaded and its mark was lost | Check the snapshot is `SUCCESS` with only that index, mark the line `snapshot-taken-`, re-run |
+| Snapshot ends `PARTIAL` on one shard | Transient snapshot failure | The script retries. If it fails on the same shard every time, stop and investigate |
+| Index back in cold but on the wrong policy | It was not on the hold when moved, or a policy was attached during the move | Put it on the hold with `change_policy_cold.sh false apply <index>`, then mark its line |
+| Restore deletion `HTTP 400 ... snapshot_in_progress` | The restore domain's automated snapshot is copying the restored index | The script waits and retries |
+| Restore build `HTTP 403` polling a task | The task ID contains `:` | Fixed in the current script, which lists running reindex tasks instead |
+| `fly` log stream returns `401` | Local `fly` login expired. The build is still running | Run `fly -t <concourse-target> login`, then `fly watch` |
+| `fly login` asks you to paste a token | The browser blocked the local callback | Allow local network access for the Concourse site in the browser and macOS settings, or paste the whole `bearer ...` line once |
+| Dashboards login gives HTTP 500 | Stale session cookies | Clear site data for the domain and for the Auth0 tenant, or use a private window |
+| Bare domain URL gives HTTP 401 | The root path is the OpenSearch API | Use `/_dashboards` |
