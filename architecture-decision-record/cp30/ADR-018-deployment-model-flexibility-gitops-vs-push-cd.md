@@ -59,9 +59,9 @@ A framing point that addresses the core concern: **GitOps replaces the CD half, 
 - **Imperative steps need patterns.** DB migrations, one-off jobs, and dynamic secret injection require sync hooks or External Secrets rather than an inline pipeline step.
 - **Less imperative release control.** "Deploy exactly now, in this order, with this manual gate" needs extra tooling compared to a scripted pipeline.
 
-### Summary
+### Honest summary
 
-For a platform team operating a multi-tenant fleet, GitOps is the industry standard and the security and consistency benefits are strong. For an individual app team with a working, well-understood pipeline, the marginal benefit is smaller and the switching cost is front-loaded. This cost is a one-off migration expense rather than a reason to run two deployment models permanently: a single, uniform target keeps fleet-level operability simple for a small platform team. GitOps is therefore the mandated target, and the push-based path exists to smooth the transition, not to be a standing alternative.
+For a platform team operating a multi-tenant fleet, GitOps is close to industry standard and the security and consistency benefits are strong. For an individual app team with a working, well-understood pipeline, the marginal benefit is smaller and the switching cost is front-loaded. That switching cost is real, but it is a one-off migration expense rather than a reason to run two deployment models permanently: a single, uniform target keeps fleet-level operability tractable for a small platform team. GitOps is therefore the mandated target, and the push-based path exists to smooth the transition, not to be a standing alternative.
 
 ---
 

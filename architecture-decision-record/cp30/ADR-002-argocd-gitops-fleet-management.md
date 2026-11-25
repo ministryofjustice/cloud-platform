@@ -382,7 +382,7 @@ ArgoCD is enabled on a cluster via `TF_VAR_enable_argocd=true` passed at deploy 
 ## Related Decisions
 
 - **Depends On:** ADR-001 (EKS multi-cluster), ADR-004 (IAM Identity Center)
-- **Influences:** ADR-003 (KRO/ACK), ADR-015 (Environments repo structure)
+- **Influences:** ADR-003 (KRO/ACK, rejected 2026-10-23), ADR-015 (Environments repo structure)
 - **Related:** ADR-007 (DNS per cluster)
 
 ---
