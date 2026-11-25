@@ -210,7 +210,7 @@ Things the inventory can show:
 
 ### Restore domain
 
-The restore domain Terraform is removed after each restore. Recover the most recent version from the git history of `terraform/aws-accounts/cloud-platform-aws/account/` in `cloud-platform-infrastructure`, and the two Concourse jobs from the history of `pipelines/manager/main/opensearch.yaml` in `cloud-platform-terraform-concourse`. This lists files deleted from the account layer and the commits that deleted them:
+The restore domain Terraform is removed after each restore. Recover the most recent version from the git history of `terraform/aws-accounts/cloud-platform-aws/account/` in `cloud-platform-infrastructure`. The Concourse jobs are covered in [Concourse jobs](#concourse-jobs). This lists files deleted from the account layer and the commits that deleted them:
 
 ```bash
 git log --diff-filter=D --name-only --oneline -- terraform/aws-accounts/cloud-platform-aws/account/
@@ -226,6 +226,32 @@ The domain needs:
 Create the index pattern `<extract-prefix>*` (time field `@timestamp`) once, in the Global tenant.
 
 On a new domain, apply the domain first with `-target`, then do a full apply. The role and repository resources need the domain endpoint to exist.
+
+### Concourse jobs
+
+The two jobs are removed from the `opensearch` pipeline after each restore. Add both back to `pipelines/manager/main/opensearch.yaml` in `cloud-platform-terraform-concourse` before the first batch:
+
+- `live-opensearch-takes-snapshot`, which runs `take_snapshot_cold_indices.sh` against app-logs.
+- `separate-opensearch-restores-snapshot`, which runs `restore_snapshot.sh` against the restore domain.
+
+Both jobs are manual (no time trigger) and `serial: true`, and both belong in the `opensearch-app-logs` group.
+
+These pull requests hold the last working version of the jobs:
+
+- [cloud-platform-terraform-concourse#636](https://github.com/ministryofjustice/cloud-platform-terraform-concourse/pull/636) added both jobs.
+- [cloud-platform-terraform-concourse#638](https://github.com/ministryofjustice/cloud-platform-terraform-concourse/pull/638) set `MAX_BATCH` to 10 on both jobs and `STEP_TIMEOUT_SECS` to 7200 on the snapshot job.
+- [cloud-platform-terraform-concourse#643](https://github.com/ministryofjustice/cloud-platform-terraform-concourse/pull/643) removed them. Reverting it is the quickest way to add them back.
+
+The [complete job definitions](https://github.com/ministryofjustice/cloud-platform-terraform-concourse/blob/175dc1062bd9f8e744e9527f21cf343f9b75790a/pipelines/manager/main/opensearch.yaml#L140-L199) are in the pipeline file as it was before the removal.
+
+Before merging, update the parameters for the new restore:
+
+- `RESTORE_OS_ENDPOINT` on the restore job, set to `https://<restore-domain-endpoint>`.
+- `EXTRACT_NAMESPACE` and `EXTRACT_PREFIX` on the restore job. They still hold the previous request's values.
+- `MAX_BATCH` on both jobs, and `STEP_TIMEOUT_SECS` and `EXPECTED_COLD_POLICY` on the snapshot job.
+- The `tools-image` tag, which must match the rest of the pipeline.
+
+Validate the file with `fly validate-pipeline -c pipelines/manager/main/opensearch.yaml` before raising the pull request. After the merge the `bootstrap` pipeline sets the pipeline. If `bootstrap` is paused, set only the `opensearch` pipeline by hand, as described in the clean-up runbook.
 
 ### Sizing
 
