@@ -51,7 +51,7 @@ Deletion continues after the apply. `describe-domain` returns `"Deleted": true` 
 until ! aws opensearch describe-domain --no-cli-pager --profile <sso-profile> --region <aws-region> --domain-name <restore-domain-name> >/dev/null 2>&1; do date +%T; sleep 60; done; echo deleted
 ```
 
-Deleting the domain also deletes the extracts and the domain's automated snapshots.
+Deleting the domain also deletes the extracts and the domain's automated snapshots. The restore domain's dashboard URL no longer loads once the domain has gone.
 
 ## 2. Restore snapshots
 
@@ -108,7 +108,7 @@ Indices that were moved to warm and given a temporary hold policy for the restor
     GET _plugins/_ism/explain/<index>
     ```
 
-3. Delete each index by exact name with a signed `DELETE` request to `https://<app-logs-endpoint>/<index>`, and confirm a `GET` on it returns `404` afterwards.
+3. Delete each index by exact name with a signed `DELETE` request to `https://<app-logs-endpoint>/<index>`, and confirm a `GET` on it returns `404` afterwards. As a further check, a query in app-logs Discover on the dates of the deleted copies should return no hits. This only works for copies that were in warm, because indices in cold never appear in Discover.
 4. Check no hot or warm index still uses the temporary policy, then delete the policy with a signed `DELETE` request to `https://<app-logs-endpoint>/_plugins/_ism/policies/<temporary-policy>`. A `GET` on the policy should then return `404 Policy not found`.
 
 Check `legal-hold-retain` still exists:
@@ -169,7 +169,12 @@ Once the domain has gone, remove its configuration from `cloud-platform-infrastr
 - The domain's client ID secret in the Auth0 action resource and the matching check in `add-github-teams-to-opensearch-saml.js`.
 - Any restore domain notes in `scripts/opensearch/snapshots/README.md`.
 
-The plan should not destroy anything. It updates the snapshot role trust policy and the Auth0 action in place. After the apply, log in to each dashboard (app-logs, live-2 app-logs and modsec) and open Discover.
+The plan should not destroy anything. It updates the snapshot role trust policy and the Auth0 action in place.
+
+The Auth0 action runs on every login to app-logs, live-2 app-logs and modsec. A mistake in it can block access to all three for everyone. After the apply, log in to each dashboard and confirm that:
+
+- Login completes without "Missing Role" or an error.
+- Discover opens with the usual index patterns and shows recent logs.
 
 ## 6. Lift the legal hold
 
