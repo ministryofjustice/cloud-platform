@@ -1,9 +1,9 @@
 ---
-title: Incident on 2026-11-25 - prototype-rce-blocking-outage
+title: Incident on 2026-11-25 - prototype-rce-blocking-disruption
 weight: 1
 ---
 
-# Incident on 2026-11-25 - Outage due to Modsec Rules Put In To Block GOV.UK Prototype RCE Vulnerability
+# Incident on 2026-11-25 - Service Disruption due to Modsec Rules Put In To Block GOV.UK Prototype RCE Vulnerability
 
 ## Key events
   - Disruption started 2026-11-25 17:03
@@ -26,14 +26,14 @@ weight: 1
   1. Block `/plugin-assets/govuk-prototype-kit` at the ingress level.
   2. Apply a global ModSecurity rule for services using the ModSecurity ingress controllers.
 
-  Both mitigations were initially implemented in [PR 195 - Block Manage Prototype](https://github.com/ministryofjustice/cloud-platform-terraform-ingress-controller/pull/195). The rollout of the mitigation subsequently caused an outage.
+  Both mitigations were initially implemented in [PR 195 - Block Manage Prototype](https://github.com/ministryofjustice/cloud-platform-terraform-ingress-controller/pull/195). The rollout of the mitigation subsequently caused an disruption.
   
   A corrected configuration was later implemented in [PR 196 - Fix ModSecurity rule for GOV.UK Prototype Kit](https://github.com/ministryofjustice/cloud-platform-terraform-ingress-controller/pull/196)
 
 ## Impact
   Services using affected ModSecurity ingress controllers experienced disruption following deployment of the mitigation. Development teams reported certificate warnings and users were unable to access affected services. The issue was caused by ingress controller configuration failures resulting from a duplicate ModSecurity rule ID. Because of this, the modsec ingress controller configuration was not successfully loaded resulting in the disruption to services.  Only services using the modsec ingress controller were impacted, other serivces continued to be accessible.
 
-  There is no evidence that the GOV.UK Prototype Kit vulnerability was exploited. The outage was caused by deployment of the mitigation rather than exploitation of the vulnerability itself.
+  There is no evidence that the GOV.UK Prototype Kit vulnerability was exploited. The disruption was caused by deployment of the mitigation rather than exploitation of the vulnerability itself.
 
 ## Timeline
 
@@ -58,7 +58,7 @@ weight: 1
 
 ## Root cause
 
-The outage was caused by a duplicate ModSecurity rule ID being loaded into the ingress controller configuration.
+The service disruption was caused by a duplicate ModSecurity rule ID being loaded into the ingress controller configuration.
 
 The following error was observed in the ModSecurity ingress controller logs shortly after the mitigation rollout:
 
@@ -104,13 +104,13 @@ During the incident, users reported certificate warnings when accessing services
 Hostname/IP does not match certificate's altnames: Host: sign-in.hmpps.service.justice.gov.uk. is not in the cert's altnames: DNS:*.apps.cloud-platform.service.justice.gov.uk, DNS:*.apps.live-1.cloud-platform.service.justice.gov.uk, DNS:*.apps.live.c...
 ```
 
-Initially this appeared related to the outage because users were also reporting certificate errors.
+Initially this appeared related to the disruption because users were also reporting certificate errors.
 
 Further investigation determined that:
 
 - The log message was present before the mitigation rollout.
 - The log message continued after rollback and successful deployment of the corrected mitigation.
-- There was no evidence linking this message to the outage.
+- There was no evidence linking this message to the disruption.
 
 The message is therefore considered unrelated to the incident despite appearing consistent with the symptoms being reported.
 
