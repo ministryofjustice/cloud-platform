@@ -1,0 +1,132 @@
+---
+title: Incident on 2026-11-25 - prototype-rce-blocking-disruption
+weight: 1
+---
+
+# Incident on 2026-11-25 - Service Disruption due to Modsec Rules Put In To Block GOV.UK Prototype RCE Vulnerability
+
+## Key events
+  - Disruption started 2026-11-25 17:03
+  - Disruption detected 2026-11-25 17:03
+  - Cloud Platform team announced that they were rolling back the ingress changes 2026-11-25 17:11
+  - Rollback completed 2026-11-25 17:29
+  - Fixed version applied to non-production 2026-11-25 18:19
+  - Fixed version applied to production 2026-11-25 18:49
+
+## Identified
+  Via user reports and Cloud Platform engineer investigation of ingress controller logs.
+
+## Background
+  A Remote Code Execution (RCE) vulnerability was identified affecting the GOV.UK Prototype Kit, which is used by multiple teams to develop and host application prototypes.
+
+  The vulnerability was reported through [Wiz finding (wct-id-3959)](https://app.wiz.io/issues?filters={%22risk%22%3A{%22includesAny%22%3A[%22wct-id-3959%22]}}) and the CP team created [issue 187 in the CP backlog](https://github.com/ministryofjustice/cloud-platform-security-issues/issues/187).
+
+  Two potential mitigations were identified and the CP team worked on implementing them:
+
+  1. Block `/plugin-assets/govuk-prototype-kit` at the ingress level.
+  2. Apply a global ModSecurity rule for services using the ModSecurity ingress controllers.
+
+  Both mitigations were initially implemented in [PR 195 - Block Manage Prototype](https://github.com/ministryofjustice/cloud-platform-terraform-ingress-controller/pull/195). The rollout of the mitigation subsequently caused an disruption.
+  
+  A corrected configuration was later implemented in [PR 196 - Fix ModSecurity rule for GOV.UK Prototype Kit](https://github.com/ministryofjustice/cloud-platform-terraform-ingress-controller/pull/196)
+
+## Impact
+  Services using affected ModSecurity ingress controllers experienced disruption following deployment of the mitigation. Development teams reported certificate warnings and users were unable to access affected services. The issue was caused by ingress controller configuration failures resulting from a duplicate ModSecurity rule ID. Because of this, the modsec ingress controller configuration was not successfully loaded resulting in the disruption to services.  Only services using the modsec ingress controller were impacted, other serivces continued to be accessible.
+
+  There is no evidence that the GOV.UK Prototype Kit vulnerability was exploited. The disruption was caused by deployment of the mitigation rather than exploitation of the vulnerability itself.
+
+## Timeline
+
+| Time | Event |
+|------|--------|
+| 11:52 | Security issue raised and escalated in `#cloud-platform`: [Blocking access to manage-prototype within CP](https://github.com/ministryofjustice/cloud-platform-security-issues/issues/187). |
+| 12:18 | Cloud Engineers joined a call to assess and implement mitigations. |
+| 12:18 | Two mitigations identified: blocking `/plugin-assets/govuk-prototype-kit` at ingress level and implementing a global ModSecurity rule for services using ModSecurity ingress controllers. |
+| 12:18 - 16:08 | Mitigations implemented in code. Problems were experienced creating test clusters which were needed for testing. |
+| 16:08 | Integration [test run 270](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/custom-cluster/jobs/custom-integration-tests/builds/270) did not detect any problems and the tests passed. | 
+| 16:52 | RCE mitigation ([cloud-platform-infrastructure PR #4808](https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/4808)) rolled out to all ingress controllers with [Concourse build 495](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-apply-infra-live/builds/495). |
+| 16:56 | Cloud Platform team [announced on Slack](https://mojdt.slack.com/archives/CH6D099DF/p1795625792162749) that they were taking action to block vulnerable paths. |
+| 17:00 | Rollout restart to ModSec started. |
+| 17:03 | Rollout restart to ModSec completed. |
+| 17:03 | Cloud Platform Pingdom alert received - Modsec NGINX Config Reload Failure Warning. |
+| 17:03 | Development teams started reporting problems with their services, manifesting as certificate warnings that prevented users from accessing affected services. Development teams were also receiving Pingdom alerts for their services. |
+| 17:11 | Cloud Platform team [announced on Slack](https://mojdt.slack.com/archives/CH6D099DF/p1795626713321769?thread_ts=1795625792.162749&cid=CH6D099DF) that they were rolling back the ingress changes. |
+| 17:29 | RCE mitigation rolled back ([cloud-platform-infrastructure PR #4809](https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/4809)) with [Concourse build 496](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-apply-infra-live/builds/496). |
+| 18:19 | Fixed RCE mitigation applied to non-production modsec ingress controllers [cloud-platform-infrastructure PR #4810](https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/4810) with [Concourse build 497](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-apply-infra-live/builds/497). |
+| 18:49 | Fixed RCE mitigation applied to production modsec ingress controllers [cloud-platform-infrastructure PR #4811](https://github.com/ministryofjustice/cloud-platform-infrastructure/pull/4811) with [Concourse build 498](https://concourse.cloud-platform.service.justice.gov.uk/teams/main/pipelines/infrastructure-live/jobs/terraform-apply-infra-live/builds/498). |
+| 19:35 | Cloud Platform team [announced on Slack](https://mojdt.slack.com/archives/CH6D099DF/p1795635350894379?thread_ts=1795625792.162749&cid=CH6D099DF) that the fixed mitigation had been implemented across all ingress controllers. |
+
+## Root cause
+
+The service disruption was caused by a duplicate ModSecurity rule ID being loaded into the ingress controller configuration.
+
+The following error was observed in the ModSecurity ingress controller logs shortly after the mitigation rollout:
+
+```text
+Error: exit status 1
+2026/11/25 17:03:28 [notice] 365#365: ModSecurity-nginx v1.0.4 (rules loaded inline/local/remote: 2059/840/0)
+2026/11/25 17:03:28 [notice] 365#365: libmodsecurity3 version 3.0.17
+2026/11/25 17:03:28 [emerg] 365#365: "return" directive Rule id: 1100101 is duplicated
+ in /tmp/nginx/nginx-cfg1376883494:484833
+nginx: [emerg] "return" directive Rule id: 1100101 is duplicated
+ in /tmp/nginx/nginx-cfg1376883494:484833
+nginx: configuration file /tmp/nginx/nginx-cfg1376883494 test failed
+```
+
+The duplicate rule prevented NGINX from successfully validating and loading its configuration, causing ingress controller failures.
+
+The possibility of duplicate rule IDs had been considered during development of the mitigation. However, validation focused on the Cloud Platform-managed ModSecurity configuration and did not account for rules defined by application teams.
+
+Following investigation, the duplicate rule ID (`1100101`) was found to exist in application-managed ingress configuration.
+
+The rule ID was subsequently identified in [laa-record-controlled-work-api staging values](https://github.com/ministryofjustice/laa-record-controlled-work-api/blob/main/helm/values/staging.yml). Although the rule appears commented out in the repository, the same rule ID was present in a live ingress configuration.
+
+The duplicate could be identified in the cluster using:
+
+```bash
+kubectl get configmap -A -o json | jq -r '.items[] | select(tostring | contains("1100101")) | "\(.metadata.namespace)/\(.metadata.name)"'
+```
+
+## Production-specific behaviour
+
+During the investigation there was initially some confusion around why the corrected mitigation could be successfully deployed to non-production ingress controllers but the original deployment had failed.
+
+The root cause was that the conflicting ModSecurity rule only existed on a production ingress controller. As a result:
+
+- The duplicate rule ID was not encountered during deployment to non-production ingress controllers.
+- The duplicate rule ID only manifested when the mitigation was applied to production ingress controllers.
+
+## Certificate Errors
+
+During the incident, users reported certificate warnings when accessing services, and the Cloud Platform team observed the following message in ingress controller logs:
+
+```text
+Hostname/IP does not match certificate's altnames: Host: sign-in.hmpps.service.justice.gov.uk. is not in the cert's altnames: DNS:*.apps.cloud-platform.service.justice.gov.uk, DNS:*.apps.live-1.cloud-platform.service.justice.gov.uk, DNS:*.apps.live.c...
+```
+
+Initially this appeared related to the disruption because users were also reporting certificate errors.
+
+Further investigation determined that:
+
+- The log message was present before the mitigation rollout.
+- The log message continued after rollback and successful deployment of the corrected mitigation.
+- There was no evidence linking this message to the disruption.
+
+The message is therefore considered unrelated to the incident despite appearing consistent with the symptoms being reported.
+
+## Resolution
+  The initial mitigation was rolled back. Investigation identified a duplicate ModSecurity rule ID conflict causing ingress controller configuration validation failures.
+
+  A corrected version of the mitigation using a non-conflicting rule ID was deployed to non-production ingress controllers before being promoted to production ingress controllers. Following deployment of the corrected mitigation, service was restored.
+
+## Review actions
+
+  1. Investigate implementation of automated detection of duplicate ModSecurity rule IDs in Cloud Platform CI/CD pipelines.
+  2. Investigate integration testing that validates the rendered ingress configuration prior to deployment.
+  3. Validate rule uniqueness independently for production and non-production ingress configurations.
+  4. Review why users are not using non-prod modsec controllers, encourage use where possible. Note we won't enforce this as users need flexibility in choosing which modsec controller to use. 
+  5. Investigate the certificate-altname ingress log message and determine whether it should be suppressed, reduced in verbosity, or documented as an expected benign condition.
+  6. Document lessons learned and validation checks for future emergency security mitigation deployments.
+  7. Ensure future service-impacting events are formally declared as incidents. Although an incident was not declared on this occasion, the event met the definition of an incident because end-users were unable to access services.
+  8. Investigate why test clusters hang on creation
+  9. Consider archiving [moj-prototype-template](https://github.com/ministryofjustice/moj-prototype-template/) repository.
